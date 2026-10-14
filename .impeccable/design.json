@@ -1,0 +1,316 @@
+{
+  "generatedAt": "2026-10-13T15:01:19.2901637Z",
+  "title": "Design System: KATALIS ERP",
+  "narrative": {
+    "overview": "The incumbent navy, ocean blue, teal, and Plus Jakarta Sans form the visual identity. The system gives plain-language operational explanations enough space to read during a presentation. Flat diagrams and tonal surfaces connect a risk, a system mechanism, and information the team can see.",
+    "donts": [
+      "Don't present proposed features as an installed system.",
+      "Don't substitute miniature application chrome for a readable explanation.",
+      "Don't claim exports match the localhost redesign until they are rebuilt and reviewed."
+    ],
+    "keyCharacteristics": [
+      "One message per slide.",
+      "Semibold titles and feature headings; regular explanations and footnotes.",
+      "Flat comparisons and process diagrams.",
+      "Examples and proposed features remain labelled."
+    ],
+    "rules": [],
+    "dos": [
+      "Do retain the incumbent palette and font.",
+      "Do show what a team records, what happens next, and what they can inspect.",
+      "Do label examples, assumptions, proposed features, and commercial estimates."
+    ]
+  },
+  "extensions": {
+    "typographyMeta": {
+      "headline": {
+        "purpose": "General slide titles.",
+        "displayName": "Headline"
+      },
+      "body": {
+        "purpose": "Plain-language explanations.",
+        "displayName": "Body"
+      },
+      "label": {
+        "purpose": "Source and scope footers.",
+        "displayName": "Label"
+      },
+      "display": {
+        "purpose": "Opening and closing headlines.",
+        "displayName": "Display"
+      }
+    },
+    "colorMeta": {
+      "ocean": {
+        "role": "primary",
+        "tonalRamp": [
+          "oklch(15% 0.1066 239.2)",
+          "oklch(26% 0.1066 239.2)",
+          "oklch(38% 0.1066 239.2)",
+          "oklch(49% 0.1066 239.2)",
+          "oklch(61% 0.1066 239.2)",
+          "oklch(72% 0.1066 239.2)",
+          "oklch(84% 0.1066 239.2)",
+          "oklch(95% 0.1066 239.2)"
+        ],
+        "displayName": "ocean"
+      },
+      "teal": {
+        "role": "secondary",
+        "tonalRamp": [
+          "oklch(15% 0.0954 190.3)",
+          "oklch(26% 0.0954 190.3)",
+          "oklch(38% 0.0954 190.3)",
+          "oklch(49% 0.0954 190.3)",
+          "oklch(61% 0.0954 190.3)",
+          "oklch(72% 0.0954 190.3)",
+          "oklch(84% 0.0954 190.3)",
+          "oklch(95% 0.0954 190.3)"
+        ],
+        "displayName": "teal"
+      },
+      "navy": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0525 249.5)",
+          "oklch(26% 0.0525 249.5)",
+          "oklch(38% 0.0525 249.5)",
+          "oklch(49% 0.0525 249.5)",
+          "oklch(61% 0.0525 249.5)",
+          "oklch(72% 0.0525 249.5)",
+          "oklch(84% 0.0525 249.5)",
+          "oklch(95% 0.0525 249.5)"
+        ],
+        "displayName": "navy"
+      },
+      "navy-deep": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0578 247.4)",
+          "oklch(26% 0.0578 247.4)",
+          "oklch(38% 0.0578 247.4)",
+          "oklch(49% 0.0578 247.4)",
+          "oklch(61% 0.0578 247.4)",
+          "oklch(72% 0.0578 247.4)",
+          "oklch(84% 0.0578 247.4)",
+          "oklch(95% 0.0578 247.4)"
+        ],
+        "displayName": "navy deep"
+      },
+      "paper": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0025 228.8)",
+          "oklch(26% 0.0025 228.8)",
+          "oklch(38% 0.0025 228.8)",
+          "oklch(49% 0.0025 228.8)",
+          "oklch(61% 0.0025 228.8)",
+          "oklch(72% 0.0025 228.8)",
+          "oklch(84% 0.0025 228.8)",
+          "oklch(95% 0.0025 228.8)"
+        ],
+        "displayName": "paper"
+      },
+      "muted": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0207 242.9)",
+          "oklch(26% 0.0207 242.9)",
+          "oklch(38% 0.0207 242.9)",
+          "oklch(49% 0.0207 242.9)",
+          "oklch(61% 0.0207 242.9)",
+          "oklch(72% 0.0207 242.9)",
+          "oklch(84% 0.0207 242.9)",
+          "oklch(95% 0.0207 242.9)"
+        ],
+        "displayName": "muted"
+      },
+      "low": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0059 239.8)",
+          "oklch(26% 0.0059 239.8)",
+          "oklch(38% 0.0059 239.8)",
+          "oklch(49% 0.0059 239.8)",
+          "oklch(61% 0.0059 239.8)",
+          "oklch(72% 0.0059 239.8)",
+          "oklch(84% 0.0059 239.8)",
+          "oklch(95% 0.0059 239.8)"
+        ],
+        "displayName": "low"
+      },
+      "ice": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0311 237.6)",
+          "oklch(26% 0.0311 237.6)",
+          "oklch(38% 0.0311 237.6)",
+          "oklch(49% 0.0311 237.6)",
+          "oklch(61% 0.0311 237.6)",
+          "oklch(72% 0.0311 237.6)",
+          "oklch(84% 0.0311 237.6)",
+          "oklch(95% 0.0311 237.6)"
+        ],
+        "displayName": "ice"
+      },
+      "aqua": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0378 188.3)",
+          "oklch(26% 0.0378 188.3)",
+          "oklch(38% 0.0378 188.3)",
+          "oklch(49% 0.0378 188.3)",
+          "oklch(61% 0.0378 188.3)",
+          "oklch(72% 0.0378 188.3)",
+          "oklch(84% 0.0378 188.3)",
+          "oklch(95% 0.0378 188.3)"
+        ],
+        "displayName": "aqua"
+      },
+      "border": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0139 241)",
+          "oklch(26% 0.0139 241)",
+          "oklch(38% 0.0139 241)",
+          "oklch(49% 0.0139 241)",
+          "oklch(61% 0.0139 241)",
+          "oklch(72% 0.0139 241)",
+          "oklch(84% 0.0139 241)",
+          "oklch(95% 0.0139 241)"
+        ],
+        "displayName": "border"
+      },
+      "caution": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0439 85.2)",
+          "oklch(26% 0.0439 85.2)",
+          "oklch(38% 0.0439 85.2)",
+          "oklch(49% 0.0439 85.2)",
+          "oklch(61% 0.0439 85.2)",
+          "oklch(72% 0.0439 85.2)",
+          "oklch(84% 0.0439 85.2)",
+          "oklch(95% 0.0439 85.2)"
+        ],
+        "displayName": "caution"
+      },
+      "caution-text": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0989 72.2)",
+          "oklch(26% 0.0989 72.2)",
+          "oklch(38% 0.0989 72.2)",
+          "oklch(49% 0.0989 72.2)",
+          "oklch(61% 0.0989 72.2)",
+          "oklch(72% 0.0989 72.2)",
+          "oklch(84% 0.0989 72.2)",
+          "oklch(95% 0.0989 72.2)"
+        ],
+        "displayName": "caution text"
+      },
+      "white": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0 89.9)",
+          "oklch(26% 0 89.9)",
+          "oklch(38% 0 89.9)",
+          "oklch(49% 0 89.9)",
+          "oklch(61% 0 89.9)",
+          "oklch(72% 0 89.9)",
+          "oklch(84% 0 89.9)",
+          "oklch(95% 0 89.9)"
+        ],
+        "displayName": "white"
+      },
+      "focus": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.0633 189.8)",
+          "oklch(26% 0.0633 189.8)",
+          "oklch(38% 0.0633 189.8)",
+          "oklch(49% 0.0633 189.8)",
+          "oklch(61% 0.0633 189.8)",
+          "oklch(72% 0.0633 189.8)",
+          "oklch(84% 0.0633 189.8)",
+          "oklch(95% 0.0633 189.8)"
+        ],
+        "displayName": "focus"
+      }
+    },
+    "breakpoints": [
+      {
+        "value": "640px",
+        "name": "controls-compact"
+      },
+      {
+        "value": "768px",
+        "name": "overview-three-columns"
+      },
+      {
+        "value": "1280px",
+        "name": "overview-four-columns"
+      }
+    ],
+    "shadows": [
+      {
+        "purpose": "Structural separation outside the slide canvas.",
+        "name": "viewer-canvas",
+        "value": "0 20px 60px rgba(0,0,0,.45)"
+      }
+    ],
+    "motion": [
+      {
+        "purpose": "Slide entry; disabled for reduced motion.",
+        "name": "slide-fade",
+        "value": "280ms ease-out"
+      },
+      {
+        "purpose": "Viewer opacity and progress changes; disabled for reduced motion.",
+        "name": "control-transition",
+        "value": "300ms"
+      }
+    ]
+  },
+  "components": [
+    {
+      "html": "<div class='ds-panel'>Catat ikan diterima</div>",
+      "name": "Process panel",
+      "refersTo": "flow-panel",
+      "kind": "card",
+      "css": ".ds-panel{background:#D0E6F5;color:#10283F;border-radius:8px;padding:22px;font:400 24px/1.25 'Plus Jakarta Sans',system-ui,sans-serif;}",
+      "description": "Tonal grouping used in slide explanations."
+    },
+    {
+      "html": "<div class='ds-panel'>Periksa hasilnya</div>",
+      "name": "Outcome panel",
+      "refersTo": "outcome-panel",
+      "kind": "card",
+      "css": ".ds-panel{background:#C9EDE9;color:#10283F;border-radius:8px;padding:22px;font:400 24px/1.25 'Plus Jakarta Sans',system-ui,sans-serif;}",
+      "description": "Tonal grouping used in slide explanations."
+    },
+    {
+      "html": "<div class='ds-panel'>Yang ingin dihindari</div>",
+      "name": "Risk panel",
+      "refersTo": "risk-panel",
+      "kind": "card",
+      "css": ".ds-panel{background:#F6E7C8;color:#10283F;border-radius:8px;padding:22px;font:400 24px/1.25 'Plus Jakarta Sans',system-ui,sans-serif;}",
+      "description": "Tonal grouping used in slide explanations."
+    },
+    {
+      "html": "<div class='ds-surround'><button class='ds-control'>Ringkasan</button></div>",
+      "name": "Viewer control",
+      "description": "Navigation on the dark presentation surround.",
+      "css": ".ds-surround{background:#0b1b2b;padding:16px}.ds-control{background:rgba(255,255,255,.1);color:#cbd5e1;border:0;border-radius:6px;padding:6px 12px;font:400 14px 'Plus Jakarta Sans',system-ui,sans-serif}.ds-control:hover{background:rgba(255,255,255,.2)}.ds-control:focus-visible{outline:3px solid #9fddd8;outline-offset:3px}.ds-control:disabled{opacity:.3}",
+      "kind": "button"
+    },
+    {
+      "html": "<table class='ds-ledger'><thead><tr><th>Tagihan contoh</th><th>Status</th></tr></thead><tbody><tr><td>Tagihan 001</td><td>Jatuh tempo hari ini</td></tr></tbody></table>",
+      "name": "Ledger",
+      "description": "Compact comparison with navy header and tonal record.",
+      "css": ".ds-ledger{border-collapse:collapse;color:#10283F;font:400 20px/1.25 'Plus Jakarta Sans',system-ui,sans-serif}.ds-ledger th{background:#10283F;color:white;font-weight:400}.ds-ledger td{background:#F1F5F8}.ds-ledger th,.ds-ledger td{text-align:left;padding:16px}",
+      "kind": "custom"
+    }
+  ],
+  "schemaVersion": 2
+}

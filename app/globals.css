@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #10283f;
+  --ocean: #176d9c;
+  --teal: #178c87;
+  --offwhite: #f7f9fb;
+  --charcoal: #17212b;
+}
+html, body { margin: 0; height: 100%; background: #0d0d0d; color: var(--charcoal); font-family: "Google Sans", "Product Sans", system-ui, sans-serif; font-weight: 400; -webkit-font-smoothing: antialiased; }
+.slide-text { box-sizing: border-box; white-space: pre-wrap; overflow-wrap: break-word; }
+.mono { font-family: inherit; }
+button:focus-visible, a:focus-visible { outline: 3px solid #9fddd8; outline-offset: 3px; }
+::selection { background: #c9ede9; color: #10283f; }
+@media (prefers-reduced-motion: reduce) {
+  .deck-fade { animation: none !important; }
+  .transition-opacity, .transition-\[width\] { transition: none !important; }
+}
+@media (max-width: 640px) {
+  .deck-controls { gap: 8px; padding-inline: 8px; font-size: 11px; }
+  .deck-controls button, .deck-controls a { padding: 8px; min-height: 40px; }
+  .deck-controls .shortcut { display: none; }
+}
+@media print {
+  @page { size: 1920px 1080px; margin: 0; }
+  html, body { background: #fff; }
+  .print-slide { page-break-after: always; break-after: page; }
+  .print-slide:last-child { page-break-after: auto; break-after: auto; }
+}
