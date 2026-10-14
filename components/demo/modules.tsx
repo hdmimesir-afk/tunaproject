@@ -562,7 +562,7 @@ export function Jadwal() {
   const prod = s.bookings.filter((b) => b.kind === "Produksi");
   const abf = s.bookings.filter((b) => b.kind === "ABF");
   const clash = abf.filter(conflict);
-  const colorOf = (b: Booking) => (conflict(b) ? "#E0524A" : b.kind === "ABF" ? "#8E6BC4" : b.who.includes("DUS") ? INK : "#0E5C46");
+  const colorOf = (b: Booking) => (conflict(b) ? "#E0524A" : b.kind === "ABF" ? "#8E6BC4" : b.who.includes("DUS") ? INK : "#003459");
   const total = prod.reduce((a, b) => a + b.kg, 0);
   const LABEL = compact ? 56 : 92;
   const x = (h: number) => `${((h - 8) / 9) * 100}%`;
@@ -601,7 +601,7 @@ export function Jadwal() {
       <Card title="Minggu Ini">
         <div className="rounded-[20px] bg-white p-3.5">
           <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.5px]" style={{ color: MUTED }}>
-            {([["CV DUS", INK], ["PT SNS", "#0E5C46"], ["ABF", "#8E6BC4"], ["Bentrok", "#E0524A"]] as [string, string][]).map(([l, c]) => <span key={l} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />{l}</span>)}
+            {([["CV DUS", INK], ["PT SNS", "#003459"], ["ABF", "#8E6BC4"], ["Bentrok", "#E0524A"]] as [string, string][]).map(([l, c]) => <span key={l} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />{l}</span>)}
           </div>
           <div className="flex" style={{ paddingLeft: LABEL }}>
             <div className="relative h-5 flex-1 text-[10.5px]" style={{ color: MUTED }}>

@@ -3,7 +3,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { launch } from "./browser";
 
 export const ICONS = ["layout-dashboard", "circle-check", "bell", "lock", "tag", "snowflake", "receipt-text", "calendar-clock", "trending-down", "file-signature", "truck", "scale", "wallet", "check", "triangle-alert", "clock", "smartphone", "monitor", "arrow-right", "users", "shield-check", "shopping-cart", "factory", "package", "flask-conical", "chart-column", "circle-dollar-sign", "layers", "fish", "sparkles", "message-circle", "flag"];
-const COLORS: Record<string, string> = { ink: "#14201B", green: "#0E5C46", mint: "#12A676", white: "#FFFFFF", amber: "#C98A1B", red: "#B4443C", gray: "#7C867F" };
+const COLORS: Record<string, string> = { ink: "#00171F", green: "#003459", mint: "#1B7FC4", white: "#FFFFFF", amber: "#C98A1B", red: "#B4443C", gray: "#7F909A" };
 
 async function main() {
   mkdirSync("public/icons", { recursive: true });

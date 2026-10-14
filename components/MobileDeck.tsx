@@ -8,22 +8,20 @@ import { slides } from "@/data/slides";
  * Not a scaled-down slide: every slide is re-composed as a full-screen vertical card with big type,
  * short points, native charts and real demo screenshots.  Same order and numbers as the slide deck.
  */
-const GREEN = "#12A676", DEEP = "#0E5C46", INK = "#1F2A26", MUTED = "#5E6B66", PAPER = "#FAF9F6", SOFT = "#F0EFE9";
-const SECTION_TITLES = ["Cover", "Ringkasan", "Ongkos kirim", "Hasil tiap ekor", "Sisa olahan", "Gudang dingin", "Jadwal", "Keuangan", "Dashboard Owner", "Aplikasi ponsel", "Asisten AI", "Paket", "Jadwal kerja", "Penutup"];
-const DARK_CARDS = new Set([0, 13]);
+const GREEN = "#1B7FC4", DEEP = "#003459", INK = "#00171F", MUTED = "#4B5E69", PAPER = "#F6F9FB", SOFT = "#EAF0F4";
+const SECTION_TITLES = ["Cover", "Ringkasan", "Ongkos kirim", "Hasil tiap ekor", "Sisa olahan", "Gudang dingin", "Jadwal", "Keuangan", "Dashboard Owner", "Aplikasi ponsel", "Peran", "Asisten AI", "Paket", "Jadwal kerja", "Penutup"];
+const DARK_CARDS = new Set([0, 14]);
 
-const DEMOS = [
-  { href: "/demo", label: "Demo ponsel", hint: "Aplikasi ponsel interaktif" },
-  { href: "/demo/desktop", label: "Demo desktop", hint: "Semua modul dan laporan" },
-  { href: "/demo/live", label: "Demo berdampingan", hint: "Desktop dan ponsel sinkron" },
-];
+/** Only the phone demo is offered here. It opens full screen, like a native app, on top of the pitch. */
+const DEMOS = [{ href: "/demo", label: "Coba aplikasi di ponsel", hint: "Layar penuh seperti aplikasi" }];
+const openDemo = () => window.dispatchEvent(new Event("open-demo"));
 
 /* ---------------------------------------------------------------- pieces */
 const Tag = ({ children, dark }: { children: React.ReactNode; dark?: boolean }) => {
   const problem = typeof children === "string" && children.startsWith("Masalah");
   return (
   <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: dark ? "rgba(255,255,255,.16)" : "#fff", color: dark ? "#fff" : DEEP, boxShadow: dark ? "none" : "0 1px 2px rgba(20,30,25,.08)" }}>
-    <span className="h-2 w-2 rounded-full" style={{ background: dark ? "#CFF3E5" : problem ? "#C98A1B" : GREEN }} />{children}
+    <span className="h-2 w-2 rounded-full" style={{ background: dark ? "#CFE0EE" : problem ? "#C98A1B" : GREEN }} />{children}
   </span>
   );
 };
@@ -47,11 +45,11 @@ const Dot = ({ children, sub }: { children: React.ReactNode; sub?: string }) => 
 const Bar = ({ l, p, v, hot }: { l: string; p: number; v: string; hot?: boolean }) => (
   <div>
     <div className="mb-1.5 flex justify-between text-[13.5px]"><span className="font-semibold">{l}</span><span style={{ color: MUTED }}>{v}</span></div>
-    <div className="h-2.5 rounded-full" style={{ background: "#E7E6DF" }}><div className="h-2.5 rounded-full" style={{ width: `${Math.max(3, p)}%`, background: hot ? "#D9902B" : GREEN }} /></div>
+    <div className="h-2.5 rounded-full" style={{ background: "#E1E8ED" }}><div className="h-2.5 rounded-full" style={{ width: `${Math.max(3, p)}%`, background: hot ? "#D9902B" : GREEN }} /></div>
   </div>
 );
 const Pill = ({ t, k = "g" }: { t: string; k?: "g" | "a" | "r" | "b" | "n" }) => {
-  const m = { g: ["#DDF3E8", "#0B6B4A"], a: ["#FBF0D5", "#8A5A00"], r: ["#FBE5E3", "#A8322B"], b: ["#E4EEFB", "#2D5F9A"], n: ["#ECEBE6", "#5E6B66"] }[k];
+  const m = { g: ["#E3EDF5", "#0A4D80"], a: ["#FBF0D5", "#8A5A00"], r: ["#FBE5E3", "#A8322B"], b: ["#E4EEFB", "#2D5F9A"], n: ["#E8EEF2", "#4B5E69"] }[k];
   return <span className="inline-flex shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: m[0], color: m[1] }}>{t}</span>;
 };
 function Zoomable({ src, alt }: { src: string; alt: string }) {
@@ -78,17 +76,15 @@ function Zoomable({ src, alt }: { src: string; alt: string }) {
 const Shot = ({ src, cap }: { src: string; cap: string }) => (
   <figure className="w-[196px] shrink-0 snap-center">
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={src} alt={cap} className="w-full" style={{ boxShadow: "0 10px 24px rgba(20,30,25,.22)", border: "4px solid #111214", borderRadius: 26 }} />
+    <img src={src} alt={cap} className="w-full" style={{ boxShadow: "0 10px 24px rgba(20,30,25,.22)", border: "4px solid #00171F", borderRadius: 26 }} />
     <figcaption className="mt-2 text-center text-[12px] font-semibold" style={{ color: MUTED }}>{cap}</figcaption>
   </figure>
 );
-const DemoBtns = ({ list, dark }: { list: typeof DEMOS; dark?: boolean }) => (
-  <div className="mt-5 grid gap-2">
-    {list.map((d) => (
-      <a key={d.href} href={d.href} className="flex items-center justify-between rounded-2xl px-4 py-3 active:scale-[0.98]" style={{ background: dark ? "#fff" : GREEN, color: dark ? DEEP : "#fff" }}>
-        <span><span className="block text-[15px] font-bold">▶ {d.label}</span><span className="text-[12px] opacity-80">{d.hint}</span></span><span className="text-xl">›</span>
-      </a>
-    ))}
+const DemoBtns = ({ dark }: { list?: unknown; dark?: boolean }) => (
+  <div className="mt-5">
+    <button type="button" onClick={openDemo} className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left active:scale-[0.98]" style={{ background: dark ? "#fff" : GREEN, color: dark ? DEEP : "#fff" }}>
+      <span><span className="block text-[15px] font-bold">▶ {DEMOS[0].label}</span><span className="text-[12px] opacity-80">{DEMOS[0].hint}</span></span><span className="text-xl">›</span>
+    </button>
   </div>
 );
 const Section = ({ id, bg = PAPER, children, dark }: { id: number; bg?: string; children: React.ReactNode; dark?: boolean }) => (
@@ -100,7 +96,7 @@ function Solusi({ modul, points }: { modul: string; points: string[] }) {
   return (
     <div className="mt-4 rounded-[22px] p-4 text-white" style={{ background: DEEP }}>
       <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-white/80"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[11px]">✓</span>Solusi di KATALIS ERP · {modul}</div>
-      <ul className="mt-2.5 space-y-1.5">{points.map((t) => <li key={t} className="flex gap-2 text-[14px] font-semibold leading-snug"><span className="text-[#9BE7C8]">✓</span>{t}</li>)}</ul>
+      <ul className="mt-2.5 space-y-1.5">{points.map((t) => <li key={t} className="flex gap-2 text-[14px] font-semibold leading-snug"><span className="text-[#A9CFEA]">✓</span>{t}</li>)}</ul>
     </div>
   );
 }
@@ -121,7 +117,7 @@ function Cards() {
   return (
     <>
 {/* 1 cover */}
-      <Section id={0} bg={GREEN} dark>
+      <Section id={0} bg={DEEP} dark>
         <div className="flex min-h-[calc(100dvh-11rem)] flex-col justify-between">
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -129,7 +125,8 @@ function Cards() {
             <p className="mt-5 text-[15px] font-semibold text-white/90">Disiapkan untuk PT Katalis Lintas Global · Oktober 2026</p>
           </div>
           <div>
-            <h1 className="text-[50px] font-extrabold leading-[0.95] tracking-tight">KATALIS<br />ERP.</h1>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <h1><img src="/brand/katalis-erp-wordmark.png" alt="KATALIS ERP" className="w-[250px]" /></h1>
             <p className="mt-4 text-[16px] font-medium leading-snug text-white/90">Kelola usaha perikanan lebih mudah dalam satu aplikasi.</p>
             <div className="mt-6 flex items-center gap-3 text-[14px] font-semibold text-white/85"><span className="rounded-full bg-white/20 px-3 py-1.5">Penawaran dari Dar Dev</span><span>Geser ke atas ↑</span></div>
           </div>
@@ -144,20 +141,20 @@ function Cards() {
           {[["Hampir sepertiga uang keluar habis buat ongkos kirim", "Ongkos tiap kiriman dicatat dan dibandingkan"], ["Hasil daging tiap ekor beda jauh, 52 sampai 70 kg dari 100 kg ikan", "Hasil tiap ekor dicatat dan dibandingkan dengan rencana"], ["65 kg sisa potongan ikan belum laku", "Sisa potongan tercatat, harga ikut kelas mutu"], ["Tagihan gudang dingin dihitung pakai tangan", "Tagihan keluar otomatis, tinggal dicek"], ["Jadwal dua mitra bisa saling tabrak", "Bentrok ketahuan sebelum hari H"], ["55 transaksi belum punya bukti transfer", "Daftar cek sebelum tutup buku"]].map(([a, b], i) => (
             <div key={a} className="rounded-[18px] bg-white p-3.5" style={{ boxShadow: "0 1px 3px rgba(20,30,25,.08)" }}>
               <div className="flex gap-2.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold" style={{ background: "#FBE5E3", color: "#A8322B" }}>{i + 1}</span><span className="text-[13.5px] font-semibold leading-snug" style={{ color: INK }}>{a}</span></div>
-              <div className="mt-2 flex items-start gap-2 rounded-xl px-3 py-2 text-[13.5px] font-bold leading-snug" style={{ background: "#DDF3E8", color: "#0B6B4A" }}><span>→</span><span>{b}</span></div>
+              <div className="mt-2 flex items-start gap-2 rounded-xl px-3 py-2 text-[13.5px] font-bold leading-snug" style={{ background: "#E3EDF5", color: "#0A4D80" }}><span>→</span><span>{b}</span></div>
             </div>
           ))}
         </div>
       </Section>
 
       {/* 3 ongkos kirim */}
-      <Section id={2} bg="#F3EEE2">
+      <Section id={2} bg="#EDF2F6">
         <Tag>Masalah 1 dari 6 · Ongkos kirim</Tag>
         <H>Hampir sepertiga uang keluar habis buat ongkos kirim</H>
         <Mean>Biaya Siklus 1 totalnya Rp37 juta. Rp11 juta di antaranya cuma buat kirim barang. Tanpa catatan, susah tahu ongkos mana yang kemahalan.</Mean>
         <Panel className="mt-3">
           <div className="text-[13px] font-semibold">Dari tiap Rp100 yang keluar:</div>
-          <div className="mt-2.5 grid grid-cols-10 gap-1">{Array.from({ length: 100 }, (_, i) => <span key={i} className="block h-[22px] rounded-md" style={{ background: i < 30 ? "#C98A1B" : "#D3E4DB" }} />)}</div>
+          <div className="mt-2.5 grid grid-cols-10 gap-1">{Array.from({ length: 100 }, (_, i) => <span key={i} className="block h-[22px] rounded-md" style={{ background: i < 30 ? "#C98A1B" : "#D6E4EF" }} />)}</div>
           <div className="mt-2.5 flex items-center gap-2 text-[12.5px] font-semibold"><span className="h-3 w-3 rounded-sm" style={{ background: "#C98A1B" }} />Rp30 habis buat ongkos kirim</div>
         </Panel>
         <Solusi modul="Laporan biaya" points={["Ongkos tiap kiriman dicatat", "Tarif lama dan baru bisa dibandingkan", "Ada tanda kalau ongkos naik"]} />
@@ -166,21 +163,21 @@ function Cards() {
       </Section>
 
       {/* 4 hasil tiap ekor */}
-      <Section id={3} bg="#F3EEE2">
+      <Section id={3} bg="#EDF2F6">
         <Tag>Masalah 2 dari 6 · Hasil tiap ekor</Tag>
         <H>Dari 100 kg ikan, loin yang jadi bisa 52 kg atau 70 kg</H>
         <Mean>Rencananya 60 kg. Rata-rata Siklus 1 sudah 62,6 kg, tapi ekor 005 cuma 52,2 kg. Tanpa catatan per ekor, sebabnya sulit dicari.</Mean>
         <Panel className="mt-3">
           <div className="text-[13px] font-semibold">Dari 100 kg ikan, berapa kg yang jadi loin?</div>
-          <div className="relative mx-3 mb-14 mt-14 h-2 rounded-full" style={{ background: "#E6E4DC" }}>
-            {yv.map((v, i) => <span key={i} className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: pos(v), background: "#9CC8B4" }} />)}
-            {[[52.2, "Terendah", "52,2", "#C98A1B", true], [60, "Rencana", "60", "#14201B", true], [62.6, "Rata-rata", "62,6", "#0E5C46", false], [70.2, "Tertinggi", "70,2", "#12A676", false]].map(([v, l, n, c, up]) => (
+          <div className="relative mx-3 mb-14 mt-14 h-2 rounded-full" style={{ background: "#E1E8ED" }}>
+            {yv.map((v, i) => <span key={i} className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: pos(v), background: "#9FC3DE" }} />)}
+            {[[52.2, "Terendah", "52,2", "#C98A1B", true], [60, "Rencana", "60", "#00171F", true], [62.6, "Rata-rata", "62,6", "#003459", false], [70.2, "Tertinggi", "70,2", "#1B7FC4", false]].map(([v, l, n, c, up]) => (
               <span key={l as string} className="absolute" style={{ left: pos(v as number) }}>
                 <span className="absolute -top-[7px] h-[22px] w-[22px] -translate-x-1/2 rounded-full border-[3px] border-white" style={{ background: c as string }} />
                 <span className="absolute -translate-x-1/2 text-center" style={{ [up ? "bottom" : "top"]: up ? 22 : 24, width: 80 } as React.CSSProperties}><span className="block text-[10.5px]" style={{ color: MUTED }}>{l as string}</span><span className="block text-[16px] font-extrabold leading-none" style={{ color: c as string }}>{n as string}</span></span>
               </span>
             ))}
-            {[50, 60, 70].map((t) => <span key={t} className="absolute top-6 -translate-x-1/2 text-[10px]" style={{ left: pos(t), color: "#8C968F" }}>{t}</span>)}
+            {[50, 60, 70].map((t) => <span key={t} className="absolute top-6 -translate-x-1/2 text-[10px]" style={{ left: pos(t), color: "#7F909A" }}>{t}</span>)}
           </div>
           <div className="text-[11px]" style={{ color: MUTED }}>kg loin dari tiap 100 kg ikan utuh · tiap titik = satu ekor</div>
         </Panel>
@@ -190,14 +187,14 @@ function Cards() {
       </Section>
 
       {/* 5 sisa olahan */}
-      <Section id={4} bg="#F3EEE2">
+      <Section id={4} bg="#EDF2F6">
         <Tag>Masalah 3 dari 6 · Sisa potongan dan mutu</Tag>
         <H>65 kg sisa potongan ikan belum laku</H>
         <Mean>Kepala, tetelan, dan potongan lain tertinggal setelah daging diambil. Harga tiap kelas mutu juga beda, jadi gampang salah patok.</Mean>
         <Panel className="mt-3">
           <div className="text-[64px] font-extrabold leading-none tracking-tight" style={{ color: "#C98A1B" }}>65 kg</div>
           <div className="mt-1 text-[14px] font-semibold">sisa potongan di stok yang belum ada pembelinya</div>
-          <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold" style={{ background: "#F0EFE9" }}>🏷 6 kelas mutu, 6 harga berbeda</div>
+          <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold" style={{ background: "#EAF0F4" }}>🏷 6 kelas mutu, 6 harga berbeda</div>
         </Panel>
         <Solusi modul="Stok dan mutu" points={["Sisa potongan tercatat di stok", "Calon pembeli bisa dicatat", "Harga otomatis ikut kelas mutu"]} />
         <Layar src="/mobile/m-stok.png" cap="Modul Stok" />
@@ -205,13 +202,13 @@ function Cards() {
       </Section>
 
       {/* 6 gudang dingin */}
-      <Section id={5} bg="#F3EEE2">
+      <Section id={5} bg="#EDF2F6">
         <Tag>Masalah 4 dari 6 · Gudang dingin</Tag>
         <H>Tagihan gudang dingin dihitung pakai tangan, gampang salah</H>
         <Mean>Tarifnya naik sesuai lama simpan: Rp75 per kg untuk sehari, Rp2.250 per kg untuk sebulan. Salah hitung sedikit, tagihan pelanggan ikut salah.</Mean>
         <Panel className="mt-3">
           {[["Sampai 24 jam", "Rp75/kg"], ["Sampai 10 hari", "Rp750/kg"], ["30 hari", "Rp2.250/kg"]].map(([a, b], i) => (
-            <div key={a} className="flex justify-between py-2 text-[13.5px]" style={{ borderTop: i ? "1px solid #ECEBE6" : "none" }}><span style={{ color: MUTED }}>{a}</span><b>{b}</b></div>
+            <div key={a} className="flex justify-between py-2 text-[13.5px]" style={{ borderTop: i ? "1px solid #E8EEF2" : "none" }}><span style={{ color: MUTED }}>{a}</span><b>{b}</b></div>
           ))}
         </Panel>
         <Panel className="mt-3" tone="green">
@@ -225,13 +222,13 @@ function Cards() {
       </Section>
 
       {/* 7 jadwal */}
-      <Section id={6} bg="#F3EEE2">
+      <Section id={6} bg="#EDF2F6">
         <Tag>Masalah 5 dari 6 · Jadwal</Tag>
         <H>Dua mitra bergantian pakai mesin, jadwal bisa saling tabrak</H>
         <Mean>CV DUS pakai mesin Senin, Rabu, Jumat. PT SNS Selasa, Kamis, Sabtu. Pesanan ABF jam 10.00 hari Senin menabrak jadwal CV DUS.</Mean>
         <div className="mt-3 space-y-1.5">
           {[["Senin", "CV DUS"], ["Selasa", "PT SNS"], ["Rabu", "CV DUS"], ["Kamis", "PT SNS"], ["Jumat", "CV DUS"], ["Sabtu", "PT SNS"]].map(([d, w], i) => (
-            <div key={d} className="flex items-center gap-2"><span className="w-14 text-[13px] font-semibold">{d}</span><span className="flex flex-1 items-center justify-between rounded-xl px-3 py-2 text-[13px] font-bold text-white" style={{ background: w === "CV DUS" ? "#14201B" : DEEP }}>{w}{i === 0 && <span className="rounded-lg px-2 py-0.5 text-[11px]" style={{ background: "#B4443C" }}>⚠ ABF</span>}</span></div>
+            <div key={d} className="flex items-center gap-2"><span className="w-14 text-[13px] font-semibold">{d}</span><span className="flex flex-1 items-center justify-between rounded-xl px-3 py-2 text-[13px] font-bold text-white" style={{ background: w === "CV DUS" ? "#00171F" : DEEP }}>{w}{i === 0 && <span className="rounded-lg px-2 py-0.5 text-[11px]" style={{ background: "#B4443C" }}>⚠ ABF</span>}</span></div>
           ))}
         </div>
         <p className="mt-2 text-[12.5px] font-semibold" style={{ color: "#B4443C" }}>Senin: pesanan ABF menabrak produksi</p>
@@ -241,16 +238,16 @@ function Cards() {
       </Section>
 
       {/* 8 keuangan */}
-      <Section id={7} bg="#F3EEE2">
+      <Section id={7} bg="#EDF2F6">
         <Tag>Masalah 6 dari 6 · Keuangan</Tag>
         <H>55 transaksi belum punya bukti transfer</H>
         <Mean>Nota sudah lengkap semua. Tapi dari 219 transaksi, baru 164 yang ada bukti transfernya. Tanpa bukti, tutup buku jadi tebak-tebakan.</Mean>
         <Panel className="mt-3">
           <div className="text-[13px] font-semibold">Bukti transfer yang sudah lengkap</div>
           <div className="mt-1 flex items-end gap-2"><span className="text-[64px] font-extrabold leading-none tracking-tight" style={{ color: DEEP }}>164</span><span className="pb-2 text-[16px]" style={{ color: MUTED }}>dari 219</span></div>
-          <div className="mt-2 h-2.5 rounded-full" style={{ background: "#E6E4DC" }}><div className="h-2.5 rounded-full" style={{ width: `${(164 / 219) * 100}%`, background: DEEP }} /></div>
+          <div className="mt-2 h-2.5 rounded-full" style={{ background: "#E1E8ED" }}><div className="h-2.5 rounded-full" style={{ width: `${(164 / 219) * 100}%`, background: DEEP }} /></div>
           <div className="mt-2 text-[13px] font-bold" style={{ color: "#C98A1B" }}>55 transaksi belum ada bukti</div>
-          <div className="mt-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>✓ Nota: 243 dari 243 sudah lengkap</div>
+          <div className="mt-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold" style={{ background: "#E3EDF5", color: "#0A4D80" }}>✓ Nota: 243 dari 243 sudah lengkap</div>
         </Panel>
         <Solusi modul="Keuangan" points={["Tiap transaksi punya nota dan bukti", "Ada daftar cek sebelum tutup buku", "Setelah ditutup, catatan terkunci"]} />
         <Layar src="/mobile/m-keuangan.png" cap="Modul Keuangan" />
@@ -272,7 +269,7 @@ function Cards() {
           <Dot sub="Setujui atau tolak, tanpa menunggu.">Persetujuan di satu tempat</Dot>
           <Dot sub="Tagihan telat, mutu ditahan, bukti belum ada.">Peringatan lebih awal</Dot>
         </ul>
-        <DemoBtns list={[DEMOS[1], DEMOS[2]]} />
+        <DemoBtns />
       </Section>
       {/* 3 ponsel */}
       <Section id={9} bg="#E9EDF5">
@@ -288,10 +285,32 @@ function Cards() {
             <div key={a} className="rounded-2xl bg-white p-3"><div className="text-[15px] font-extrabold" style={{ color: DEEP }}>{a}</div><div className="mt-1 text-[11.5px] leading-snug" style={{ color: MUTED }}>{b}</div></div>
           ))}
         </div>
-        <DemoBtns list={[DEMOS[0], DEMOS[2]]} />
+        <DemoBtns />
       </Section>
-      {/* asisten AI */}
+      {/* peran */}
       <Section id={10}>
+        <Tag>Peran dan cara kerja</Tag>
+        <H>Siapa mengerjakan apa</H>
+        <Mean>Tiap orang punya tugas sendiri. Tombol yang bukan tugasnya otomatis terkunci.</Mean>
+        <div className="mt-3 space-y-2.5">
+          {([["Owner", "#00171F", "Memantau dan memutuskan", ["Lihat dashboard dan semua laporan", "Setujui atau tolak pembelian dan biaya", "Setujui koreksi stok", "Buka kembali buku yang ditutup"]], ["Pembelian", "#003459", "Beli ikan dan jual", ["Ajukan pembelian ikan", "Bandingkan harga pemasok", "Buat dan kirim pesanan jual", "Kirim pengingat tagihan"]], ["Gudang", "#1B6FB0", "Terima, olah, simpan", ["Terima ikan dan cek mutu", "Mulai dan selesaikan produksi", "Terima dan tagih titipan", "Ajukan koreksi stok"]], ["Keuangan", "#4A93CC", "Uang dan laporan", ["Bayar pemasok", "Catat pembayaran pembeli", "Ajukan biaya", "Tutup buku bulanan"]]] as [string, string, string, string[]][]).map(([n, c, sub, items]) => (
+            <div key={n} className="rounded-[20px] bg-white p-3.5" style={{ boxShadow: "0 1px 3px rgba(0,23,31,.08)" }}>
+              <div className="flex items-center gap-2.5"><span className="h-9 w-9 shrink-0 rounded-full" style={{ background: c }} /><div><div className="text-[15px] font-extrabold leading-tight">{n}</div><div className="text-[12px]" style={{ color: MUTED }}>{sub}</div></div></div>
+              <ul className="mt-2.5 space-y-1">{items.map((t) => <li key={t} className="flex gap-2 text-[13px] font-medium"><span style={{ color: GREEN }}>✓</span>{t}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>Contoh satu siklus</div>
+        <ol className="mt-2 space-y-0">
+          {([["Pembelian", "#003459", "Ajukan beli ikan"], ["Owner", "#00171F", "Setujui pembelian"], ["Gudang", "#1B6FB0", "Terima ikan, cek mutu"], ["Gudang", "#1B6FB0", "Olah ikan, catat hasil"], ["Pembelian", "#003459", "Jual dan kirim"], ["Keuangan", "#4A93CC", "Catat bayar, tutup buku"]] as [string, string, string][]).map(([r, c, t], i, a) => (
+            <li key={i} className="flex gap-3"><div className="flex flex-col items-center"><span className="flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-extrabold text-white" style={{ background: c }}>{i + 1}</span>{i < a.length - 1 && <span className="w-0.5 flex-1" style={{ background: "#D5DEE4", minHeight: 14 }} />}</div><div className="pb-3"><div className="text-[11.5px] font-bold" style={{ color: c }}>{r}</div><div className="text-[14px] font-semibold">{t}</div></div></li>
+          ))}
+        </ol>
+        <DemoBtns />
+      </Section>
+
+      {/* asisten AI */}
+      <Section id={11}>
         <Tag>Asisten AI</Tag>
         <H>Tanya saja, asisten yang mencarikan jawabannya</H>
         <Mean>Tidak perlu buka banyak menu. Tulis pertanyaan dengan kalimat biasa, jawabannya diambil dari data usaha sendiri.</Mean>
@@ -301,33 +320,33 @@ function Cards() {
           ))}
         </div>
         <Layar src="/mobile/m-asisten.png" cap="Asisten AI" />
-        <DemoBtns list={[DEMOS[0]]} />
+        <DemoBtns />
         <p className="mt-2 text-[11px]" style={{ color: MUTED }}>Demo: jawaban dari data contoh dan Siklus 1. Versi sebenarnya membaca data asli usaha.</p>
       </Section>
 
       {/* 14 paket */}
-      <Section id={11} bg="#F4F3EE">
+      <Section id={12} bg="#EEF3F7">
         <Tag>Paket</Tag>
         <H>Satu paket lengkap, semua sudah termasuk</H>
         <Lead>Harga dibahas bersama setelah fitur disepakati.</Lead>
         <div className="mt-5 rounded-[28px] p-5 text-white" style={{ background: DEEP }}>
           <div className="text-[22px] font-extrabold">Paket Lengkap</div>
           <div className="text-[13px] opacity-80">Dari beli ikan sampai laporan keuangan.</div>
-          <div className="mt-4 flex items-start gap-3 rounded-2xl p-3.5" style={{ background: "#14735A" }}>
+          <div className="mt-4 flex items-start gap-3 rounded-2xl p-3.5" style={{ background: "#0A4D80" }}>
             <Sparkles size={22} color="#fff" strokeWidth={1.8} className="mt-0.5 shrink-0" />
             <div><div className="text-[15px] font-extrabold">Asisten AI</div><div className="text-[12.5px] leading-snug text-white/85">Tanya dengan kalimat biasa, jawabnya dari data usaha sendiri.</div></div>
           </div>
           {[["Setiap hari", ["Dashboard owner", "Pembelian dan pemasok", "Produksi dan hasil tiap ekor", "Cek mutu dan asal produk", "Stok dan titipan", "Gudang dingin dan pembekuan", "Penjualan dan tagihan", "Jadwal produksi"]], ["Keuangan dan kendali", ["Biaya tiap produksi", "Tutup buku dan laporan bulanan", "Laporan untuk direksi", "Coba skenario harga", "Pengingat tagihan dan jadwal", "Akses per peran", "Aplikasi ponsel"]]].map(([t, items]) => (
             <div key={t as string} className="mt-4">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#9BE7C8]">{t as string}</div>
-              <ul className="mt-2 space-y-2">{(items as string[]).map((i) => <li key={i} className="flex gap-2 text-[14px] font-medium"><span style={{ color: "#9BE7C8" }}>✓</span>{i}</li>)}</ul>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#A9CFEA]">{t as string}</div>
+              <ul className="mt-2 space-y-2">{(items as string[]).map((i) => <li key={i} className="flex gap-2 text-[14px] font-medium"><span style={{ color: "#A9CFEA" }}>✓</span>{i}</li>)}</ul>
             </div>
           ))}
         </div>
         <p className="mt-3 text-[12px]" style={{ color: MUTED }}>Estimasi selesai 1 bulan, tiap tahap diuji dulu sebelum lanjut.</p>
       </Section>
       {/* jadwal pengerjaan */}
-      <Section id={12}>
+      <Section id={13}>
         <Tag>Jadwal pengerjaan</Tag>
         <H>Selesai dalam 1 bulan</H>
         <Mean>Tahap dikerjakan bersamaan, jadi total 4 minggu. Tiap minggu ada hasil yang bisa dicoba.</Mean>
@@ -336,9 +355,9 @@ function Cards() {
             const last = i === 3;
             return (
               <div key={w} className="rounded-[22px] p-4" style={{ background: last ? DEEP : "#fff", color: last ? "#fff" : INK, boxShadow: last ? "none" : "0 1px 3px rgba(20,30,25,.08)" }}>
-                <div className="flex items-center gap-2.5"><span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: last ? "#14735A" : "#E4EFE9", color: last ? "#fff" : DEEP }}>{w}</span><span className="text-[17px] font-extrabold">{t}</span></div>
-                <ul className="mt-2.5 space-y-1.5">{items.map((x) => <li key={x} className="flex gap-2 text-[13.5px] font-medium"><span style={{ color: last ? "#9BE7C8" : GREEN }}>✓</span>{x}</li>)}</ul>
-                <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[12.5px] font-bold" style={{ background: last ? "#14735A" : "#E4EFE9", color: last ? "#fff" : DEEP }}>⚑ {out}</div>
+                <div className="flex items-center gap-2.5"><span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: last ? "#0A4D80" : "#E3EDF5", color: last ? "#fff" : DEEP }}>{w}</span><span className="text-[17px] font-extrabold">{t}</span></div>
+                <ul className="mt-2.5 space-y-1.5">{items.map((x) => <li key={x} className="flex gap-2 text-[13.5px] font-medium"><span style={{ color: last ? "#A9CFEA" : GREEN }}>✓</span>{x}</li>)}</ul>
+                <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[12.5px] font-bold" style={{ background: last ? "#0A4D80" : "#E3EDF5", color: last ? "#fff" : DEEP }}>⚑ {out}</div>
               </div>
             );
           })}
@@ -352,7 +371,7 @@ function Cards() {
       </Section>
 
       {/* 17 penutup */}
-      <Section id={13} bg={DEEP} dark>
+      <Section id={14} bg={DEEP} dark>
         <div className="flex min-h-[calc(100dvh-11rem)] flex-col justify-between">
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -362,7 +381,7 @@ function Cards() {
           </div>
           <div>
             <div className="rounded-full bg-white px-5 py-3 text-center text-[15px] font-extrabold" style={{ color: GREEN }}>Jadwalkan diskusi kebutuhan</div>
-            <DemoBtns list={DEMOS} dark />
+            <DemoBtns dark />
             <a href="/KATALIS-ERP-Proposal.pdf" download className="mt-3 block rounded-2xl bg-white/15 px-5 py-3.5 text-center text-[15px] font-bold">⬇ Unduh PDF</a>
             <p className="mt-5 text-center text-[13px] text-white/70">Dar Dev · KATALIS ERP</p>
           </div>
@@ -377,6 +396,7 @@ export default function MobileDeck({ idx, go }: { idx: number; go: (n: number) =
   const total = slides.length;
   const scroller = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState(false);
+  const [demo, setDemo] = useState(false);
   const [active, setActive] = useState(idx);
   const started = useRef(false);
 
@@ -389,6 +409,14 @@ export default function MobileDeck({ idx, go }: { idx: number; go: (n: number) =
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // phone demo as a full-screen overlay (tries real fullscreen where the browser allows it)
+  useEffect(() => {
+    const open = () => { setDemo(true); document.documentElement.requestFullscreen?.().catch(() => {}); };
+    window.addEventListener("open-demo", open);
+    return () => window.removeEventListener("open-demo", open);
+  }, []);
+  const closeDemo = () => { setDemo(false); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };
 
   // reveal each card's content the first time it comes into view
   useEffect(() => {
@@ -434,7 +462,7 @@ export default function MobileDeck({ idx, go }: { idx: number; go: (n: number) =
         .mscroll::-webkit-scrollbar{display:none}.mscroll{scrollbar-width:none}
       `}</style>
       {/* top bar */}
-      <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pb-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))", background: onDark ? "linear-gradient(180deg, rgba(14,92,70,.96), rgba(14,92,70,0))" : "linear-gradient(180deg, rgba(250,249,246,.97), rgba(250,249,246,0))" }}>
+      <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 pb-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))", background: onDark ? "linear-gradient(180deg, rgba(0,52,89,.96), rgba(0,52,89,0))" : "linear-gradient(180deg, rgba(246,249,251,.97), rgba(246,249,251,0))" }}>
         <span className="rounded-full px-3 py-1.5 text-[12px] font-bold" style={{ background: onDark ? "rgba(255,255,255,.2)" : "#fff", color: onDark ? "#fff" : INK, boxShadow: onDark ? "none" : "0 1px 2px rgba(20,30,25,.1)" }}>{String(active + 1).padStart(2, "0")} / {total} · {SECTION_TITLES[active]}</span>
         <button type="button" aria-label="Menu" onClick={() => setMenu(true)} className="flex h-10 w-10 items-center justify-center rounded-full active:scale-90" style={{ background: onDark ? "rgba(255,255,255,.2)" : "#fff", boxShadow: onDark ? "none" : "0 1px 2px rgba(20,30,25,.1)" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={onDark ? "#fff" : INK} strokeWidth="2.2" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
@@ -442,7 +470,7 @@ export default function MobileDeck({ idx, go }: { idx: number; go: (n: number) =
       </div>
 
       <div className="absolute right-1 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-1.5">
-        {Array.from({ length: total }, (_, i) => <span key={i} className="block w-1 rounded-full transition-all" style={{ height: i === active ? 16 : 5, background: onDark ? (i === active ? "#fff" : "rgba(255,255,255,.4)") : (i === active ? GREEN : "#CFD3D0") }} />)}
+        {Array.from({ length: total }, (_, i) => <span key={i} className="block w-1 rounded-full transition-all" style={{ height: i === active ? 16 : 5, background: onDark ? (i === active ? "#fff" : "rgba(255,255,255,.4)") : (i === active ? GREEN : "#C9D3DA") }} />)}
       </div>
       <div ref={scroller} className="mscroll h-full snap-y snap-proximity overflow-y-auto scroll-smooth"><Cards /></div>
 
@@ -455,19 +483,25 @@ export default function MobileDeck({ idx, go }: { idx: number; go: (n: number) =
       {menu && (
         <div className="absolute inset-0 z-40 flex items-end bg-black/50" onClick={() => setMenu(false)}>
           <div className="max-h-[88%] w-full overflow-y-auto rounded-t-[28px] bg-white p-5 pb-8" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-[#D9DBD8]" />
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-[#D5DEE4]" />
             <div className="mb-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>Coba demo</div>
-            <div className="grid gap-2">{DEMOS.map((d) => <a key={d.href} href={d.href} className="rounded-2xl px-5 py-3 text-white" style={{ background: GREEN }}><span className="block text-[15px] font-bold">▶ {d.label}</span><span className="text-[12px] opacity-85">{d.hint}</span></a>)}</div>
+            <button type="button" onClick={() => { setMenu(false); openDemo(); }} className="w-full rounded-2xl px-5 py-3 text-left text-white" style={{ background: GREEN }}><span className="block text-[15px] font-bold">▶ {DEMOS[0].label}</span><span className="text-[12px] opacity-85">{DEMOS[0].hint}</span></button>
             <a href="/KATALIS-ERP-Proposal.pdf" download className="mt-2 block rounded-2xl px-5 py-3 text-[15px] font-bold" style={{ background: SOFT }}>⬇ Unduh PDF</a>
             <div className="mb-2 mt-5 text-[12px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>Loncat ke</div>
             <div className="grid grid-cols-1 gap-1">
               {SECTION_TITLES.map((t, i) => (
-                <button key={t} type="button" onClick={() => jump(i)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[#F0EFE9]" style={{ background: i === active ? "#DDF3E8" : "transparent" }}>
+                <button key={t} type="button" onClick={() => jump(i)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-[#EAF0F4]" style={{ background: i === active ? "#E3EDF5" : "transparent" }}>
                   <span className="w-6 text-[12px] font-bold tabular-nums" style={{ color: MUTED }}>{String(i + 1).padStart(2, "0")}</span><span className="text-[15px] font-semibold">{t}</span>
                 </button>
               ))}
             </div>
           </div>
+        </div>
+      )}
+      {demo && (
+        <div className="fixed inset-0 z-[100]" style={{ background: "#EFF1F6" }}>
+          <iframe title="Demo aplikasi ponsel" src="/demo/phone?native=1" allow="fullscreen" className="h-full w-full border-0" />
+          <button type="button" onClick={closeDemo} className="absolute left-1/2 z-10 -translate-x-1/2 rounded-full px-3.5 py-1.5 text-[12px] font-bold text-white active:scale-95" style={{ top: "max(8px, env(safe-area-inset-top))", background: "rgba(0,23,31,.78)", backdropFilter: "blur(8px)" }}>‹ Kembali ke pitch</button>
         </div>
       )}
     </div>

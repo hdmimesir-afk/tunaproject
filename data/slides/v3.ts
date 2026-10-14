@@ -9,8 +9,8 @@ import { V1, V4, V5, V12, V13, V14 } from "./v2";
  *   1. the problem in one plain sentence  2. what the number means  3. a simple picture of the data
  *   4. the solution, shown on the real screen of the app.
  */
-const P = { ink: "#14201B", green: "#0E5C46", mint: "#12A676", muted: "#5C6862", faint: "#8C968F", line: "#DAD9D2", card: "#FFFFFF", track: "#E6E4DC", amber: "#C98A1B", red: "#B4443C", soft: "#E4EFE9", onDark: "#CFEFE3", amberSoft: "#F6E9CF" };
-const TOTAL = 14;
+const P = { ink: "#00171F", green: "#003459", mint: "#1B7FC4", muted: "#4B5E69", faint: "#7F909A", line: "#D5DEE4", card: "#FFFFFF", track: "#E1E8ED", amber: "#C98A1B", red: "#B4443C", soft: "#E3EDF5", onDark: "#CFE0EE", amberSoft: "#F6E9CF" };
+const TOTAL = 15;
 const ic = (name: string, color: string, x: number, y: number, s: number): El => img(x, y, s, s, `/icons/${name}-${color}.png`);
 
 const SRC1 = { kind: "source" as const, ref: "Data Siklus 1 dari owner (ringkasan web)", claim: "Ikan utuh 481 kg (11 ekor); hasil olahan 62,6% (rencana 60%); biaya total Rp37,08 jt; ongkos kirim Rp11,08 jt (29,9%); sisa olahan 65 kg; hasil olahan per ekor 63,1; 61,3; 61,4; 63,7; 52,2; 64,4; 70,2; 63,5; 63,3; 63,3; 60,2" };
@@ -23,15 +23,15 @@ const problem = (o: {
 }): ReturnType<typeof mk> => {
   const els: El[] = [
     // zone 1: the problem (warm panel on the left)
-    R(0, 0, 740, 1080, "#F3EEE2"),
-    R(120, 84, 232, 40, "#FFFFFF", { r: 20, line: "#E3D9C2", lw: 1.5 }), O(136, 98, 12, 12, P.amber),
+    R(0, 0, 740, 1080, "#EDF2F6"),
+    R(120, 84, 232, 40, "#FFFFFF", { r: 20, line: "#D5DEE4", lw: 1.5 }), O(136, 98, 12, 12, P.amber),
     X(156, 84, 190, 40, `MASALAH ${o.n} DARI 6`, 15, { color: P.amber, weight: 700, va: "m", lh: 1, ls: 1.2 }),
     X(368, 84, 340, 40, o.kicker, 18, { color: P.muted, weight: 500, va: "m", lh: 1 }),
     X(120, 144, 590, 200, o.title, 52, { color: P.ink, weight: 700, lh: 1.08, va: "t" }),
     X(120, 352, 590, 110, o.mean, 22, { color: P.muted, lh: 1.42, va: "t" }),
     ...o.visual,
     // connector: problem -> answer
-    O(716, 500, 48, 48, P.green, { line: "#FAF9F6", lw: 6 }), ic("arrow-right", "white", 726, 510, 28),
+    O(716, 500, 48, 48, P.green, { line: "#F6F9FB", lw: 6 }), ic("arrow-right", "white", 726, 510, 28),
     // zone 2: the answer
     X(800, 84, 460, 40, "JAWABANNYA DI KATALIS ERP", 15, { color: P.green, weight: 700, va: "m", lh: 1, ls: 1.2 }),
     R(1262, 84, 270, 40, P.soft, { r: 20 }), ic(o.icon, "green", 1276, 92, 24), X(1308, 84, 220, 40, o.module, 18, { color: P.green, weight: 600, va: "m", lh: 1 }),
@@ -80,7 +80,7 @@ const waffle: El[] = [
   X(120, 484, 560, 30, "Dari tiap Rp100 yang keluar:", 22, { color: P.ink, weight: 600, va: "m", lh: 1 }),
   ...Array.from({ length: 100 }, (_, i): El => {
     const c = i % 10, r = Math.floor(i / 10);
-    return R(120 + c * 52, 530 + r * 40, 44, 32, i < 30 ? P.amber : "#D3E4DB", { r: 8 });
+    return R(120 + c * 52, 530 + r * 40, 44, 32, i < 30 ? P.amber : "#D6E4EF", { r: 8 });
   }),
   R(120, 948, 28, 22, P.amber, { r: 6 }), X(158, 944, 540, 30, "Rp30 habis buat ongkos kirim", 20, { color: P.ink, weight: 600, va: "m", lh: 1 }),
 ];
@@ -103,7 +103,7 @@ const mark = (v: number, label: string, val: string, color: string, above: boole
 const rangeVisual: El[] = [
   X(120, 484, 580, 60, "Dari 100 kg ikan, berapa kg yang jadi loin?", 22, { color: P.ink, weight: 600, lh: 1.25 }),
   R(140, 696, 560, 8, P.track, { r: 4 }),
-  ...yv.map((v) => O(sx(v) - 8, 700 - 8, 16, 16, "#9CC8B4")),
+  ...yv.map((v) => O(sx(v) - 8, 700 - 8, 16, 16, "#9FC3DE")),
   ...[50, 60, 70].flatMap((t): El[] => [L(sx(t), 816, sx(t), 828, P.faint, 2), X(sx(t) - 30, 836, 60, 24, String(t), 18, { color: P.faint, align: "c", va: "m", lh: 1 })]),
   X(120, 876, 580, 30, "kg loin dari tiap 100 kg ikan utuh", 18, { color: P.faint, va: "m", lh: 1 }),
   ...mark(52.2, "Terendah, ekor 005", "52,2", P.amber, true),
@@ -194,6 +194,43 @@ export const W8 = problem({
   ],
 });
 
+/* -------------------------------------------------- Peran dan cara kerja */
+const ROLE = { Owner: "#00171F", Pembelian: "#003459", Gudang: "#1B6FB0", Keuangan: "#4A93CC" } as const;
+const roles: { n: keyof typeof ROLE; icon: string; sub: string; items: string[] }[] = [
+  { n: "Owner", icon: "layout-dashboard", sub: "Memantau dan memutuskan", items: ["Lihat dashboard dan semua laporan", "Setujui atau tolak pembelian dan biaya", "Setujui koreksi stok", "Buka kembali buku yang sudah ditutup"] },
+  { n: "Pembelian", icon: "shopping-cart", sub: "Beli ikan dan jual", items: ["Ajukan pembelian ikan", "Bandingkan harga pemasok", "Buat dan kirim pesanan jual", "Kirim pengingat tagihan"] },
+  { n: "Gudang", icon: "package", sub: "Terima, olah, simpan", items: ["Terima ikan dan cek mutu", "Mulai dan selesaikan produksi", "Terima dan tagih titipan", "Ajukan koreksi stok"] },
+  { n: "Keuangan", icon: "wallet", sub: "Uang dan laporan", items: ["Bayar pemasok", "Catat pembayaran pembeli", "Ajukan biaya", "Tutup buku bulanan"] },
+];
+const cycle: [keyof typeof ROLE, string][] = [["Pembelian", "Ajukan beli ikan"], ["Owner", "Setujui pembelian"], ["Gudang", "Terima ikan, cek mutu"], ["Gudang", "Olah ikan, catat hasil"], ["Pembelian", "Jual dan kirim"], ["Keuangan", "Catat bayar, tutup buku"]];
+export const WRL = mk(10, "Peran dan cara kerja", [
+  X(120, 84, 900, 30, "Peran dan cara kerja", 22, { color: P.green, weight: 600, va: "m", lh: 1 }),
+  X(120, 126, 900, 76, "Siapa mengerjakan apa", 60, { color: P.ink, weight: 700, lh: 1.06 }),
+  X(1000, 126, 800, 76, "Tombol yang bukan tugasnya otomatis terkunci.", 24, { color: P.muted, align: "r", va: "m", lh: 1.3 }),
+  ...roles.flatMap((r, i): El[] => {
+    const w = 402, x = 120 + i * (w + 24), y = 240, h = 420, c = ROLE[r.n];
+    return [
+      R(x, y, w, h, P.card, { r: 28, line: P.line, lw: 1.5 }),
+      O(x + 28, y + 28, 64, 64, c), ic(r.icon, "white", x + 44, y + 44, 32),
+      X(x + 108, y + 26, w - 130, 40, r.n, 32, { color: P.ink, weight: 700, va: "m", lh: 1 }),
+      X(x + 108, y + 66, w - 130, 28, r.sub, 18, { color: P.muted, va: "m", lh: 1 }),
+      L(x + 28, y + 116, x + w - 28, y + 116, P.line, 1.5),
+      ...r.items.flatMap((t, j): El[] => [ic("check", "mint", x + 28, y + 140 + j * 68 + 2, 26), X(x + 66, y + 134 + j * 68, w - 94, 60, t, 21, { color: P.ink, lh: 1.25, va: "t" })]),
+    ];
+  }),
+  X(120, 704, 900, 26, "CONTOH SATU SIKLUS, DARI BELI IKAN SAMPAI UANG MASUK", 15, { color: P.faint, weight: 700, va: "m", lh: 1, ls: 1.2 }),
+  L(148, 790, 1772, 790, P.line, 2),
+  ...cycle.flatMap(([r, t], i): El[] => {
+    const x = 120 + i * 292, c = ROLE[r];
+    return [O(x, 762, 56, 56, c, { line: "#F6F9FB", lw: 5 }), X(x, 762, 56, 56, String(i + 1), 24, { color: "#FFFFFF", weight: 700, align: "c", va: "m", lh: 1 }), X(x, 838, 270, 28, r, 19, { color: c, weight: 700, va: "m", lh: 1 }), X(x, 872, 270, 60, t, 22, { color: P.ink, weight: 500, lh: 1.25 })];
+  }),
+  X(120, 1024, 1300, 24, "Dar Dev  ·  KATALIS ERP  ·  Bisa dicoba di demo: ganti \"Masuk sebagai\" lalu lihat tombolnya", 16, { color: P.faint, va: "m", lh: 1 }),
+  X(1640, 1024, 160, 24, `10 / ${TOTAL}`, 16, { color: P.faint, align: "r", va: "m", lh: 1 }),
+], "Empat peran (Owner, Pembelian, Gudang, Keuangan) dan tugas masing-masing. Satu siklus: Pembelian mengajukan, Owner menyetujui, Gudang menerima, mengecek mutu, dan mengolah, Pembelian menjual dan mengirim, Keuangan mencatat pembayaran dan menutup buku. Tombol di luar tugas sebuah peran otomatis terkunci.", [
+  { kind: "proposed", ref: "Demo interaktif (lib/demo/store.ts, PERMS)", claim: "Empat peran dengan izin berbeda: Owner menyetujui dan membuka kembali buku; Pembelian mengajukan beli dan menjual; Gudang menerima, cek mutu, produksi, titipan, koreksi stok; Keuangan membayar, mencatat pembayaran, ajukan biaya, tutup buku" },
+  { kind: "assumption", ref: "Akses", claim: "Pembagian peran adalah usulan awal; peran dan izin disesuaikan saat diskusi kebutuhan" },
+]);
+
 /* -------------------------------------------------- Asisten AI */
 const qs = ["Tagihan mana yang telat?", "Ekor mana hasilnya paling rendah?", "Berapa saldo kas sekarang?"];
 export const WAI = mk(11, "Asisten AI", [
@@ -218,4 +255,4 @@ export const WAI = mk(11, "Asisten AI", [
   SRC1, DEMO,
 ]);
 
-export const V3SLIDES = [V1, W2, W3, W4, W5, W6, W7, W8, V4, V5, WAI, V12, V13, V14];
+export const V3SLIDES = [V1, W2, W3, W4, W5, W6, W7, W8, V4, V5, WRL, WAI, V12, V13, V14];

@@ -5,14 +5,14 @@ import { lightPhone } from "@/lib/demoMock";
 import { mk, std } from "./_h";
 
 /** Mobile demo: three phones (Beranda, Persetujuan, Aktivitas) in the same visual language as the desktop dashboard. */
-const FRAME = "#10201A";
+const FRAME = "#00171F";
 const PANEL = "#F2F2EE";
-const DEEP = "#0E5C46";
-const MID = "#12A676";
+const DEEP = "#003459";
+const MID = "#1B7FC4";
 const SOFT = "#BFE6D6";
 
 const pill = (x: number, y: number, w: number, text: string, kind: "blue" | "amber" | "red" | "green"): El[] => {
-  const map = { blue: ["#DDEBFB", "#2D5F9A"], amber: ["#FBEBC8", "#8A5A00"], red: ["#F9DEDC", "#A8322B"], green: ["#D7F2E3", "#0B6B4A"] } as const;
+  const map = { blue: ["#DDEBFB", "#2D5F9A"], amber: ["#FBEBC8", "#8A5A00"], red: ["#F9DEDC", "#A8322B"], green: ["#E3EDF5", "#0A4D80"] } as const;
   const [bg, fg] = map[kind];
   return [rect(x, y, w, 28, bg, { r: 14 }), txt(x, y, w, 28, text, 15, { color: fg, weight: 600, align: "c", va: "m", lh: 1 })];
 };

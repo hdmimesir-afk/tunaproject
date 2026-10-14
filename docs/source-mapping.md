@@ -122,7 +122,16 @@ Nilai turunan yang dihitung deck (bukan angka proposal): total jam operasi mitra
 
 *Catatan presenter:* Aplikasi ponsel: beranda, persetujuan, dan modul. Gambar adalah tangkapan layar demo (data contoh).
 
-### Slide 11 — Asisten AI
+### Slide 11 — Peran dan cara kerja
+
+| Jenis | Rujukan | Klaim yang didukung |
+|---|---|---|
+| proposed | Demo interaktif (lib/demo/store.ts, PERMS) | Empat peran dengan izin berbeda: Owner menyetujui dan membuka kembali buku; Pembelian mengajukan beli dan menjual; Gudang menerima, cek mutu, produksi, titipan, koreksi stok; Keuangan membayar, mencatat pembayaran, ajukan biaya, tutup buku |
+| assumption | Akses | Pembagian peran adalah usulan awal; peran dan izin disesuaikan saat diskusi kebutuhan |
+
+*Catatan presenter:* Empat peran (Owner, Pembelian, Gudang, Keuangan) dan tugas masing-masing. Satu siklus: Pembelian mengajukan, Owner menyetujui, Gudang menerima, mengecek mutu, dan mengolah, Pembelian menjual dan mengirim, Keuangan mencatat pembayaran dan menutup buku. Tombol di luar tugas sebuah peran otomatis terkunci.
+
+### Slide 12 — Asisten AI
 
 | Jenis | Rujukan | Klaim yang didukung |
 |---|---|---|
@@ -132,7 +141,7 @@ Nilai turunan yang dihitung deck (bukan angka proposal): total jam operasi mitra
 
 *Catatan presenter:* Asisten AI menjawab pertanyaan dengan kalimat biasa, berdasarkan data di aplikasi. Di demo, jawaban disusun dari data contoh; versi sebenarnya membaca data asli usaha.
 
-### Slide 12 — Paket
+### Slide 13 — Paket
 
 | Jenis | Rujukan | Klaim yang didukung |
 |---|---|---|
@@ -142,7 +151,7 @@ Nilai turunan yang dihitung deck (bukan angka proposal): total jam operasi mitra
 
 *Catatan presenter:* Satu paket lengkap: semua fitur sudah termasuk, ditambah Asisten AI. Tidak ada harga; harga dibahas setelah fitur disepakati.
 
-### Slide 13 — Jadwal pengerjaan
+### Slide 14 — Jadwal pengerjaan
 
 | Jenis | Rujukan | Klaim yang didukung |
 |---|---|---|
@@ -150,7 +159,7 @@ Nilai turunan yang dihitung deck (bukan angka proposal): total jam operasi mitra
 
 *Catatan presenter:* Estimasi selesai dalam 1 bulan (4 minggu): enam tahap dikerjakan bersamaan, dipetakan per minggu (Asisten AI di minggu 3–4), lalu lima langkah sebelum proyek berjalan. Estimasi awal; jadwal pasti disepakati setelah diskusi kebutuhan.
 
-### Slide 14 — Penutup
+### Slide 15 — Penutup
 
 | Jenis | Rujukan | Klaim yang didukung |
 |---|---|---|

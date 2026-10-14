@@ -3,11 +3,11 @@
 :root {
   --navy: #10283f;
   --ocean: #176d9c;
-  --teal: #178c87;
+  --teal: #1B7FC4;
   --offwhite: #f7f9fb;
-  --charcoal: #17212b;
+  --charcoal: #00171F;
 }
-html, body { margin: 0; height: 100%; background: #0d0d0d; color: var(--charcoal); font-family: "Google Sans", "Product Sans", system-ui, sans-serif; font-weight: 400; -webkit-font-smoothing: antialiased; }
+html, body { margin: 0; height: 100%; background: #00111A; color: var(--charcoal); font-family: "Google Sans", "Product Sans", system-ui, sans-serif; font-weight: 400; -webkit-font-smoothing: antialiased; }
 .slide-text { box-sizing: border-box; white-space: pre-wrap; overflow-wrap: break-word; }
 .mono { font-family: inherit; }
 button:focus-visible, a:focus-visible { outline: 3px solid #9fddd8; outline-offset: 3px; }

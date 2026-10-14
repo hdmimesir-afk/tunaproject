@@ -4,9 +4,9 @@ import { createContext, useContext, useState } from "react";
 import { act, can, type Action, type Result, type Role } from "@/lib/demo/store";
 import { ArrowUpRight, Calendar, ChartColumn, ChevronLeft, CircleCheck, Clock, Download, Ellipsis, Factory, FileText, FlaskConical, LayoutGrid, List, Lock, Menu, Sparkles, SendHorizontal, Package, Plus, Search, ShieldCheck, ShoppingCart, Snowflake, Truck, User, Wallet, X, type LucideIcon } from "lucide-react";
 
-export const INK = "#111214";
-export const MUTED = "#7A7F87";
-export const GREEN = "#12A676";
+export const INK = "#00171F";
+export const MUTED = "#6C7F8A";
+export const GREEN = "#1B7FC4";
 export const TILE = "#F4F5F9";
 
 /* ------------------------------------------------------------ contexts */
@@ -109,7 +109,7 @@ export const Field = ({ label, children, hint }: { label: string; children: Reac
     {hint && <span className="mt-1 block text-[11.5px]" style={{ color: MUTED }}>{hint}</span>}
   </label>
 );
-const inputCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#111214]";
+const inputCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]";
 export const TextIn = (p: React.InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={inputCls} />;
 export const NumIn = ({ value, onChange, ...p }: { value: number; onChange: (n: number) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) => (
   <input {...p} type="number" inputMode="decimal" value={Number.isNaN(value) ? "" : value} onChange={(e) => onChange(e.target.value === "" ? NaN : Number(e.target.value))} className={inputCls} />

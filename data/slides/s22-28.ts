@@ -19,7 +19,7 @@ export const s22 = mk(
     ...std(22, "Rencana pengerjaan", "Lima tahap pengerjaan, sebagian bisa berjalan bersamaan", "Perkiraan awal, bukan janji tenggat."),
     ...Array.from({ length: 14 }, (_, i): El => txt(x0 + i * 2 * wk - 30, 258, 60, 26, String(i * 2), 16, { color: C.faint, align: "c", va: "m", lh: 1 })),
     txt(120, 258, 300, 26, "MINGGU →", 14, { color: C.faint, bold: true, ls: 1.4, va: "m" }),
-    ...Array.from({ length: 14 }, (_, i): El => ln(x0 + i * 2 * wk, 290, x0 + i * 2 * wk, 296 + 6 * 54 - 6, "#E3E2DC", 1)),
+    ...Array.from({ length: 14 }, (_, i): El => ln(x0 + i * 2 * wk, 290, x0 + i * 2 * wk, 296 + 6 * 54 - 6, "#DDE5EB", 1)),
     ...phases.flatMap((p, i): El[] => {
       const y = 296 + i * 54;
       return [
@@ -76,13 +76,13 @@ export const s23 = mk(
       const h = p.pro ? 600 : 556;
       const off = p.pro ? 52 : 0;
       const tc = p.pro ? C.white : C.navy;
-      const mc = p.pro ? "#CFEFE3" : C.muted;
+      const mc = p.pro ? "#CFE0EE" : C.muted;
       return [
         card(x, y, 540, h, { fill: p.pro ? C.navy : C.white, line: p.pro ? C.teal : C.border, lw: p.pro ? 4 : 2, r: 18 }),
         ...(p.pro ? chip(x + 24, y + 18, "PAKET YANG DISARANKAN", { fill: C.teal, color: C.white, size: 16, h: 32, w: 270 }).els : []),
         txt(x + 26, y + 22 + off, 490, 40, p.name, 32, { bold: true, color: tc, va: "m", lh: 1 }),
         txt(x + 26, y + 66 + off, 490, 52, p.pos, 19, { color: mc, italic: true, lh: 1.3 }),
-        ln(x + 26, y + 128 + off, x + 514, y + 128 + off, p.pro ? "#2F8E75" : C.border, 1.5),
+        ln(x + 26, y + 128 + off, x + 514, y + 128 + off, p.pro ? "#2F6A94" : C.border, 1.5),
         txt(x + 26, y + 144 + off, 490, 30, p.lead, 20, { bold: true, color: p.pro ? C.aquaOnDark : C.teal, va: "m", lh: 1 }),
         bullets(x + 26, y + 190 + off, 490, h - 210 - off, p.items, 22, { para: 11, color: tc, lh: 1.22 }),
       ];

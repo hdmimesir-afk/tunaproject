@@ -58,7 +58,7 @@ export const s02 = mk(
         rect(x, 780, w, 160, C.navy, { r: 12 }),
         rect(x + 20, 800, 36, 4, C.aquaOnDark, { r: 2 }),
         txt(x + 20, 816, w - 40, 34, t, 22, { color: C.white, bold: true, lh: 1.1, va: "m" }),
-        txt(x + 20, 856, w - 40, 76, d, 19, { color: "#CFEFE3", lh: 1.3 }),
+        txt(x + 20, 856, w - 40, 76, d, 19, { color: "#CFE0EE", lh: 1.3 }),
       ];
     }),
   ],
@@ -105,7 +105,7 @@ export const s03 = mk(
     rect(770, 440, 380, 260, C.navy, { r: 18 }),
     txt(790, 462, 340, 26, "PUSAT USAHA", 17, { color: C.aquaOnDark, bold: true, ls: 1.6, align: "c", va: "m" }),
     txt(790, 498, 340, 110, "PT Katalis\nLintas Global", 36, { color: C.white, bold: true, align: "c", lh: 1.15, va: "m" }),
-    txt(790, 620, 340, 66, "Beli · olah · cek mutu · simpan · kirim · tagih · lapor", 17, { color: "#CFEFE3", align: "c", lh: 1.3 }),
+    txt(790, 620, 340, 66, "Beli · olah · cek mutu · simpan · kirim · tagih · lapor", 17, { color: "#CFE0EE", align: "c", lh: 1.3 }),
     card(770, 280, 380, 130, { fill: C.aqua, line: "#BFE3E0" }),
     txt(790, 292, 340, 26, "MITRA PEMBELI", 16, { color: C.teal, bold: true, ls: 1.5, align: "c", va: "m" }),
     txt(790, 322, 340, 80, "PT SNS dan CV DUS\nGantian tiap hari, boleh jual ke pihak lain", 19, { color: C.navy, bold: true, align: "c", lh: 1.35, va: "m" }),
@@ -300,7 +300,7 @@ export const s07 = mk(
     ].flatMap(([a, b], i): El[] => [
       rect(740 + i * 358, 770, 4, 120, C.teal, { r: 2 }),
       txt(764 + i * 358, 762, 320, 34, a, 24, { color: C.white, bold: true, va: "m", lh: 1.1 }),
-      txt(764 + i * 358, 802, 320, 100, b, 20, { color: "#CFEFE3", lh: 1.35 }),
+      txt(764 + i * 358, 802, 320, 100, b, 20, { color: "#CFE0EE", lh: 1.35 }),
     ]),
   ],
   "Ini tulang punggung narasi. Setiap kotak memetakan satu tahap yang sudah ada di proposal; yang ditambahkan ERP adalah tautan data antar tahap.",

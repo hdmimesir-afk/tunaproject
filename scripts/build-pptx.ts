@@ -12,7 +12,7 @@ import type { El, Run, Cell } from "../lib/scene";
 
 const IN = (px: number) => px / 144;
 const PT = (px: number) => Math.round(px * 5) / 10; // px -> pt, 0.1 precision
-const hex = (c?: string) => (c ?? "#17212B").replace("#", "").toUpperCase();
+const hex = (c?: string) => (c ?? "#00171F").replace("#", "").toUpperCase();
 const FONT = process.env.PPTX_FONT ?? "Google Sans";
 const MONO = FONT;
 const faceFor = (w: number): { fontFace: string; bold: boolean } => {
@@ -179,7 +179,7 @@ function addEl(s: pptxgen.Slide, el: El) {
 mkdirSync("output", { recursive: true });
 slides.forEach((sl) => {
   const s = pptx.addSlide();
-  s.background = { color: sl.theme === "dark" ? "0E5C46" : "FAF9F6" };
+  s.background = { color: sl.theme === "dark" ? "003459" : "F6F9FB" };
   sl.els.forEach((el) => addEl(s, el));
   s.addNotes(`${sl.title}\n\n${sl.notes}`);
 });

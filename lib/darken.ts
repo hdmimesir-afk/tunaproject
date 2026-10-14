@@ -6,21 +6,21 @@ import type { El } from "./scene";
  * all render the same dark theme.  Fills that turn into the lime accent flip their on-top text to dark.
  */
 export const T = {
-  bg: "#111A16",
+  bg: "#00171F",
   card: "#1A2622",
   tile: "#212F2A",
   tile2: "#283833",
   tile3: "#2F4039",
-  line: "#2E3E38",
+  line: "#1E3A4A",
   text: "#F3F6F4",
-  sub: "#A9B8B2",
-  faint: "#7C8C86",
+  sub: "#A9BCC8",
+  faint: "#7F909A",
   lime: "#C6F25A",
   lime2: "#B2E043",
   mint: "#7BE0B0",
-  onLime: "#10201A",
+  onLime: "#00171F",
   onLime2: "#2F4A3B",
-  green: "#12A676",
+  green: "#1B7FC4",
 };
 
 const up = (c?: string) => (c ? c.toUpperCase() : c);
@@ -28,19 +28,19 @@ const lum = (c: string) => (0.299 * parseInt(c.slice(1, 3), 16) + 0.587 * parseI
 const isHex = (c?: string): c is string => !!c && /^#[0-9A-Fa-f]{6}$/.test(c);
 
 const FILL: Record<string, string> = {
-  "#FFFFFF": T.card, "#FAF9F6": T.card, "#F4F3EF": T.tile, "#ECEBE6": T.tile2, "#E3E2DC": T.tile3,
-  "#DDF3EA": "#1F3B31", "#CDEFE2": "#26493B", "#FBF1DE": "#3A3220", "#F8E5E3": "#3B2523",
-  "#0E5C46": T.lime, "#14735A": T.lime2,
+  "#FFFFFF": T.card, "#F6F9FB": T.card, "#F1F5F8": T.tile, "#E8EEF2": T.tile2, "#DDE5EB": T.tile3,
+  "#E3EDF5": "#1F3B31", "#D6E4EF": "#26493B", "#FBF1DE": "#3A3220", "#F8E5E3": "#3B2523",
+  "#003459": T.lime, "#0A4D80": T.lime2,
   "#9A6410": "#E0A93F", "#B4443C": "#F0645A",
-  "#EEEDE8": T.tile3, "#E6E6E2": T.tile3,
+  "#E6E6E2": T.tile3,
 };
 const TEXT: Record<string, string> = {
-  "#2B2B2B": T.text, "#5A5D5B": T.sub, "#8A8D8B": T.faint,
-  "#0E5C46": T.lime, "#14735A": T.lime, "#12A676": T.mint, "#0B8F63": T.mint,
-  "#CFF3E5": T.sub, "#9A6410": "#F2C46D", "#B4443C": "#FF9A92", "#FFFFFF": "#FFFFFF",
+  "#00171F": T.text, "#4B5E69": T.sub, "#7F909A": T.faint,
+  "#003459": T.lime, "#0A4D80": T.lime, "#1B7FC4": T.mint,
+  "#CFE0EE": T.sub, "#9A6410": "#F2C46D", "#B4443C": "#FF9A92", "#FFFFFF": "#FFFFFF",
   "#2C5F7C": T.mint,
 };
-const LINE: Record<string, string> = { "#DAD9D2": T.line, "#E3E2DC": T.line, "#0E5C46": T.lime, "#14735A": T.lime2, "#8A8D8B": T.faint, "#FFFFFF": T.line };
+const LINE: Record<string, string> = { "#D5DEE4": T.line, "#DDE5EB": T.line, "#003459": T.lime, "#0A4D80": T.lime2, "#7F909A": T.faint, "#FFFFFF": T.line };
 
 const mapFill = (c?: string) => {
   if (!isHex(c)) return c;
@@ -64,13 +64,13 @@ const mapLine = (c?: string) => {
   return lum(k) > 0.8 ? T.line : c;
 };
 
-const LIME_FILLS = new Set(["#0E5C46", "#14735A"]);
+const LIME_FILLS = new Set(["#003459", "#0A4D80"]);
 
 export function dk(els: El[]): El[] {
   const limeBoxes: { x: number; y: number; w: number; h: number; dark: string }[] = [];
   for (const el of els) {
     if ((el.t === "rect" || el.t === "ellipse") && el.fill && LIME_FILLS.has(up(el.fill)!)) {
-      limeBoxes.push({ x: el.x, y: el.y, w: el.w, h: el.h, dark: up(el.fill) === "#0E5C46" ? T.onLime : T.onLime });
+      limeBoxes.push({ x: el.x, y: el.y, w: el.w, h: el.h, dark: up(el.fill) === "#003459" ? T.onLime : T.onLime });
     }
   }
   const onLime = (x: number, y: number) => limeBoxes.some((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
@@ -87,8 +87,8 @@ export function dk(els: El[]): El[] {
         const col = (c?: string) => {
           if (inside) {
             const k = up(c);
-            if (!k || k === "#FFFFFF" || k === "#CFF3E5" || k === "#FFFFFF") return T.onLime;
-            if (k === "#0E5C46" || k === "#14735A") return T.onLime;
+            if (!k || k === "#FFFFFF" || k === "#CFE0EE" || k === "#FFFFFF") return T.onLime;
+            if (k === "#003459" || k === "#0A4D80") return T.onLime;
             return c && lum(c) > 0.7 ? T.onLime2 : c;
           }
           return mapText(c);

@@ -108,7 +108,7 @@ export const s16 = mk(
       const y = fi.y + 66 + i * 54;
       const fill = k === "ok" ? C.teal : k === "warn" ? C.amber : C.faint;
       return [
-        rect(fi.x + 20, y, 858, 46, i % 2 ? "#F4F3EF" : C.white, { r: 6, line: C.border, lw: 1 }),
+        rect(fi.x + 20, y, 858, 46, i % 2 ? "#F1F5F8" : C.white, { r: 6, line: C.border, lw: 1 }),
         txt(fi.x + 36, y, 600, 46, t, 19, { va: "m", lh: 1 }),
         ...chip(fi.x + 722, y + 7, s, { fill, color: C.white, size: 16, h: 32, w: 140 }).els,
       ];
@@ -127,7 +127,7 @@ export const s16 = mk(
         rect(x, 812, w, 132, C.navy, { r: 12 }),
         rect(x + 18, 828, 30, 4, C.aquaOnDark, { r: 2 }),
         txt(x + 18, 840, w - 36, 56, a, 21, { color: C.white, bold: true, lh: 1.2 }),
-        txt(x + 18, 898, w - 36, 40, b, 16, { color: "#CFEFE3", lh: 1.25 }),
+        txt(x + 18, 898, w - 36, 40, b, 16, { color: "#CFE0EE", lh: 1.25 }),
       ];
     }),
   ],
@@ -183,11 +183,11 @@ export const s18 = mk(
     ...days.flatMap(([d], i): El[] => {
       const y = 300 + i * 74;
       return [
-        rect(120, y, 1010, 62, i % 2 ? "#F4F3EF" : C.white, { r: 8, line: C.border, lw: 1 }),
+        rect(120, y, 1010, 62, i % 2 ? "#F1F5F8" : C.white, { r: 8, line: C.border, lw: 1 }),
         txt(140, y, 150, 62, d, 22, { bold: true, color: C.navy, va: "m", lh: 1 }),
       ];
     }),
-    ...Array.from({ length: 10 }, (_, i): El => ln(gx + i * hp, 296, gx + i * hp, 300 + 6 * 74 - 8, "#DAD9D2", 1, { dash: true })),
+    ...Array.from({ length: 10 }, (_, i): El => ln(gx + i * hp, 296, gx + i * hp, 300 + 6 * 74 - 8, "#D5DEE4", 1, { dash: true })),
     ...days.flatMap(([, p, , c], i): El[] => {
       const y = 300 + i * 74;
       const sat = i === 5;
@@ -210,7 +210,7 @@ export const s18 = mk(
       return [
         rect(x, 868, 244, 76, C.navy, { r: 10 }),
         txt(x + 16, 874, 214, 34, a, 19, { color: C.white, bold: true, va: "m", lh: 1 }),
-        txt(x + 16, 908, 214, 30, b, 16, { color: "#CFEFE3", va: "m", lh: 1 }),
+        txt(x + 16, 908, 214, 30, b, 16, { color: "#CFE0EE", va: "m", lh: 1 }),
       ];
     }),
     card(1170, 262, 630, 682),
@@ -273,7 +273,7 @@ export const s19 = mk(
       return [
         txt(688, y, 330, 52, s.label, 18, { color: C.ink, lh: 1.25 }),
         txt(1018, y, 142, 52, "−" + jt(s.drop, 2), 19, { bold: true, color: C.navy, va: "m", align: "r", lh: 1 }),
-        rect(688, y + 58, 472, 22, "#EEEDE8", { r: 4 }),
+        rect(688, y + 58, 472, 22, "#E8EEF2", { r: 4 }),
         rect(688, y + 58, Math.max(6, w), 22, i === 1 || i === 2 ? C.red : C.amber, { r: 4 }),
       ];
     }),
@@ -351,7 +351,7 @@ export const s20 = mk(
       return [
         rect(x, 808, w, 136, C.navy, { r: 12 }),
         txt(x + 22, 822, w - 44, 56, a, 23, { color: C.white, bold: true, va: "m", lh: 1.2 }),
-        txt(x + 22, 884, w - 44, 56, b, 19, { color: "#CFEFE3", lh: 1.3 }),
+        txt(x + 22, 884, w - 44, 56, b, 19, { color: "#CFE0EE", lh: 1.3 }),
       ];
     }),
   ],

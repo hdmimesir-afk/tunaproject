@@ -3,22 +3,22 @@ import type { El, Run, Cell } from "./scene";
 /* ---------- Design tokens ---------- */
 export const C = {
   // Green brand system: deep green (navy), brand green (ocean), mid green (teal), warm off-white surfaces
-  navy: "#0E5C46", // deep green: fills, strong accents
-  navy2: "#14735A",
-  ocean: "#12A676", // brand green
-  teal: "#0B8F63", // mid green
-  off: "#FAF9F6",
+  navy: "#003459", // deep green: fills, strong accents
+  navy2: "#0A4D80",
+  ocean: "#1B7FC4", // brand green
+  teal: "#0A4D80", // mid green
+  off: "#F6F9FB",
   white: "#FFFFFF",
-  low: "#F4F3EF",
-  cont: "#ECEBE6",
-  high: "#E3E2DC",
-  ink: "#2B2B2B", // headings and body
-  muted: "#5A5D5B",
-  faint: "#8A8D8B",
-  border: "#DAD9D2",
-  aqua: "#CDEFE2",
-  ice: "#DDF3EA",
-  aquaOnDark: "#CFF3E5",
+  low: "#F1F5F8",
+  cont: "#E8EEF2",
+  high: "#DDE5EB",
+  ink: "#00171F", // headings and body
+  muted: "#4B5E69",
+  faint: "#7F909A",
+  border: "#D5DEE4",
+  aqua: "#D6E4EF",
+  ice: "#E3EDF5",
+  aquaOnDark: "#CFE0EE",
   amber: "#9A6410",
   amberSoft: "#FBF1DE",
   red: "#B4443C",
@@ -207,7 +207,7 @@ export const kpi = (
   const px = o.plain ? 0 : 22;
   const els: El[] = [];
   if (!o.plain) els.push(rect(x, y, w, h, o.fill ?? (dark ? C.navy2 : C.low), { r: 16 }));
-  els.push(txt(x + px, y + 14, w - px * 2, 28, label, 18, { color: dark ? "#CFEFE3" : C.muted, lh: 1.1, va: "m" }));
+  els.push(txt(x + px, y + 14, w - px * 2, 28, label, 18, { color: dark ? "#CFE0EE" : C.muted, lh: 1.1, va: "m" }));
   els.push(txt(x + px, y + 46, w - px * 2, vs + 18, value, vs, { color: dark ? C.white : o.accent && o.plain ? o.accent : C.navy, lh: 1.05, va: "m", weight: 800 }));
   if (sub) els.push(txt(x + px, y + 46 + vs + 10, w - px * 2, Math.max(26, h - (46 + vs + 14)), sub, 17, { color: dark ? "#BFE6D6" : C.muted, lh: 1.25, va: "t" }));
   return els;
@@ -266,7 +266,7 @@ export const hbars = (
   items.forEach((it, i) => {
     const yy = y + i * rowH;
     els.push(txt(x, yy, labelW, rowH, it.label, size, { color: C.ink, va: "m", lh: 1.15 }));
-    els.push(rect(x + labelW, yy + (rowH - barH) / 2, plotW, barH, "#EEEDE8", { r: 4 }));
+    els.push(rect(x + labelW, yy + (rowH - barH) / 2, plotW, barH, "#E8EEF2", { r: 4 }));
     els.push(rect(x + labelW, yy + (rowH - barH) / 2, Math.max(4, (it.value / max) * plotW), barH, it.color ?? o.color ?? C.ocean, { r: 4 }));
     els.push(txt(x + labelW + plotW + 12, yy, valW, rowH, it.text ?? String(it.value), size, { bold: true, color: C.navy, va: "m", align: "r", lh: 1 }));
   });
@@ -337,7 +337,7 @@ export const table = (
     align: o.align,
     headFill: o.headFill ?? C.cont,
     headColor: o.headColor ?? C.navy,
-    zebra: o.zebra ?? "#F4F3EF",
+    zebra: o.zebra ?? "#F1F5F8",
     border: C.border,
   };
 };

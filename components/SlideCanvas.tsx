@@ -153,7 +153,7 @@ function renderEl(el: El, i: number): ReactNode {
                     fontSize: el.size,
                     lineHeight: 1.2,
                     fontWeight: isHead || c.b ? 700 : 400,
-                    color: isHead ? el.headColor : c.c ?? el.color ?? "#17212B",
+                    color: isHead ? el.headColor : c.c ?? el.color ?? "#00171F",
                     background: !isHead && c.f ? c.f : undefined,
                     borderBottom: isHead ? undefined : `1px solid ${el.border}`,
                   }}
@@ -184,8 +184,8 @@ export function SlideCanvas({ slide }: { slide: Slide; animate?: boolean }) {
         width: W,
         height: H,
         overflow: "hidden",
-        background: slide.theme === "dark" ? "#0E5C46" : "#FAF9F6",
-        color: "#17212B",
+        background: slide.theme === "dark" ? "#003459" : "#F6F9FB",
+        color: "#00171F",
       }}
     >
       {slide.els.map(renderEl)}

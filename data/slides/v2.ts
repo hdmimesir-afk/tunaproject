@@ -12,7 +12,7 @@ import { mk } from "./_h";
  *   type   display 190-210 · stat 80-140 · title 56-64 · body 24-30 · caption 16-22
  *   color  paper / ink / deep green (brand) · mint accent (sparingly) · amber for warnings only
  */
-const P = { ink: "#14201B", green: "#0E5C46", mint: "#12A676", muted: "#5C6862", faint: "#8C968F", line: "#DAD9D2", card: "#FFFFFF", track: "#E6E4DC", amber: "#C98A1B", red: "#B4443C", softGreen: "#E4EFE9", onDark: "#CFEFE3" };
+const P = { ink: "#00171F", green: "#003459", mint: "#1B7FC4", muted: "#4B5E69", faint: "#7F909A", line: "#D5DEE4", card: "#FFFFFF", track: "#E1E8ED", amber: "#C98A1B", red: "#B4443C", softGreen: "#E3EDF5", onDark: "#CFE0EE" };
 const TOTAL = 13;
 
 const ic = (name: string, color: string, x: number, y: number, s: number): El => img(x, y, s, s, `/icons/${name}-${color}.png`);
@@ -35,7 +35,7 @@ export const V1 = mk(1, "Cover — KATALIS ERP", [
   img(120, 96, 420, 171, "/brand/katalis-logo-white.png"),
   X(1180, 166, 620, 30, "Penawaran aplikasi  ·  Oktober 2026", 22, { color: P.onDark, align: "r", va: "m", lh: 1 }),
   img(1000, 272, 920, 764, "/shots/dash-cover.png"),
-  X(120, 150, 940, 650, "KATALIS\nERP.", 140, { color: "#FFFFFF", weight: 700, lh: 1, va: "b" }),
+  img(120, 495, 780, 295, "/brand/katalis-erp-wordmark.png"),
   X(120, 850, 780, 110, "Aplikasi untuk mengurus usaha perikanan,\ndari beli ikan sampai laporan keuangan.", 30, { color: P.onDark, lh: 1.35 }),
   X(120, 1000, 600, 28, "Disiapkan oleh Dar Dev untuk PT Katalis Lintas Global", 18, { color: P.onDark, va: "m", lh: 1 }),
 ], "Pembuka. Penawaran awal untuk dibahas bersama; harga dibahas setelah fitur disepakati.", [
@@ -50,7 +50,7 @@ export const V2 = mk(2, "Masalah", [
   X(120, 126, 1300, 80, "Tiga angka yang kami lihat di usaha Katalis", 60, { color: "#FFFFFF", weight: 700, lh: 1.06 }),
   ...problems.flatMap(([v, l], i): El[] => {
     const x = 120 + i * 580;
-    return [L(x, 330, x + 500, 330, "#5E9C85", 2), X(x, 350, 560, 230, v, 128, { color: "#FFFFFF", weight: 700, lh: 1, va: "m" }), X(x, 600, 480, 110, l, 30, { color: P.onDark, lh: 1.3 })];
+    return [L(x, 330, x + 500, 330, "#4F86AF", 2), X(x, 350, 560, 230, v, 128, { color: "#FFFFFF", weight: 700, lh: 1, va: "m" }), X(x, 600, 480, 110, l, 30, { color: P.onDark, lh: 1.3 })];
   }),
   X(120, 780, 900, 30, "Empat masalah lain yang ikut terjawab", 22, { color: P.onDark, weight: 600, va: "m", lh: 1 }),
   ...others.flatMap(([icn, t], i): El[] => {
@@ -208,7 +208,7 @@ export const V10 = mk(10, "Jadwal", [
 ]);
 
 /* ---------------------------------------------------------------- 11 skenario */
-const levels: [string, number, string, string][] = [["Rendah", 275.0, "Rp275,0 jt", "#CFE3D9"], ["Sedang", 475.7, "Rp475,7 jt", P.mint], ["Tinggi", 734.5, "Rp734,5 jt", P.green]];
+const levels: [string, number, string, string][] = [["Rendah", 275.0, "Rp275,0 jt", "#CFE0EE"], ["Sedang", 475.7, "Rp475,7 jt", P.mint], ["Tinggi", 734.5, "Rp734,5 jt", P.green]];
 const impacts: [string, string, number][] = [["Daging naik Rp1.000/kg", "−Rp11,92 jt", 11.92], ["Harga jual turun Rp5.000/kg", "−Rp59,58 jt", 59.58], ["Pemakaian mesin turun dari 75% ke 65%", "−Rp53,26 jt", 53.26], ["Sewa naik Rp5 juta", "−Rp5,00 jt", 5]];
 export const V11 = mk(11, "Skenario", [
   ...chrome(11, "Skenario", "Coba skenario sebelum memutuskan", { foot: "Dar Dev  ·  KATALIS ERP  ·  Perkiraan, bukan laba nyata" }),
@@ -236,7 +236,7 @@ export const V12 = mk(12, "Paket", [
   R(120, 250, 520, 740, P.green, { r: 32 }),
   X(152, 286, 460, 52, "Paket Lengkap", 42, { color: "#FFFFFF", weight: 700, va: "m", lh: 1 }),
   X(152, 346, 460, 70, "Semua fitur untuk mengurus usaha, dari beli ikan sampai laporan keuangan.", 22, { color: P.onDark, lh: 1.35 }),
-  R(152, 452, 456, 150, "#14735A", { r: 24 }), ic("sparkles", "white", 180, 480, 44),
+  R(152, 452, 456, 150, "#0A4D80", { r: 24 }), ic("sparkles", "white", 180, 480, 44),
   X(240, 470, 350, 40, "Asisten AI", 32, { color: "#FFFFFF", weight: 700, va: "m", lh: 1 }),
   X(240, 514, 350, 80, "Tanya dengan kalimat biasa, jawabnya dari data usaha sendiri.", 20, { color: P.onDark, lh: 1.3 }),
   X(152, 640, 460, 90, "Harga\ndibahas bersama", 40, { color: "#FFFFFF", weight: 700, lh: 1.08 }),
@@ -273,11 +273,11 @@ export const V13 = mk(13, "Jadwal pengerjaan", [
     const w = 402, x = 120 + i * (w + 24), y = 250, h = 500, last = i === weeks.length - 1;
     return [
       R(x, y, w, h, last ? P.green : P.card, { r: 28, line: last ? undefined : P.line, lw: 1.5 }),
-      R(x + 28, y + 28, 132, 36, last ? "#14735A" : P.softGreen, { r: 18 }), X(x + 28, y + 28, 132, 36, k.w, 18, { color: last ? "#FFFFFF" : P.green, weight: 700, align: "c", va: "m", lh: 1 }),
+      R(x + 28, y + 28, 132, 36, last ? "#0A4D80" : P.softGreen, { r: 18 }), X(x + 28, y + 28, 132, 36, k.w, 18, { color: last ? "#FFFFFF" : P.green, weight: 700, align: "c", va: "m", lh: 1 }),
       X(x + 28, y + 84, w - 56, 44, k.t, 34, { color: last ? "#FFFFFF" : P.ink, weight: 700, va: "m", lh: 1 }),
-      L(x + 28, y + 148, x + w - 28, y + 148, last ? "#2F8E75" : P.line, 1.5),
+      L(x + 28, y + 148, x + w - 28, y + 148, last ? "#2F6A94" : P.line, 1.5),
       ...k.items.flatMap((t, j): El[] => [ic("check", last ? "white" : "mint", x + 28, y + 176 + j * 74 + 4, 28), X(x + 70, y + 176 + j * 74, w - 98, 60, t, 22, { color: last ? "#FFFFFF" : P.ink, lh: 1.25, va: "t" })]),
-      R(x + 20, y + h - 96, w - 40, 76, last ? "#14735A" : P.softGreen, { r: 20 }),
+      R(x + 20, y + h - 96, w - 40, 76, last ? "#0A4D80" : P.softGreen, { r: 20 }),
       ic("flag", last ? "white" : "green", x + 40, y + h - 96 + 22, 32), X(x + 84, y + h - 96, w - 120, 76, k.out, 21, { color: last ? "#FFFFFF" : P.green, weight: 700, lh: 1.2, va: "m" }),
     ];
   }),

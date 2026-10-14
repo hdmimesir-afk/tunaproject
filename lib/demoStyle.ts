@@ -5,7 +5,7 @@ import type { El } from "./scene";
  * soft blue-grey panel, frosted cards, light tiles, black accents.  Slide chrome (title, problem/solution band,
  * footer) and green callout blocks outside the mock windows keep the deck's own green styling.
  */
-const INK = "#111214";
+const INK = "#00171F";
 const PANEL = "#E9EDF5";
 const CARD = "#F8F9FC";
 const TILE = "#EEF0F6";
@@ -27,8 +27,8 @@ export function demoStyle(els: El[], yMin = 255, yMax = 962): El[] {
       const cy = (el.y1 + el.y2) / 2;
       if (!inRegion(cy, 0)) return el;
       const c = up(el.color);
-      if (c === "#DAD9D2" || c === "#E3E2DC" || c === "#ECEBE6") return { ...el, color: "#DDE0E8" };
-      if (c === "#0E5C46" || c === "#12A676") return { ...el, color: INK };
+      if (c === "#D5DEE4" || c === "#DDE5EB" || c === "#E8EEF2") return { ...el, color: "#DDE0E8" };
+      if (c === "#003459" || c === "#1B7FC4") return { ...el, color: INK };
       return el;
     }
     if (el.t === "rect" || el.t === "ellipse") {
@@ -40,16 +40,16 @@ export function demoStyle(els: El[], yMin = 255, yMax = 962): El[] {
       let line = el.line;
       switch (f) {
         case "#FFFFFF": fill = inside ? CARD : CARD; line = line ? "#FFFFFF" : line; break;
-        case "#F4F3EF": fill = inside ? TILE : CARD; line = line ? "#FFFFFF" : line; break;
-        case "#ECEBE6": fill = TILE2; break;
-        case "#E3E2DC": fill = TILE2; break;
-        case "#EEEDE8": fill = "#FFFFFF"; break;
-        case "#DDF3EA": case "#CDEFE2": fill = "#DDF3E8"; break;
-        case "#0E5C46": case "#14735A": fill = inside || !hasText(el) ? INK : el.fill; break;
-        case "#12A676": fill = INK; break;
+        case "#F1F5F8": fill = inside ? TILE : CARD; line = line ? "#FFFFFF" : line; break;
+        case "#E8EEF2": fill = TILE2; break;
+        case "#DDE5EB": fill = TILE2; break;
+        case "#E8EEF2": fill = "#FFFFFF"; break;
+        case "#E3EDF5": case "#D6E4EF": fill = "#DDF3E8"; break;
+        case "#003459": case "#0A4D80": fill = inside || !hasText(el) ? INK : el.fill; break;
+        case "#1B7FC4": fill = INK; break;
         default: break;
       }
-      if (line && up(line) === "#DAD9D2") line = "#FFFFFF";
+      if (line && up(line) === "#D5DEE4") line = "#FFFFFF";
       return { ...el, fill, line };
     }
     if (el.t === "text") {
@@ -57,10 +57,10 @@ export function demoStyle(els: El[], yMin = 255, yMax = 962): El[] {
       const inside = inWin(el.x + el.w / 2, el.y + el.h / 2);
       const map = (c?: string) => {
         const k = up(c);
-        if (k === "#0E5C46" || k === "#14735A" || k === "#12A676") return INK;
-        if (k === "#0B8F63") return "#0B6B4A";
-        if (k === "#2B2B2B") return INK;
-        if (k === "#CFF3E5") return "#C6CCD3";
+        if (k === "#003459" || k === "#0A4D80" || k === "#1B7FC4") return INK;
+        if (k === "#0A4D80") return "#0B6B4A";
+        if (k === "#00171F") return INK;
+        if (k === "#CFE0EE") return "#C6CCD3";
         return c;
       };
       return { ...el, color: map(el.color), text: typeof el.text === "string" ? el.text : el.text.map((r) => ({ ...r, color: map(r.color) })) };

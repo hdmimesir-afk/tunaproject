@@ -3,7 +3,7 @@ import { R, O, X, L } from "./phone";
 
 /** Mockups that match the interactive demo (/demo, /demo/desktop): frosted cards, soft tiles, black accents. */
 export const D = {
-  ink: "#111214", muted: "#7A7F87", bg: "#E9EDF5", card: "#F8F9FC", tile: "#EEF0F6", white: "#FFFFFF", edge: "#FFFFFF",
+  ink: "#00171F", muted: "#6C7F8A", bg: "#E9EDF5", card: "#F8F9FC", tile: "#EEF0F6", white: "#FFFFFF", edge: "#FFFFFF",
   red: "#E0524A", warnText: "#B4443C",
 };
 
@@ -29,7 +29,7 @@ const icon = (x: number, y: number, s: number, c: string, active = false): El[] 
 /* ------------------------------------------------------------ phone (base 330x700) */
 export function lightPhone(variant: "home" | "approve" | "modul"): El[] {
   const e: El[] = [];
-  e.push(R(0, 0, 330, 700, "#111214", { r: 52 }));
+  e.push(R(0, 0, 330, 700, "#00171F", { r: 52 }));
   e.push(R(8, 8, 314, 684, D.bg, { r: 44 }));
   e.push(X(30, 22, 70, 22, "9:41", 14, { weight: 700, color: D.ink, va: "m", lh: 1 }));
   const px = 22, pw = 286;
@@ -81,6 +81,6 @@ export function lightPhone(variant: "home" | "approve" | "modul"): El[] {
     });
     tab(1);
   }
-  e.push(R(165 - 46, 18, 92, 26, "#111214", { r: 13 }));
+  e.push(R(165 - 46, 18, 92, 26, "#00171F", { r: 13 }));
   return e;
 }

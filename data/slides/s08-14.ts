@@ -212,7 +212,7 @@ export const s11 = mk(
       ["Sisa olahan", "65 kg belum laku; bisa dijual lewat fitur stok dan penjualan"],
     ].flatMap(([a, b], i): El[] => [
       txt(150 + i * 540, 878, 510, 32, a, 24, { color: C.white, va: "m", lh: 1 }),
-      txt(150 + i * 540, 912, 510, 30, b, 19, { color: "#CFEFE3", va: "m", lh: 1.1 }),
+      txt(150 + i * 540, 912, 510, 30, b, 19, { color: "#CFE0EE", va: "m", lh: 1.1 }),
     ]),
   ],
   "Contoh memakai data nyata Siklus 1 yang dibagikan owner. Total 300,94 kg loin + 87 kg hasil samping (toro 14, kepala 63, tetelan coklat 7, daging kerok 3). Pendapatan Rp41.576.150, biaya Rp37.072.682, laba Rp4.503.468 (10,8%). Nilai tambah: hasil per ekor, biaya kirim, hasil samping, dan biaya usaha tersambung ke stok dan keuangan.",
@@ -317,7 +317,7 @@ export const s13 = mk(
       return [
         txt(1256, y, 300, 30, n as string, 21, { bold: true, color: C.ink, va: "m", lh: 1 }),
         txt(1560, y, 214, 30, `Suhu ${t}`, 19, { color: C.muted, va: "m", align: "r", lh: 1 }),
-        rect(1256, y + 42, 518, 26, "#EEEDE8", { r: 6 }),
+        rect(1256, y + 42, 518, 26, "#E8EEF2", { r: 6 }),
         rect(1256, y + 42, 518 * ((p as number) / 100), 26, c as string, { r: 6 }),
         txt(1256, y + 76, 518, 28, `${p}% terisi` + ((p as number) > 85 ? " · peringatan kapasitas" : ""), 18, { color: (p as number) > 85 ? C.amber : C.muted, bold: (p as number) > 85, va: "m", lh: 1 }),
       ];
@@ -334,7 +334,7 @@ export const s13 = mk(
       return [
         rect(x, 846, w, 96, C.navy, { r: 12 }),
         txt(x + 20, 856, w - 40, 32, a, 22, { color: C.white, bold: true, va: "m", lh: 1 }),
-        txt(x + 20, 892, w - 40, 46, b, 17, { color: "#CFEFE3", lh: 1.28 }),
+        txt(x + 20, 892, w - 40, 46, b, 17, { color: "#CFE0EE", lh: 1.28 }),
       ];
     }),
   ],
@@ -385,7 +385,7 @@ export const s14 = mk(
     txt(ci.x + 20, ci.y + 12, 600, 36, "Tagihan gudang dingin dan ABF · [Pelanggan A]", 22, { bold: true, color: C.navy, va: "m", lh: 1 }),
     ...illustrative(ci.x + ci.w - 190, ci.y + 14),
     table(ci.x + 20, ci.y + 62, [226, 130, 120, 134, 140, 208], ["Layanan", "Berat (kg)", "Durasi", "Hari ditagih", "Tarif/kg", "Jumlah"], csRows, { size: 18, rowH: 56, headH: 48, align: ["l", "r", "r", "r", "r", "r"] }),
-    rect(ci.x + 20, ci.y + 62 + 48 + 56 * 4, 958, 60, "#EEEDE8"),
+    rect(ci.x + 20, ci.y + 62 + 48 + 56 * 4, 958, 60, "#E8EEF2"),
     txt(ci.x + 34, ci.y + 62 + 48 + 56 * 4, 400, 60, "Total contoh", 21, { bold: true, color: C.navy, va: "m", lh: 1 }),
     txt(ci.x + 600, ci.y + 62 + 48 + 56 * 4, 364, 60, rp(csTotal), 28, { bold: true, color: C.teal, align: "r", va: "m", lh: 1 }),
     txt(ci.x + 20, ci.y + 408, 958, 28, "Rumus: jumlah = berat × hari ditagih × tarif per kg per hari", 18, { bold: true, color: C.navy, va: "m", lh: 1 }),

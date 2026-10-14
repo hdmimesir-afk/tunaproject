@@ -37,7 +37,7 @@ export default function DesktopApp() {
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
       `}</style>
-      <div className="relative flex h-dvh min-h-[640px] w-full overflow-hidden" style={{ background: "#111214" }}>
+      <div className="relative flex h-dvh min-h-[640px] w-full overflow-hidden" style={{ background: "#00171F" }}>
         {/* sidebar */}
         <aside className="flex w-[232px] shrink-0 flex-col px-3 pb-4 pt-5 text-white">
           <div className="mb-5 px-2">
@@ -59,7 +59,7 @@ export default function DesktopApp() {
           </nav>
           <div className="mt-3 rounded-2xl p-3 text-[12px] text-[#8A9199]" style={{ background: "#1B1D21" }}>
             Mode demo. Data contoh kecuali yang berlabel Siklus 1.
-            <button type="button" onClick={() => { resetDemo(); setPage("dashboard"); setToast({ m: "Demo diulang dari awal", ok: true }); }} className="mt-2 block w-full rounded-full bg-white py-2 text-[12.5px] font-medium text-[#111214] transition active:scale-95">Ulangi demo</button>
+            <button type="button" onClick={() => { resetDemo(); setPage("dashboard"); setToast({ m: "Demo diulang dari awal", ok: true }); }} className="mt-2 block w-full rounded-full bg-white py-2 text-[12.5px] font-medium text-[#00171F] transition active:scale-95">Ulangi demo</button>
           </div>
         </aside>
 

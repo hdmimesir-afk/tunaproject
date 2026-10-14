@@ -22,6 +22,14 @@ function Logo({ size = 40 }: { size?: number }) {
 export default function DemoApp({ embedded = false }: { embedded?: boolean }) {
   const s = useDemoState();
   const [splash, setSplash] = useState(!embedded);
+  // native: opened from the pitch (?native=1) or directly on a phone. No fake status bar, real safe areas.
+  const [native, setNative] = useState(false);
+  const [fromPitch, setFromPitch] = useState(false);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("native") === "1";
+    setFromPitch(q);
+    setNative(q || (!embedded && window.innerWidth < 768));
+  }, [embedded]);
   const [screen, setScreen] = useState("dashboard");
   const [role, setRoleState] = useState<Role>("Owner");
   const [toast, setToast] = useState<{ m: string; ok: boolean } | null>(null);
@@ -54,14 +62,14 @@ export default function DemoApp({ embedded = false }: { embedded?: boolean }) {
 
         <div className={`relative h-dvh w-full overflow-hidden ${embedded ? "" : "md:h-[860px] md:w-[400px] md:rounded-[48px] md:shadow-[0_20px_60px_rgba(30,35,60,.18)]"}`} style={{ background: "linear-gradient(180deg,#EFF1F6 0%,#E9EDF5 55%,#DFE6F2 100%)" }}>
           {/* status bar */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex h-12 items-start justify-between px-8 pt-4 text-[13px] font-semibold" style={{ color: INK, background: "linear-gradient(180deg,#EFF1F6 55%,rgba(239,241,246,0))" }}>
+          {!native && <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex h-12 items-start justify-between px-8 pt-4 text-[13px] font-semibold" style={{ color: INK, background: "linear-gradient(180deg,#EFF1F6 55%,rgba(239,241,246,0))" }}>
             <span>9:41</span>
             <span className="flex items-center gap-1.5"><svg width="18" height="12" viewBox="0 0 18 12" fill={INK}><rect x="0" y="8" width="3" height="4" rx="1" /><rect x="5" y="5" width="3" height="7" rx="1" /><rect x="10" y="2.5" width="3" height="9.5" rx="1" /><rect x="15" y="0" width="3" height="12" rx="1" /></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke={INK} opacity=".4" /><rect x="2" y="2" width="18" height="8" rx="2.2" fill={INK} /></svg></span>
-          </div>
+          </div>}
 
           <div key={screen} className="no-scrollbar h-full overflow-y-auto pb-32" style={{ animation: "fadeIn .25s ease" }}>
             {/* header */}
-            <div className="flex items-center justify-between px-5 pb-3 pt-14">
+            <div className="flex items-center justify-between px-5 pb-3" style={{ paddingTop: fromPitch ? "max(52px, calc(env(safe-area-inset-top) + 46px))" : native ? "max(22px, calc(env(safe-area-inset-top) + 14px))" : 56 }}>
               <div className="flex items-center gap-3">
                 {isModule ? (
                   <button type="button" aria-label="Kembali" onClick={() => setScreen("menu")} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm active:scale-95"><Icon n="back" s={20} /></button>
@@ -115,7 +123,7 @@ export default function DemoApp({ embedded = false }: { embedded?: boolean }) {
             })}
           </nav>
 
-          {toast && <div className="absolute inset-x-5 top-12 z-[60] rounded-2xl px-4 py-3 text-[13px] font-medium text-white shadow-lg" style={{ background: toast.ok ? INK : "#A8322B", animation: "rise .25s" }} role="status">{toast.m}</div>}
+          {toast && <div className="absolute inset-x-5 z-[60] rounded-2xl px-4 py-3 text-[13px] font-medium text-white shadow-lg" style={{ top: native ? "max(52px, calc(env(safe-area-inset-top) + 46px))" : 48, background: toast.ok ? INK : "#A8322B", animation: "rise .25s" }} role="status">{toast.m}</div>}
 
           <div className="pointer-events-none absolute inset-0 z-[70] flex flex-col items-center justify-center transition-opacity duration-500" style={{ background: "#EFF1F6", opacity: splash ? 1 : 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
