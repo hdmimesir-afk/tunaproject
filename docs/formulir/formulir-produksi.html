@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Formulir Produksi FRM-PRD-01 Rev 01</title>
+<!-- Sumber PDF formulir produksi. Cetak: msedge --headless --no-pdf-header-footer --print-to-pdf=formulir-produksi.pdf formulir-produksi.html -->
+<style>
+  @page { size: A4; margin: 9mm 11mm; }
+  * { box-sizing: border-box; }
+  body { zoom: 0.94; font-family: Arial, Helvetica, sans-serif; font-size: 8.1pt; color: #1b1b1b; margin: 0; }
+  h1 { font-size: 15pt; color: #0b2a4a; margin: 0; }
+  .sub { color: #555; margin-top: 2px; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .doc { border: 1px solid #ccc; font-size: 8pt; }
+  .doc td { padding: 3px 8px; border-bottom: 1px solid #ddd; }
+  .doc td:first-child { color: #666; text-align: right; }
+  table { width: 100%; border-collapse: collapse; }
+  .sec { margin-top: 5px; page-break-inside: avoid; }
+  .sec > .hd { background: #0b2a4a; color: #fff; font-weight: bold; padding: 4px 6px; font-size: 9pt; }
+  .grid th { background: #e3ecf6; color: #0b2a4a; font-weight: bold; padding: 2px 4px; border: 1px solid #d5dbe3; }
+  .grid td { padding: 1.5px 4px; border: 1px solid #e1e4e8; height: 13px; }
+  .kv td { padding: 1.5px 6px; border: 1px solid #e1e4e8; }
+  .kv td.k { color: #555; width: 17%; }
+  .in { background: #fff6d6; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .c { text-align: center; }
+  .blue { color: #1a3fd1; }
+  .neg { color: #c62828; }
+  .muted { color: #666; font-style: italic; font-size: 7.6pt; }
+  .tot td { background: #e3ecf6; font-weight: bold; }
+  .warn { background: #fdecea; color: #a8322b; font-weight: bold; }
+  .note { border: 1px solid #d5dbe3; height: 28px; margin-top: 3px; }
+  .sign { display: flex; justify-content: space-between; margin-top: 8px; text-align: center; }
+  .sign div { width: 30%; }
+  .sign .line { margin-top: 28px; }
+  .foot { margin-top: 8px; font-size: 7.4pt; color: #555; font-style: italic; }
+  .two { display: flex; gap: 8px; }
+  .two > div { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div><h1>FORMULIR PRODUKSI</h1><div class="sub">Olah ikan, timbang hasil, dan jelaskan selisih · Katalis</div></div>
+  <table class="doc" style="width:auto">
+    <tr><td>No. Dokumen</td><td><b>FRM-PRD-01</b></td></tr>
+    <tr><td>Revisi</td><td>01 · 21 Okt 2026</td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <div class="hd">A. IDENTITAS PRODUKSI</div>
+  <table class="kv">
+    <tr><td class="k">No. Produksi</td><td class="in">PRD-0001</td><td class="k">Tanggal</td><td class="in">3 Okt 2026</td></tr>
+    <tr><td class="k">No. Siklus</td><td class="in">Siklus 1</td><td class="k">Asal PO / pembelian</td><td class="in"></td></tr>
+    <tr><td class="k">Shift</td><td class="in">Pagi</td><td class="k">Petugas</td><td class="in"></td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <div class="hd">B. LOT YANG DIOLAH (hanya lot lulus cek mutu, boleh lebih dari satu)</div>
+  <table class="grid">
+    <tr><th>No</th><th>Lot</th><th>Pemasok</th><th>Berat dipakai (kg)</th><th>Kelas</th><th>Status mutu</th><th>Mulai (jam)</th><th>Paraf</th></tr>
+    <tr><td class="c">1</td><td class="in c">LOT-001</td><td class="in c">Pemasok A</td><td class="in num blue">481,000</td><td class="in c">A</td><td class="c">Lulus</td><td class="in c">08.00</td><td class="in"></td></tr>
+    <tr><td class="c">2</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td></td><td class="in"></td><td class="in"></td></tr>
+    <tr class="tot"><td colspan="3">Ikan masuk</td><td class="num">481,000</td><td colspan="4"></td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <div class="hd">C. TIMBANG IKAN UTUH DAN HASIL TIAP EKOR</div>
+  <table class="grid">
+    <tr><th>Ekor</th><th>Berat utuh (kg)</th><th>Loin (kg)</th><th>Hasil (%)</th><th>Rencana (%)</th><th>Selisih (%)</th><th>Catatan</th></tr>
+    <tr><td class="c">001</td><td class="in num blue">44,000</td><td class="num">27,764</td><td class="num">63,1</td><td class="num">60,0</td><td class="num">+3,1</td><td></td></tr>
+    <tr><td class="c">002</td><td class="in num blue">55,000</td><td class="num">33,715</td><td class="num">61,3</td><td class="num">60,0</td><td class="num">+1,3</td><td></td></tr>
+    <tr><td class="c">003</td><td class="in num blue">39,000</td><td class="num">23,946</td><td class="num">61,4</td><td class="num">60,0</td><td class="num">+1,4</td><td></td></tr>
+    <tr><td class="c">004</td><td class="in num blue">58,000</td><td class="num">36,946</td><td class="num">63,7</td><td class="num">60,0</td><td class="num">+3,7</td><td></td></tr>
+    <tr><td class="c">005</td><td class="in num blue">27,000</td><td class="num">14,094</td><td class="num">52,2</td><td class="num">60,0</td><td class="num neg">−7,8</td><td>Terendah</td></tr>
+    <tr><td class="c">006</td><td class="in num blue">64,000</td><td class="num">41,216</td><td class="num">64,4</td><td class="num">60,0</td><td class="num">+4,4</td><td></td></tr>
+    <tr><td class="c">007</td><td class="in num blue">23,000</td><td class="num">16,146</td><td class="num">70,2</td><td class="num">60,0</td><td class="num">+10,2</td><td>Tertinggi</td></tr>
+    <tr><td class="c">008</td><td class="in num blue">34,000</td><td class="num">21,590</td><td class="num">63,5</td><td class="num">60,0</td><td class="num">+3,5</td><td></td></tr>
+    <tr><td class="c">009</td><td class="in num blue">59,000</td><td class="num">37,347</td><td class="num">63,3</td><td class="num">60,0</td><td class="num">+3,3</td><td></td></tr>
+    <tr><td class="c">010</td><td class="in num blue">42,000</td><td class="num">26,586</td><td class="num">63,3</td><td class="num">60,0</td><td class="num">+3,3</td><td></td></tr>
+    <tr><td class="c">011</td><td class="in num blue">36,000</td><td class="num">21,672</td><td class="num">60,2</td><td class="num">60,0</td><td class="num">+0,2</td><td></td></tr>
+    <tr><td class="c">012</td><td class="in"></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="tot"><td>Total</td><td class="num">481,000</td><td class="num">301,022</td><td class="num">62,6</td><td class="c">11 ekor</td><td colspan="2" style="font-weight:normal">Min 52,2% · Maks 70,2%</td></tr>
+  </table>
+  <div class="muted">Loin per ekor = jumlah potong loin bagian D dengan nomor ekor yang sama. Hasil (%) = loin ÷ berat utuh, tidak diketik. Siklus 1: owner hanya mengirim persen per ekor (1 desimal), jadi loin per ekor di atas dihitung balik dan totalnya 301,022 kg, bukan 300,94 kg hasil timbangan.</div>
+</div>
+
+<div class="sec">
+  <div class="hd">D. TIMBANG LOIN PER POTONG</div>
+  <div class="two">
+    <div>
+      <table class="grid">
+        <tr><th>No</th><th>No. ekor</th><th>No. loin</th><th>Grade</th><th>Berat (kg)</th><th>Ket.</th></tr>
+        <tr><td class="c">1</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td></tr>
+        <tr><td class="c">2</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td></tr>
+        <tr><td class="c">3</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td></tr>
+        <tr><td class="c">4</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td></tr>
+        <tr><td class="c">5</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td></tr>
+        <tr><td class="c">…</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td></tr>
+      </table>
+      <div class="muted">Berat ditulis lengkap sesuai timbangan (3 angka di belakang koma). No. ekor boleh dikosongkan.</div>
+    </div>
+    <div>
+      <table class="grid">
+        <tr><th>Rekap per grade</th><th>Berat (kg)</th><th>Porsi loin</th></tr>
+        <tr><td>B-SO (B dengan kulit)</td><td class="num">203,510</td><td class="num">67,6%</td></tr>
+        <tr><td>C-SO (C dengan kulit)</td><td class="num">97,430</td><td class="num">32,4%</td></tr>
+        <tr><td>A, tanpa kulit</td><td class="num">0,000</td><td class="num">0,0%</td></tr>
+        <tr class="tot"><td>Total loin</td><td class="num">300,940</td><td class="num">100%</td></tr>
+      </table>
+      <div class="muted">Data nyata Siklus 1. Rincian per potong belum ada, hanya total per grade.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="hd">E. NERACA HASIL (semua komponen ditimbang, selisih tidak disembunyikan)</div>
+  <table class="grid">
+    <tr><th style="width:34%">Komponen</th><th>Berat (kg)</th><th>% ikan masuk</th><th style="width:40%">Keterangan</th></tr>
+    <tr><td>Ikan masuk</td><td class="num">481,000</td><td class="num">100,0%</td><td class="muted">Total bagian B</td></tr>
+    <tr><td>Loin (produk utama)</td><td class="num">300,940</td><td class="num">62,6%</td><td class="muted">Total bagian D · rencana 60%, batas wajar 40–80%</td></tr>
+    <tr><td>Hasil samping, dijual</td><td class="in num blue">87,000</td><td class="num">18,1%</td><td class="muted">Toro 14 · kepala 63 · tetelan coklat 7 · daging kerok 3</td></tr>
+    <tr><td>Limbah dibuang</td><td class="in"></td><td></td><td class="muted">Belum ditimbang di Siklus 1</td></tr>
+    <tr><td>Susut tercatat</td><td class="in"></td><td></td><td class="muted">Air, darah, es yang ditimbang · belum ada di Siklus 1</td></tr>
+    <tr><td class="warn">Selisih belum jelas</td><td class="num warn">93,060</td><td class="num warn">19,3%</td><td class="muted">Ikan masuk − semua komponen di atas. Tidak boleh diisi ke susut supaya pas.</td></tr>
+  </table>
+  <table class="kv" style="margin-top:4px">
+    <tr><td class="k">Status vs rencana</td><td>Di atas rencana (62,6% &gt; 60%)</td><td class="k">Status produksi</td><td class="in">Perlu diperiksa: selisih belum dijelaskan</td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <div class="hd">F. DAFTAR PRODUKSI</div>
+  <table class="grid">
+    <tr><th>No</th><th>Produksi</th><th>Lot</th><th>Masuk (kg)</th><th>Loin (kg)</th><th>Hasil samping (kg)</th><th>Belum jelas (kg)</th><th>Hasil (%)</th><th>Status</th></tr>
+    <tr><td class="c">1</td><td class="c">PRD-0001</td><td class="c">LOT-001</td><td class="num">481,000</td><td class="num">300,940</td><td class="num">87,000</td><td class="num">93,060</td><td class="num">62,6</td><td class="in c">Perlu diperiksa</td></tr>
+    <tr><td class="c">2</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td></td><td></td><td class="in"></td></tr>
+    <tr><td class="c">3</td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td class="in"></td><td></td><td></td><td class="in"></td></tr>
+  </table>
+</div>
+
+<div class="sec">
+  <b style="color:#0b2a4a">Catatan / penjelasan selisih</b>
+  <div class="note"></div>
+</div>
+
+<div class="sign">
+  <div>Dibuat oleh (Petugas)<div class="line">(.................................)</div></div>
+  <div>Diperiksa (QC)<div class="line">(.................................)</div></div>
+  <div>Disetujui (Owner)<div class="line">(.................................)</div></div>
+</div>
+
+<div class="foot">Kolom kuning = diisi petugas · Angka biru = hasil timbangan · Hitam = dihitung otomatis. Data contoh: Siklus 1 dari owner (11 ekor, 481 kg ikan, 300,94 kg loin, 87 kg hasil samping). Revisi 01 mengganti revisi 00: persen hasil tidak lagi diketik, hasil samping tidak lagi diasumsikan 18%, dan susut tidak lagi diisi dari sisa hitungan.</div>
+
+</body>
+</html>

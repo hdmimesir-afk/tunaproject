@@ -486,6 +486,7 @@ export default function MobileDeck({ idx, go }: { idx: number; go: (n: number) =
             <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-[#D5DEE4]" />
             <div className="mb-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>Coba demo</div>
             <button type="button" onClick={() => { setMenu(false); openDemo(); }} className="w-full rounded-2xl px-5 py-3 text-left text-white" style={{ background: GREEN }}><span className="block text-[15px] font-bold">▶ {DEMOS[0].label}</span><span className="text-[12px] opacity-85">{DEMOS[0].hint}</span></button>
+            <a href="/rancangan" className="mt-2 block rounded-2xl px-5 py-3 text-[15px] font-bold" style={{ background: SOFT }}>Rancangan final</a>
             <a href="/KATALIS-ERP-Proposal.pdf" download className="mt-2 block rounded-2xl px-5 py-3 text-[15px] font-bold" style={{ background: SOFT }}>⬇ Unduh PDF</a>
             <div className="mb-2 mt-5 text-[12px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>Loncat ke</div>
             <div className="grid grid-cols-1 gap-1">

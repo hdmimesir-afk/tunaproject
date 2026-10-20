@@ -162,6 +162,7 @@ export default function Deck() {
           </div>
           <button className="rounded-md bg-white/10 px-3 py-1.5 hover:bg-white/20" onClick={() => setOverview(true)}>Ringkasan<span className="shortcut"> (G)</span></button>
           <button className="rounded-md bg-white/10 px-3 py-1.5 hover:bg-white/20" onClick={toggleFull}>Layar penuh<span className="shortcut"> (F)</span></button>
+          <a className="rounded-md bg-white px-3 py-1.5 font-semibold text-[#003459] hover:bg-white/90" href="/rancangan">Rancangan final</a>
           <a className="rounded-md bg-white/10 px-3 py-1.5 hover:bg-white/20" href="/print" target="_blank">Cetak / PDF</a>
         </div>
       </div>

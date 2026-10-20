@@ -8,3 +8,6 @@ docs/source/monitor-dana-bungus.*
 docs/source/proposal-pendanaan-bungus-*.pdf
 docs/source/proposal-text-extract.txt
 shots_raw
+
+# invoice berisi nomor rekening (jangan di-push)
+docs/invoice/

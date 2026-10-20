@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BUYERS, COLD_CAP, DAYS, MONITOR, PERMS, ROLES, SIKLUS1, SUPPLIERS, closeChecks, coldTariff, coldUsed, cash, freshKg, jt, overlaps, receivable, rp, useDemoState,
+  BUYERS, COLD_CAP, DAYS, MONITOR, PERMS, ROLES, SIKLUS1, SUPPLIERS, YIELD_MAX, YIELD_MIN, YIELD_PLAN, closeChecks, coldTariff, coldUsed, cash, freshKg, jt, kgf, overlaps, receivable, rp, selisih, useDemoState,
   type Approval, type Booking, type Invoice, type Lot, type PO, type Prod, type Sale, type Titipan,
 } from "@/lib/demo/store";
 import { Bar, Btn, Card, Field, GBtn, INK, Icon, Inner, MUTED, GREEN, Modal, NumIn, Pill, SelectIn, Stat, TextIn, DataList, downloadCSV, useDemo, useModal, useRun, type IconName } from "./ui";
@@ -253,7 +253,13 @@ export function Produksi() {
   const s = useDemoState();
   const run = useRun();
   const [fin, setFin] = useModal<Prod>();
-  const [y, setY] = useState(62);
+  const [w, setW] = useState({ loin: 0, sisa: 0, limbah: 0, susut: 0 });
+  const open = (p: Prod) => {
+    const r = (pct: number) => +((p.inKg * pct) / 100).toFixed(3);
+    setW({ loin: r(62.5), sisa: r(18), limbah: r(12), susut: r(5) }); setFin(p);
+  };
+  const gap = fin ? selisih({ inKg: fin.inKg, ...w }) : 0;
+  const pct = fin && w.loin > 0 ? +((w.loin / fin.inKg) * 100).toFixed(1) : 0;
   const ready = s.lots.filter((l) => l.qc === "Lulus" && l.left > 0);
   return (
     <Stack>
@@ -268,15 +274,24 @@ export function Produksi() {
       </Grid>
       <Card title="Daftar Produksi">
         <DataList rows={s.prods} cols={[
-          { h: "Produksi", r: (p: Prod) => <>{p.id} · {p.lot}</> }, { h: "Masuk", r: (p) => `${p.inKg} kg`, right: true }, { h: "Loin", r: (p) => (p.loin ? `${p.loin} kg` : "-"), right: true },
-          { h: "Sisa olahan", r: (p) => (p.sisa ? `${p.sisa} kg` : "-"), right: true }, { h: "Hasil", r: (p) => (p.yieldPct ? `${p.yieldPct}%` : "-"), right: true }, { h: "Status", r: (p) => <Pill t={p.status} /> },
-        ]} actions={(p) => p.status === "Berjalan" && <GBtn perm="prod.finish" size="sm" onClick={() => { setY(62); setFin(p); }}>Selesaikan</GBtn>} />
+          { h: "Produksi", r: (p: Prod) => <>{p.id} · {p.lot}</> }, { h: "Masuk", r: (p) => `${kgf(p.inKg)} kg`, right: true }, { h: "Loin", r: (p) => (p.loin ? `${kgf(p.loin)} kg` : "-"), right: true },
+          { h: "Hasil samping", r: (p) => (p.sisa !== undefined ? `${kgf(p.sisa)} kg` : "-"), right: true }, { h: "Hasil", r: (p) => (p.yieldPct ? `${kgf(p.yieldPct)}%` : "-"), right: true },
+          { h: "Belum jelas", r: (p) => (p.status === "Selesai" ? `${kgf(selisih(p))} kg` : "-"), right: true }, { h: "Status", r: (p) => <Pill t={p.status} /> },
+        ]} actions={(p) => p.status === "Berjalan" && <GBtn perm="prod.finish" size="sm" onClick={() => open(p)}>Selesaikan</GBtn>} />
+        <div className="mt-2 text-[12px]" style={{ color: MUTED }}>PRD-0001 memakai data nyata Siklus 1. Limbah dan susut belum ditimbang, jadi {kgf(selisih(s.prods.find((p) => p.id === "PRD-0001") ?? { inKg: 0 }))} kg masih tampil sebagai belum jelas.</div>
       </Card>
       {fin && (
-        <Modal title={`Selesaikan ${fin.id}`} onClose={() => setFin(null)} footer={<><Btn v="light" full onClick={() => setFin(null)}>Batal</Btn><Btn full onClick={() => { const r = run({ a: "prod.finish", id: fin.id, yieldPct: y }); if (r.ok) setFin(null); }}>Simpan hasil</Btn></>}>
-          <Field label="Ikan masuk"><div className="text-[18px]" style={{ color: INK }}>{fin.inKg} kg</div></Field>
-          <Field label="Hasil olahan (%)" hint="Rencana 60%. Siklus 1 rata-rata 62,6%."><NumIn value={y} onChange={setY} /></Field>
-          <Inner><div className="text-[12px]" style={{ color: MUTED }}>Masuk stok</div><div className="text-[22px] tracking-tight" style={{ color: INK }}>{((fin.inKg * (y || 0)) / 100).toFixed(1)} kg loin</div><div className="text-[12px]" style={{ color: MUTED }}>+ {Math.round(fin.inKg * 0.18)} kg sisa olahan</div></Inner>
+        <Modal title={`Selesaikan ${fin.id}`} onClose={() => setFin(null)} footer={<><Btn v="light" full onClick={() => setFin(null)}>Batal</Btn><Btn full onClick={() => { const r = run({ a: "prod.finish", id: fin.id, ...w }); if (r.ok) setFin(null); }}>Simpan hasil</Btn></>}>
+          <Field label="Ikan masuk"><div className="text-[18px]" style={{ color: INK }}>{kgf(fin.inKg)} kg</div></Field>
+          {([["loin", "Loin (kg)", "Total timbangan semua potong loin."], ["sisa", "Hasil samping (kg)", "Toro, kepala, tetelan, daging kerok, dll."], ["limbah", "Limbah dibuang (kg)", undefined], ["susut", "Susut tercatat (kg)", "Air, darah, es yang ditimbang."]] as const).map(([k, l, h]) => (
+            <Field key={k} label={l} hint={h}><NumIn step="0.001" value={w[k]} onChange={(n) => setW({ ...w, [k]: n })} /></Field>
+          ))}
+          <Inner>
+            <div className="flex justify-between text-[13px]"><span style={{ color: MUTED }}>Hasil olahan (rencana {YIELD_PLAN}%)</span><b style={{ color: pct && (pct < YIELD_MIN || pct > YIELD_MAX) ? "#A8322B" : INK }}>{pct ? `${kgf(pct)}%` : "-"}</b></div>
+            <div className="mt-1 flex justify-between text-[13px]"><span style={{ color: MUTED }}>Belum jelas ke mana</span><b style={{ color: gap < 0 ? "#A8322B" : gap > 0 ? "#8A5A00" : INK }}>{Number.isNaN(gap) ? "-" : `${kgf(gap)} kg`}</b></div>
+            {pct > 0 && (pct < YIELD_MIN || pct > YIELD_MAX) && <div className="mt-2 text-[12px]" style={{ color: "#A8322B" }}>Di luar batas wajar {YIELD_MIN}–{YIELD_MAX}%. Tetap bisa disimpan, tapi akan ditandai untuk diperiksa.</div>}
+            {gap < 0 && <div className="mt-2 text-[12px]" style={{ color: "#A8322B" }}>Total timbangan melebihi ikan masuk.</div>}
+          </Inner>
         </Modal>
       )}
     </Stack>
@@ -311,7 +326,7 @@ export function Mutu() {
           {[
             ["Pemasok", t ? t.supplier : "-", t?.po ?? ""],
             ["Penerimaan", t ? `${t.kg} kg` : "-", t ? `Mutu ${t.qc}, kelas ${t.grade}` : ""],
-            ["Produksi", prods.length ? prods.map((p) => p.id).join(", ") : "Belum diproduksi", prods.length ? `${prods.reduce((a, p) => a + (p.loin ?? 0), 0).toFixed(1)} kg loin` : t && t.left > 0 ? `${t.left} kg menunggu` : ""],
+            ["Produksi", prods.length ? prods.map((p) => p.id).join(", ") : "Belum diproduksi", prods.length ? `${kgf(prods.reduce((a, p) => a + (p.loin ?? 0), 0))} kg loin` : t && t.left > 0 ? `${t.left} kg menunggu` : ""],
             ["Penjualan", prods.length ? `${sold} kg terjual` : "Belum ada", prods.length ? "Asal bisa ditelusuri ke pembeli" : ""],
           ].map(([a, b, c], i) => (
             <Inner key={a}><div className="text-[11.5px]" style={{ color: MUTED }}>{i + 1}. {a}</div><div className="mt-1 text-[15px] font-medium" style={{ color: INK }}>{b}</div><div className="text-[12px]" style={{ color: MUTED }}>{c}</div></Inner>
@@ -342,7 +357,7 @@ export function Stok() {
       <Stats n={3}>
         <Stat value={`${freshKg(s)} kg`} label="Ikan segar belum diolah" />
         <Stat value={`${s.stock.loin.toLocaleString("id-ID", { maximumFractionDigits: 1 })} kg`} label="Loin siap jual" />
-        <Stat value={`${s.stock.sisa} kg`} label="Sisa olahan" />
+        <Stat value={`${kgf(s.stock.sisa)} kg`} label="Sisa olahan" />
       </Stats>
       <Grid>
         <Card title="Isi Gudang Dingin">

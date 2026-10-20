@@ -16,7 +16,8 @@ export const ROLES: Role[] = ["Owner", "Pembelian", "Gudang", "Keuangan"];
 export interface PO { id: string; supplier: string; kg: number; price: number; status: "Menunggu persetujuan" | "Disetujui" | "Ditolak" | "Diterima" | "Dibayar"; date: string }
 export interface Approval { id: string; kind: "Pembelian" | "Gudang" | "Keuangan"; title: string; amount: string; rows: [string, string][]; warn?: string; who: string; date: string; status: "pending" | "approved" | "rejected"; ref?: string; reason?: string; adj?: number; cost?: number }
 export interface Lot { id: string; po?: string; supplier: string; kg: number; left: number; qc: "Menunggu" | "Lulus" | "Ditahan"; grade: "A" | "B" | "C" | "-" }
-export interface Prod { id: string; lot: string; inKg: number; status: "Berjalan" | "Selesai"; yieldPct?: number; loin?: number; sisa?: number; date: string }
+/** Hasil produksi diisi dari timbangan; `sisa` = hasil samping. Selisih tidak pernah diisi otomatis. */
+export interface Prod { id: string; lot: string; inKg: number; status: "Berjalan" | "Selesai"; yieldPct?: number; loin?: number; sisa?: number; limbah?: number; susut?: number; date: string }
 export interface Titipan { id: string; customer: string; kg: number; days: number; status: "Disimpan" | "Diambil" }
 export interface Sale { id: string; buyer: string; kg: number; price: number; status: "Draf" | "Dikirim" | "Lunas"; invoice?: string; date: string }
 export interface Invoice { id: string; buyer: string; amount: number; due: number; status: "Belum jatuh tempo" | "Jatuh tempo" | "Terlambat" | "Lunas"; kind: "Penjualan" | "Gudang dingin"; ref?: string }
@@ -97,12 +98,16 @@ export const cash = (s: State) => s.ledger.reduce((a, l) => a + l.amount, 0);
 export const receivable = (s: State) => s.invoices.filter((i) => i.status !== "Lunas").reduce((a, i) => a + i.amount, 0);
 export const freshKg = (s: State) => s.lots.reduce((a, l) => a + l.left, 0);
 export const coldTariff = (days: number) => 75 * Math.max(days, 10);
+/** Berat yang belum jelas ke mana: ikan masuk dikurangi semua komponen yang ditimbang. */
+export const selisih = (p: Pick<Prod, "inKg" | "loin" | "sisa" | "limbah" | "susut">) => +(p.inKg - (p.loin ?? 0) - (p.sisa ?? 0) - (p.limbah ?? 0) - (p.susut ?? 0)).toFixed(3);
+export const YIELD_PLAN = 60, YIELD_MIN = 40, YIELD_MAX = 80;
+export const kgf = (n: number) => n.toLocaleString("id-ID", { maximumFractionDigits: 3 });
 
 export const rp = (n: number) => "Rp" + Math.round(n).toLocaleString("id-ID");
 export const jt = (n: number, d = 1) => "Rp" + (n / 1e6).toLocaleString("id-ID", { minimumFractionDigits: d, maximumFractionDigits: d }) + " jt";
 
 const initial = (): State => ({
-  v: 3, ctr: { PO: 2, APV: 103, LOT: 2, PRD: 1, SAL: 3, INV: 3, KAS: 5, CST: 2, BK: 7, SC: 0, L: 3 },
+  v: 4, ctr: { PO: 2, APV: 103, LOT: 2, PRD: 1, SAL: 3, INV: 3, KAS: 5, CST: 2, BK: 7, SC: 0, L: 3 },
   pos: [
     { id: "PO-0001", supplier: "Pemasok B", kg: 640, price: 45000, status: "Diterima", date: "9 Okt" },
     { id: "PO-0002", supplier: "Pemasok A", kg: 640, price: 45500, status: "Menunggu persetujuan", date: "12 Okt" },
@@ -116,7 +121,8 @@ const initial = (): State => ({
     { id: "LOT-001", po: "Siklus 1", supplier: "Pemasok A", kg: 481, left: 0, qc: "Lulus", grade: "A" },
     { id: "LOT-002", po: "PO-0001", supplier: "Pemasok B", kg: 640, left: 640, qc: "Ditahan", grade: "-" },
   ],
-  prods: [{ id: "PRD-0001", lot: "LOT-001", inKg: 481, status: "Selesai", yieldPct: 62.6, loin: 300.9, sisa: 87, date: "3 Okt" }],
+  // Siklus 1: loin 300,94 kg dan hasil samping 87 kg (toro, kepala, tetelan coklat, daging kerok) dari owner. Limbah dan susut belum ditimbang.
+  prods: [{ id: "PRD-0001", lot: "LOT-001", inKg: 481, status: "Selesai", yieldPct: 62.6, loin: 300.94, sisa: 87, date: "3 Okt" }],
   stock: { loin: 120, sisa: 65 },
   titipan: [
     { id: "CST-0001", customer: "Pelanggan A", kg: 8000, days: 6, status: "Disimpan" },
@@ -158,7 +164,7 @@ const initial = (): State => ({
 });
 
 /* ----------------------------------------------------------- store core */
-const KEY = "katalis-demo-state-v3";
+const KEY = "katalis-demo-state-v4";
 let state: State = initial();
 let loaded = false;
 const listeners = new Set<() => void>();
@@ -167,7 +173,7 @@ const SERVER = initial();
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
-  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s?.v === 3) state = s; } } catch { /* ignore */ }
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s?.v === 4) state = s; } } catch { /* ignore */ }
   window.addEventListener("storage", (e) => {
     if (e.key !== KEY || !e.newValue) return;
     try { state = JSON.parse(e.newValue); emit(); } catch { /* ignore */ }
@@ -196,7 +202,7 @@ export type Action =
   | { a: "po.pay"; id: string }
   | { a: "lot.qc"; id: string; qc: "Lulus" | "Ditahan"; grade: "A" | "B" | "C" | "-" }
   | { a: "prod.start"; lot: string }
-  | { a: "prod.finish"; id: string; yieldPct: number }
+  | { a: "prod.finish"; id: string; loin: number; sisa: number; limbah: number; susut: number }
   | { a: "sale.create"; buyer: string; kg: number; price: number }
   | { a: "sale.ship"; id: string }
   | { a: "inv.pay"; id: string }
@@ -301,11 +307,17 @@ export function act(role: Role, a: Action): Result {
     case "prod.finish": {
       const p = s.prods.find((x) => x.id === a.id);
       if (!p || p.status !== "Berjalan") return bad("Produksi ini tidak sedang berjalan.");
-      if (a.yieldPct < 40 || a.yieldPct > 80) return bad("Hasil olahan harus antara 40% dan 80%.");
-      p.yieldPct = a.yieldPct; p.loin = +(p.inKg * a.yieldPct / 100).toFixed(1); p.sisa = Math.round(p.inKg * 0.18); p.status = "Selesai";
-      s.stock.loin = +(s.stock.loin + p.loin).toFixed(1); s.stock.sisa += p.sisa;
-      log(`Menyelesaikan ${p.id}: ${p.loin} kg loin, ${p.sisa} kg sisa olahan (${a.yieldPct}%)`);
-      res = { ok: true, msg: `${p.id} selesai: +${p.loin} kg loin masuk stok`, go: "stok" };
+      const parts = [a.loin, a.sisa, a.limbah, a.susut];
+      if (parts.some((n) => Number.isNaN(n) || n < 0)) return bad("Isi semua berat hasil timbangan (boleh 0).");
+      if (!(a.loin > 0)) return bad("Berat loin harus lebih dari nol.");
+      const gap = selisih({ inKg: p.inKg, ...a });
+      if (gap < 0) return bad(`Total timbangan melebihi ikan masuk ${kgf(-gap)} kg. Periksa lagi beratnya.`);
+      p.loin = a.loin; p.sisa = a.sisa; p.limbah = a.limbah; p.susut = a.susut;
+      p.yieldPct = +((a.loin / p.inKg) * 100).toFixed(1); p.status = "Selesai";
+      s.stock.loin = +(s.stock.loin + p.loin).toFixed(3); s.stock.sisa = +(s.stock.sisa + p.sisa).toFixed(3);
+      const warn = p.yieldPct < YIELD_MIN || p.yieldPct > YIELD_MAX ? ` Hasil ${kgf(p.yieldPct)}% di luar batas wajar ${YIELD_MIN}–${YIELD_MAX}%, perlu diperiksa.` : "";
+      log(`Menyelesaikan ${p.id}: ${kgf(p.loin)} kg loin (${kgf(p.yieldPct)}%), ${kgf(p.sisa)} kg hasil samping, selisih belum jelas ${kgf(gap)} kg`);
+      res = { ok: true, msg: `${p.id} selesai: +${kgf(p.loin)} kg loin masuk stok.${gap > 0 ? ` Selisih ${kgf(gap)} kg belum jelas.` : ""}${warn}`, go: "stok" };
       break;
     }
     case "sale.create": {

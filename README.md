@@ -68,3 +68,5 @@ Tidak ada transisi: slide dan kartu langsung tampil. PDF dan PPTX tetap statis.
 - **Desktop:** menu "Buka demo" menawarkan *Demo desktop* (`/demo/desktop`) dan *Demo dua mode* (`/demo/live`, desktop dan ponsel berdampingan dan sinkron).
 - **Ponsel:** hanya demo ponsel. Dari pitch, demo terbuka layar penuh di atas pitch (mencoba layar penuh asli di Android, tombol "Kembali ke pitch" untuk kembali). Tanpa status bar palsu dan mengikuti area aman layar. Untuk iOS, pilih "Tambahkan ke Layar Utama" agar tanpa bilah browser.
 - Membuka `/demo` langsung di ponsel juga memakai tampilan layar penuh ini.
+
+- Rancangan pembangunan dari nol sampai serah terima: `docs/rancangan-pembangunan.md` (internal).
