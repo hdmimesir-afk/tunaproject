@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Card, Inner, INK, MUTED, TILE } from "@/components/demo/ui";
 import { ALUR, BAHAN, BAHAN_KIRIM, JADWAL, NERACA, PERTANYAAN, PERUBAHAN, PRINSIP, SETUJU, SYARAT } from "./data";
+import { JawabanProvider, KirimBar, SetujuPilih, SetujuSemua, TanyaPilih } from "./Jawaban";
 
 const ICONS: Record<string, LucideIcon> = {
   Boxes, CalendarDays, ChartColumn, CreditCard, FileText, Fish, FlaskConical, Layers, Link2, Lock, MapPin, Receipt, Scale,
@@ -325,8 +326,8 @@ function Jadwal() {
 function Setuju() {
   return (
     <Section id="setuju">
-      <Heading kicker="Butuh konfirmasi owner · 1 dari 3" title="Hal yang perlu owner setujui" lead={"Developer akan bekerja dengan ketentuan di bawah ini. Kalau setuju, cukup balas \"setuju semua\". Kalau ada yang ingin diubah, sebutkan nomornya."} />
-      <Card>
+      <Heading kicker="Butuh konfirmasi owner · 1 dari 3" title="Hal yang perlu owner setujui" lead="Developer akan bekerja dengan ketentuan di bawah ini. Ketuk Setuju atau Mau diubah di setiap poin, atau Setuju semua sekaligus. Jawaban dikirim lewat tombol di bawah layar." />
+      <Card title={`${SETUJU.length} hal`} right={<SetujuSemua />}>
         <ol className="grid gap-1.5">
           {SETUJU.map((s, i) => (
             <li key={s.t}>
@@ -335,6 +336,7 @@ function Setuju() {
                 <div className="min-w-0 flex-1">
                   <div className="text-[15px] font-medium" style={{ color: INK }}>{s.t}</div>
                   <p className="mt-0.5 text-[13.5px] leading-relaxed" style={{ color: MUTED }}>{s.d}</p>
+                  <SetujuPilih i={i} />
                 </div>
               </Inner>
             </li>
@@ -348,7 +350,7 @@ function Setuju() {
 function Tanya() {
   return (
     <Section id="tanya">
-      <Heading kicker="Butuh konfirmasi owner · 2 dari 3" title="Pertanyaan yang perlu dijawab" lead={`Ada ${PERTANYAAN.length} pertanyaan. Yang bertanda merah wajib dijawab paling lambat hari ke-2 minggu pertama. Jawab dengan nomornya saja, misalnya "1: ya, bisa campur".`} />
+      <Heading kicker="Butuh konfirmasi owner · 2 dari 3" title="Pertanyaan yang perlu dijawab" lead={`Ada ${PERTANYAAN.length} pertanyaan. Yang bertanda merah wajib dijawab paling lambat hari ke-2 minggu pertama. Ketuk pilihan, atau Pakai usulan developer kalau setuju dengan usulannya. Jawaban tersimpan di HP ini sampai dikirim.`} />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-2">
         {PERTANYAAN.map((q, i) => (
           <Card key={q.t} className="h-full">
@@ -361,16 +363,10 @@ function Tanya() {
                   <p className="mt-1 text-[12.5px] leading-snug" style={{ color: MUTED }}>Kenapa ditanya: {q.kenapa}</p>
                 </div>
               </div>
-              {q.pilih && (
-                <div className="mt-3 flex flex-wrap gap-1.5 pl-10">
-                  {q.pilih.map((p, j) => (
-                    <span key={p} className="rounded-full bg-white px-3 py-1.5 text-[12.5px] font-medium shadow-sm" style={{ color: INK }}>{String.fromCharCode(65 + j)}. {p}</span>
-                  ))}
-                </div>
-              )}
+              <TanyaPilih i={i} />
               <div className="mt-auto pt-3">
                 <div className="rounded-2xl px-3.5 py-2.5 text-[12.5px] leading-snug" style={{ background: TILE, color: INK }}>
-                  <span className="font-semibold">Kalau belum dijawab:</span> {q.bawaan}
+                  <span className="font-semibold">Usulan developer:</span> {q.bawaan}
                 </div>
               </div>
             </div>
@@ -435,6 +431,7 @@ export default function RancanganView() {
     if (chip && bar) bar.scrollTo({ left: chip.offsetLeft - bar.clientWidth / 2 + chip.clientWidth / 2, behavior: "smooth" });
   }, [active]);
   return (
+    <JawabanProvider>
     <div className="min-h-dvh" style={{ background: INK }}>
       <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none} html{scroll-behavior:smooth} @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}`}</style>
 
@@ -515,8 +512,11 @@ export default function RancanganView() {
             <Tanya />
             <Bahan />
           </div>
+          <KirimBar />
+          <div className="h-6" />
         </main>
       </div>
     </div>
+    </JawabanProvider>
   );
 }

@@ -60,6 +60,9 @@ export const SYARAT = [
   "Di minggu 4, petugas lapangan ikut mencoba satu siklus produksi asli.",
 ];
 
+/** Nomor WhatsApp penerima jawaban owner (Hilmy), format internasional tanpa + dan spasi. */
+export const WA_DEVELOPER = "6282125381501";
+
 /* Hal yang developer minta disetujui owner. */
 export const SETUJU = [
   { t: "Jadwal 1 bulan", d: "Pengerjaan 4 minggu dengan urutan seperti di bagian Jadwal. Setiap akhir minggu hasilnya developer tunjukkan." },
