@@ -1,0 +1,39 @@
+name: Cadangan harian
+
+# Supabase Free tidak menyediakan unduhan cadangan, jadi cadangan dibuat sendiri (PRD, Keamanan data).
+# Aktif hanya bila variabel repo BACKUP_AKTIF = true dan rahasia SUPABASE_DB_URL serta BACKUP_PASSPHRASE diisi.
+# Hasil dienkripsi AES-256 sebelum diunggah karena artefak di repo publik bisa diunduh pengguna GitHub lain.
+on:
+  schedule:
+    - cron: "0 18 * * *" # 01.00 WIB
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cadangan:
+    if: ${{ vars.BACKUP_AKTIF == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Dump skema dan data
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          supabase db dump --db-url "$DB_URL" -f skema.sql
+          supabase db dump --db-url "$DB_URL" --data-only -f data.sql
+      - name: Enkripsi
+        env:
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          tar czf cadangan.tar.gz skema.sql data.sql
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" --symmetric --cipher-algo AES256 -o "cadangan-$(date +%F).tar.gz.gpg" cadangan.tar.gz
+          rm -f skema.sql data.sql cadangan.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cadangan-${{ github.run_id }}
+          path: cadangan-*.tar.gz.gpg
+          retention-days: 30

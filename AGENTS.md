@@ -15,7 +15,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Cek dokumentasi library lewat MCP Context7 sebelum menulis kode yang memakainya; catat yang dipakai di deskripsi pull request.
 - Cache Components aktif: pembacaan sesi atau cookie hanya di dalam `<Suspense>`, tidak di level atas layout.
 - Identitas di server dicek dengan `supabase.auth.getClaims()`. Objek user dari `getSession()` tidak dipakai untuk izin.
-- Setiap Server Action: validasi Zod, cek sesi, cek izin, cek kepemilikan data, lalu `updateTag()`. `proxy.ts` bukan pengaman.
+- Setiap Server Action: cek sesi dan izin (`requireIzin` di `lib/data/auth.ts`), validasi Zod, cek kepemilikan data, lalu `refresh()` (atau `updateTag()` untuk data yang di-cache dengan `cacheTag`). `proxy.ts` bukan pengaman.
+- Perubahan data lewat klien pengguna (`lib/supabase/server.ts`) supaya RLS dan trigger berlaku. Klien kunci rahasia (`lib/supabase/admin.ts`) hanya untuk hal yang memang butuh hak admin Auth, misalnya mengundang pengguna.
 - Berat `numeric(12,3)` dan uang `numeric(16,2)` di database; di TypeScript hitung berat dalam gram bulat (`lib/logic/neraca.ts`). Tidak ada `float` untuk berat atau uang.
 - Tidak ada `DELETE` dari aplikasi. Pembatalan dengan alasan atau baris pembalik; semua perubahan tercatat.
 - Setiap tabel baru: RLS aktif, kebijakan memakai `(select private.has_permission(...))`, dan berkas tes pgTAP di `supabase/tests`.

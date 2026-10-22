@@ -303,7 +303,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Satu repo untuk semua (`hdmimesir-afk/tunaproject`): sistem ERP di `/`, penawaran di `/penawaran`, rancangan dan PRD tetap; folder `supabase/migrations`
 - [x] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
 - [ ] Pasang MCP Context7 di alat setiap developer dan AI coding agent
-- [ ] CI: typecheck, lint, test, tes database, dan `npm audit` dicek di setiap pull request
+- [x] CI: typecheck, lint, test, tes database, dan `npm audit` dicek di setiap push dan pull request
 - [ ] Dua proyek Supabase (uji dan produksi) region Singapura dan preview per cabang di Vercel
 - [ ] Pakai kunci `sb_publishable_` dan `sb_secret_`; variabel lingkungan dipisah per lingkungan
 
@@ -317,24 +317,24 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Fondasi**
 
-- [ ] Migrasi skema v2: akses, master, siklus, pembelian, persetujuan, jejak
-- [ ] Tipe angka: berat `numeric(12,3)`, uang `numeric(16,2)`; tidak ada `float`
-- [ ] Login Supabase Auth lewat `@supabase/ssr` dan undangan pengguna
-- [ ] MFA (TOTP) wajib untuk Owner dan Finance
-- [ ] `proxy.ts` untuk menyegarkan sesi; halaman dan data dilindungi dengan `auth.getClaims()`
-- [ ] Lapisan akses data `server-only`; setiap Server Action memeriksa sesi, izin, dan kepemilikan
-- [ ] `roles` dan `role_permissions` dengan matriks awal 5 peran (F01)
-- [ ] RLS aktif dan dipaksa di semua tabel; tes pgTAP per peran (F01)
-- [ ] Trigger `activity_log` sebelum/sesudah di semua tabel transaksi
-- [ ] Larangan hapus: cabut DELETE dari peran aplikasi; pembatalan dengan alasan
-- [ ] Header keamanan (CSP, HSTS, X-Frame-Options, Referrer-Policy) dan batas percobaan login
-- [ ] Cadangan harian sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat (paket gratis tidak menyediakan unduhan cadangan)
-- [ ] Kerangka aplikasi dari `components/demo`: tata letak desktop dan HP, menu disaring per izin
-- [ ] Pesan gagal simpan global dan draft di perangkat (Dexie)
+- [x] Migrasi skema: akses, master, siklus, jejak (tabel pembelian dan persetujuan menyusul di Fase 2)
+- [x] Tipe angka: berat `numeric(12,3)`, uang `numeric(16,2)`; tidak ada `float`
+- [x] Login Supabase Auth lewat `@supabase/ssr` dan undangan pengguna
+- [x] MFA (TOTP) wajib untuk Owner dan Finance
+- [x] `proxy.ts` untuk menyegarkan sesi; halaman dan data dilindungi dengan `auth.getClaims()`
+- [x] Lapisan akses data `server-only`; setiap Server Action memeriksa sesi, izin, dan kepemilikan
+- [x] `roles` dan `role_permissions` dengan matriks awal 5 peran (F01)
+- [x] RLS aktif dan dipaksa di semua tabel; tes pgTAP per peran (F01)
+- [x] Trigger `activity_log` sebelum/sesudah di semua tabel transaksi
+- [x] Larangan hapus: cabut DELETE dari peran aplikasi; pembatalan dengan alasan
+- [x] Header keamanan (CSP, HSTS, X-Frame-Options, Referrer-Policy); batas percobaan login memakai pembatas bawaan Supabase Auth
+- [ ] Cadangan harian sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat (paket gratis tidak menyediakan unduhan cadangan; workflow siap, aktif setelah Supabase disiapkan)
+- [x] Kerangka aplikasi: tata letak desktop dan HP, menu disaring per izin
+- [ ] Pesan gagal simpan global dan draft di perangkat (Dexie), dikerjakan bersama grid loin di Fase 3
 
 **Master data**
 
-- [ ] CRUD pemasok, pembeli, produk, grade, kategori komponen, 8 kategori biaya (tanpa hapus)
+- [x] CRUD pemasok, pembeli, produk, grade, kategori komponen, 8 kategori biaya (tanpa hapus)
 - [ ] Impor master data awal dari bahan owner (owner)
 
 **Pembelian, penerimaan, mutu**

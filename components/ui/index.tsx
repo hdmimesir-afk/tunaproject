@@ -31,6 +31,7 @@ const PILL: Record<string, [string, string]> = {
   Diajukan: ["#FBF0D5", "#8A5A00"], "Perlu revisi": ["#FBF0D5", "#8A5A00"], Disetujui: ["#E4EEFB", "#2D5F9A"], Ditolak: ["#FBE5E3", "#A8322B"], Diterima: ["#DDF3E8", "#0B6B4A"],
   Menunggu: ["#FBF0D5", "#8A5A00"], Lulus: ["#DDF3E8", "#0B6B4A"], Draf: ["#ECEDF1", "#5A5F68"], Dikirim: ["#E4EEFB", "#2D5F9A"], Disimpan: ["#E4EEFB", "#2D5F9A"], Diambil: ["#ECEDF1", "#5A5F68"],
   Bentrok: ["#FBE5E3", "#A8322B"], Terkunci: ["#ECEDF1", "#5A5F68"], Terbuka: ["#DDF3E8", "#0B6B4A"],
+  Aktif: ["#DDF3E8", "#0B6B4A"], Nonaktif: ["#ECEDF1", "#5A5F68"], "Tanpa peran": ["#FBF0D5", "#8A5A00"],
 };
 export const Pill = ({ t }: { t: string }) => {
   const [bg, fg] = PILL[t] ?? ["#ECEDF1", MUTED];

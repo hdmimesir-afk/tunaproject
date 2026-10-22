@@ -4,7 +4,7 @@ Satu aplikasi Next.js untuk PT Katalis Lintas Global, berisi empat bagian:
 
 | Rute | Isi | Status |
 | --- | --- | --- |
-| `/` (diarahkan ke `/dashboard`) | Sistem KATALIS ERP: pembelian, mutu, produksi, stok, penjualan, keuangan, laporan | Fase 0 selesai: kerangka dan modul placeholder |
+| `/` (diarahkan ke `/dashboard`) | Sistem KATALIS ERP: pembelian, mutu, produksi, stok, penjualan, keuangan, laporan | Fase 1: login, MFA, akses, pengaturan; modul lain masih placeholder |
 | `/penawaran` | Deck penawaran 15 slide | Dibekukan |
 | `/rancangan`, `/PRD` | Halaman owner: rancangan final, jawaban lewat WhatsApp, dan PRD | Aktif |
 | `/demo` | Demo aplikasi desktop dan HP dengan data contoh | Dibekukan |
@@ -47,7 +47,16 @@ supabase/                 konfigurasi CLI, migrasi, tes pgTAP
 .github/workflows/ci.yml  typecheck, lint, tes, audit, build, pgTAP
 ```
 
-Supabase dan Vercel belum disiapkan (ditunda). Saat disiapkan: dua proyek Supabase Free region Singapura (uji dan produksi) dengan kunci `sb_publishable_` dan `sb_secret_`, lalu impor repo ke Vercel dan isi variabel lingkungan per lingkungan.
+**Fase 1 (database inti, login, keamanan)** sudah ada:
+
+- Migrasi `supabase/migrations`: skema `private`, jejak perubahan (`activity_log`), larangan hapus, 5 peran dan izin per aksi, profil pengguna, data master, pengaturan target hasil, siklus. Semua tabel memakai RLS.
+- Owner dan Finance wajib MFA: fungsi `private.has_permission()` menolak sesi tanpa `aal2` untuk peran itu.
+- Tes pgTAP `supabase/tests` (akses, data master, jejak) dijalankan CI di setiap push.
+- Halaman `/login` (email dan kata sandi), `/login/mfa` (daftar dan verifikasi authenticator), `/akses` (undang pengguna, ubah peran dan status), `/pengaturan` (data master tanpa hapus, target hasil). Menu disaring sesuai izin; `proxy.ts` mengarahkan tamu ke `/login`.
+- Pendaftaran mandiri ditutup (`supabase/config.toml`). Akun pertama: `npm run buat-owner -- email@contoh.com "Nama Owner"` (butuh `SUPABASE_SECRET_KEY` di `.env.local`); akun berikutnya diundang dari `/akses`.
+- Cadangan harian: `.github/workflows/backup.yml`, aktif setelah variabel repo `BACKUP_AKTIF=true` dan rahasia `SUPABASE_DB_URL` serta `BACKUP_PASSPHRASE` diisi. Hasil dienkripsi AES-256.
+
+Supabase dan Vercel belum disiapkan (ditunda), dan Docker belum terpasang di komputer pengembang, jadi database diuji di GitHub Actions. Untuk mencoba login di lokal: pasang Docker Desktop lalu `npx supabase start`, atau pakai proyek Supabase Free region Singapura. Isi `.env.local` dari keluaran `supabase status` atau dialog Connect di dashboard.
 
 Context7 untuk Claude Code:
 

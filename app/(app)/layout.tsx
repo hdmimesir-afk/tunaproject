@@ -1,8 +1,12 @@
-import { Nav } from "@/components/shell/Nav";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { SesiNav } from "@/components/shell/SesiNav";
 import { INK } from "@/components/ui/tokens";
 
-/* Kerangka aplikasi. Tidak membaca sesi di level ini: dengan Cache Components, pembacaan sesi
-   diletakkan di komponen dalam <Suspense> supaya kerangka tetap bisa dirender statis (Fase 1). */
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
+/* Kerangka aplikasi. Sesi dibaca di dalam <Suspense> (Cache Components), jadi kerangka tetap statis
+   dan menu muncul begitu sesi terbaca. */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh md:flex" style={{ background: INK }}>
@@ -11,7 +15,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="text-[17px] font-semibold tracking-tight text-white">KATALIS ERP</div>
           <div className="text-[11.5px] text-[#8A9199]">PT Katalis Lintas Global</div>
         </div>
-        <Nav />
+        <Suspense fallback={<div className="h-10 md:flex-1" />}>
+          <SesiNav />
+        </Suspense>
       </aside>
       <main className="min-h-dvh min-w-0 flex-1 rounded-t-[28px] px-4 pb-12 pt-6 md:rounded-l-[32px] md:rounded-tr-none md:px-8" style={{ background: "linear-gradient(180deg,#EFF1F6 0%,#E9EDF5 60%,#DFE6F2 100%)" }}>
         {children}

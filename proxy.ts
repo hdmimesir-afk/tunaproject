@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseConfigured, publicEnv } from "@/lib/env";
+import { isJalurErp } from "@/lib/modules";
 
-/* Proxy hanya menyegarkan sesi Supabase. Ini bukan pengaman data: setiap Server Action dan
-   lapisan akses data tetap memeriksa sesi dan izin sendiri (lihat PRD, bagian Keamanan data).
-   Fase 1 menambahkan pengalihan ke /login untuk pengguna yang belum masuk. */
+/* Proxy menyegarkan sesi Supabase dan mengarahkan tamu dari halaman sistem ERP ke /login.
+   Ini bukan pengaman data: setiap Server Action dan lapisan akses data tetap memeriksa sesi dan izin
+   sendiri, dan RLS di database menolak akses yang tidak berhak (lihat PRD, bagian Keamanan data). */
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!supabaseConfigured) return response;
@@ -25,7 +26,16 @@ export async function proxy(request: NextRequest) {
   });
 
   // Jangan menaruh kode lain di antara createServerClient dan getClaims: getClaims menyegarkan token yang hampir habis.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+
+  if (!data?.claims && isJalurErp(request.nextUrl.pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`;
+    const alih = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((c) => alih.cookies.set(c));
+    return alih;
+  }
 
   return response;
 }
