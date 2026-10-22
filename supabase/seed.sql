@@ -1,0 +1,2 @@
+-- Data contoh untuk database lokal saja (supabase db reset). Data acuan seperti peran, grade, dan kategori
+-- ada di migrasi karena juga dibutuhkan di produksi. Akun pertama dibuat dengan: npm run buat-owner
