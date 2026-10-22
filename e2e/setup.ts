@@ -21,6 +21,11 @@ export default async function setup() {
   const { error: e2 } = await supabase.from("profiles").update({ nama: "Admin E2E", role_id: "super_admin", aktif: true }).eq("user_id", user.id);
   if (e2) throw new Error(`Gagal memberi peran: ${e2.message}`);
 
+  // Pastikan akun ini benar-benar bisa masuk lewat kunci publik, supaya kegagalan login ketahuan sebabnya.
+  const publik = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "", { auth: { persistSession: false, autoRefreshToken: false } });
+  const { error: eMasuk } = await publik.auth.signInWithPassword({ email: EMAIL, password: SANDI });
+  if (eMasuk) throw new Error(`Akun uji tidak bisa masuk (${eMasuk.status ?? "?"}): ${eMasuk.message}`);
+
   const { data: ada } = await supabase.from("suppliers").select("id").eq("nama", "Pemasok E2E").maybeSingle();
   if (!ada) {
     const { error } = await supabase.from("suppliers").insert({ nama: "Pemasok E2E" });
