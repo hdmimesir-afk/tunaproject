@@ -299,9 +299,9 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Jawaban owner untuk 7 persetujuan dan 14 pertanyaan diterima lewat WhatsApp 22 Oktober 2026
 - [ ] Putuskan tambah 1 developer untuk minggu 2–4
 - [ ] Tanyakan owner dan investor: pemilik akun server dan biaya saat naik paket (owner)
-- [ ] Akun Vercel Hobby dan Supabase Free (paket gratis) di email yang bisa dipindah ke perusahaan
-- [ ] Repo aplikasi produksi terpisah dari repo deck, dengan folder `supabase/migrations`
-- [ ] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
+- [ ] Akun Vercel Hobby dan Supabase Free (paket gratis) di email yang bisa dipindah ke perusahaan (ditunda)
+- [x] Satu repo untuk semua (`hdmimesir-afk/tunaproject`): sistem ERP di `/`, penawaran di `/penawaran`, rancangan dan PRD tetap; folder `supabase/migrations`
+- [x] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
 - [ ] Pasang MCP Context7 di alat setiap developer dan AI coding agent
 - [ ] CI: typecheck, lint, test, tes database, dan `npm audit` dicek di setiap pull request
 - [ ] Dua proyek Supabase (uji dan produksi) region Singapura dan preview per cabang di Vercel

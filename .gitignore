@@ -11,3 +11,15 @@ shots_raw
 
 # invoice berisi nomor rekening (jangan di-push)
 docs/invoice/
+
+# env (contoh boleh di-commit)
+.env*
+!.env.example
+
+# supabase
+/supabase/.temp/
+/supabase/.branches/
+
+# playwright
+/test-results/
+/playwright-report/

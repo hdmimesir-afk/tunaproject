@@ -1,20 +1,69 @@
-# KATALIS ERP — deck localhost
+# KATALIS ERP
+
+Satu aplikasi Next.js untuk PT Katalis Lintas Global, berisi empat bagian:
+
+| Rute | Isi | Status |
+| --- | --- | --- |
+| `/` (diarahkan ke `/dashboard`) | Sistem KATALIS ERP: pembelian, mutu, produksi, stok, penjualan, keuangan, laporan | Fase 0 selesai: kerangka dan modul placeholder |
+| `/penawaran` | Deck penawaran 15 slide | Dibekukan |
+| `/rancangan`, `/PRD` | Halaman owner: rancangan final, jawaban lewat WhatsApp, dan PRD | Aktif |
+| `/demo` | Demo aplikasi desktop dan HP dengan data contoh | Dibekukan |
+
+Acuan pembangunan sistem: `docs/PRD.md` dan dokumen Fase Pembangunan. Aturan kode untuk developer dan AI coding agent ada di `AGENTS.md`.
+
+## Menjalankan
+
+```bash
+npm install
+cp .env.example .env.local   # opsional sampai Supabase disiapkan (Fase 1)
+npm run dev
+```
+
+Buka http://localhost:3100. Tanpa `.env.local`, sistem tetap jalan dan menampilkan kerangka modul.
+
+| Perintah | Isi |
+| --- | --- |
+| `npm run typecheck` | TypeScript 7 (`@typescript/native`); paket `typescript` berisi API TS 6 untuk ESLint |
+| `npm run lint` | ESLint untuk kode sistem ERP (halaman presentasi dikecualikan) |
+| `npm test` | Tes logika Vitest, termasuk neraca Siklus 1 |
+| `npm run test:db` | Tes pgTAP; perlu `supabase db start` (Docker) |
+| `npm run build` | Build produksi (Cache Components aktif) |
+
+## Sistem ERP
+
+Stack: Next.js 16.4.2, React 19.3.1, Tailwind 4.3.3, TypeScript 7.0.2, Supabase (`@supabase/supabase-js` 2.118.0, `@supabase/ssr` 0.12.7, CLI 2.121.0), Zod 4.6.7, Dexie 4.4.6, Vitest 5.0.5, Playwright 1.64.1, ESLint 10.13.0.
+
+```
+app/(auth)/login          halaman masuk (diisi Fase 1)
+app/(app)/<modul>         satu folder per modul ERP
+components/ui             komponen tampilan sistem (salinan bersih dari components/demo)
+components/shell          menu dan kerangka
+lib/env.ts                variabel lingkungan publik (Zod)
+lib/supabase              klien server (cookie getAll/setAll) dan browser
+lib/logic                 rumus murni + tes
+lib/modules.ts            daftar modul dan fasenya
+proxy.ts                  menyegarkan sesi Supabase saja, bukan pengaman
+supabase/                 konfigurasi CLI, migrasi, tes pgTAP
+.github/workflows/ci.yml  typecheck, lint, tes, audit, build, pgTAP
+```
+
+Supabase dan Vercel belum disiapkan (ditunda). Saat disiapkan: dua proyek Supabase Free region Singapura (uji dan produksi) dengan kunci `sb_publishable_` dan `sb_secret_`, lalu impor repo ke Vercel dan isi variabel lingkungan per lingkungan.
+
+Context7 untuk Claude Code:
+
+```bash
+claude mcp add --transport http context7 https://mcp.context7.com/mcp
+```
+
+## Penawaran (deck)
+
 > Penawaran atas nama **Dar Dev**, tampilan **monokrom** (hitam, putih, abu).
 
 Deck interaktif 15 slide untuk PT Katalis Lintas Global, usaha perikanan Bungus. Layout dan bahasa telah disusun ulang untuk pembaca awam: fitur yang diusulkan, cara kerja sistem, dan masalah pekerjaan yang ingin dibantu.
 
 Harga, jadwal, dan ketentuan adalah estimasi awal yang perlu disepakati. Fitur bukan bukti sistem sudah diterapkan; contoh bukan transaksi nyata.
 
-## Menjalankan
-
-Prasyarat: Node.js 20+.
-
-```bash
-npm install
-npm run dev
-```
-
-Buka http://localhost:3100. Pengiriman redesign ini hanya melalui localhost.
+Buka http://localhost:3100/penawaran.
 
 Kontrol: panah / PageUp / PageDown / Spasi, Home / End, F untuk layar penuh, G untuk ringkasan, Esc untuk menutup ringkasan. URL #12 membuka slide 12. Rute /print tersedia untuk tampilan cetak.
 

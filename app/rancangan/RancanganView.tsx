@@ -478,7 +478,7 @@ export default function RancanganView() {
           <div className="mt-3 rounded-2xl p-3 text-[12px] text-[#8A9199]" style={{ background: "#1B1D21" }}>
             Pengerjaan mulai begitu jawaban wajib dan bahan masuk.
             <a href="/demo/desktop" className="mt-2 block w-full rounded-full bg-white py-2 text-center text-[12.5px] font-medium" style={{ color: INK }}>Coba demo aplikasi</a>
-            <a href="/" className="mt-1.5 block w-full rounded-full py-2 text-center text-[12.5px] text-[#C6CCD3]">Kembali ke penawaran</a>
+            <a href="/penawaran" className="mt-1.5 block w-full rounded-full py-2 text-center text-[12.5px] text-[#C6CCD3]">Kembali ke penawaran</a>
           </div>
         </aside>
 

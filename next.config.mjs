@@ -7,5 +7,12 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   turbopack: { root },
+  // Pola data dan sesi sistem ERP mengikuti Cache Components (lihat AGENTS.md).
+  cacheComponents: true,
+  partialPrefetching: true,
+  async redirects() {
+    // Halaman utama adalah sistem ERP; penawaran pindah ke /penawaran.
+    return [{ source: "/", destination: "/dashboard", permanent: false }];
+  },
 };
 export default nextConfig;

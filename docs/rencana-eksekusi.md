@@ -275,5 +275,5 @@ Ditambahkan ke `rencana-sistem-fitur-logika-alur.md` bagian 10.
 - [ ] Simpan dokumen konfirmasi 35 pertanyaan sebagai rujukan internal. Yang dikirim ke owner cukup halaman `/rancangan`.
 - [ ] Jadwalkan rapat kunci keputusan dengan owner dan finance.
 - [ ] Minta pembuatan akun Vercel dan Supabase atas nama klien, atau sepakati siapa pemiliknya (Q34).
-- [ ] Siapkan repo aplikasi produksi terpisah dari repo deck (`katalis-erp-pitch`), dengan `supabase/migrations`.
+- [x] Satu repo untuk semua (`hdmimesir-afk/tunaproject`): sistem ERP di `/`, penawaran di `/penawaran`, dengan `supabase/migrations` (22 Okt 2026).
 - [ ] Mulai skema v2 bagian 2 untuk tabel yang tidak bergantung pada jawaban owner.

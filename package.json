@@ -1,5 +1,5 @@
 {
-  "name": "katalis-erp-pitch",
+  "name": "katalis-erp",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -11,26 +11,45 @@
     "pdf": "tsx scripts/build-pdf.ts",
     "docs": "tsx scripts/build-docs.ts",
     "qa": "tsx scripts/qa.ts",
-    "export": "npm run pptx && npm run pdf && npm run docs && node -e \"require('fs').copyFileSync('output/KATALIS-ERP-Proposal.pdf','public/KATALIS-ERP-Proposal.pdf')\""
+    "export": "npm run pptx && npm run pdf && npm run docs && node -e \"require('fs').copyFileSync('output/KATALIS-ERP-Proposal.pdf','public/KATALIS-ERP-Proposal.pdf')\"",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:db": "supabase test db",
+    "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@fontsource/google-sans": "^5.3.2",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "dexie": "4.4.6",
+    "dexie-react-hooks": "4.4.0",
     "lucide-react": "^1.56.0",
     "lucide-static": "^1.56.0",
-    "next": "^16.4.0",
-    "playwright-core": "^1.64.0",
+    "next": "16.4.2",
     "postcss": "^8.5.30",
-    "pptxgenjs": "^4.0.1",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
     "tailwindcss": "^4.3.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@typescript/native": "npm:typescript@7.0.2",
+    "eslint": "10.13.0",
+    "eslint-config-next": "16.4.2",
+    "playwright-core": "^1.64.0",
+    "pptxgenjs": "^4.0.1",
+    "supabase": "2.121.0",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "vitest": "5.0.5"
   }
 }

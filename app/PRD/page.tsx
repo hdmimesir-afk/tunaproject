@@ -3,9 +3,8 @@ import { join } from "node:path";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
-/* Halaman PRD: dibaca dari docs/PRD.md saat build, supaya isi halaman dan dokumen selalu sama. */
-
-export const dynamic = "force-static";
+/* Halaman PRD: dibaca dari docs/PRD.md saat build, supaya isi halaman dan dokumen selalu sama.
+   Dengan Cache Components halaman ini otomatis statis karena tidak membaca data permintaan. */
 
 export const metadata: Metadata = {
   title: "KATALIS ERP | PRD",
