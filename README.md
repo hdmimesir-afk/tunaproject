@@ -56,7 +56,16 @@ supabase/                 konfigurasi CLI, migrasi, tes pgTAP
 - Pendaftaran mandiri ditutup (`supabase/config.toml`). Akun pertama: `npm run buat-owner -- email@contoh.com "Nama Owner"` (butuh `SUPABASE_SECRET_KEY` di `.env.local`); akun berikutnya diundang dari `/akses`.
 - Cadangan harian: `.github/workflows/backup.yml`, aktif setelah variabel repo `BACKUP_AKTIF=true` dan rahasia `SUPABASE_DB_URL` serta `BACKUP_PASSPHRASE` diisi. Hasil dienkripsi AES-256.
 
-Supabase dan Vercel belum disiapkan (ditunda), dan Docker belum terpasang di komputer pengembang, jadi database diuji di GitHub Actions. Untuk mencoba login di lokal: pasang Docker Desktop lalu `npx supabase start`, atau pakai proyek Supabase Free region Singapura. Isi `.env.local` dari keluaran `supabase status` atau dialog Connect di dashboard.
+**Fase 2 (pembelian, penerimaan, mutu, persetujuan)** sudah ada:
+
+- Migrasi `20261023000100_pembelian.sql` dan `20261023000200_alur_pembelian.sql`: PO, lot, persetujuan dan aturannya, pembayaran, dokumen, bucket privat `dokumen`, tampilan `v_purchase_orders` dan `v_persetujuan`. Status hanya berubah lewat fungsi (`ajukan_po`, `periksa_persetujuan`, `setujui_persetujuan`, `tolak_persetujuan`, `minta_revisi`, `terima_po`, `cek_mutu`, `catat_bayar`); kolom status tidak bisa diisi langsung.
+- Alur: PO draf, nota dilampirkan, diajukan, diperiksa Finance, disetujui Owner (bisa banyak sekaligus dengan total yang harus cocok). Disetujui tidak berarti dibayar: pembayaran dicatat terpisah, sebagian atau lunas, dan tidak bisa melebihi total.
+- Penerima ikan (Petugas Lapangan dan Kepala Produksi/QC) tidak melihat harga. Bongkar malam: ikan boleh diterima sebelum PO disetujui dengan tanda, pembayaran tetap menunggu.
+- Halaman `/pembelian`, `/persetujuan`, `/mutu` (Mutu dan Penerimaan). Nota diunggah dari browser ke bucket privat dan dibuka lewat alamat berumur 60 detik.
+- Tes pgTAP `003_pembelian.test.sql` (69 pernyataan) menguji alur, pemisahan peran, batas bayar, dan penolakan akses.
+- Pengguna tambahan tanpa email undangan: `npm run buat-pengguna -- email@contoh.com "Nama" finance` (peran: owner, finance, super_admin, kepala_produksi, petugas_lapangan).
+
+Supabase dan Vercel: proyek Supabase uji sudah tersambung (lihat `.env.example`); Vercel belum disiapkan. Docker belum terpasang di komputer pengembang, jadi database diuji di GitHub Actions. Untuk mencoba login di lokal: pasang Docker Desktop lalu `npx supabase start`, atau pakai proyek Supabase Free region Singapura. Isi `.env.local` dari keluaran `supabase status` atau dialog Connect di dashboard.
 
 Context7 untuk Claude Code:
 

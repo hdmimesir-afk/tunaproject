@@ -339,21 +339,21 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Pembelian, penerimaan, mutu**
 
-- [ ] Form PO: pemasok, berat, harga per kg, unggah nota (F02)
-- [ ] Peringatan harga dibanding pembelian terakhir pemasok (F02)
-- [ ] Tabel `cycles` dan pengisian nomor siklus di PO
-- [ ] Terima ikan jadi lot, termasuk terima sebagian (F05)
-- [ ] Tanda bongkar malam `diterima_sebelum_disetujui` dan antrean Owner pagi (F05)
-- [ ] Cek mutu: lulus dengan kelas atau ditahan (F06)
+- [x] Form PO: pemasok, berat, harga per kg, unggah nota (F02)
+- [x] Peringatan harga dibanding pembelian terakhir pemasok (F02)
+- [x] Tabel `cycles` dan pengisian nomor siklus di PO
+- [x] Terima ikan jadi lot, termasuk terima sebagian (F05)
+- [x] Tanda bongkar malam (kolom `sebelum_disetujui` di lot) dan daftarnya di halaman Persetujuan (F05)
+- [x] Cek mutu: lulus dengan kelas atau ditahan (F06)
 
 **Persetujuan dan pembayaran**
 
-- [ ] `approval_rules` per jenis transaksi: pemeriksa, penyetuju, bukti wajib (F03)
-- [ ] Alur draf → diajukan → perlu revisi → disetujui/ditolak (F03)
-- [ ] Kartu persetujuan dengan nota/bukti di sebelah tombol Setuju (F03)
-- [ ] Setuju massal dengan layar daftar, jumlah, dan total (F04)
-- [ ] Konfirmasi kedua untuk tombol berisiko
-- [ ] Tabel `payments` dan bayar pemasok terpisah dari persetujuan; status bayar dihitung (F03)
+- [x] `approval_rules` per jenis transaksi: izin pemeriksa, izin penyetuju, bukti wajib (F03)
+- [x] Alur draf → diajukan → perlu revisi → disetujui/ditolak (F03)
+- [x] Kartu persetujuan dengan nota/bukti di sebelah tombol Setuju (F03)
+- [x] Setuju massal dengan layar daftar, jumlah, dan total (F04)
+- [ ] Konfirmasi kedua untuk tombol berisiko (setuju dan tolak sudah; bayar dan kirim menyusul)
+- [x] Tabel `payments` dan bayar pemasok terpisah dari persetujuan; status bayar dihitung (F03)
 
 **Penutup minggu 1**
 

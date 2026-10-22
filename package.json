@@ -17,7 +17,8 @@
     "test": "vitest run",
     "test:db": "supabase test db",
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
-    "buat-owner": "tsx --env-file=.env.local scripts/buat-owner.ts"
+    "buat-owner": "tsx --env-file=.env.local scripts/buat-owner.ts",
+    "buat-pengguna": "tsx --env-file=.env.local scripts/buat-pengguna.ts"
   },
   "dependencies": {
     "@fontsource/google-sans": "^5.3.2",

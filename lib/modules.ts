@@ -9,7 +9,7 @@ export const MODULES: Modul[] = [
   { slug: "dashboard", label: "Dashboard", icon: "grid", fase: 5, izin: null, isi: "Ringkasan owner di HP; rincian muncul saat diketuk" },
   { slug: "persetujuan", label: "Persetujuan", icon: "check", fase: 2, izin: "persetujuan.read", isi: "Antrean periksa dan setuju dengan nota di sebelah tombol" },
   { slug: "pembelian", label: "Pembelian", icon: "cart", fase: 2, izin: "pembelian.read", isi: "PO, penerimaan ikan, bayar pemasok" },
-  { slug: "mutu", label: "Mutu", icon: "flask", fase: 2, izin: "mutu.read", isi: "Cek mutu lot: lulus dengan kelas atau ditahan" },
+  { slug: "mutu", label: "Mutu dan Penerimaan", icon: "flask", fase: 2, izin: "mutu.read", isi: "Terima ikan, timbang, dan cek mutu lot" },
   { slug: "produksi", label: "Produksi", icon: "factory", fase: 3, izin: "produksi.read", isi: "Grid loin per potong, komponen hasil, neraca berat" },
   { slug: "stok", label: "Stok", icon: "box", fase: 4, izin: "stok.read", isi: "Unit simpan per pemilik, fresh/beku, berat masuk/keluar" },
   { slug: "gudang", label: "Gudang Dingin", icon: "snow", fase: 4, izin: "gudang.read", isi: "Titipan pelanggan, tarif, jadwal ABF" },

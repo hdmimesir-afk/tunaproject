@@ -6,7 +6,7 @@ import { supabaseConfigured } from "@/lib/env";
 import { parseSesi, perluMfa, tujuanAman } from "@/lib/izin";
 import { createClient } from "@/lib/supabase/server";
 
-export type HasilForm = { error?: string; kolom?: Record<string, string[] | undefined> } | undefined;
+export type HasilForm = { error?: string; kolom?: Record<string, string[] | undefined>; pesan?: string; id?: string } | undefined;
 
 const Masuk = z.object({
   email: z.email("Email tidak valid"),
