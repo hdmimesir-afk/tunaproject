@@ -107,7 +107,7 @@ export const rp = (n: number) => "Rp" + Math.round(n).toLocaleString("id-ID");
 export const jt = (n: number, d = 1) => "Rp" + (n / 1e6).toLocaleString("id-ID", { minimumFractionDigits: d, maximumFractionDigits: d }) + " jt";
 
 const initial = (): State => ({
-  v: 4, ctr: { PO: 2, APV: 103, LOT: 2, PRD: 1, SAL: 3, INV: 3, KAS: 5, CST: 2, BK: 7, SC: 0, L: 3 },
+  v: 5, ctr: { PO: 2, APV: 103, LOT: 2, PRD: 1, SAL: 3, INV: 3, KAS: 5, CST: 2, BK: 7, SC: 0, L: 3 },
   pos: [
     { id: "PO-0001", supplier: "Pemasok B", kg: 640, price: 45000, status: "Diterima", date: "9 Okt" },
     { id: "PO-0002", supplier: "Pemasok A", kg: 640, price: 45500, status: "Menunggu persetujuan", date: "12 Okt" },
@@ -121,8 +121,9 @@ const initial = (): State => ({
     { id: "LOT-001", po: "Siklus 1", supplier: "Pemasok A", kg: 481, left: 0, qc: "Lulus", grade: "A" },
     { id: "LOT-002", po: "PO-0001", supplier: "Pemasok B", kg: 640, left: 640, qc: "Ditahan", grade: "-" },
   ],
-  // Siklus 1: loin 300,94 kg dan hasil samping 87 kg (toro, kepala, tetelan coklat, daging kerok) dari owner. Limbah dan susut belum ditimbang.
-  prods: [{ id: "PRD-0001", lot: "LOT-001", inKg: 481, status: "Selesai", yieldPct: 62.6, loin: 300.94, sisa: 87, date: "3 Okt" }],
+  // Siklus 1 dari owner: loin 300,94 kg, hasil samping terjual 87 kg (toro, kepala, tetelan coklat, daging kerok),
+  // 65 kg tulang tengah dan tetelan hitam dibuang. Susut belum ditimbang.
+  prods: [{ id: "PRD-0001", lot: "LOT-001", inKg: 481, status: "Selesai", yieldPct: 62.6, loin: 300.94, sisa: 87, limbah: 65, date: "3 Okt" }],
   stock: { loin: 120, sisa: 65 },
   titipan: [
     { id: "CST-0001", customer: "Pelanggan A", kg: 8000, days: 6, status: "Disimpan" },
@@ -164,7 +165,7 @@ const initial = (): State => ({
 });
 
 /* ----------------------------------------------------------- store core */
-const KEY = "katalis-demo-state-v4";
+const KEY = "katalis-demo-state-v5";
 let state: State = initial();
 let loaded = false;
 const listeners = new Set<() => void>();
@@ -173,7 +174,7 @@ const SERVER = initial();
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
-  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s?.v === 4) state = s; } } catch { /* ignore */ }
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s?.v === 5) state = s; } } catch { /* ignore */ }
   window.addEventListener("storage", (e) => {
     if (e.key !== KEY || !e.newValue) return;
     try { state = JSON.parse(e.newValue); emit(); } catch { /* ignore */ }

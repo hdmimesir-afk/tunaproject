@@ -278,7 +278,7 @@ export function Produksi() {
           { h: "Hasil samping", r: (p) => (p.sisa !== undefined ? `${kgf(p.sisa)} kg` : "-"), right: true }, { h: "Hasil", r: (p) => (p.yieldPct ? `${kgf(p.yieldPct)}%` : "-"), right: true },
           { h: "Belum jelas", r: (p) => (p.status === "Selesai" ? `${kgf(selisih(p))} kg` : "-"), right: true }, { h: "Status", r: (p) => <Pill t={p.status} /> },
         ]} actions={(p) => p.status === "Berjalan" && <GBtn perm="prod.finish" size="sm" onClick={() => open(p)}>Selesaikan</GBtn>} />
-        <div className="mt-2 text-[12px]" style={{ color: MUTED }}>PRD-0001 memakai data nyata Siklus 1. Limbah dan susut belum ditimbang, jadi {kgf(selisih(s.prods.find((p) => p.id === "PRD-0001") ?? { inKg: 0 }))} kg masih tampil sebagai belum jelas.</div>
+        <div className="mt-2 text-[12px]" style={{ color: MUTED }}>PRD-0001 memakai data nyata Siklus 1: 65 kg tulang tengah dan tetelan hitam dibuang. Susut belum ditimbang, jadi {kgf(selisih(s.prods.find((p) => p.id === "PRD-0001") ?? { inKg: 0 }))} kg masih tampil sebagai belum jelas.</div>
       </Card>
       {fin && (
         <Modal title={`Selesaikan ${fin.id}`} onClose={() => setFin(null)} footer={<><Btn v="light" full onClick={() => setFin(null)}>Batal</Btn><Btn full onClick={() => { const r = run({ a: "prod.finish", id: fin.id, ...w }); if (r.ok) setFin(null); }}>Simpan hasil</Btn></>}>

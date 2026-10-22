@@ -190,7 +190,7 @@ Semua layar punya dua tata letak: **desktop** (sidebar + kartu) dan **ponsel** (
 ## 8. Data awal dan migrasi
 
 1. **Master data:** pemasok, pembeli, mitra dan giliran (CV DUS, PT SNS), tarif gudang dingin, daftar pengguna.
-2. **Siklus 1:** 11 ekor (berat dan hasil), loin 300,94 kg (B-SO 203,51; C-SO 97,43), hasil samping 87 kg (toro 14, kepala 63, tetelan coklat 7, daging kerok 3), biaya Rp37,08 juta menurut kategori. Limbah dan susut tidak ada datanya, jadi 93,06 kg tampil sebagai selisih belum jelas. Tandai **data nyata Siklus 1**.
+2. **Siklus 1:** 11 ekor (berat dan hasil), loin 300,94 kg (B-SO 203,51; C-SO 97,43), hasil samping terjual 87 kg (toro 14, kepala 63, tetelan coklat 7, daging kerok 3), limbah 65 kg (tulang tengah dan tetelan hitam, dibuang), biaya Rp37.072.682 menurut kategori. Susut tidak ada datanya, jadi 28,06 kg tampil sebagai selisih belum jelas. Tandai **data nyata Siklus 1**.
 3. **Monitor Dana:** impor 243 transaksi ke `ledger` lewat skrip sekali jalan (CSV bersih tanpa nomor rekening). Nota dan bukti: hanya tautan/berkas yang memang diserahkan klien. Bagian modal, investor, dan bagi hasil **tidak diimpor**.
 4. **Pembersihan:** daftar duplikat ID, transaksi tanpa tanggal, dan 55 bukti kosong ditampilkan untuk diselesaikan klien, bukan ditebak.
 5. **Dua lingkungan data:** `produksi` (data klien) dan `demo` (data contoh) terpisah, supaya demo tidak menyentuh data nyata.

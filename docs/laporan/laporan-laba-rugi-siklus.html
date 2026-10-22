@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Laporan Laba Rugi Siklus 1 - KATALIS ERP</title>
+<!-- Contoh format laporan laba rugi per siklus untuk KATALIS ERP. Angka: data nyata Siklus 1 dari owner.
+     Cetak: msedge --headless --no-pdf-header-footer --print-to-pdf=Laporan_Laba_Rugi_Siklus_1.pdf laporan-laba-rugi-siklus.html -->
+<style>
+  @page { size: A4; margin: 13mm 13mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 8.8pt; color: #1b1b1b; margin: 0; }
+  .ink { color: #00171F; } .muted { color: #6C7F8A; } .good { color: #0B6B4A; } .warn { color: #8A5A00; } .bad { color: #A8322B; }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #00171F; padding-bottom: 8px; }
+  h1 { font-size: 17pt; margin: 0; color: #00171F; }
+  h2 { font-size: 10.5pt; margin: 14px 0 6px; color: #00171F; text-transform: uppercase; letter-spacing: .4px; }
+  .lead { margin: 8px 0 0; font-size: 9.5pt; color: #33454F; line-height: 1.45; }
+  .kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+  .kpi div { background: #F4F5F9; border-radius: 8px; padding: 8px 10px; }
+  .kpi b { display: block; font-size: 13pt; color: #00171F; margin-top: 2px; }
+  .kpi span { font-size: 7.8pt; color: #6C7F8A; }
+  table { width: 100%; border-collapse: collapse; }
+  .pl td { padding: 3.5px 6px; border-bottom: 1px solid #EEF0F4; }
+  .pl .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pl .pct { text-align: right; width: 12%; color: #6C7F8A; font-variant-numeric: tabular-nums; }
+  .pl .kg { text-align: right; width: 11%; color: #6C7F8A; font-variant-numeric: tabular-nums; }
+  .pl .grp td { background: #E3ECF6; font-weight: bold; color: #00171F; }
+  .pl .sub td { font-weight: bold; border-top: 1px solid #C9D3DE; }
+  .pl .in1 { padding-left: 18px; }
+  .pl .total td { background: #00171F; color: #fff; font-weight: bold; font-size: 10pt; padding: 6px; }
+  .pl .total .pct { color: #C6CCD3; }
+  .pl .zero td { color: #A8322B; }
+  .bars { display: grid; gap: 4px; }
+  .bar { display: grid; grid-template-columns: 34% 1fr 22%; align-items: center; gap: 8px; }
+  .track { background: #EEF0F4; height: 10px; border-radius: 5px; overflow: hidden; }
+  .fill { height: 100%; background: #2D5F9A; }
+  .stack { display: flex; height: 18px; border-radius: 6px; overflow: hidden; margin: 6px 0 6px; }
+  .stack div { height: 100%; }
+  .legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px 16px; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .note { background: #FBF0D5; color: #5C4200; border-radius: 8px; padding: 8px 10px; line-height: 1.45; }
+  .ok { background: #DDF3E8; color: #0B4F37; border-radius: 8px; padding: 8px 10px; line-height: 1.45; }
+  .grid td, .grid th { padding: 4px 6px; border-bottom: 1px solid #EEF0F4; text-align: right; font-variant-numeric: tabular-nums; }
+  .grid th { background: #F4F5F9; color: #00171F; font-size: 8pt; }
+  .grid td:first-child, .grid th:first-child { text-align: left; }
+  .grid .empty td { color: #B9C2C8; }
+  dl { display: grid; grid-template-columns: 30% 1fr; gap: 3px 10px; margin: 0; }
+  dt { font-weight: bold; color: #00171F; } dd { margin: 0; color: #33454F; }
+  .page { page-break-after: always; }
+  .foot { margin-top: 10px; font-size: 7.6pt; color: #6C7F8A; border-top: 1px solid #E4E6EC; padding-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="page">
+<div class="top">
+  <div>
+    <div class="muted">KATALIS ERP · Laporan Laba Rugi per Siklus</div>
+    <h1>Siklus 1 · 481 kg ikan utuh, 11 ekor</h1>
+  </div>
+  <div class="muted" style="text-align:right">PT Katalis Lintas Global<br>Contoh format laporan · data nyata Siklus 1</div>
+</div>
+
+<p class="lead"><b class="ink">Siklus 1 untung Rp4.503.468 (margin 10,8%).</b> Dari setiap Rp100 penjualan, Rp53 habis untuk membeli ikan dan Rp27 untuk ongkos kirim. Ongkos kirim adalah biaya terbesar kedua dan paling mungkin ditekan.</p>
+
+<div class="kpi">
+  <div><span>Pendapatan</span><b>Rp41,58 jt</b><span>387,94 kg terjual</span></div>
+  <div><span>Total biaya</span><b>Rp37,07 jt</b><span>89,2% dari pendapatan</span></div>
+  <div><span>Laba kotor siklus</span><b class="good">Rp4,50 jt</b><span>margin 10,8%</span></div>
+  <div><span>Hasil olahan (loin)</span><b>62,6%</b><span>rencana 60% · di atas rencana</span></div>
+</div>
+
+<h2>1. Laba rugi</h2>
+<table class="pl">
+  <tr class="grp"><td>Pendapatan</td><td class="kg">Berat (kg)</td><td class="num">Rupiah</td><td class="pct">% pendapatan</td></tr>
+  <tr><td class="in1">Loin B dengan kulit (B-SO) · Rp140.000/kg</td><td class="kg">203,51</td><td class="num">28.491.400</td><td class="pct">68,5%</td></tr>
+  <tr><td class="in1">Loin C dengan kulit (C-SO) · Rp125.000/kg</td><td class="kg">97,43</td><td class="num">12.178.750</td><td class="pct">29,3%</td></tr>
+  <tr class="sub"><td>Subtotal loin</td><td class="kg">300,94</td><td class="num">40.670.150</td><td class="pct">97,8%</td></tr>
+  <tr><td class="in1">Toro · Rp30.000/kg</td><td class="kg">14,00</td><td class="num">420.000</td><td class="pct">1,0%</td></tr>
+  <tr><td class="in1">Kepala dan rahang · Rp5.000/kg</td><td class="kg">63,00</td><td class="num">315.000</td><td class="pct">0,8%</td></tr>
+  <tr><td class="in1">Tetelan coklat · Rp18.000/kg</td><td class="kg">7,00</td><td class="num">126.000</td><td class="pct">0,3%</td></tr>
+  <tr><td class="in1">Daging kerok · Rp15.000/kg</td><td class="kg">3,00</td><td class="num">45.000</td><td class="pct">0,1%</td></tr>
+  <tr class="zero"><td class="in1">Tulang tengah dan tetelan hitam · belum ada pembeli, dibuang</td><td class="kg">65,00</td><td class="num">0</td><td class="pct">0,0%</td></tr>
+  <tr class="sub"><td>Subtotal hasil samping</td><td class="kg">152,00</td><td class="num">906.000</td><td class="pct">2,2%</td></tr>
+  <tr class="sub"><td>Total pendapatan</td><td class="kg">452,94</td><td class="num">41.576.150</td><td class="pct">100,0%</td></tr>
+
+  <tr class="grp"><td>Biaya langsung siklus</td><td class="kg">% biaya</td><td class="num">Rupiah</td><td class="pct">% pendapatan</td></tr>
+  <tr><td class="in1">Bahan baku: ikan utuh 481 kg × Rp46.000</td><td class="kg">59,7%</td><td class="num">22.126.000</td><td class="pct">53,2%</td></tr>
+  <tr><td class="in1">Ongkos kirim (kargo)</td><td class="kg">29,9%</td><td class="num">11.080.029</td><td class="pct">26,7%</td></tr>
+  <tr><td class="in1">Penanganan</td><td class="kg">5,0%</td><td class="num">1.846.568</td><td class="pct">4,4%</td></tr>
+  <tr><td class="in1">Kemasan</td><td class="kg">4,9%</td><td class="num">1.820.085</td><td class="pct">4,4%</td></tr>
+  <tr><td class="in1">Jasa</td><td class="kg">0,5%</td><td class="num">200.000</td><td class="pct">0,5%</td></tr>
+  <tr class="sub"><td>Total biaya langsung</td><td class="kg">100,0%</td><td class="num">37.072.682</td><td class="pct">89,2%</td></tr>
+
+  <tr class="total"><td>Laba kotor siklus</td><td class="kg"></td><td class="num">Rp4.503.468</td><td class="pct">10,8%</td></tr>
+</table>
+<p class="muted" style="margin:5px 0 0">Laba kotor siklus belum dikurangi biaya di luar siklus (gaji tetap, listrik, sewa, penyusutan mesin) dan pajak. Lihat bagian 7.</p>
+
+<div class="two">
+  <div>
+    <h2>2. Ke mana uang penjualan pergi</h2>
+    <div class="stack">
+      <div style="width:53.2%;background:#00171F"></div><div style="width:26.7%;background:#2D5F9A"></div><div style="width:4.4%;background:#8FB3D9"></div><div style="width:4.4%;background:#C9D6E6"></div><div style="width:0.5%;background:#D9962B"></div><div style="width:10.8%;background:#0B6B4A"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#00171F"></i>Beli ikan 53,2%</span>
+      <span><i style="background:#2D5F9A"></i>Ongkos kirim 26,7%</span>
+      <span><i style="background:#8FB3D9"></i>Penanganan 4,4%</span>
+      <span><i style="background:#C9D6E6"></i>Kemasan 4,4%</span>
+      <span><i style="background:#D9962B"></i>Jasa 0,5%</span>
+      <span><i style="background:#0B6B4A"></i><b>Laba 10,8%</b></span>
+    </div>
+  </div>
+  <div>
+    <h2>3. Ke mana berat ikan pergi</h2>
+    <div class="stack">
+      <div style="width:62.6%;background:#00171F"></div><div style="width:18.1%;background:#2D5F9A"></div><div style="width:13.5%;background:#C9D6E6"></div><div style="width:5.8%;background:#D9962B"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#00171F"></i>Loin 300,94 kg · 62,6%</span>
+      <span><i style="background:#2D5F9A"></i>Hasil samping terjual 87 kg · 18,1%</span>
+      <span><i style="background:#C9D6E6"></i>Dibuang 65 kg · 13,5%</span>
+      <span><i style="background:#D9962B"></i>Belum jelas 28,06 kg · 5,8%</span>
+    </div>
+  </div>
+</div>
+
+<h2>4. Angka per kg loin</h2>
+<table class="pl">
+  <tr><td>Harga jual rata-rata loin</td><td class="num">Rp135.144</td><td class="muted" style="width:52%">Rp40.670.150 ÷ 300,94 kg</td></tr>
+  <tr><td>Biaya total per kg loin</td><td class="num">Rp123.190</td><td class="muted">Rp37.072.682 ÷ 300,94 kg</td></tr>
+  <tr><td>&nbsp;&nbsp;dari ikan utuh</td><td class="num">Rp73.523</td><td class="muted">Ikan Rp46.000/kg, karena 1 kg loin butuh 1,6 kg ikan utuh</td></tr>
+  <tr><td>&nbsp;&nbsp;dari ongkos kirim</td><td class="num">Rp36.818</td><td class="muted">Rp11.080.029 ÷ 300,94 kg</td></tr>
+  <tr class="sub"><td>Laba per kg loin</td><td class="num good">Rp14.965</td><td class="muted">Rp4.503.468 ÷ 300,94 kg</td></tr>
+  <tr><td>Harga jual loin minimal agar tidak rugi</td><td class="num warn">Rp120.179</td><td class="muted">(biaya − pendapatan hasil samping) ÷ kg loin</td></tr>
+</table>
+</div>
+
+<div class="top" style="border-bottom-width:1px">
+  <div class="muted">KATALIS ERP · Laporan Laba Rugi per Siklus · Siklus 1</div>
+  <div class="muted">halaman 2</div>
+</div>
+
+<h2>5. Yang perlu diperhatikan</h2>
+<div class="two">
+  <div class="note"><b>Ongkos kirim 29,9% dari biaya.</b> Setiap kg loin menanggung Rp36.818 ongkos kirim. Negosiasi tarif kargo dari Rp31.000 ke Rp29.500 per kg kotor yang sedang berjalan akan langsung menaikkan laba.</div>
+  <div class="note"><b>65 kg dibuang tanpa pendapatan.</b> Tulang tengah dan tetelan hitam belum ada pembeli. Kalau laku walau murah, seluruh hasilnya menjadi laba tambahan.</div>
+  <div class="note"><b>28,06 kg belum jelas ke mana (5,8%).</b> Ikan masuk dikurangi loin, hasil samping, dan yang dibuang. Mulai siklus berikutnya susut ditimbang supaya selisih ini bisa dijelaskan.</div>
+  <div class="ok"><b>Hasil olahan 62,6%, di atas rencana 60%.</b> Hasil per ekor 52,2% sampai 70,2%; ekor 005 (27 kg) paling rendah dan layak diperiksa.</div>
+</div>
+
+<h2>6. Tren antarsiklus</h2>
+<p class="muted" style="margin:0 0 5px">Baris baru terisi otomatis setiap siklus selesai. Grafik tren tampil di dashboard owner setelah ada minimal 3 siklus.</p>
+<table class="grid">
+  <tr><th>Siklus</th><th>Ikan (kg)</th><th>Hasil olahan</th><th>Harga ikan/kg</th><th>Kargo/kg loin</th><th>Pendapatan</th><th>Biaya</th><th>Laba</th><th>Margin</th></tr>
+  <tr><td><b>Siklus 1</b></td><td>481,00</td><td>62,6%</td><td>Rp46.000</td><td>Rp36.818</td><td>Rp41,58 jt</td><td>Rp37,07 jt</td><td>Rp4,50 jt</td><td>10,8%</td></tr>
+  <tr class="empty"><td>Siklus 2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+  <tr class="empty"><td>Siklus 3</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+  <tr class="empty"><td>Rata-rata</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+</table>
+
+<h2>7. Dari laba kotor siklus ke laba bersih</h2>
+<table class="pl">
+  <tr><td>Laba kotor siklus</td><td class="num">Rp4.503.468</td><td class="muted" style="width:52%">Dari bagian 1</td></tr>
+  <tr><td>&nbsp;&nbsp;dikurangi biaya operasional bulanan dibagi per siklus</td><td class="num muted">menunggu data</td><td class="muted">Gaji tetap, listrik, air, sewa, internet, perawatan</td></tr>
+  <tr><td>&nbsp;&nbsp;dikurangi penyusutan aset</td><td class="num muted">menunggu data</td><td class="muted">ABF, cold storage, mesin produksi, bangunan</td></tr>
+  <tr><td>&nbsp;&nbsp;dikurangi pajak</td><td class="num muted">menunggu aturan finance</td><td class="muted">Tidak ditebak oleh sistem</td></tr>
+  <tr class="sub"><td>Laba bersih</td><td class="num muted">belum bisa dihitung</td><td class="muted">Tampil otomatis begitu tiga baris di atas terisi</td></tr>
+</table>
+
+<h2>8. Arti istilah</h2>
+<dl>
+  <dt>Siklus</dt><dd>Satu putaran usaha: beli ikan, olah, jual, sampai uang masuk.</dd>
+  <dt>Pendapatan</dt><dd>Uang dari penjualan loin dan hasil samping di siklus ini, menurut berat yang dikirim dan harga yang disepakati.</dd>
+  <dt>Biaya langsung</dt><dd>Biaya yang muncul karena siklus ini berjalan: beli ikan, kargo, penanganan, kemasan, jasa.</dd>
+  <dt>Laba kotor siklus</dt><dd>Pendapatan dikurangi biaya langsung. Belum termasuk biaya bulanan tetap dan pajak.</dd>
+  <dt>Margin</dt><dd>Laba dibagi pendapatan. Margin 10,8% berarti dari setiap Rp100 penjualan tersisa Rp10,80.</dd>
+  <dt>Hasil olahan</dt><dd>Berat loin dibagi berat ikan utuh. Rencananya 60%.</dd>
+  <dt>Harga minimal</dt><dd>Harga jual loin terendah supaya pendapatan sama dengan biaya (tidak untung, tidak rugi).</dd>
+</dl>
+
+<div class="foot">Sumber angka: data Siklus 1 dari owner (ringkasan web), dibulatkan hanya di tampilan. Setiap angka di sistem bisa diklik sampai transaksi dan notanya. Format ini dipakai sebagai acuan laporan laba rugi KATALIS ERP sampai finance memberi format resmi.</div>
+
+</body>
+</html>

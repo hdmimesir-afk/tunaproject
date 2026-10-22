@@ -9,7 +9,7 @@ Katalis ERP adalah satu aplikasi web untuk PT Katalis Lintas Global, dipakai di 
 **Masalah yang diselesaikan**
 
 - Data produksi tidak lengkap dan angka di belakang koma hilang. Formulir lama mencatat total loin Siklus 1 sebagai 301,0 kg, padahal timbangan 300,94 kg.
-- Selisih berat tidak terlihat. Dari 481 kg ikan Siklus 1, 93,06 kg belum jelas ke mana, tapi formulir lama menyebutnya susut.
+- Selisih berat tidak terlihat. Formulir lama menyebut 93,06 kg dari 481 kg ikan Siklus 1 sebagai susut, padahal 65 kg di antaranya tulang tengah dan tetelan hitam yang dibuang; 28,06 kg sisanya belum jelas.
 - Catatan tidak nyambung: pembelian, produksi, stok, penjualan, dan kas diketik ulang di tempat berbeda.
 - Persetujuan dan bukti tercecer: 55 dari 243 transaksi di Monitor Dana belum punya bukti transfer.
 
@@ -30,17 +30,15 @@ Katalis ERP adalah satu aplikasi web untuk PT Katalis Lintas Global, dipakai di 
 
 ## Pengguna dan peran
 
-Tujuh peran awal, disimpan di tabel `roles` dan `role_permissions` sehingga Owner bisa mengubah izin tanpa programmer. Daftar nama dan tugas final menunggu jawaban owner (daftar pengguna).
+Lima peran awal, disimpan di tabel `roles` dan `role_permissions` sehingga Owner bisa mengubah izin tanpa programmer. Owner menyebut tiga peran (Super Admin, Finance, Owner); dua peran lapangan diusulkan developer supaya orang yang menimbang tidak sama dengan orang yang memeriksa. Satu orang boleh memegang lebih dari satu peran bila timnya kecil, kecuali menimbang dan memeriksa produksi yang sama.
 
 | Peran | Tugas utama | Aksi yang diizinkan (nilai awal) | Layar utama |
 | --- | --- | --- | --- |
-| Owner | Memantau dan memutuskan | Semua aksi; satu-satunya penyetuju dan pembuka kembali periode | Dashboard owner di HP |
-| Keuangan | Memeriksa transaksi, mencatat uang keluar dan masuk | Periksa persetujuan, bayar pemasok, catat bayar pembeli, ajukan biaya, ingatkan tagihan | Persetujuan, Keuangan |
-| Pembelian | Beli ikan dan menjual | Buat PO, buat pesanan jual, ingatkan tagihan | Pembelian, Penjualan |
-| Produksi | Mengolah dan menimbang | Mulai produksi, isi grid loin, isi komponen hasil | Produksi |
-| Gudang | Terima ikan, cek mutu, stok | Terima ikan, cek mutu, kirim, titipan masuk/keluar, ajukan koreksi stok, jadwal ABF | Mutu, Stok, Gudang Dingin |
-| Admin | Mengurus data master dan akun | Pemasok, pembeli, produk, grade, kategori, undang pengguna | Akses |
-| Karyawan | Hadir dan izin | Absen masuk/pulang, ajukan izin/sakit/libur | Absensi (HP) |
+| Owner | Memantau dan menyetujui | Semua aksi; penyetuju akhir dan pembuka kembali periode | Dashboard owner di HP |
+| Finance | Memeriksa transaksi, mencatat uang keluar dan masuk, laporan | Periksa persetujuan, bayar pemasok, catat bayar pembeli, ajukan biaya, ingatkan tagihan | Persetujuan, Keuangan, Laporan |
+| Super Admin | Urusan kantor: akun, data master, pengaturan, beli dan jual | Undang pengguna, master data, tarif dan target hasil, buat PO, buat pesanan jual | Akses, Pembelian, Penjualan, Pengaturan |
+| Kepala Produksi / QC (usulan) | Cek mutu dan memeriksa hasil produksi | Cek mutu lot (lulus/tahan, kelas), periksa neraca produksi sebelum ke Owner, ajukan koreksi stok | Mutu, Produksi |
+| Petugas Lapangan (usulan) | Terima, timbang, olah, kirim | Terima ikan dan timbang lot, isi grid loin, timbang hasil samping, limbah, dan susut, catat kirim dan titipan | Produksi dan Stok di HP |
 
 - Setiap orang hanya melihat menu sesuai izinnya. Izin dicek di database (RLS), bukan hanya di tampilan.
 - Halaman yang hanya untuk melihat data tidak menampilkan tombol ubah.
@@ -48,7 +46,7 @@ Tujuh peran awal, disimpan di tabel `roles` dan `role_permissions` sehingga Owne
 
 ## Cakupan
 
-Versi 1 memuat 13 modul sampai kedalaman "versi pertama"; fitur lanjutan masuk masa garansi atau permintaan perubahan.
+Versi 1 memuat 12 modul (absensi ditunda atas keputusan owner 22 Oktober 2026) sampai kedalaman "versi pertama"; fitur lanjutan masuk masa garansi atau permintaan perubahan.
 
 | Modul | Masuk versi 1 | Menyusul |
 | --- | --- | --- |
@@ -62,11 +60,11 @@ Versi 1 memuat 13 modul sampai kedalaman "versi pertama"; fitur lanjutan masuk m
 | Harga beli | Tabel + grafik per periode, jenis, grade, pemasok | Analisis lanjutan |
 | Keuangan | Kategori biaya, laporan biaya/tagihan/bayar, laba rugi sesuai format finance | Tutup buku dengan kunci periode, rekonsiliasi bank |
 | Dashboard | Owner di HP, menu petugas disaring | Halaman kerja khusus per peran |
-| Absensi | Lokasi + foto + izin + rekap | Pengenalan wajah |
+| Absensi | Ditunda (keputusan owner) | Pengenalan wajah |
 | Jadwal ABF | Cek bentrok, pindah ke jam kosong | Kalender per tanggal |
 | Asisten AI dan simulasi | Alat baca terbatas; slider harga | Model bahasa; simpan skenario |
 
-**Tidak termasuk versi 1:** pengenalan wajah, integrasi timbangan digital, rekonsiliasi bank otomatis, notifikasi WA/email, pajak (menunggu aturan dari finance), dan impor data selain master data, Siklus 1, dan Monitor Dana.
+**Tidak termasuk versi 1:** absensi dan izin karyawan (ditunda), pengenalan wajah, integrasi timbangan digital, rekonsiliasi bank otomatis, notifikasi WA/email, pajak (menunggu aturan dari finance), dan impor data selain master data, Siklus 1, dan Monitor Dana.
 
 ## Alur utama
 
@@ -107,11 +105,11 @@ Setiap kebutuhan di bawah selesai bila kriteria terimanya lulus di lingkungan uj
 | F14 | Penjualan | Pesanan dari stok, kirim, invoice, bayar sebagian | Pesanan tidak melebihi stok tersedia; tagihan memakai berat diterima pembeli bila dicatat | 3 |
 | F15 | Penelusuran | Rincian Siklus/PO dan Ringkasan Harian | Satu siklus bisa diikuti dari beli sampai uang masuk tanpa input ulang | 3 |
 | F16 | Keuangan | Biaya per 8 kategori dengan nota, terhubung ke PO/produksi | Pengeluaran tanpa nota tidak bisa diajukan untuk jenis yang mewajibkan | 3 |
-| F17 | Laporan | Biaya per siklus, tagihan, pembayaran, laba rugi format finance, CSV | Angka laporan bisa diklik sampai transaksi; CSV sama dengan tampilan | 3 |
+| F17 | Laporan | Biaya per siklus, tagihan, pembayaran, laba rugi per siklus mengikuti contoh laporan Siklus 1 (docs/laporan), CSV | Angka laporan bisa diklik sampai transaksi; CSV sama dengan tampilan | 3 |
 | F18 | Harga beli | Harga per kg rata-rata tertimbang per hari/minggu, jenis, grade, pemasok | Harga baru tidak mengubah harga transaksi lama | 3 |
 | F19 | Dashboard | Ringkasan owner di HP, rincian muncul saat diketuk | Angka cocok dengan view dan ikut berubah saat data berubah | 3 |
-| F20 | Absensi | Absen dengan lokasi, akurasi GPS, foto langsung, waktu server | Gagal di luar radius dengan alasan jelas; foto tidak bisa dari galeri | 4 |
-| F21 | Absensi | Izin, sakit, libur dari HP dan rekap untuk owner | Rekap hadir, terlambat, izin, sakit, tidak hadir per orang | 4 |
+| F20 | Absensi | Ditunda (keputusan owner 22 Okt): absen dengan lokasi, foto langsung, waktu server | Gagal di luar radius dengan alasan jelas; foto tidak bisa dari galeri | 4 |
+| F21 | Absensi | Ditunda: izin, sakit, libur dari HP dan rekap untuk owner | Rekap hadir, terlambat, izin, sakit, tidak hadir per orang | 4 |
 | F22 | Asisten AI | Jawab pertanyaan dari alat baca terbatas, dengan tautan ke modul | Hanya baca; data mengikuti izin pengguna | 4 |
 | F23 | Simulasi | Slider harga ikan dan dampak laba | Rumus sesuai lembar asumsi | 4 |
 
@@ -128,7 +126,7 @@ ikan masuk = loin + hasil samping + limbah + susut tercatat + selisih belum jela
 - Loin = jumlah semua potong di grid loin. Hasil (%) = loin ÷ ikan masuk; hasil per ekor = loin dengan no. ekor yang sama ÷ berat utuh ekor itu.
 - Rencana hasil 60%. Di luar 40–80% = peringatan dan tanda periksa, bukan penolakan. Angka ini disimpan di pengaturan.
 - Total komponen yang ditimbang tidak boleh melebihi ikan masuk.
-- Contoh Siklus 1: 481,000 = 300,940 loin + 87,000 hasil samping + 93,060 belum jelas (19,3%). Limbah dan susut belum ditimbang, jadi kosong, bukan nol.
+- Contoh Siklus 1: 481,000 = 300,940 loin + 87,000 hasil samping terjual + 65,000 limbah (tulang tengah dan tetelan hitam, dibuang) + 28,060 belum jelas (5,8%). Susut belum ditimbang, jadi kosong, bukan nol. Limbah dan susut ditimbang totalnya saja, tidak per jenis (keputusan owner).
 
 **Angka.** Berat `numeric(12,3)` kg, uang `numeric(16,2)` rupiah, tidak ada `float`. Total dihitung dari nilai asli; pembulatan hanya di tampilan (bawaan tampil 2 desimal).
 
@@ -144,11 +142,11 @@ ikan masuk = loin + hasil samping + limbah + susut tercatat + selisih belum jela
 
 **Penjualan.** Pesanan draf tidak boleh melebihi stok tersedia dikurangi pesanan draf lain. Pengiriman mengurangi stok dan menerbitkan invoice dengan jatuh tempo bawaan 14 hari.
 
-**Tarif gudang dingin** (angka proposal, ditandai "belum dikonfirmasi" sampai owner menjawab)
+**Tarif gudang dingin** (tarif simpan dari owner 22 Oktober 2026; ABF tetap; minimum 10 hari masih mengikuti proposal sampai owner mengubahnya)
 
 | Layanan | Tarif awal | Aturan awal |
 | --- | --- | --- |
-| Simpan cold storage | Rp75/kg/hari | Minimum 10 hari; hari ke-11 dan seterusnya +Rp75/kg/hari |
+| Simpan cold storage | Rp76/kg/hari | Minimum 10 hari; hari ke-11 dan seterusnya +Rp76/kg/hari |
 | ABF (pembekuan) | Rp3.500/kg | Ditagih terpisah dari simpan |
 | Kapasitas | 17.500 kg | Titipan baru ditolak bila stok sendiri + titipan melebihi |
 
@@ -211,7 +209,15 @@ Versi di bawah adalah rilis stabil terbaru di npm per 21 Oktober 2026; versi dik
 | Tes end-to-end | Playwright | 1.64.1 | Alur beli sampai uang masuk, HP dan desktop |
 | Lint | ESLint | 10.13.0 | Wajib lulus di CI |
 | Pemantauan error | Sentry untuk Next.js | 11.8.0 | Usulan; data pribadi disaring sebelum dikirim |
-| Hosting | Vercel + Supabase | - | Akun atas nama perusahaan; region terdekat ke Indonesia (Singapura) |
+| Hosting | Vercel + Supabase | - | Mulai dengan paket gratis (Vercel Hobby, Supabase Free) atas keputusan owner 22 Okt; region Singapura; batasannya di bawah tabel |
+
+**Batasan paket gratis.** Paket gratis cukup untuk mulai, tetapi punya batas yang harus ditutup sebelum dipakai sehari-hari:
+
+- Vercel Hobby hanya untuk pemakaian pribadi non-komersial menurut ketentuan Vercel; untuk dipakai usaha, pindah ke Vercel Pro sebelum sistem mulai dipakai penuh.
+- Supabase Free menjeda proyek yang sepi selama 7 hari; pemakaian harian mencegahnya, tetapi jeda bisa terjadi saat libur panjang.
+- Supabase Free tidak menyediakan unduhan cadangan; cadangan harian dibuat sendiri (lihat Keamanan data).
+- Batas database 500 MB dan penyimpanan berkas 1 GB; cukup untuk data transaksi, perlu dipantau untuk foto nota.
+- Pemilik akun dan siapa yang membayar saat naik paket masih menunggu keputusan owner dan investor.
 
 ## Keamanan data
 
@@ -233,7 +239,7 @@ Keamanan berlapis: database menolak akses yang tidak berhak walau kode aplikasi 
 | Batas permintaan | Batas percobaan login dan pertanyaan Asisten AI per pengguna per hari | Tes login gagal berulang terkunci sementara |
 | Rahasia | Variabel lingkungan dipisah per lingkungan (lokal, preview, produksi) di Vercel; rotasi kunci bila ada developer keluar | Checklist rotasi di serah terima |
 | Data pribadi | Foto absen dan lokasi hanya dibuka Owner; masa simpan ditetapkan; mengikuti UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi | Akses foto oleh peran lain ditolak |
-| Cadangan | Cadangan harian; point-in-time recovery bila paket mengizinkan; uji pulih ke proyek terpisah | Uji pulih minggu 4 dan setiap 3 bulan |
+| Cadangan | Supabase Free tidak menyediakan unduhan cadangan, jadi cadangan harian dibuat sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat; uji pulih ke proyek terpisah | Uji pulih minggu 4 dan setiap 3 bulan |
 | Dependensi | `npm audit` dan pembaruan keamanan mingguan lewat pull request | CI gagal bila ada celah tingkat tinggi |
 
 ## Workflow pengembangan
@@ -270,7 +276,7 @@ Semua pekerjaan selesai dalam 4 minggu, dengan syarat jawaban wajib masuk paling
 | 1 | Beli dan persetujuan | H1–2 sepakati jawaban; server, akun, peran; beli, terima, cek mutu; setuju terpisah bayar | Beli sampai bayar jalan; disetujui tidak sama dengan dibayar |
 | 2 | Produksi dan stok | Grid loin per potong; neraca dan selisih; stok fresh/beku; titipan + tarif ABF | 300+ loin aman saat offline; neraca Siklus 1 jelas. Gagal: titik potong |
 | 3 | Jual, uang, laporan | Pesanan, kirim, tagih; rincian siklus dan harian; biaya dan laba rugi; dashboard owner di HP | Beli sampai uang masuk bisa dicoba penuh |
-| 4 | Uji nyata, mulai pakai | Absensi dan izin; Asisten AI, simulasi; uji pulih cadangan; uji 1 siklus asli | Siklus asli tanpa data hilang; serah terima tertulis |
+| 4 | Uji nyata, mulai pakai | Cadangan harian otomatis; Asisten AI, simulasi; uji pulih cadangan; uji 1 siklus asli | Siklus asli tanpa data hilang; serah terima tertulis |
 
 Akhir minggu 2 adalah titik periksa: bila grid loin, neraca, dan stok belum lulus, titik potong di bagian Risiko dijalankan dan owner diberi tahu hari itu juga.
 
@@ -284,7 +290,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [ ] Minta jawaban 7 persetujuan dan 8 pertanyaan wajib paling lambat hari ke-2 minggu 1 (owner)
 - [ ] Putuskan tambah 1 developer untuk minggu 2–4
 - [ ] Jadwalkan rapat kunci keputusan dengan owner dan finance
-- [ ] Akun Vercel dan Supabase atas nama perusahaan, developer diundang sebagai pengelola (owner)
+- [ ] Akun Vercel Hobby dan Supabase Free (paket gratis); pemilik akun dan biaya saat naik paket menunggu keputusan owner dan investor (owner)
 - [ ] Repo aplikasi produksi terpisah dari repo deck, dengan folder `supabase/migrations`
 - [ ] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
 - [ ] Pasang MCP Context7 di alat setiap developer dan AI coding agent
@@ -308,12 +314,12 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [ ] MFA (TOTP) wajib untuk Owner dan Keuangan
 - [ ] `proxy.ts` untuk menyegarkan sesi; halaman dan data dilindungi dengan `auth.getClaims()`
 - [ ] Lapisan akses data `server-only`; setiap Server Action memeriksa sesi, izin, dan kepemilikan
-- [ ] `roles` dan `role_permissions` dengan matriks awal 7 peran (F01)
+- [ ] `roles` dan `role_permissions` dengan matriks awal 5 peran (F01)
 - [ ] RLS aktif dan dipaksa di semua tabel; tes pgTAP per peran (F01)
 - [ ] Trigger `activity_log` sebelum/sesudah di semua tabel transaksi
 - [ ] Larangan hapus: cabut DELETE dari peran aplikasi; pembatalan dengan alasan
 - [ ] Header keamanan (CSP, HSTS, X-Frame-Options, Referrer-Policy) dan batas percobaan login
-- [ ] Cadangan harian Supabase aktif
+- [ ] Cadangan harian sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat (paket gratis tidak menyediakan unduhan cadangan)
 - [ ] Kerangka aplikasi dari `components/demo`: tata letak desktop dan HP, menu disaring per izin
 - [ ] Pesan gagal simpan global dan draft di perangkat (Dexie)
 
@@ -388,7 +394,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 - [ ] Uji 300+ baris loin saat jaringan putus, klik ganda simpan, dua petugas edit bersamaan
 - [ ] Uji 500 loin berdesimal tiga: total grid, rekap, dan CSV identik
-- [ ] Masukkan Siklus 1 dan pastikan neraca menampilkan 93,060 kg belum jelas
+- [ ] Masukkan Siklus 1 dan pastikan neraca menampilkan 65,000 kg limbah dan 28,060 kg belum jelas
 - [ ] Putuskan titik potong bila syarat keluar belum lulus; kabari owner hari itu juga
 - [ ] Demo ke owner di lingkungan uji
 
@@ -417,7 +423,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [ ] Kelengkapan dokumen: hitung transaksi tanpa bukti di dashboard
 - [ ] Impor 243 transaksi Monitor Dana ke `ledger` (tanpa nomor rekening, tanpa bagian modal)
 - [ ] Laporan biaya per siklus, tagihan, pembayaran, dengan klik sampai transaksi (F17)
-- [ ] Laba rugi sesuai format finance; bila belum ada, laba kotor berlabel sementara (F17) (owner)
+- [ ] Laba rugi per siklus mengikuti contoh laporan Siklus 1 di docs/laporan: pendapatan per grade dan hasil samping, biaya langsung, laba kotor, angka per kg loin, neraca berat, tren antarsiklus (F17)
 - [ ] Ekspor CSV yang sama dengan tampilan (F17)
 - [ ] View `v_harga_beli` rata-rata tertimbang dan halaman tabel + grafik per periode, jenis, grade, pemasok (F18)
 
@@ -431,17 +437,11 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [ ] Uji alur beli sampai uang masuk penuh; satu siklus ditelusuri tanpa input ulang
 - [ ] Demo ke owner di lingkungan uji
 
-### Minggu 4: absensi, uji siklus nyata, dan mulai pakai
+### Minggu 4: uji siklus nyata dan mulai pakai
 
-**Absensi**
+**Absensi (ditunda)**
 
-- [ ] Migrasi: `employees`, `work_sites`, `attendance`, `leave_requests`
-- [ ] Titik lokasi, radius, jam kerja, toleransi terlambat dari pengaturan (owner)
-- [ ] Absen masuk/pulang: lokasi, akurasi GPS, foto langsung dari kamera, waktu server (F20)
-- [ ] Alasan gagal yang jelas dan jalur pengajuan manual (F20)
-- [ ] Pengajuan izin, sakit, libur dari HP dan keputusan Owner (F21)
-- [ ] View `v_rekap_kehadiran` dan rekap di dashboard owner (F21)
-- [ ] Uji: di dalam/luar radius, akurasi buruk, kamera ditolak, jam ponsel salah
+Absensi dan izin ditunda atas keputusan owner 22 Oktober 2026 dan dikerjakan setelah sistem inti dipakai. Waktunya dipakai untuk uji cadangan dan merapikan laporan.
 
 **Asisten AI dan simulasi**
 
@@ -453,49 +453,48 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 - [ ] Pulihkan cadangan ke proyek terpisah dan cocokkan angka utama
 - [ ] Tinjauan RLS dan bucket Storage
-- [ ] Impor Siklus 1: 11 ekor, loin 300,94 kg per grade, hasil samping 87 kg per jenis, biaya Rp37,08 juta
+- [ ] Impor Siklus 1: 11 ekor, loin 300,94 kg per grade, hasil samping 87 kg per jenis, limbah 65 kg, biaya Rp37,07 juta
 
 **Uji siklus nyata dan serah terima**
 
 - [ ] Jalankan satu siklus produksi asli di sistem bersama petugas lapangan (owner)
 - [ ] Cocokkan hasilnya dengan catatan kertas bersama owner
 - [ ] Perbaiki temuan uji
-- [ ] Pelatihan per peran: Owner, Keuangan, Pembelian, Produksi, Gudang, Admin, Karyawan
+- [ ] Pelatihan per peran: Owner, Finance, Super Admin, Kepala Produksi/QC, Petugas Lapangan
 - [ ] Mulai pakai berdampingan dengan catatan lama
 - [ ] Serah terima tertulis disetujui owner (owner)
 
-## Keputusan terbuka dan data yang dibutuhkan
+## Keputusan owner dan data yang dibutuhkan
 
-Pembangunan tidak menunggu jawaban yang punya nilai bawaan aman; nilai itu disimpan di pengaturan supaya bisa diubah tanpa kode. Tiga hal tidak boleh ditebak: format laporan keuangan, pajak, dan pemilik server.
+Owner menjawab pada 22 Oktober 2026. Yang masih terbuka: pemilik akun server dan biaya saat naik paket, nama orang untuk tiap peran, minimum hari tarif simpan, serta biaya bulanan dan pajak untuk laba bersih. Tiga hal tetap tidak ditebak: pajak, pemilik server, dan biaya bulanan.
 
-| Keputusan | Wajib minggu 1 | Nilai bawaan sampai dijawab |
+| Keputusan | Jawaban owner (22 Okt) | Yang dipakai sistem |
 | --- | --- | --- |
-| Satu pembelian ke beberapa produksi, satu penjualan dari beberapa produksi? | Ya | Banyak-ke-banyak |
-| Nomor penanda siklus | Ya | Kode internal; no. PO pembeli dan no. bongkar tetap bisa dicari |
-| Ikan datang malam boleh dibongkar sebelum disetujui? | Ya | Boleh dengan tanda; bayar tetap menunggu |
-| Siapa pemeriksa dan penyetuju (beli, biaya, hasil produksi, koreksi stok) | Ya | Keuangan memeriksa, Owner menyetujui, tanpa batas nilai; hasil produksi: petugas, QC, Owner |
-| Arti "verifikasi dua tahap" | Ya | Dua orang (pemeriksa + penyetuju), bukan OTP |
-| Angka di belakang koma pada timbangan | Ya | Simpan 3, tampil 2 |
-| Daftar pengguna dan tugasnya | Ya | Tidak ada; wajib dari owner |
-| Server dan biaya bulanan atas nama siapa | Ya | Tidak ada; wajib dari owner |
-| Loin wajib dicatat nomor ekornya? | Tidak | Kolom no. ekor opsional |
-| Rencana hasil 60% dan batas wajar 40–80% berbeda per grade/ukuran? | Tidak | 60% dan 40–80% untuk semua ikan |
-| Limbah dan susut ditimbang? | Tidak | Diisi dari timbangan; kosong tampil sebagai belum jelas |
-| Aturan tarif ABF/cold storage | Tidak | Angka proposal, ditandai belum dikonfirmasi |
-| Format laba rugi finance | Tidak | Laba kotor berlabel sementara |
-| Titik lokasi dan aturan absen | Tidak | Radius 50 m, toleransi akurasi 30 m |
+| Satu pembelian ke beberapa produksi, satu penjualan dari beberapa produksi | Pakai usulan developer | Banyak-ke-banyak |
+| Nomor penanda siklus | Pakai usulan developer | Kode internal; no. PO pembeli dan no. bongkar tetap bisa dicari |
+| Bongkar malam sebelum disetujui | Pakai usulan developer | Boleh dengan tanda; bayar tetap menunggu |
+| Pemeriksa dan penyetuju | Pakai usulan developer | Finance memeriksa, Owner menyetujui; hasil produksi: Petugas Lapangan, Kepala Produksi/QC, Owner |
+| Arti verifikasi dua tahap | Diperiksa dua orang | Pemeriksa + penyetuju, bukan OTP |
+| Angka di belakang koma timbangan | 2 angka | Simpan 3, tampil 2 |
+| Nomor ekor pada loin | Pakai usulan developer | Opsional |
+| Rencana hasil 60%, batas wajar 40–80% | Pakai usulan developer | Sama untuk semua ikan |
+| Limbah dan susut | Ditimbang total saja | Satu angka limbah dan satu angka susut per produksi |
+| Tarif cold storage dan ABF | Rp76/kg/hari, ABF tetap | Simpan Rp76/kg/hari, ABF Rp3.500/kg, minimum 10 hari dari proposal (belum dikonfirmasi) |
+| Laporan laba rugi | Data historis dan statistik; contoh dibuat developer | Contoh laporan Siklus 1 di docs/laporan |
+| Pengguna sistem | Super Admin, Finance, Owner | Ditambah Kepala Produksi/QC dan Petugas Lapangan (usulan); nama orang belum ada |
+| Absensi | Ditunda | Tidak masuk versi 1 |
+| Server dan biaya bulanan | Belum dibahas; tanyakan owner dan investor | Mulai paket gratis; pemilik akun menunggu |
 
 **Bahan yang perlu dikirim owner**
 
-- [ ] Catatan timbang Siklus 1: loin per potong atau per ekor (kg), limbah, susut, untuk menjelaskan 93,06 kg
+- [ ] Keputusan pemilik akun server dan siapa yang membayar saat naik paket (owner dan investor)
+- [ ] Nama orang untuk Super Admin, Finance, Kepala Produksi/QC, dan Petugas Lapangan
+- [ ] Catatan timbang susut Siklus 1, untuk menjelaskan 28,06 kg yang belum jelas
 - [ ] Foto formulir produksi dan pembelian yang sudah terisi
 - [ ] Dokumen satu siklus: nota beli, catatan timbang, hasil produksi, surat jalan, tagihan, bukti bayar
 - [ ] Daftar produk, grade, hasil samping, dan jenis limbah
 - [ ] Merek timbangan dan foto layarnya saat menimbang
-- [ ] Daftar harga atau contoh tagihan ABF/cold storage
-- [ ] Contoh laporan keuangan dari finance atau direksi
-- [ ] Daftar nama pengguna sistem dan tugasnya
-- [ ] Aturan absensi dan titik lokasi kerja (link Google Maps)
+- [ ] Biaya operasional bulanan (gaji tetap, listrik, sewa) dan aturan pajak, untuk menghitung laba bersih
 
 ## Risiko
 

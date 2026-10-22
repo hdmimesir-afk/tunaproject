@@ -10,6 +10,14 @@ Dokumen kerja internal Dar Dev setelah penawaran disepakati. Isinya menggabungka
 
 Kalau dokumen ini bertentangan dengan rancangan v1, **dokumen ini yang berlaku**. Status: rencana kerja, 19 Okt 2026, diperbarui ke jadwal 1 bulan. Diperbarui lagi 21 Okt 2026 mengikuti Formulir Produksi FRM-PRD-01 revisi 01.
 
+> **Jawaban owner 22 Okt 2026** (rincian di `docs/PRD.md`, bagian Keputusan owner):
+> - Mulai dengan paket gratis Vercel Hobby dan Supabase Free; pemilik akun dan biaya saat naik paket menunggu owner dan investor. Cadangan harian dibuat sendiri karena paket gratis tidak menyediakan unduhan cadangan.
+> - Peran: Owner, Finance, Super Admin dari owner, ditambah Kepala Produksi/QC dan Petugas Lapangan usulan developer. Nama orang belum ada.
+> - Tarif simpan Rp76/kg/hari, ABF tetap Rp3.500/kg, minimum 10 hari dari proposal.
+> - Absensi dan izin ditunda, keluar dari jadwal 1 bulan.
+> - Laporan laba rugi mengikuti contoh `docs/laporan/` (laba kotor per siklus); laba bersih menunggu biaya bulanan dan aturan pajak.
+> - Limbah dan susut ditimbang total. Siklus 1: limbah 65 kg, selisih belum jelas 28,06 kg.
+
 ---
 
 ## 0. Ringkasan
