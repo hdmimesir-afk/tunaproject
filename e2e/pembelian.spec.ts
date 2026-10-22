@@ -1,21 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
-import { EMAIL, SANDI } from "./setup";
+import { expect, test } from "@playwright/test";
+import { ADMIN, masuk as masukAs } from "./akun";
 
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
-
-async function masuk(page: Page) {
-  await page.goto("/login");
-  await page.waitForLoadState("networkidle"); // tunggu halaman siap (hydrate) sebelum mengisi
-  await page.getByLabel("Email").fill(EMAIL);
-  await page.getByLabel("Kata sandi").fill(SANDI);
-  await page.getByRole("button", { name: "Masuk" }).click();
-  try {
-    await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 20_000 });
-  } catch {
-    const isi = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 400);
-    throw new Error(`Masuk gagal. URL: ${page.url()} | Isi halaman: ${isi}`);
-  }
-}
+const masuk = (page: import("@playwright/test").Page) => masukAs(page, ADMIN);
 
 test("tamu yang membuka Pembelian dialihkan ke halaman masuk", async ({ page }) => {
   await page.goto("/pembelian");
@@ -24,7 +11,7 @@ test("tamu yang membuka Pembelian dialihkan ke halaman masuk", async ({ page }) 
 
 test("kata sandi salah ditolak dengan pesan", async ({ page }) => {
   await page.goto("/login");
-  await page.getByLabel("Email").fill(EMAIL);
+  await page.getByLabel("Email").fill(ADMIN.email);
   await page.getByLabel("Kata sandi").fill("salah-total");
   await page.getByRole("button", { name: "Masuk" }).click();
   await expect(page.getByRole("alert")).toBeVisible();

@@ -95,10 +95,10 @@ export const SelectIn = ({ options, ...p }: { options: string[] } & React.Select
 );
 
 /** Lembar bawah di HP, dialog di desktop. */
-export function Modal({ title, onClose, children, footer }: { title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode }) {
+export function Modal({ title, onClose, children, footer, lebar }: { title: string; onClose: () => void; children: React.ReactNode; footer?: React.ReactNode; lebar?: boolean }) {
   return (
     <div className="fixed inset-0 z-40 flex items-end md:items-center md:justify-center" style={{ background: "rgba(17,18,20,.38)" }} onClick={onClose}>
-      <div className="flex max-h-[88%] w-full flex-col rounded-t-[30px] bg-[#F8F9FC] md:w-[460px] md:rounded-[28px] md:shadow-2xl" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
+      <div className={`flex max-h-[92%] w-full flex-col rounded-t-[30px] bg-[#F8F9FC] md:rounded-[28px] md:shadow-2xl ${lebar ? "md:w-[920px]" : "md:w-[460px]"}`} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="mx-auto mb-1 mt-3 h-1.5 w-10 rounded-full bg-[#D5D8DF] md:hidden" />
         <div className="flex items-center justify-between px-6 pb-2 pt-4">
           <h3 className="text-[18px] font-medium" style={{ color: INK }}>{title}</h3>

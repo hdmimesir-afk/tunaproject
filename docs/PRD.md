@@ -1,4 +1,4 @@
-# PRD Katalis ERP
+﻿# PRD Katalis ERP
 
 22 Oktober 2026 · Disusun oleh Dar Dev
 
@@ -330,7 +330,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Header keamanan (CSP, HSTS, X-Frame-Options, Referrer-Policy); batas percobaan login memakai pembatas bawaan Supabase Auth
 - [ ] Cadangan harian sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat (paket gratis tidak menyediakan unduhan cadangan; workflow siap, aktif setelah Supabase disiapkan)
 - [x] Kerangka aplikasi: tata letak desktop dan HP, menu disaring per izin
-- [ ] Pesan gagal simpan global dan draft di perangkat (Dexie), dikerjakan bersama grid loin di Fase 3
+- [x] Pesan gagal simpan global dan draft di perangkat (Dexie), dikerjakan bersama grid loin di Fase 3
 
 **Master data**
 
@@ -364,19 +364,19 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Produksi**
 
-- [ ] Migrasi: `productions`, `lot_allocations`, `production_items`, `production_components`, `production_items_history`
-- [ ] Mulai produksi dari satu atau beberapa lot lulus mutu; berat lot berkurang (F07)
-- [ ] Grid loin per potong sesuai FRM-PRD-01 rev 01: no. ekor opsional, no. loin, grade, berat 3 desimal (F08)
-- [ ] Grid: navigasi keyboard, tambah baris cepat, total otomatis per grade dan per ekor (F08)
-- [ ] Draft otomatis di perangkat dan sinkron ulang saat jaringan kembali (F08)
-- [ ] Riwayat koreksi per baris loin: siapa, kapan, sebelum/sesudah (F08)
-- [ ] Timbang ikan utuh per ekor dan hasil per ekor dihitung dari loin bernomor ekor sama
-- [ ] Form komponen hasil: hasil samping per jenis, limbah, susut tercatat (F09)
-- [ ] View `v_neraca_produksi`: kg dan % per komponen, selisih belum jelas sebagai sisa hitungan (F09)
-- [ ] Tolak bila total komponen melebihi ikan masuk (F09)
-- [ ] Peringatan hasil di luar 40–80% dan pembanding rencana 60% dari pengaturan (F09)
-- [ ] Pemeriksaan QC lalu Owner; "diperiksa" hanya setelah selisih dijelaskan atau diterima Owner (F10)
-- [ ] Cetak/ekspor formulir produksi dengan susunan FRM-PRD-01 rev 01
+- [x] Migrasi: `productions`, `lot_allocations`, `production_items`, `production_components`, `production_items_history`
+- [x] Mulai produksi dari satu atau beberapa lot lulus mutu; berat lot berkurang (F07)
+- [x] Grid loin per potong sesuai FRM-PRD-01 rev 01: no. ekor opsional, no. loin, grade, berat 3 desimal (F08)
+- [x] Grid: navigasi keyboard, tambah baris cepat, total otomatis per grade dan per ekor (F08)
+- [x] Draft otomatis di perangkat dan sinkron ulang saat jaringan kembali (F08)
+- [x] Riwayat koreksi per baris loin: siapa, kapan, sebelum/sesudah (F08)
+- [x] Timbang ikan utuh per ekor dan hasil per ekor dihitung dari loin bernomor ekor sama
+- [x] Form komponen hasil: hasil samping per jenis, limbah, susut tercatat (F09)
+- [x] View `v_neraca_produksi`: kg dan % per komponen, selisih belum jelas sebagai sisa hitungan (F09)
+- [x] Tolak bila total komponen melebihi ikan masuk (F09)
+- [x] Peringatan hasil di luar 40–80% dan pembanding rencana 60% dari pengaturan (F09)
+- [x] Pemeriksaan QC lalu Owner; "diperiksa" hanya setelah selisih dijelaskan atau diterima Owner (F10)
+- [x] Cetak/ekspor formulir produksi dengan susunan FRM-PRD-01 rev 01
 
 **Stok**
 
