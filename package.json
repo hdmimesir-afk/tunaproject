@@ -13,7 +13,7 @@
     "qa": "tsx scripts/qa.ts",
     "export": "npm run pptx && npm run pdf && npm run docs && node -e \"require('fs').copyFileSync('output/KATALIS-ERP-Proposal.pdf','public/KATALIS-ERP-Proposal.pdf')\"",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:db": "supabase test db",
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
