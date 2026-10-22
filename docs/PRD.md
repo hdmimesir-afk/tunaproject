@@ -352,7 +352,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Alur draf → diajukan → perlu revisi → disetujui/ditolak (F03)
 - [x] Kartu persetujuan dengan nota/bukti di sebelah tombol Setuju (F03)
 - [x] Setuju massal dengan layar daftar, jumlah, dan total (F04)
-- [ ] Konfirmasi kedua untuk tombol berisiko (setuju dan tolak sudah; bayar dan kirim menyusul)
+- [x] Konfirmasi kedua untuk tombol berisiko (setuju, tolak, bayar, dan ajukan sudah; tutup buku menyusul di Fase 5)
 - [x] Tabel `payments` dan bayar pemasok terpisah dari persetujuan; status bayar dihitung (F03)
 
 **Penutup minggu 1**

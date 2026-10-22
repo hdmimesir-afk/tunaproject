@@ -17,6 +17,16 @@ export const LABEL_JENIS: Record<JenisDokumen, string> = {
   nota: "Nota", bukti_transfer: "Bukti transfer", surat_jalan: "Surat jalan", foto_timbangan: "Foto timbangan", lainnya: "Lainnya",
 };
 
+/** Foto iPhone format HEIC diubah jadi JPEG di browser sebelum diunggah (pustaka dimuat hanya saat dibutuhkan). */
+export const adalahHeic = (f: { name: string; type: string }) => /^image\/hei[cf]$/.test(f.type) || /\.hei[cf]$/i.test(f.name);
+
+async function keJpeg(f: File): Promise<File> {
+  const { default: heic2any } = await import("heic2any");
+  const hasil = await heic2any({ blob: f, toType: "image/jpeg", quality: 0.85 });
+  const blob = Array.isArray(hasil) ? hasil[0] : hasil;
+  return new File([blob], f.name.replace(/\.hei[cf]$/i, "") + ".jpg", { type: "image/jpeg" });
+}
+
 const namaAman = (n: string) => n.normalize("NFKD").replace(/[^\w.-]+/g, "_").replace(/_+/g, "_").slice(-80) || "berkas";
 
 export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: { refTabel: RefDokumen; refId: string; jenis: JenisDokumen; label?: string }) {
@@ -24,13 +34,22 @@ export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: {
   const [galat, setGalat] = useState<string | null>(null);
   const [sibuk, mulai] = useTransition();
 
-  const pilih = (file: File | undefined) => {
-    if (!file) return;
+  const pilih = (asli: File | undefined) => {
+    if (!asli) return;
     setGalat(null);
-    const tipe = TIPE.find((t) => t === file.type);
-    if (!tipe) return setGalat("Pilih foto (JPEG, PNG, WebP) atau PDF.");
-    if (file.size > BATAS) return setGalat("Berkas lebih dari 10 MB. Kecilkan dulu.");
+    if (asli.size > BATAS * 3) return setGalat("Berkas terlalu besar. Kecilkan dulu.");
     mulai(async () => {
+      let file = asli;
+      if (adalahHeic(asli)) {
+        try {
+          file = await keJpeg(asli);
+        } catch {
+          return setGalat("Foto HEIC tidak bisa dibaca. Coba foto ulang atau kirim sebagai JPEG.");
+        }
+      }
+      const tipe = TIPE.find((t) => t === file.type);
+      if (!tipe) return setGalat("Pilih foto (JPEG, PNG, WebP, HEIC) atau PDF.");
+      if (file.size > BATAS) return setGalat("Berkas lebih dari 10 MB. Kecilkan dulu.");
       const supabase = createClient();
       const path = `${refTabel}/${refId}/${crypto.randomUUID()}-${namaAman(file.name)}`;
       const { error } = await supabase.storage.from("dokumen").upload(path, file, { contentType: file.type, upsert: false });
@@ -43,7 +62,7 @@ export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: {
 
   return (
     <div>
-      <input ref={input} type="file" accept={TIPE.join(",")} className="sr-only" aria-label={label} onChange={(e) => pilih(e.target.files?.[0])} />
+      <input ref={input} type="file" accept={[...TIPE, "image/heic", "image/heif", ".heic", ".heif"].join(",")}className="sr-only" aria-label={label} onChange={(e) => pilih(e.target.files?.[0])} />
       <Btn size="sm" v="light" disabled={sibuk} onClick={() => input.current?.click()}>
         <Icon n="plus" s={14} />{sibuk ? "Mengunggah..." : label}
       </Btn>

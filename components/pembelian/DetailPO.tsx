@@ -10,6 +10,7 @@ import { hariIni as hariIniFn, rp, tanggal, waktu } from "@/lib/format";
 import { bisaDiedit, LABEL_APV, LABEL_BAYAR, LABEL_PO, LABEL_QC, LABEL_TERIMA, selisihHarga, sisaBayar } from "@/lib/logic/pembelian";
 import { formatKg } from "@/lib/logic/neraca";
 import type { Opsi, Pengguna } from "@/lib/types/pembelian";
+import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
 import { FormPO } from "./FormPO";
 
@@ -56,7 +57,8 @@ function Ajukan({ poId, siap }: { poId: string; siap: boolean }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="poId" value={poId} />
       <Pesan state={state} />
-      <Btn type="submit" full disabled={pending || !siap}>{pending ? "Mengajukan..." : "Ajukan untuk diperiksa"}</Btn>
+      <KonfirmasiDua full label="Ajukan untuk diperiksa" labelYa="Ya, ajukan sekarang" pending={pending} disabled={!siap}
+        pesan="Setelah diajukan, PO tidak bisa diubah sampai diperiksa. Lanjutkan?" />
       {!siap && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lampirkan nota dulu supaya bisa diajukan.</p>}
     </form>
   );
@@ -64,20 +66,22 @@ function Ajukan({ poId, siap }: { poId: string; siap: boolean }) {
 
 function FormBayar({ poId, sisa, hariIni }: { poId: string; sisa: number; hariIni: string }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(catatBayar, undefined);
+  const [jumlah, setJumlah] = useState(String(sisa));
   return (
     <form action={action} className="space-y-3 rounded-2xl bg-white p-3.5">
       <input type="hidden" name="poId" value={poId} />
       <Pesan state={state} />
       <div className="grid grid-cols-2 gap-3">
         <Field label={`Jumlah (sisa ${rp(sisa)})`} error={state?.kolom?.jumlah?.[0]}>
-          <TextIn name="jumlah" type="number" inputMode="decimal" step="0.01" min="0" max={sisa} defaultValue={sisa} required />
+          <TextIn name="jumlah" type="number" inputMode="decimal" step="0.01" min="0" max={sisa} value={jumlah} onChange={(e) => setJumlah(e.target.value)} required />
         </Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}>
           <TextIn name="tanggal" type="date" defaultValue={hariIni} required />
         </Field>
       </div>
       <Field label="Catatan" hint="Misalnya DP atau pelunasan."><TextIn name="catatan" maxLength={300} /></Field>
-      <Btn type="submit" size="sm" disabled={pending}>{pending ? "Mencatat..." : "Catat pembayaran"}</Btn>
+      <KonfirmasiDua size="sm" label="Catat pembayaran" labelYa="Ya, catat pembayaran" pending={pending}
+        pesan={`Catat pembayaran ${rp(Number(jumlah) || 0)} untuk PO ini? Pastikan nominal sudah benar.`} />
     </form>
   );
 }

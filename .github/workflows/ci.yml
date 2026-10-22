@@ -39,3 +39,34 @@ jobs:
           version: 2.121.0
       - run: supabase db start
       - run: supabase test db
+
+  e2e:
+    name: Tes klik-klik (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - run: npm ci
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,inbucket
+      - name: Ambil kunci Supabase lokal
+        run: |
+          supabase status -o env > /tmp/sb.env
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(grep '^API_URL=' /tmp/sb.env | cut -d= -f2- | tr -d '"')" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(grep '^PUBLISHABLE_KEY=' /tmp/sb.env | cut -d= -f2- | tr -d '"')" >> "$GITHUB_ENV"
+          echo "SUPABASE_SECRET_KEY=$(grep '^SECRET_KEY=' /tmp/sb.env | cut -d= -f2- | tr -d '"')" >> "$GITHUB_ENV"
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: laporan-playwright
+          path: |
+            playwright-report/
+            test-results/
