@@ -5,10 +5,16 @@ const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 
 async function masuk(page: Page) {
   await page.goto("/login");
+  await page.waitForLoadState("networkidle"); // tunggu halaman siap (hydrate) sebelum mengisi
   await page.getByLabel("Email").fill(EMAIL);
   await page.getByLabel("Kata sandi").fill(SANDI);
   await page.getByRole("button", { name: "Masuk" }).click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/login"));
+  try {
+    await page.waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 20_000 });
+  } catch {
+    const isi = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 400);
+    throw new Error(`Masuk gagal. URL: ${page.url()} | Isi halaman: ${isi}`);
+  }
 }
 
 test("tamu yang membuka Pembelian dialihkan ke halaman masuk", async ({ page }) => {
