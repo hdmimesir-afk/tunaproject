@@ -1,6 +1,6 @@
 # PRD Katalis ERP
 
-21 Oktober 2026 · Disusun oleh Dar Dev
+22 Oktober 2026 · Disusun oleh Dar Dev
 
 ## Ringkasan
 
@@ -42,7 +42,7 @@ Lima peran awal, disimpan di tabel `roles` dan `role_permissions` sehingga Owner
 
 - Setiap orang hanya melihat menu sesuai izinnya. Izin dicek di database (RLS), bukan hanya di tampilan.
 - Halaman yang hanya untuk melihat data tidak menampilkan tombol ubah.
-- Persetujuan memakai dua orang: pemeriksa (bawaan Keuangan) dan penyetuju (bawaan Owner), diatur di `approval_rules`.
+- Persetujuan memakai dua orang: pemeriksa (bawaan Finance) dan penyetuju (bawaan Owner), diatur di `approval_rules`.
 
 ## Cakupan
 
@@ -58,7 +58,7 @@ Versi 1 memuat 12 modul (absensi ditunda atas keputusan owner 22 Oktober 2026) s
 | Gudang dingin dan tarif | Mesin tarif dari pengaturan, invoice jasa rinci | Pengingat batas hari ke pelanggan |
 | Penjualan | Pesanan, kirim (berat kirim dan terima), invoice, bayar sebagian | - |
 | Harga beli | Tabel + grafik per periode, jenis, grade, pemasok | Analisis lanjutan |
-| Keuangan | Kategori biaya, laporan biaya/tagihan/bayar, laba rugi sesuai format finance | Tutup buku dengan kunci periode, rekonsiliasi bank |
+| Keuangan | Kategori biaya, laporan biaya/tagihan/bayar, laba rugi per siklus sesuai contoh laporan Siklus 1 | Tutup buku dengan kunci periode, rekonsiliasi bank |
 | Dashboard | Owner di HP, menu petugas disaring | Halaman kerja khusus per peran |
 | Absensi | Ditunda (keputusan owner) | Pengenalan wajah |
 | Jadwal ABF | Cek bentrok, pindah ke jam kosong | Kalender per tanggal |
@@ -154,6 +154,15 @@ Semua angka tarif, batas transit, pembulatan hari, dan dasar berat (masuk/keluar
 
 **Data tidak bisa dihapus.** Baris dibatalkan dengan alasan atau dikoreksi dengan baris pembalik. Semua perubahan masuk `activity_log` (sebelum/sesudah); baris loin juga ke `production_items_history`.
 
+**Laba rugi per siklus** (format mengikuti contoh laporan Siklus 1 di `docs/laporan`)
+
+- Pendapatan = berat terkirim × harga, per grade loin dan per jenis hasil samping; limbah tetap dicatat dengan nilai Rp0.
+- Biaya langsung = ikan utuh + ongkos kirim + penanganan + kemasan + jasa yang dirujuk ke siklus itu.
+- Laba kotor siklus = pendapatan − biaya langsung; margin = laba kotor ÷ pendapatan.
+- Per kg loin: harga jual rata-rata, biaya, laba, dan harga jual minimal = (biaya − pendapatan hasil samping) ÷ kg loin.
+- Laba bersih = laba kotor − biaya bulanan yang dibagi per siklus − penyusutan − pajak; tampil "belum bisa dihitung" sampai datanya ada.
+- Contoh Siklus 1: pendapatan Rp41.576.150, biaya Rp37.072.682, laba kotor Rp4.503.468 (10,8%), laba Rp14.965 per kg loin, harga minimal Rp120.179/kg.
+
 ## Model data
 
 Database Postgres di Supabase, aplikasi Next.js di Vercel, keduanya atas nama perusahaan. Relasi beli, produksi, dan jual dibuat banyak-ke-banyak lewat tabel alokasi, karena satu-ke-satu adalah kasus khususnya. Skema diubah hanya lewat berkas migrasi di `supabase/migrations`.
@@ -170,7 +179,7 @@ Database Postgres di Supabase, aplikasi Next.js di Vercel, keduanya atas nama pe
 | Penjualan | `sales_orders`, `sale_allocations`, `invoices` | Penjualan bisa dari beberapa produksi; invoice penjualan dan jasa |
 | Jasa gudang | `tariff_rules`, `service_charges`, `bookings` | Tarif sebagai pengaturan; rincian hitungan tagihan; jadwal ABF |
 | Keuangan | `ledger`, `documents`, `accounting_periods` | Buku kas dengan kategori dan rujukan PO/produksi; nota dan bukti di Storage |
-| Absensi | `employees`, `work_sites`, `attendance`, `leave_requests` | Lokasi, akurasi, foto, waktu server; izin/sakit/libur |
+| Absensi | `employees`, `work_sites`, `attendance`, `leave_requests` | Ditunda bersama modul absensi; tabel dibuat saat modul dikerjakan |
 | Jejak | `activity_log`, `production_items_history` | Sebelum/sesudah setiap perubahan, tidak bisa diubah atau dihapus |
 
 **Views untuk dashboard dan Asisten AI:** `v_ringkasan_harian`, `v_rincian_siklus`, `v_neraca_produksi`, `v_harga_beli`, `v_stok_per_pemilik`, `v_rekap_kehadiran`, `v_laba_rugi`. Semua memakai izin pemanggil (`security_invoker`).
@@ -189,7 +198,7 @@ Rincian kolom per tabel ada di `docs/rencana-eksekusi.md` bagian 2.
 | Gagal simpan | Selalu tampil pesan, tidak pernah diam | Matikan koneksi database saat menyimpan |
 | Perangkat | Owner diutamakan di HP; petugas di HP atau desktop; satu komponen untuk dua tata letak | Semua layar utama diuji di lebar 375 px dan desktop |
 | Lingkungan | Lokal → preview per cabang → produksi; proyek Supabase uji dan produksi terpisah | Data demo tidak pernah menyentuh data nyata |
-| Absensi | Waktu dari server, foto langsung dari kamera, akurasi GPS dicatat | Di dalam/luar radius, akurasi buruk, kamera ditolak, jam ponsel salah |
+| Absensi | Ditunda; berlaku saat modul absensi dikerjakan: waktu dari server, foto langsung dari kamera, akurasi GPS dicatat | Di dalam/luar radius, akurasi buruk, kamera ditolak, jam ponsel salah |
 
 ## Stack teknologi
 
@@ -225,7 +234,7 @@ Keamanan berlapis: database menolak akses yang tidak berhak walau kode aplikasi 
 
 | Lapisan | Aturan | Cara cek |
 | --- | --- | --- |
-| Login | Supabase Auth dengan cookie httpOnly lewat `@supabase/ssr`; MFA (TOTP) wajib untuk Owner dan Keuangan | Login Owner tanpa kode kedua ditolak |
+| Login | Supabase Auth dengan cookie httpOnly lewat `@supabase/ssr`; MFA (TOTP) wajib untuk Owner dan Finance | Login Owner tanpa kode kedua ditolak |
 | Verifikasi identitas di server | Halaman dan data dilindungi dengan `auth.getClaims()`; objek user dari `getSession()` tidak dipakai untuk keputusan izin | Review kode: tidak ada `getSession()` untuk otorisasi |
 | Proxy | `proxy.ts` hanya menyegarkan sesi dan mengarahkan ke login; tidak dianggap pengaman | Tes akses Server Action langsung lewat POST tanpa sesi: ditolak |
 | Server Action | Setiap action memeriksa ulang sesi, izin peran, dan kepemilikan data lewat satu lapisan akses data (`import 'server-only'`) | Tes IDOR: pengguna A tidak bisa mengubah data milik siklus yang tidak boleh ia akses |
@@ -238,7 +247,7 @@ Keamanan berlapis: database menolak akses yang tidak berhak walau kode aplikasi 
 | Header | CSP, HSTS, `X-Frame-Options`, dan `Referrer-Policy` di `next.config` | Pindai header di lingkungan uji |
 | Batas permintaan | Batas percobaan login dan pertanyaan Asisten AI per pengguna per hari | Tes login gagal berulang terkunci sementara |
 | Rahasia | Variabel lingkungan dipisah per lingkungan (lokal, preview, produksi) di Vercel; rotasi kunci bila ada developer keluar | Checklist rotasi di serah terima |
-| Data pribadi | Foto absen dan lokasi hanya dibuka Owner; masa simpan ditetapkan; mengikuti UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi | Akses foto oleh peran lain ditolak |
+| Data pribadi | Data pengguna dan foto nota hanya dibuka peran yang berhak; masa simpan ditetapkan; mengikuti UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi | Akses berkas oleh peran lain ditolak |
 | Cadangan | Supabase Free tidak menyediakan unduhan cadangan, jadi cadangan harian dibuat sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat; uji pulih ke proyek terpisah | Uji pulih minggu 4 dan setiap 3 bulan |
 | Dependensi | `npm audit` dan pembaruan keamanan mingguan lewat pull request | CI gagal bila ada celah tingkat tinggi |
 
@@ -286,11 +295,11 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 ### Persiapan (sebelum minggu 1)
 
-- [ ] Deploy halaman `/rancangan` dan kirim ke owner
-- [ ] Minta jawaban 7 persetujuan dan 8 pertanyaan wajib paling lambat hari ke-2 minggu 1 (owner)
+- [x] Deploy halaman `/rancangan` dan kirim ke owner
+- [x] Jawaban owner untuk 7 persetujuan dan 14 pertanyaan diterima lewat WhatsApp 22 Oktober 2026
 - [ ] Putuskan tambah 1 developer untuk minggu 2–4
-- [ ] Jadwalkan rapat kunci keputusan dengan owner dan finance
-- [ ] Akun Vercel Hobby dan Supabase Free (paket gratis); pemilik akun dan biaya saat naik paket menunggu keputusan owner dan investor (owner)
+- [ ] Tanyakan owner dan investor: pemilik akun server dan biaya saat naik paket (owner)
+- [ ] Akun Vercel Hobby dan Supabase Free (paket gratis) di email yang bisa dipindah ke perusahaan
 - [ ] Repo aplikasi produksi terpisah dari repo deck, dengan folder `supabase/migrations`
 - [ ] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
 - [ ] Pasang MCP Context7 di alat setiap developer dan AI coding agent
@@ -302,16 +311,16 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Hari 1–2: kunci keputusan**
 
-- [ ] Rapat dengan owner: 7 persetujuan dan 14 pertanyaan; catat jawaban di dokumen ini (owner)
-- [ ] Terima bahan minggu 1: formulir terisi, dokumen satu siklus, daftar produk/grade/hasil samping, foto timbangan, daftar pengguna (owner)
-- [ ] Perbarui nilai bawaan di bagian Keputusan terbuka sesuai jawaban
+- [x] Catat jawaban owner di dokumen ini (bagian Keputusan owner)
+- [x] Perbarui nilai bawaan dan rencana sesuai jawaban: 5 peran, tarif Rp76, absensi ditunda, paket gratis
+- [ ] Terima bahan minggu 1: nama orang per peran, keputusan server, catatan timbang susut, formulir terisi, dokumen satu siklus, daftar produk dan grade, foto timbangan (owner)
 
 **Fondasi**
 
 - [ ] Migrasi skema v2: akses, master, siklus, pembelian, persetujuan, jejak
 - [ ] Tipe angka: berat `numeric(12,3)`, uang `numeric(16,2)`; tidak ada `float`
 - [ ] Login Supabase Auth lewat `@supabase/ssr` dan undangan pengguna
-- [ ] MFA (TOTP) wajib untuk Owner dan Keuangan
+- [ ] MFA (TOTP) wajib untuk Owner dan Finance
 - [ ] `proxy.ts` untuk menyegarkan sesi; halaman dan data dilindungi dengan `auth.getClaims()`
 - [ ] Lapisan akses data `server-only`; setiap Server Action memeriksa sesi, izin, dan kepemilikan
 - [ ] `roles` dan `role_permissions` dengan matriks awal 5 peran (F01)
@@ -503,12 +512,12 @@ Risiko terbesar adalah jadwal: semua catatan owner diperkirakan 11 minggu untuk 
 | Risiko | Dampak | Mitigasi |
 | --- | --- | --- |
 | Jadwal 4 minggu terlalu padat | Kualitas turun atau serah terima mundur | Kedalaman versi pertama; tambah 1 developer di minggu 2–4; titik periksa akhir minggu 2 |
-| Jawaban wajib terlambat | Skema berubah di tengah jalan | Nilai bawaan di pengaturan; batas jawaban hari ke-2 minggu 1 |
+| Pemilik server dan nama pengguna belum diputuskan | Akun dan akses belum bisa dibuat final | Mulai di akun gratis yang bisa dipindah ke perusahaan; akun pengguna dibuat begitu nama masuk |
 | Formulir lapangan beda dengan FRM-PRD-01 rev 01 | Grid loin dirombak | Uji grid dengan petugas lapangan sebelum minggu 2 selesai |
 | Limbah dan susut tidak pernah ditimbang | Selisih belum jelas selalu besar (Siklus 1: 19,3%) | Tampilkan apa adanya; produksi tidak bisa "diperiksa" tanpa penjelasan atau persetujuan Owner |
 | Sinyal lemah di lantai produksi dan ruang dingin | Input hilang | Draft di perangkat, sinkron ulang, indikator status simpan |
-| Format laporan finance tidak datang | Laba rugi tertunda | Laporan transaksi dan biaya tetap jalan; laba rugi berlabel sementara |
-| GPS tidak akurat di dalam gedung | Absen gagal terus | Catat akurasi, toleransi bisa diatur, alasan gagal jelas, jalur pengajuan manual |
+| Biaya bulanan dan aturan pajak tidak datang | Laba bersih tidak bisa dihitung | Laba kotor per siklus tetap jalan sesuai contoh laporan; laba bersih tampil begitu datanya masuk |
+| Paket gratis dipakai untuk usaha sehari-hari | Melanggar ketentuan Vercel Hobby; proyek Supabase bisa dijeda; tidak ada unduhan cadangan | Pindah ke Vercel Pro dan putuskan paket Supabase sebelum mulai dipakai penuh; cadangan harian sendiri sejak minggu 1 |
 | Permintaan "sekalian" dari pertemuan berikutnya | Cakupan melebar | Dicatat sebagai permintaan perubahan |
 
-**Titik potong.** Bila di akhir minggu 2 grid loin, neraca, dan stok belum lulus, yang digeser lebih dulu (dengan persetujuan owner): Asisten AI dan simulasi, jadwal ABF, grafik harga beli, laba rugi format finance, absensi, lalu setuju massal dan ambil sebagian. Yang tidak pernah digeser: input per loin, neraca dengan selisih terlihat, relasi transaksi, pemisahan setuju dan bayar, bukti transaksi, peran dan RLS, riwayat koreksi, cadangan, dan uji satu siklus nyata.
+**Titik potong.** Bila di akhir minggu 2 grid loin, neraca, dan stok belum lulus, yang digeser lebih dulu (dengan persetujuan owner): Asisten AI dan simulasi, jadwal ABF, grafik harga beli, tren laba antarsiklus, lalu setuju massal dan ambil sebagian. Yang tidak pernah digeser: input per loin, neraca dengan selisih terlihat, relasi transaksi, pemisahan setuju dan bayar, bukti transaksi, peran dan RLS, riwayat koreksi, cadangan, dan uji satu siklus nyata.
