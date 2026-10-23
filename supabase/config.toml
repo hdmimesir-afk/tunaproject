@@ -232,7 +232,8 @@ max_frequency = "1s"
 # Number of characters used in the email OTP.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+# 24 jam: tautan aktivasi akun dikirim lewat WhatsApp dan belum tentu langsung dibuka (batas maksimum Supabase).
+otp_expiry = 86400
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
@@ -413,3 +414,11 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# Proyek cloud (produksi): tautan bawaan Auth mengarah ke situs produksi, bukan ke server lokal.
+[remotes.produksi]
+project_id = "dojqzlzvwpnwdnkdasnz"
+
+[remotes.produksi.auth]
+site_url = "https://katalis-erp.vercel.app"
+additional_redirect_urls = ["https://katalis-erp.vercel.app/**"]

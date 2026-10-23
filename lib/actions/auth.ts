@@ -6,7 +6,7 @@ import { supabaseConfigured } from "@/lib/env";
 import { parseSesi, perluMfa, tujuanAman } from "@/lib/izin";
 import { createClient } from "@/lib/supabase/server";
 
-export type HasilForm = { error?: string; kolom?: Record<string, string[] | undefined>; pesan?: string; id?: string } | undefined;
+export type HasilForm = { error?: string; kolom?: Record<string, string[] | undefined>; pesan?: string; id?: string; tautan?: string } | undefined;
 
 const Masuk = z.object({
   email: z.email("Email tidak valid"),
@@ -62,6 +62,28 @@ export async function verifikasiMfa(_: HasilForm, fd: FormData): Promise<HasilFo
   const supabase = await createClient();
   const { error } = await supabase.auth.mfa.challengeAndVerify(p.data);
   if (error) return { error: "Kode salah atau sudah kedaluwarsa." };
+  redirect("/dashboard");
+}
+
+const SandiBaru = z.object({
+  sandi: z.string().min(10, "Minimal 10 karakter").max(72, "Maksimal 72 karakter"),
+  ulangi: z.string(),
+}).refine((d) => d.sandi === d.ulangi, { message: "Kata sandi tidak sama", path: ["ulangi"] });
+
+/** Kata sandi baru setelah membuka tautan undangan atau tautan atur ulang (sesi sudah dibuat oleh /auth/confirm). */
+export async function aturSandiBaru(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = SandiBaru.safeParse({ sandi: fd.get("sandi"), ulangi: fd.get("ulangi") });
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  if (!claims?.claims) return { error: "Tautan sudah tidak berlaku. Minta tautan baru ke pengelola akses." };
+  const { error } = await supabase.auth.updateUser({ password: p.data.sandi });
+  if (error) {
+    if (error.code === "same_password") return { error: "Kata sandi baru harus berbeda dari yang lama." };
+    if (error.code === "weak_password") return { error: "Kata sandi terlalu lemah. Pakai gabungan huruf dan angka yang lebih panjang." };
+    return { error: "Kata sandi gagal disimpan. Bila akun ini memakai kode kedua, masuk dengan kode dulu lalu coba lagi." };
+  }
+  // Dashboard mengarahkan ke pendaftaran kode kedua bila peran mewajibkannya (Owner, Finance).
   redirect("/dashboard");
 }
 

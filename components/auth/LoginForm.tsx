@@ -9,10 +9,12 @@ export function LoginForm() {
   const params = useSearchParams();
   const [state, action, pending] = useActionState<HasilForm, FormData>(masuk, undefined);
   const nonaktif = params.get("status") === "nonaktif";
+  const tautanMati = params.get("status") === "tautan";
   return (
     <form action={action} className="mt-5 space-y-4">
       <input type="hidden" name="next" value={params.get("next") ?? ""} />
       {nonaktif && !state?.error && <Pesan>Akun belum aktif. Hubungi pengelola akses.</Pesan>}
+      {tautanMati && !state?.error && <Pesan>Tautan sudah tidak berlaku atau sudah dipakai. Minta tautan baru ke pengelola akses.</Pesan>}
       {state?.error && <Pesan>{state.error}</Pesan>}
       <Field label="Email" error={state?.kolom?.email?.[0]}>
         <TextIn name="email" type="email" autoComplete="username" required />

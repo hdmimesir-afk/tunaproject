@@ -1,8 +1,10 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
+import type { Sesi } from "@/lib/izin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { pesanDb } from "./pesan";
@@ -16,34 +18,79 @@ const Undang = z.object({
   roleId: z.enum(PERAN, "Pilih peran"),
 });
 
-/** Undang pengguna lewat email, lalu beri peran. Peran diberi lewat klien pengguna supaya aturan database
-   (misalnya hanya Owner yang boleh memberi peran Owner) tetap berlaku. */
-export async function undangPengguna(_: HasilForm, fd: FormData): Promise<HasilForm> {
+/* Undangan tidak dikirim lewat email (SMTP bawaan Supabase hanya mengirim ke anggota tim proyek). Sistem membuat tautan
+   aktivasi sekali pakai yang dikirim pengelola lewat WhatsApp; penerima membuat kata sandinya sendiri di /login/sandi-baru. */
+
+async function asalSitus() {
+  const h = await headers();
+  return h.get("origin") ?? `https://${h.get("host")}`;
+}
+const tautanAktivasi = (asal: string, tokenHash: string, jenis: "invite" | "recovery") =>
+  `${asal}/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=${jenis}`;
+
+async function izinAkses(): Promise<{ error: string } | { sesi: Sesi }> {
   try {
-    await requireIzin("akses.kelola");
+    return { sesi: await requireIzin("akses.kelola") };
   } catch (e) {
     if (e instanceof TidakBerizin) return { error: e.message };
     throw e;
   }
-  const p = Undang.safeParse({ nama: fd.get("nama"), email: fd.get("email"), roleId: fd.get("roleId") });
-  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+}
 
-  let admin;
+function klienAdmin(): ReturnType<typeof createAdminClient> | { error: string } {
   try {
-    admin = createAdminClient();
+    return createAdminClient();
   } catch (e) {
     return { error: (e as Error).message };
   }
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(p.data.email, { data: { nama: p.data.nama } });
-  if (error || !data.user) return { error: error?.message.includes("already") ? "Email ini sudah terdaftar." : "Undangan gagal dikirim." };
+}
+
+/** Buat akun dan tautan aktivasi, lalu beri peran. Peran diberi lewat klien pengguna supaya aturan database
+   (misalnya hanya Owner yang boleh memberi peran Owner) tetap berlaku. */
+export async function undangPengguna(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izinAkses();
+  if ("error" in a) return a;
+  const p = Undang.safeParse({ nama: fd.get("nama"), email: fd.get("email"), roleId: fd.get("roleId") });
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  if (p.data.roleId === "owner" && !a.sesi.semuaIzin) return { error: "Hanya Owner yang boleh membuat akun Owner." };
+
+  const admin = klienAdmin();
+  if ("error" in admin) return admin;
+  const { data, error } = await admin.auth.admin.generateLink({ type: "invite", email: p.data.email, options: { data: { nama: p.data.nama } } });
+  if (error || !data.user) return { error: error?.message.toLowerCase().includes("already") ? "Email ini sudah terdaftar. Pakai tombol Tautan atur sandi di daftar pengguna." : "Akun gagal dibuat." };
 
   const supabase = await createClient();
   const { error: e2 } = await supabase.from("profiles")
     .update({ nama: p.data.nama, role_id: p.data.roleId, aktif: true })
     .eq("user_id", data.user.id);
-  if (e2) return { error: `Undangan terkirim, tapi peran belum tersimpan: ${pesanDb(e2)}` };
+  if (e2) return { error: `Akun dibuat, tapi peran belum tersimpan: ${pesanDb(e2)}` };
   refresh();
-  return undefined;
+  return {
+    pesan: `Akun ${p.data.email} dibuat. Kirim tautan ini ke ${p.data.nama}; tautan hanya bisa dipakai sekali dan berlaku 24 jam.`,
+    tautan: tautanAktivasi(await asalSitus(), data.properties.hashed_token, "invite"),
+  };
+}
+
+/** Tautan atur sandi baru untuk pengguna yang lupa sandi atau tautan undangannya kedaluwarsa.
+   Akun Owner hanya bisa dibuatkan tautan oleh Owner, supaya pengelola akses tidak bisa mengambil alih akun Owner. */
+export async function tautanAturSandi(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izinAkses();
+  if ("error" in a) return a;
+  const id = z.uuid().safeParse(fd.get("userId"));
+  if (!id.success) return { error: "Pengguna tidak valid." };
+  const supabase = await createClient();
+  const { data: profil } = await supabase.from("profiles").select("email, nama, role_id").eq("user_id", id.data).maybeSingle();
+  if (!profil?.email) return { error: "Pengguna tidak ditemukan." };
+  if (profil.role_id === "owner" && !a.sesi.semuaIzin) return { error: "Tautan untuk akun Owner hanya bisa dibuat oleh Owner." };
+
+  const admin = klienAdmin();
+  if ("error" in admin) return admin;
+  const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email: profil.email as string });
+  if (error) return { error: "Tautan gagal dibuat. Coba lagi." };
+  return {
+    pesan: `Kirim tautan ini ke ${profil.nama || profil.email}; tautan hanya bisa dipakai sekali dan berlaku 24 jam.`,
+    tautan: tautanAktivasi(await asalSitus(), data.properties.hashed_token, "recovery"),
+  };
 }
 
 const Ubah = z.object({
