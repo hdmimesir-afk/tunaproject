@@ -68,10 +68,10 @@ export const Inner = ({ children, className = "" }: { children: React.ReactNode;
 export function Stat({ value, label, onClick, tone }: { value: string; label: string; onClick?: () => void; tone?: "warn" | "ok" }) {
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag type={onClick ? "button" : undefined} onClick={onClick} className={`relative block rounded-[20px] p-4 pt-5 text-left ${onClick ? "transition active:scale-[0.96]" : ""}`} style={{ background: TILE }}>
+    <Tag type={onClick ? "button" : undefined} onClick={onClick} className={`relative block min-w-0 rounded-[20px] p-3.5 pt-4 text-left md:p-4 md:pt-5 ${onClick ? "transition active:scale-[0.96]" : ""}`} style={{ background: TILE }}>
       {onClick && <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white"><Icon n="arrow" s={14} /></span>}
-      <div className="text-[26px] font-normal leading-none tracking-tight" style={{ color: tone === "warn" ? "#B4443C" : tone === "ok" ? "#0B6B4A" : INK }}>{value}</div>
-      <div className="mt-4 text-[12.5px] leading-snug" style={{ color: MUTED }}>{label}</div>
+      <div className={`whitespace-nowrap font-normal leading-none tracking-tight tabular-nums md:text-[26px] ${value.length > 11 ? "text-[17px] min-[400px]:text-[19px]" : "text-[20px] min-[400px]:text-[22px]"}`} style={{ color: tone === "warn" ? "#B4443C" : tone === "ok" ? "#0B6B4A" : INK }}>{value}</div>
+      <div className="mt-3 text-[12px] leading-snug md:mt-4 md:text-[12.5px]" style={{ color: MUTED }}>{label}</div>
     </Tag>
   );
 }
@@ -104,7 +104,7 @@ export function Modal({ title, onClose, children, footer, lebar }: { title: stri
           <h3 className="text-[18px] font-medium" style={{ color: INK }}>{title}</h3>
           <button type="button" aria-label="Tutup" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-white"><Icon n="close" s={16} /></button>
         </div>
-        <div className="space-y-4 overflow-y-auto px-6 pb-4 pt-2">{children}</div>
+        <div className="space-y-4 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-4">{children}</div>
         {footer && <div className="flex gap-2.5 px-6 pb-7 pt-2">{footer}</div>}
       </div>
     </div>
@@ -137,9 +137,17 @@ export function DataList<T>({ cols, rows, actions, empty = "Belum ada data." }: 
           <div key={i} className="rounded-[20px] p-4" style={{ background: TILE }}>
             <div className="text-[14px] font-medium" style={{ color: INK }}>{first.r(r)}</div>
             <div className="mt-2 space-y-1.5">
-              {rest.map((c) => (
-                <div key={c.h} className="flex items-center justify-between gap-3 text-[12.5px]"><span style={{ color: MUTED }}>{c.h}</span><span className="text-right font-medium" style={{ color: INK }}>{c.r(r)}</span></div>
-              ))}
+              {rest.map((c) => {
+                const isi = c.r(r);
+                // Baris kosong ("-") disembunyikan; teks panjang ditumpuk di bawah labelnya supaya terbaca.
+                if (isi === "-" || isi === "" || isi === null || isi === undefined || isi === false) return null;
+                const panjang = typeof isi === "string" && isi.length > 26;
+                return panjang ? (
+                  <div key={c.h} className="text-[12.5px]"><div style={{ color: MUTED }}>{c.h}</div><div className="mt-0.5 break-words font-medium" style={{ color: INK }}>{isi}</div></div>
+                ) : (
+                  <div key={c.h} className="flex items-center justify-between gap-3 text-[12.5px]"><span className="shrink-0" style={{ color: MUTED }}>{c.h}</span><span className="min-w-0 break-words text-right font-medium" style={{ color: INK }}>{isi}</span></div>
+                );
+              })}
             </div>
             {actions && <div className="mt-3 flex flex-wrap gap-2">{actions(r)}</div>}
           </div>

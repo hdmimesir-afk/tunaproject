@@ -3,7 +3,8 @@
 /** Rupiah bulat; sen hanya ditampilkan bila ada. */
 export function rp(n: number) {
   const bulat = Math.abs(n % 1) < 0.005;
-  return "Rp" + n.toLocaleString("id-ID", { minimumFractionDigits: bulat ? 0 : 2, maximumFractionDigits: 2 });
+  // Negatif ditulis -Rp239.334.100 (tanda di depan), bukan Rp-239.334.100.
+  return (n < 0 ? "-" : "") + "Rp" + Math.abs(n).toLocaleString("id-ID", { minimumFractionDigits: bulat ? 0 : 2, maximumFractionDigits: 2 });
 }
 
 /** Tanggal pendek: "23 Okt 2026". Menerima 'YYYY-MM-DD' atau timestamp. */

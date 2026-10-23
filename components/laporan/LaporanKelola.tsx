@@ -315,12 +315,12 @@ export function LaporanKelola({ tren, data, siklusId, harga, bolehHarga }: Props
   const tabs = [["laba", "Laba rugi siklus"], ["tren", "Tren antarsiklus"], ["simulasi", "Simulasi harga"], ...(bolehHarga ? [["harga", "Harga beli"]] : [])] as [typeof tab, string][];
   return (
     <div className="space-y-4">
-      <div role="tablist" aria-label="Jenis laporan" className="flex flex-wrap gap-2">
+      <div role="tablist" aria-label="Jenis laporan" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
         {tabs.map(([k, label]) => (
           <button key={k} role="tab" aria-selected={tab === k} type="button" onClick={() => setTab(k)}
-            className="h-9 rounded-full px-4 text-[13px] font-medium" style={tab === k ? { background: INK, color: "#fff" } : { background: "#fff", color: INK }}>{label}</button>
+            className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-[13px] font-medium md:h-9" style={tab === k ? { background: INK, color: "#fff" } : { background: "#fff", color: INK }}>{label}</button>
         ))}
-        <Pill t={`${tren.length} siklus`} />
+        <span className="hidden md:inline-flex"><Pill t={`${tren.length} siklus`} /></span>
       </div>
       {tab === "laba" && <LabaRugiTab data={data} tren={tren} siklusId={siklusId} />}
       {tab === "tren" && <TrenTab tren={tren} />}
