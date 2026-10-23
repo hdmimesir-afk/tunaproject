@@ -43,6 +43,12 @@ export default async function setup() {
     if (r.error) throw new Error(`Gagal membuat pelanggan uji: ${r.error.message}`);
   }
 
+  // Satu unit stok milik sendiri (Loin tuna beku 100 kg) untuk uji penjualan.
+  const loin = await supabase.from("products").select("id").eq("nama", "Loin tuna").single();
+  if (loin.error) throw new Error(`Produk Loin tuna tidak ada: ${loin.error.message}`);
+  const unit = await supabase.from("storage_units").insert({ product_id: loin.data.id, product_nama: "Loin tuna", kondisi: "beku", kg_masuk: 100, sisa_kg: 100, sisa_dasar_masuk: 100, lokasi: "E2E-JUAL" });
+  if (unit.error) throw new Error(`Gagal membuat stok uji: ${unit.error.message}`);
+
   // Lot baru yang lulus mutu, dibuat langsung (jalur terima ikan dan cek mutu sudah diuji di pgTAP).
   const po = await supabase.from("purchase_orders").insert({ supplier_id: pemasok.id, kg: 16000, harga_per_kg: 45000, catatan: "e2e-produksi" }).select("id, kode").single();
   if (po.error) throw new Error(`Gagal membuat PO uji: ${po.error.message}`);

@@ -5,7 +5,7 @@ export type StatusApv = "diajukan" | "diperiksa" | "perlu_revisi" | "disetujui" 
 export type StatusTerima = "belum" | "sebagian" | "selesai";
 export type StatusBayar = "belum" | "sebagian" | "lunas";
 export type JenisDokumen = "nota" | "bukti_transfer" | "surat_jalan" | "foto_timbangan" | "lainnya";
-export type RefDokumen = "purchase_orders" | "payments" | "lots";
+export type RefDokumen = "purchase_orders" | "payments" | "lots" | "sales_orders" | "invoices" | "customer_payments" | "expenses";
 
 export type POBaris = {
   id: string;
