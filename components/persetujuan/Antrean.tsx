@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Btn, Card, Field, Inner, Modal, Pill } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { DaftarDokumen } from "@/components/dokumen/Dokumen";
@@ -17,6 +17,8 @@ type Props = {
   pengguna: Record<string, Pengguna>;
   bolehPeriksa: boolean;
   bolehSetuju: boolean;
+  /** Id pengajuan yang disorot (dari tautan dashboard): digulir ke layar dan diberi bingkai. */
+  sorot?: string;
 };
 
 const nama = (p: Record<string, Pengguna>, id: string | null) => (id ? p[id]?.nama ?? "pengguna lain" : "-");
@@ -92,7 +94,11 @@ function Kartu({ a, props, nota, dipilih, onPilih, onSetuju, onAlasan }: {
   const banding = selisihHarga(a.harga_per_kg ?? 0, a.harga_acuan);
   const bisaPeriksa = props.bolehPeriksa && a.status === "diajukan";
   const bisaSetuju = props.bolehSetuju && (a.status === "diperiksa" || a.status === "diajukan");
+  const disorot = props.sorot === a.id;
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (disorot) ref.current?.scrollIntoView({ block: "center", behavior: "smooth" }); }, [disorot]);
   return (
+    <div ref={ref} id={`apv-${a.id}`} data-sorot={disorot || undefined} className={`scroll-mt-24 rounded-[22px] ${disorot ? "ring-2 ring-[#00171F] ring-offset-2 ring-offset-[#F4F5F8]" : ""}`}>
     <Inner className="space-y-3 !p-4">
       <div className="flex items-start gap-3">
         {bisaSetuju && (
@@ -138,6 +144,7 @@ function Kartu({ a, props, nota, dipilih, onPilih, onSetuju, onAlasan }: {
         {props.bolehSetuju && <Btn size="sm" v="danger" onClick={() => onAlasan(a, "tolak")}>Tolak</Btn>}
       </div>
     </Inner>
+    </div>
   );
 }
 

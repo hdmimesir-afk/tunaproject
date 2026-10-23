@@ -38,7 +38,7 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
       for (const a of data ?? []) {
         const perluSetuju = a.status === "diperiksa";
         if (perluSetuju ? !boleh(sesi, "persetujuan.setuju") : !(boleh(sesi, "persetujuan.periksa") || boleh(sesi, "persetujuan.setuju"))) continue;
-        hasil.push({ id: `apv-${a.id}`, kelompok: "Persetujuan PO", icon: "check", judul: `${a.po_kode ?? a.kode} · ${a.supplier_nama}`, rincian: `${a.judul} · ${rp(Number(a.jumlah))}`, aksi: perluSetuju ? "Setujui" : "Periksa", href: "/persetujuan", mendesak: true });
+        hasil.push({ id: `apv-${a.id}`, kelompok: "Persetujuan PO", icon: "check", judul: `${a.po_kode ?? a.kode} · ${a.supplier_nama}`, rincian: `${a.judul} · ${rp(Number(a.jumlah))}`, aksi: perluSetuju ? "Setujui" : "Periksa", href: `/persetujuan?a=${a.id}`, mendesak: true });
       }
     });
   }
