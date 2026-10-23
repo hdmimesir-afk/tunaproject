@@ -27,7 +27,8 @@ async function panggil(aksi: string, fn: string, args: Record<string, unknown>, 
   return { pesan, id: typeof data === "string" ? data : undefined };
 }
 
-const Opsional = z.string().trim().transform((s) => (s === "" ? null : s));
+/** Kolom yang boleh tidak dikirim sama sekali (mis. id pada formulir baru) atau dikirim kosong. */
+const Opsional = z.string().trim().optional().transform((s) => (s ? s : null));
 
 const FormBiaya = z.object({
   biayaId: Opsional.pipe(z.uuid().nullable()),

@@ -54,7 +54,8 @@ const Harga = z.string().trim().transform((s, ctx) => {
   }
   return n;
 });
-const Opsional = z.string().trim().transform((s) => (s === "" ? null : s));
+/** Kolom yang boleh tidak dikirim sama sekali (mis. id pada formulir baru) atau dikirim kosong. */
+const Opsional = z.string().trim().optional().transform((s) => (s ? s : null));
 const dariJson = <T extends z.ZodType>(skema: T, pesan: string) =>
   z.string().transform((s, ctx): z.output<T> => {
     try {
