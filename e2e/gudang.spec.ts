@@ -30,8 +30,11 @@ test.describe("gudang dingin", () => {
   });
 
   test("jadwal yang bentrok ditandai dan bisa dipindah ke jam kosong pertama", async ({ page }) => {
-    const hari = String(1 + (Math.floor(Date.now() / 60000) % 27)).padStart(2, "0");
-    const tgl = `2031-03-${hari}`;
+    // Tanggal acak jauh ke depan supaya ulangan tes (dan jalan lokal berulang) tidak bentrok dengan jadwal sisa.
+    const hari = String(1 + Math.floor(Math.random() * 27)).padStart(2, "0");
+    const bulan = String(1 + Math.floor(Math.random() * 12)).padStart(2, "0");
+    const tahun = 2031 + Math.floor(Math.random() * 5);
+    const tgl = `${tahun}-${bulan}-${hari}`;
     await masuk(page, PETUGAS);
     await page.goto("/gudang");
 
@@ -46,7 +49,7 @@ test.describe("gudang dingin", () => {
 
     const a = await tambah("08:00", "10:00", `ABF A ${hari}`);
     await a.getByRole("button", { name: "Simpan jadwal" }).click();
-    await expect(page.getByText(`ABF A ${hari}`)).toBeVisible();
+    await expect(page.getByText(`ABF A ${hari}`).first()).toBeVisible();
 
     const b = await tambah("09:00", "11:00", `ABF B ${hari}`);
     await expect(b.getByRole("alert").getByText(/Bentrok dengan/)).toBeVisible();
@@ -54,6 +57,6 @@ test.describe("gudang dingin", () => {
     await b.getByRole("button", { name: "Pakai jam kosong pertama" }).click();
     await expect(b.getByLabel("Mulai (WIB)")).toHaveValue(`${tgl}T10:00`);
     await b.getByRole("button", { name: "Simpan jadwal" }).click();
-    await expect(page.getByText(`ABF B ${hari}`)).toBeVisible();
+    await expect(page.getByText(`ABF B ${hari}`).first()).toBeVisible();
   });
 });
