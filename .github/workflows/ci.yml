@@ -38,7 +38,16 @@ jobs:
         with:
           version: 2.121.0
       - run: supabase db start
-      - run: supabase test db
+      - name: Tes database (pgTAP)
+        run: |
+          set +e
+          supabase test db > /tmp/pgtap.log 2>&1
+          kode=$?
+          cat /tmp/pgtap.log
+          if [ $kode -ne 0 ]; then
+            grep -E "not ok|Failed|ERROR|Parse error|#" /tmp/pgtap.log | head -30 | while IFS= read -r baris; do echo "::error::${baris}"; done
+          fi
+          exit $kode
 
   e2e:
     name: Tes klik-klik (Playwright)
