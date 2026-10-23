@@ -12,7 +12,7 @@ import type { BukuBulanan } from "@/lib/types/keuangan";
 export type Tindakan = {
   id: string;
   kelompok: string;
-  icon: "check" | "cash" | "box" | "factory" | "flask" | "truck" | "calendar";
+  icon: "check" | "cash" | "box" | "factory" | "flask" | "truck" | "calendar" | "list";
   judul: string;
   rincian: string;
   aksi: string;
@@ -98,7 +98,18 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
     });
   }
 
-  // 9. Izin atau sakit karyawan menunggu keputusan Owner.
+  // 9. Siklus yang tagihannya sudah lunas: siap ditutup (database tetap memeriksa PO, produksi, pesanan, dan biayanya).
+  if (boleh(sesi, "siklus.tutup")) {
+    tambah(async () => {
+      const { data } = await sb.from("v_rincian_siklus").select("cycle_id, kode, ref_po_pembeli, nilai_invoice, uang_masuk").eq("status", "terbuka").gt("nilai_invoice", 0).order("kode").limit(BATAS);
+      for (const c of data ?? []) {
+        if (Number(c.uang_masuk) < Number(c.nilai_invoice)) continue;
+        hasil.push({ id: `sik-${c.cycle_id}`, kelompok: "Tutup siklus", icon: "list", judul: `${c.kode}${c.ref_po_pembeli ? ` · ${c.ref_po_pembeli}` : ""} sudah lunas`, rincian: `Uang masuk ${rp(Number(c.uang_masuk))}. Tutup supaya tidak dipakai lagi untuk transaksi baru.`, aksi: "Tutup siklus", href: `/siklus?c=${c.cycle_id}`, mendesak: false });
+      }
+    });
+  }
+
+  // 10. Izin atau sakit karyawan menunggu keputusan Owner.
   if (boleh(sesi, "absensi.setuju")) {
     tambah(async () => {
       const { data } = await sb.rpc("daftar_izin");

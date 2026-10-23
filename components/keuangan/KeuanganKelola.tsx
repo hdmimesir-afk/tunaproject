@@ -19,6 +19,7 @@ type Props = {
   biaya: Biaya[];
   kategori: KategoriBiaya[];
   siklus: Opsi[];
+  rujukan: Rujukan;
   kas: BarisKas[];
   buku: BukuBulanan[];
   bolehTutup: boolean;
@@ -30,8 +31,11 @@ type Props = {
 };
 
 const LABEL = { draf: "Draf", diajukan: "Menunggu Owner", disetujui: "Disetujui", ditolak: "Ditolak" } as const;
+type Rujukan = { po: Opsi[]; produksi: Opsi[] };
+/** "PO-0003 · SIK-0001" dari kolom rujukan yang terisi. */
+const rujukanTeks = (b: Biaya) => [b.po_kode, b.produksi_kode, b.siklus_kode].filter(Boolean).join(" · ") || "-";
 
-function FormBiaya({ kategori, siklus, hariIni, awal, onSelesai }: { kategori: KategoriBiaya[]; siklus: Opsi[]; hariIni: string; awal: Biaya | null; onSelesai: (id: string) => void }) {
+function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai }: { kategori: KategoriBiaya[]; siklus: Opsi[]; rujukan: Rujukan; hariIni: string; awal: Biaya | null; onSelesai: (id: string) => void }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(simpanBiaya, undefined);
   const [kat, setKat] = useState(awal?.category_id ?? "");
   useEffect(() => { if (state?.id && !state.error) onSelesai(state.id); }, [state, onSelesai]);
@@ -51,8 +55,16 @@ function FormBiaya({ kategori, siklus, hariIni, awal, onSelesai }: { kategori: K
         <Field label="Jumlah (Rp)" error={state?.kolom?.jumlah?.[0]}><TextIn name="jumlah" inputMode="decimal" defaultValue={awal ? String(awal.jumlah).replace(".", ",") : ""} required /></Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={awal?.tanggal ?? hariIni} required /></Field>
       </div>
-      <Field label="Siklus" hint="Supaya masuk laba rugi siklus itu. Boleh kosong.">
-        <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Tanpa siklus</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="PO terkait" hint="Boleh kosong.">
+          <select name="poId" className={pilihCls} defaultValue={awal?.po_id ?? ""}><option value="">Tanpa PO</option>{rujukan.po.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+        </Field>
+        <Field label="Produksi terkait" hint="Boleh kosong.">
+          <select name="produksiId" className={pilihCls} defaultValue={awal?.production_id ?? ""}><option value="">Tanpa produksi</option>{rujukan.produksi.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+        </Field>
+      </div>
+      <Field label="Siklus" hint="Supaya masuk laba rugi siklus itu. Kosong = ikut siklus PO atau produksinya.">
+        <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Ikut PO/produksi, atau tanpa siklus</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : awal ? "Simpan perubahan" : "Simpan draf biaya"}</Btn>
     </form>
@@ -97,7 +109,7 @@ function Putusan({ b }: { b: Biaya }) {
   );
 }
 
-export function KeuanganKelola({ biaya, kategori, siklus, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni }: Props) {
+export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni }: Props) {
   const router = useRouter();
   const [baru, setBaru] = useState(false);
   const [ubah, setUbah] = useState(false);
@@ -134,7 +146,7 @@ export function KeuanganKelola({ biaya, kategori, siklus, kas, buku, bolehTutup,
           cols={[
             { h: "Biaya", r: (b: Biaya) => <><span className="font-medium">{b.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{b.uraian}</span></> },
             { h: "Kategori", r: (b) => b.kategori_nama },
-            { h: "Siklus", r: (b) => b.siklus_kode ?? "-" },
+            { h: "Rujukan", r: (b) => rujukanTeks(b) },
             { h: "Jumlah", r: (b) => rp(b.jumlah), right: true },
             { h: "Nota", r: (b) => (b.jml_nota > 0 ? `${b.jml_nota} berkas` : b.nota_wajib ? "belum ada" : "tidak wajib") },
             { h: "Status", r: (b) => <Pill t={LABEL[b.status]} /> },
@@ -165,16 +177,17 @@ export function KeuanganKelola({ biaya, kategori, siklus, kas, buku, bolehTutup,
 
       {baru && (
         <Modal title="Catat biaya" onClose={() => setBaru(false)}>
-          <FormBiaya kategori={kategori} siklus={siklus} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`/keuangan?b=${id}`); }} />
+          <FormBiaya kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`/keuangan?b=${id}`); }} />
         </Modal>
       )}
       {detail && (
         <Modal title={`${detail.biaya.kode} · ${detail.biaya.kategori_nama}`} onClose={() => { setUbah(false); router.push("/keuangan"); }}>
           <div className="flex flex-wrap items-center gap-1.5">
-            <Pill t={LABEL[detail.biaya.status]} />{detail.biaya.siklus_kode && <Pill t={detail.biaya.siklus_kode} />}
+            <Pill t={LABEL[detail.biaya.status]} />
+            {[detail.biaya.po_kode, detail.biaya.produksi_kode, detail.biaya.siklus_kode].filter((x): x is string => Boolean(x)).map((x) => <Pill key={x} t={x} />)}
           </div>
           {ubah && bolehTulis && (detail.biaya.status === "draf" || detail.biaya.status === "ditolak") ? (
-            <FormBiaya kategori={kategori} siklus={siklus} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setUbah(false)} />
+            <FormBiaya kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setUbah(false)} />
           ) : (
             <Inner className="!p-3.5">
               <div className="flex justify-between text-[13px]"><span>{detail.biaya.uraian}</span><b>{rp(detail.biaya.jumlah)}</b></div>

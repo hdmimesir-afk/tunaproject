@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Dokumen } from "@/lib/types/pembelian";
+import type { Dokumen, Opsi } from "@/lib/types/pembelian";
 import type { BarisKas, Biaya, Dashboard, KategoriBiaya } from "@/lib/types/keuangan";
 
 function gagal(apa: string): never {
@@ -19,6 +19,19 @@ export async function kategoriBiaya(): Promise<KategoriBiaya[]> {
   const { data, error } = await sb.from("expense_categories").select("id, nama, nota_wajib").eq("aktif", true).order("urutan");
   if (error) gagal("kategori biaya");
   return (data ?? []) as KategoriBiaya[];
+}
+
+/** Pilihan rujukan biaya: PO dan produksi terbaru. Dibaca dengan izin pengguna; yang tidak boleh dilihat tetap kosong. */
+export async function rujukanBiaya(): Promise<{ po: Opsi[]; produksi: Opsi[] }> {
+  const sb = await createClient();
+  const [po, pr] = await Promise.all([
+    sb.from("v_purchase_orders").select("id, kode, supplier_nama").in("status_persetujuan", ["diajukan", "disetujui"]).order("kode", { ascending: false }).limit(100),
+    sb.from("productions").select("id, kode, tanggal").order("kode", { ascending: false }).limit(100),
+  ]);
+  return {
+    po: (po.data ?? []).map((p) => ({ id: p.id as string, label: `${p.kode} · ${p.supplier_nama}` })),
+    produksi: (pr.data ?? []).map((p) => ({ id: p.id as string, label: `${p.kode} · ${p.tanggal}` })),
+  };
 }
 
 export async function bukuKas(): Promise<BarisKas[]> {

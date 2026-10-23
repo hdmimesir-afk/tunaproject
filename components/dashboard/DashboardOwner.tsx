@@ -32,7 +32,7 @@ const Selengkapnya = ({ href, label = "Selengkapnya" }: { href: string; label?: 
 );
 
 /* ------------------------------------------------------- perlu tindakan */
-const IKON_TINDAKAN: Record<ItemTindakan["icon"], IconName> = { check: "check", cash: "cash", box: "box", factory: "factory", flask: "flask", truck: "truck", calendar: "calendar" };
+const IKON_TINDAKAN: Record<ItemTindakan["icon"], IconName> = { check: "check", cash: "cash", box: "box", factory: "factory", flask: "flask", truck: "truck", calendar: "calendar", list: "list" };
 const TAMPIL_AWAL = 6;
 
 function BarisTindakan({ t }: { t: ItemTindakan }) {

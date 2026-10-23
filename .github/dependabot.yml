@@ -1,0 +1,20 @@
+# Pembaruan dependensi mingguan lewat pull request (PRD, Keamanan data: Dependensi). Tidak digabung otomatis:
+# setiap PR tetap lewat CI dan diperiksa sebelum digabung.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Jakarta
+    open-pull-requests-limit: 5
+    groups:
+      minor-dan-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Jakarta

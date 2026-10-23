@@ -6,7 +6,7 @@ import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
-import { berkasBiaya, bukuBulanan, bukuKas, daftarBiaya, kategoriBiaya } from "@/lib/data/keuangan";
+import { berkasBiaya, bukuBulanan, bukuKas, daftarBiaya, kategoriBiaya, rujukanBiaya } from "@/lib/data/keuangan";
 import { siklusTerbuka } from "@/lib/data/penjualan";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
@@ -35,12 +35,15 @@ async function KeuanganData({ searchParams }: { searchParams: PageProps<"/keuang
   const sp = await searchParams;
   const b = z.uuid().safeParse(typeof sp.b === "string" ? sp.b : "");
   const bolehTulis = boleh(sesi, "keuangan.write");
-  const [biaya, kategori, siklus, kas, buku] = await Promise.all([daftarBiaya(), kategoriBiaya(), bolehTulis ? siklusTerbuka() : Promise.resolve([]), bukuKas(), bukuBulanan()]);
+  const [biaya, kategori, siklus, rujukan, kas, buku] = await Promise.all([
+    daftarBiaya(), kategoriBiaya(), bolehTulis ? siklusTerbuka() : Promise.resolve([]),
+    bolehTulis ? rujukanBiaya() : Promise.resolve({ po: [], produksi: [] }), bukuKas(), bukuBulanan(),
+  ]);
   const terpilih = b.success ? biaya.find((x) => x.id === b.data) : undefined;
   const berkas = terpilih ? await berkasBiaya(terpilih.id) : [];
   return (
     <KeuanganKelola
-      biaya={biaya} kategori={kategori} siklus={siklus} kas={kas} buku={buku} bolehTutup={boleh(sesi, "periode.tutup")} detail={terpilih ? { biaya: terpilih, berkas } : null}
+      biaya={biaya} kategori={kategori} siklus={siklus} rujukan={rujukan} kas={kas} buku={buku} bolehTutup={boleh(sesi, "periode.tutup")} detail={terpilih ? { biaya: terpilih, berkas } : null}
       bolehTulis={bolehTulis} bolehSetuju={boleh(sesi, "biaya.setuju")} bolehDokumen={boleh(sesi, "dokumen.write")} hariIni={hariIni()}
     />
   );

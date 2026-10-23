@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Btn, Card, DataList, Inner, Modal, Pill, Stat } from "@/components/ui";
+import { useActionState } from "react";
+import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
+import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
+import { PesanForm } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
+import type { HasilForm } from "@/lib/actions/auth";
+import { bukaKembaliSiklus, tutupSiklus } from "@/lib/actions/siklus";
 import type { RantaiSiklus } from "@/lib/data/laporan";
 import { rp, tanggal } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
@@ -30,7 +35,32 @@ const Baris = ({ href, kiri, kanan }: { href: string; kiri: React.ReactNode; kan
   </Link>
 );
 
-function Rantai({ d, onTutup }: { d: RantaiSiklus; onTutup: () => void }) {
+/* Tutup siklus (Owner): database menolak bila masih ada PO, produksi, pesanan, tagihan, atau biaya yang belum beres. */
+function TutupSiklus({ id, kode }: { id: string; kode: string }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(tutupSiklus, undefined);
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="id" value={id} />
+      <PesanForm state={state} />
+      <KonfirmasiDua full label="Tutup siklus" labelYa={`Ya, tutup ${kode}`} pending={pending}
+        pesan="Setelah ditutup, PO, pesanan, dan biaya baru tidak bisa masuk ke siklus ini. Sistem menolak bila masih ada yang belum beres." />
+    </form>
+  );
+}
+
+function BukaSiklus({ id }: { id: string }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(bukaKembaliSiklus, undefined);
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="id" value={id} />
+      <PesanForm state={state?.error ? state : undefined} />
+      <Field label="Alasan membuka kembali" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required placeholder="Misalnya biaya kargo menyusul" /></Field>
+      <Btn type="submit" v="light" full disabled={pending}>{pending ? "Membuka..." : "Buka kembali siklus"}</Btn>
+    </form>
+  );
+}
+
+function Rantai({ d, onTutup, bolehTutup }: { d: RantaiSiklus; onTutup: () => void; bolehTutup: boolean }) {
   const r = d.ringkas;
   return (
     <Modal title={`${r.kode}${r.ref_po_pembeli ? ` · ${r.ref_po_pembeli}` : ""}`} onClose={onTutup} lebar>
@@ -64,11 +94,12 @@ function Rantai({ d, onTutup }: { d: RantaiSiklus; onTutup: () => void }) {
         {d.biaya.map((b) => <Baris key={b.id} href={`/keuangan?b=${b.id}`} kiri={<>{b.kode} · {b.kategori_nama} · {b.status}</>} kanan={rp(b.jumlah)} />)}
       </Tahap>
       <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Semua baris di atas ditarik dari catatan yang sama, tanpa input ulang. Ketuk satu baris untuk membuka transaksinya beserta nota.</p></Inner>
+      {bolehTutup && (r.status === "terbuka" ? <TutupSiklus id={r.cycle_id} kode={r.kode} /> : <BukaSiklus id={r.cycle_id} />)}
     </Modal>
   );
 }
 
-export function SiklusKelola({ daftar, detail }: { daftar: RingkasSiklus[]; detail: RantaiSiklus | null }) {
+export function SiklusKelola({ daftar, detail, bolehTutup }: { daftar: RingkasSiklus[]; detail: RantaiSiklus | null; bolehTutup: boolean }) {
   const router = useRouter();
   return (
     <div className="space-y-4">
@@ -87,7 +118,7 @@ export function SiklusKelola({ daftar, detail }: { daftar: RingkasSiklus[]; deta
           actions={(s) => <Btn size="sm" v="light" onClick={() => router.push(`/siklus?c=${s.cycle_id}`)}>Telusuri</Btn>}
         />
       </Card>
-      {detail && <Rantai d={detail} onTutup={() => router.push("/siklus")} />}
+      {detail && <Rantai d={detail} bolehTutup={bolehTutup} onTutup={() => router.push("/siklus")} />}
     </div>
   );
 }

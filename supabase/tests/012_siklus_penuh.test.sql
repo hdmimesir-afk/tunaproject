@@ -36,6 +36,8 @@ select lives_ok(
   $$insert into public.documents (ref_tabel, ref_id, jenis, path, nama_asli, ukuran, tipe) values ('purchase_orders', (select id from public.purchase_orders where catatan = 'full-po'), 'nota', 'po/full/nota.jpg', 'nota.jpg', 1000, 'image/jpeg')$$,
   'nota beli dilampirkan');
 select ok(public.ajukan_po((select id from public.purchase_orders where catatan = 'full-po')) is not null, 'PO diajukan');
+-- Petugas dan QC tidak boleh melihat PO (harga), jadi id-nya disimpan sekali di sini untuk langkah lapangan.
+do $$ begin perform set_config('uji.po', (select id::text from public.purchase_orders where catatan = 'full-po'), false); end $$;
 
 -- ============================================================ 2. Periksa, setuju, bayar
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c2", "role": "authenticated", "aal": "aal2"}';
@@ -53,16 +55,16 @@ select is((select status_bayar from public.v_purchase_orders where catatan = 'fu
 
 -- ============================================================ 3. Terima dan mutu
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c5", "role": "authenticated", "aal": "aal1"}';
-select ok(public.terima_po((select id from public.purchase_orders where catatan = 'full-po'), 200, 'tiba pagi', false) is not null, 'petugas menerima 200 kg menjadi lot');
+select ok(public.terima_po(current_setting('uji.po')::uuid, 200, 'tiba pagi', false) is not null, 'petugas menerima 200 kg menjadi lot');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c4", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
-  $$select public.cek_mutu((select id from public.lots where po_id = (select id from public.purchase_orders where catatan = 'full-po')), 'lulus', (select id from public.grades where kode = 'A-SO'), 'segar')$$,
+  $$select public.cek_mutu((select id from public.lots where po_id = current_setting('uji.po')::uuid), 'lulus', (select id from public.grades where kode = 'A-SO'), 'segar')$$,
   'QC meluluskan lot');
 
 -- ============================================================ 4. Produksi per loin (Petugas) dan neraca
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c5", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
-  $$select public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select id from public.lots where po_id = (select id from public.purchase_orders where catatan = 'full-po')), 'kg', 200)), current_date, 'full-prd')$$,
+  $$select public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select id from public.lots where po_id = current_setting('uji.po')::uuid), 'kg', 200)), current_date, 'full-prd')$$,
   'produksi dimulai dari lot yang lulus');
 select lives_ok(
   $$select public.simpan_loin((select id from public.productions where catatan = 'full-prd'), jsonb_build_array(
@@ -94,13 +96,19 @@ select lives_ok(
 select is(
   (select sum(u.kg_masuk)::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd'),
   '145.875', 'berat stok = berat loin dari grid, tanpa ketik ulang');
+-- Super Admin membuat pesanan dari unit stok; id unit disimpan di sini karena tiap peran punya izin baca yang berbeda.
+do $$ begin
+  perform set_config('uji.unit_a', (select u.id::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.grade_kode = 'A-SO'), false);
+  perform set_config('uji.unit_b', (select u.id::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.grade_kode = 'B-SO'), false);
+  perform set_config('uji.prd', (select id::text from public.productions where catatan = 'full-prd'), false);
+end $$;
 
 -- ============================================================ 6. Penjualan
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c3", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
   $$select public.simpan_pesanan(null, 'b1000000-0000-0000-0000-0000000000c1', 'c2000000-0000-0000-0000-0000000000c1', current_date, 'full-psn', jsonb_build_array(
-      jsonb_build_object('unit_id', (select u.id from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.grade_kode = 'A-SO'), 'kg', 100, 'harga', 130000),
-      jsonb_build_object('unit_id', (select u.id from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.grade_kode = 'B-SO'), 'kg', 30, 'harga', 100000)))$$,
+      jsonb_build_object('unit_id', current_setting('uji.unit_a')::uuid, 'kg', 100, 'harga', 130000),
+      jsonb_build_object('unit_id', current_setting('uji.unit_b')::uuid, 'kg', 30, 'harga', 100000)))$$,
   'pesanan jual dari dua unit stok');
 select is((select total_pesan::text from public.v_sales_orders where catatan = 'full-psn'), '16000000.00', 'total pesanan 100 x 130.000 + 30 x 100.000');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c5", "role": "authenticated", "aal": "aal1"}';
@@ -110,7 +118,7 @@ select lives_ok(
       from public.sale_allocations a where a.order_id = (select id from public.sales_orders where catatan = 'full-psn') and not a.batal))$$,
   'petugas mengirim dengan berat timbang kirim (grade A 99,5 kg)');
 select is(
-  (select string_agg(u.sisa_kg::text, '/' order by u.grade_kode) from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd'),
+  (select string_agg(u.sisa_kg::text, '/' order by u.grade_kode) from public.storage_units u where u.production_id = current_setting('uji.prd')::uuid),
   '15.875/0.500', 'sisa stok berkurang sebesar berat kirim: 115,375 - 99,5 dan 30,5 - 30');
 
 -- ============================================================ 7. Tagihan dan uang masuk

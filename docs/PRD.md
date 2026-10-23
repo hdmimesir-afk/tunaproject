@@ -297,14 +297,14 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 - [x] Deploy halaman `/rancangan` dan kirim ke owner
 - [x] Jawaban owner untuk 7 persetujuan dan 14 pertanyaan diterima lewat WhatsApp 22 Oktober 2026
-- [ ] Putuskan tambah 1 developer untuk minggu 2–4
+- [x] Developer: Dar Dev sendiri, tanpa tambahan (keputusan 23 Okt 2026)
 - [x] Pemilik akun server dan biaya saat naik paket: Dar Dev sendiri, tidak naik paket (23 Okt 2026)
-- [ ] Akun Vercel Hobby dan Supabase Free (paket gratis) di email yang bisa dipindah ke perusahaan (ditunda)
+- [x] Akun Vercel Hobby dan Supabase Free milik Dar Dev (keputusan 23 Okt 2026)
 - [x] Satu repo untuk semua (`hdmimesir-afk/tunaproject`): sistem ERP di `/`, penawaran di `/penawaran`, rancangan dan PRD tetap; folder `supabase/migrations`
 - [x] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
 - [x] Pasang MCP Context7 di alat setiap developer dan AI coding agent (terpasang di alat Dar Dev; developer tambahan memasangnya sendiri)
 - [x] CI: typecheck, lint, test, tes database, dan `npm audit` dicek di setiap push dan pull request
-- [ ] Dua proyek Supabase (uji dan produksi) region Singapura dan preview per cabang di Vercel
+- [x] Diputuskan 23 Okt 2026: satu proyek Supabase dan satu proyek Vercel, tanpa preview per cabang (tes otomatis berjalan di Supabase lokal CI)
 - [x] Pakai kunci `sb_publishable_` dan `sb_secret_`; variabel lingkungan lokal dan produksi dipisah (preview per cabang menunggu proyek Supabase uji)
 
 ### Minggu 1: fondasi, pembelian, dan persetujuan
@@ -328,7 +328,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Trigger `activity_log` sebelum/sesudah di semua tabel transaksi
 - [x] Larangan hapus: cabut DELETE dari peran aplikasi; pembatalan dengan alasan
 - [x] Header keamanan (CSP, HSTS, X-Frame-Options, Referrer-Policy); batas percobaan login memakai pembatas bawaan Supabase Auth
-- [ ] Cadangan harian sendiri: pg_dump terjadwal lewat GitHub Actions ke penyimpanan privat (paket gratis tidak menyediakan unduhan cadangan; workflow siap, aktif setelah Supabase disiapkan)
+- [x] Cadangan harian sendiri: pg_dump terjadwal lewat GitHub Actions, terenkripsi AES-256; aktif dan berhasil pertama kali 23 Okt 2026
 - [x] Kerangka aplikasi: tata letak desktop dan HP, menu disaring per izin
 - [x] Pesan gagal simpan global dan draft di perangkat (Dexie), dikerjakan bersama grid loin di Fase 3
 
@@ -357,7 +357,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Penutup minggu 1**
 
-- [ ] Uji: pengguna masuk sesuai peran; beli → setuju → terima → bayar jalan; disetujui tidak otomatis dibayar
+- [x] Uji: pengguna masuk sesuai peran; beli → setuju → terima → bayar jalan; disetujui tidak otomatis dibayar (otomatis: pgTAP 003 dan 012)
 - [ ] Demo ke owner di lingkungan uji
 
 ### Minggu 2: produksi, stok, dan gudang dingin
@@ -401,8 +401,8 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Penutup minggu 2 (titik periksa)**
 
-- [ ] Uji 300+ baris loin saat jaringan putus, klik ganda simpan, dua petugas edit bersamaan
-- [ ] Uji 500 loin berdesimal tiga: total grid, rekap, dan CSV identik
+- [x] Uji 300+ baris loin saat jaringan putus, klik ganda simpan, dua petugas edit bersamaan (otomatis: e2e produksi)
+- [x] Uji 500 loin berdesimal tiga: total grid, rekap, neraca, dan CSV identik (otomatis: tes unit grid)
 - [ ] Masukkan Siklus 1 dan pastikan neraca menampilkan 65,000 kg limbah dan 28,060 kg belum jelas
 - [ ] Putuskan titik potong bila syarat keluar belum lulus; kabari owner hari itu juga
 - [ ] Demo ke owner di lingkungan uji
@@ -423,7 +423,8 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 - [x] View `v_rincian_siklus` dan halaman Rincian Siklus/PO dengan semua nota (F15)
 - [x] View `v_ringkasan_harian`: transaksi, nilai beli, hasil produksi, kiriman, uang masuk (F15)
-- [ ] Uji N:M: satu lot ke dua produksi, satu penjualan dari dua produksi, telusur dua arah
+- [x] Uji N:M: satu lot ke dua produksi, satu penjualan dari dua produksi, telusur dua arah (otomatis: pgTAP 010)
+- [x] Tutup siklus oleh Owner setelah PO, produksi, pesanan, tagihan, dan biayanya beres; siklus yang ditutup terkunci di database (audit 23 Okt)
 
 **Keuangan dan laporan**
 
@@ -445,7 +446,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Penutup minggu 3**
 
-- [ ] Uji alur beli sampai uang masuk penuh; satu siklus ditelusuri tanpa input ulang
+- [x] Uji alur beli sampai uang masuk penuh; satu siklus ditelusuri tanpa input ulang (otomatis: pgTAP 012, angka laporan dan buku kas dicocokkan)
 - [ ] Demo ke owner di lingkungan uji
 
 ### Minggu 4: uji siklus nyata dan mulai pakai
@@ -504,8 +505,8 @@ Owner menjawab pada 22 Oktober 2026. Yang masih terbuka: pemilik akun server dan
 
 **Bahan yang perlu dikirim owner**
 
-- [ ] Keputusan pemilik akun server dan siapa yang membayar saat naik paket (owner dan investor)
-- [ ] Nama orang untuk Super Admin, Finance, Kepala Produksi/QC, dan Petugas Lapangan
+- [x] Pemilik akun server: Dar Dev; tidak naik paket (23 Okt 2026)
+- [x] Nama orang per peran tidak diperlukan; cukup jabatan (23 Okt 2026)
 - [ ] Catatan timbang susut Siklus 1, untuk menjelaskan 28,06 kg yang belum jelas
 - [ ] Foto formulir produksi dan pembelian yang sudah terisi
 - [ ] Dokumen satu siklus: nota beli, catatan timbang, hasil produksi, surat jalan, tagihan, bukti bayar

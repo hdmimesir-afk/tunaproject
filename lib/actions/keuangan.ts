@@ -45,6 +45,8 @@ const FormBiaya = z.object({
   }),
   tanggal: z.iso.date("Isi tanggal"),
   siklusId: Opsional.pipe(z.uuid().nullable()),
+  poId: Opsional.pipe(z.uuid().nullable()),
+  produksiId: Opsional.pipe(z.uuid().nullable()),
 });
 
 /** Simpan biaya sebagai draf. Nota dilampirkan sesudahnya, lalu biaya diajukan ke Owner. */
@@ -53,6 +55,7 @@ export async function simpanBiaya(_: HasilForm, fd: FormData): Promise<HasilForm
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   return panggil("keuangan.write", "simpan_biaya", {
     p_id: p.data.biayaId, p_category: p.data.kategoriId, p_uraian: p.data.uraian, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_cycle: p.data.siklusId,
+    p_po: p.data.poId, p_production: p.data.produksiId,
   }, "Biaya disimpan sebagai draf. Lampirkan nota lalu ajukan.");
 }
 

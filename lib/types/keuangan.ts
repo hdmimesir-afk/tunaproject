@@ -13,6 +13,7 @@ export type Biaya = {
   po_id: string | null;
   po_kode: string | null;
   production_id: string | null;
+  produksi_kode: string | null;
   status: StatusBiaya;
   alasan_tolak: string;
   diajukan_pada: string | null;

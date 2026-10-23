@@ -33,5 +33,5 @@ async function SiklusData({ searchParams }: { searchParams: PageProps<"/siklus">
   const sp = await searchParams;
   const c = z.uuid().safeParse(typeof sp.c === "string" ? sp.c : "");
   const [daftar, detail] = await Promise.all([daftarRingkasSiklus(), c.success ? rantaiSiklus(c.data) : Promise.resolve(null)]);
-  return <SiklusKelola daftar={daftar} detail={detail} />;
+  return <SiklusKelola daftar={daftar} detail={detail} bolehTutup={boleh(sesi, "siklus.tutup")} />;
 }
