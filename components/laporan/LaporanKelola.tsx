@@ -9,6 +9,7 @@ import type { DataLabaRugi } from "@/lib/data/laporan";
 import { rp, tanggal } from "@/lib/format";
 import { buatCsv, tampilKg } from "@/lib/logic/grid";
 import { awalMinggu, hargaRataTertimbang, hitungLabaRugi, ringkasTren } from "@/lib/logic/labarugi";
+import { hargaIkanImpas, hitungSimulasi, skenarioDasar, type DasarSimulasi, type Skenario } from "@/lib/logic/simulasi";
 import type { BarisHargaBeli, BarisLabaSiklus, DetailBaris } from "@/lib/types/keuangan";
 
 type Props = { tren: BarisLabaSiklus[]; data: DataLabaRugi | null; siklusId: string | null; harga: BarisHargaBeli[]; bolehHarga: boolean };
@@ -253,10 +254,65 @@ function HargaTab({ harga }: { harga: BarisHargaBeli[] }) {
   );
 }
 
+/* -------------------------------------------------------------- simulasi */
+function Geser({ label, nilai, min, max, langkah, onUbah, format }: { label: string; nilai: number; min: number; max: number; langkah: number; onUbah: (n: number) => void; format: (n: number) => string }) {
+  return (
+    <label className="block">
+      <span className="mb-1 flex justify-between text-[13px]" style={{ color: INK }}><span>{label}</span><b className="tabular-nums">{format(nilai)}</b></span>
+      <input type="range" className="w-full accent-[#00171F]" min={min} max={max} step={langkah} value={nilai} onChange={(e) => onUbah(Number(e.target.value))} aria-label={label} />
+    </label>
+  );
+}
+
+function SimulasiTab({ data }: { data: DataLabaRugi | null }) {
+  const dasar = useMemo<DasarSimulasi | null>(() => {
+    if (!data) return null;
+    const r = hitungLabaRugi(data.input);
+    const n = data.input.neraca;
+    const ikan = data.input.biaya.find((b) => b.ikan);
+    if (!ikan || n.masukKg <= 0 || n.loinKg <= 0 || !r.perKgLoin) return null;
+    return {
+      ikanKg: n.masukKg, hargaIkanPerKg: ikan.jumlah / n.masukKg, hasilPct: (n.loinKg / n.masukKg) * 100,
+      hargaJualLoinPerKg: r.subtotalLoin.jumlah / r.subtotalLoin.kg!, pendapatanSamping: r.subtotalSamping.jumlah,
+      biayaLain: r.totalBiaya - ikan.jumlah,
+    };
+  }, [data]);
+  const [s, setS] = useState<Skenario | null>(null);
+  if (!data || !dasar) {
+    return <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Simulasi butuh siklus yang sudah punya ikan masuk, loin, penjualan, dan pembelian ikan. Pilih siklus di tab Laba rugi.</p></Inner>;
+  }
+  const aktif = s ?? skenarioDasar(dasar);
+  const awal = hitungSimulasi(dasar, skenarioDasar(dasar));
+  const h = hitungSimulasi(dasar, aktif);
+  const selisih = h.labaKotor - awal.labaKotor;
+  const impas = hargaIkanImpas(dasar, aktif);
+  const bulat = (n: number) => Math.round(n);
+  return (
+    <div className="space-y-4">
+      <Card title={`Simulasi berdasarkan ${data.siklus.kode}`} right={<Btn size="sm" v="ghost" onClick={() => setS(null)}>Kembalikan ke angka siklus</Btn>}>
+        <div className="grid gap-4 px-2.5 pb-3 md:grid-cols-3">
+          <Geser label="Harga ikan utuh per kg" nilai={bulat(aktif.hargaIkanPerKg)} min={Math.round(dasar.hargaIkanPerKg * 0.6)} max={Math.round(dasar.hargaIkanPerKg * 1.4)} langkah={500} onUbah={(n) => setS({ ...aktif, hargaIkanPerKg: n })} format={rp} />
+          <Geser label="Hasil olahan (loin ÷ ikan)" nilai={Math.round(aktif.hasilPct * 10) / 10} min={40} max={80} langkah={0.1} onUbah={(n) => setS({ ...aktif, hasilPct: n })} format={persen} />
+          <Geser label="Harga jual loin per kg" nilai={bulat(aktif.hargaJualLoinPerKg)} min={Math.round(dasar.hargaJualLoinPerKg * 0.7)} max={Math.round(dasar.hargaJualLoinPerKg * 1.3)} langkah={1000} onUbah={(n) => setS({ ...aktif, hargaJualLoinPerKg: n })} format={rp} />
+        </div>
+      </Card>
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+        <Stat value={rp(h.labaKotor)} label={`Laba kotor · margin ${persen(h.marginPct)}`} tone={h.labaKotor < 0 ? "warn" : "ok"} />
+        <Stat value={`${selisih >= 0 ? "+" : "−"}${rp(Math.abs(selisih))}`} label="Dibanding angka siklus" tone={selisih < 0 ? "warn" : undefined} />
+        <Stat value={`${kgT(h.loinKg)} kg`} label="Loin yang dihasilkan" />
+        <Stat value={rp(h.hargaJualMinimal)} label="Harga jual loin minimal" />
+        <Stat value={rp(h.labaPerKgLoin)} label="Laba per kg loin" tone={h.labaPerKgLoin < 0 ? "warn" : undefined} />
+        <Stat value={rp(impas)} label="Harga ikan tertinggi agar tidak rugi" />
+      </div>
+      <p className="text-[12px]" style={{ color: MUTED }}>Asumsi: berat ikan masuk tetap, hasil samping dan biaya selain ikan (kargo, penanganan, kemasan, jasa) tetap seperti siklus ini, dan harga jual loin rata-rata berlaku untuk semua loin. Ini perkiraan, bukan angka transaksi.</p>
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------------- utama */
 export function LaporanKelola({ tren, data, siklusId, harga, bolehHarga }: Props) {
-  const [tab, setTab] = useState<"laba" | "tren" | "harga">("laba");
-  const tabs = [["laba", "Laba rugi siklus"], ["tren", "Tren antarsiklus"], ...(bolehHarga ? [["harga", "Harga beli"]] : [])] as [typeof tab, string][];
+  const [tab, setTab] = useState<"laba" | "tren" | "simulasi" | "harga">("laba");
+  const tabs = [["laba", "Laba rugi siklus"], ["tren", "Tren antarsiklus"], ["simulasi", "Simulasi harga"], ...(bolehHarga ? [["harga", "Harga beli"]] : [])] as [typeof tab, string][];
   return (
     <div className="space-y-4">
       <div role="tablist" aria-label="Jenis laporan" className="flex flex-wrap gap-2">
@@ -268,6 +324,7 @@ export function LaporanKelola({ tren, data, siklusId, harga, bolehHarga }: Props
       </div>
       {tab === "laba" && <LabaRugiTab data={data} tren={tren} siklusId={siklusId} />}
       {tab === "tren" && <TrenTab tren={tren} />}
+      {tab === "simulasi" && <SimulasiTab key={siklusId ?? "x"} data={data} />}
       {tab === "harga" && bolehHarga && <HargaTab harga={harga} />}
     </div>
   );

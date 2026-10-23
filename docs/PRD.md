@@ -454,14 +454,14 @@ Absensi dan izin ditunda atas keputusan owner 22 Oktober 2026 dan dikerjakan set
 
 **Asisten AI dan simulasi**
 
-- [ ] Alat baca terbatas: piutang telat, saldo kas, hasil per ekor, jadwal bentrok, perlu persetujuan, isi gudang dingin, kelengkapan dokumen, biaya siklus (F22)
-- [ ] Panggilan memakai token pengguna sehingga RLS berlaku; batas pertanyaan per hari; log di `ai_usage` (F22)
-- [ ] Slider harga ikan dan dampak laba sesuai lembar asumsi (F23)
+- [x] Alat baca terbatas: piutang telat, saldo kas, hasil per ekor, jadwal bentrok, perlu persetujuan, isi gudang dingin, kelengkapan dokumen, biaya siklus (F22)
+- [x] Panggilan memakai token pengguna sehingga RLS berlaku; batas pertanyaan per hari; log di `ai_usage` (F22)
+- [x] Slider harga ikan dan dampak laba sesuai lembar asumsi (F23)
 
 **Keamanan dan data**
 
 - [ ] Pulihkan cadangan ke proyek terpisah dan cocokkan angka utama
-- [ ] Tinjauan RLS dan bucket Storage
+- [x] Tinjauan RLS dan bucket Storage
 - [ ] Impor Siklus 1: 11 ekor, loin 300,94 kg per grade, hasil samping 87 kg per jenis, limbah 65 kg, biaya Rp37,07 juta
 
 **Uji siklus nyata dan serah terima**
