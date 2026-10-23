@@ -32,7 +32,7 @@ Untuk pelatihan sebelum mulai pakai. Tiap peran hanya melihat menu yang sesuai i
 
 ## Owner
 
-- **Dashboard:** angka yang butuh keputusan ada di bagian paling atas; ketuk untuk membuka rinciannya.
+- **Dashboard (cukup pantau ini):** bagian paling atas "Perlu tindakan Anda" menampilkan transaksi yang menunggu satu per satu: PO yang perlu disetujui, biaya, koreksi stok, produksi, tagihan terlambat, dan buku yang siap ditutup. Yang mendesak (merah) di depan. Ketuk satu baris atau tombolnya (Setujui, Putuskan, Tagih, ...) dan Anda langsung dibawa ke halaman urusan itu. Peran lain hanya melihat hal yang bisa mereka tindak sendiri.
 - **Setujui:** PO (Persetujuan, bisa banyak sekaligus dengan konfirmasi total), biaya (Keuangan), koreksi stok (Stok), produksi (Produksi).
 - **Asisten AI:** menjawab dari data sesuai izin Anda. Hanya membaca; tidak bisa mengubah apa pun.
 - **Tutup buku:** Keuangan → Tutup buku per bulan. Tutup berurutan dari bulan tertua setelah bulannya berakhir. Bulan yang ditutup terkunci: pembayaran, biaya, dan catatan kas bertanggal di bulan itu tidak bisa ditambah atau diubah. Buka kembali hanya oleh Owner dengan alasan tercatat.

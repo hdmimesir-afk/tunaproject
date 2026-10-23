@@ -3,11 +3,12 @@ import { Icon, type IconName } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { rp } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
+import type { Tindakan as ItemTindakan } from "@/lib/data/tindakan";
 import type { BarisLabaSiklus, BukuBulanan, Dashboard } from "@/lib/types/keuangan";
 
 type Izin = { persetujuan: boolean; keuangan: boolean; penjualan: boolean; pembelian: boolean; produksi: boolean; stok: boolean; mutu: boolean; laporan: boolean };
 
-type Props = { d: Dashboard; izin: Izin; nama: string; salam: string; tanggal: string; buku: BukuBulanan[]; siklus: BarisLabaSiklus | null };
+type Props = { d: Dashboard; izin: Izin; nama: string; salam: string; tanggal: string; buku: BukuBulanan[]; siklus: BarisLabaSiklus | null; tindakan: ItemTindakan[] };
 
 const kgT = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
 const persen = (n: number) => `${n.toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
@@ -31,34 +32,57 @@ const Selengkapnya = ({ href, label = "Selengkapnya" }: { href: string; label?: 
 );
 
 /* ------------------------------------------------------- perlu tindakan */
-function Tindakan({ butir }: { butir: { href: string; v: number; label: string; icon: IconName }[] }) {
-  const aktif = butir.filter((b) => b.v > 0);
-  const total = aktif.reduce((a, b) => a + b.v, 0);
+const IKON_TINDAKAN: Record<ItemTindakan["icon"], IconName> = { check: "check", cash: "cash", box: "box", factory: "factory", flask: "flask", truck: "truck", calendar: "calendar" };
+const TAMPIL_AWAL = 6;
+
+function BarisTindakan({ t }: { t: ItemTindakan }) {
   return (
-    <Bagian judul="Perlu tindakan" kanan={total > 0 ? <span className="rounded-full bg-[#FBE5E3] px-2.5 py-1 text-[11.5px] font-semibold text-[#A8322B]">{total} hal</span> : undefined}>
-      {aktif.length === 0 ? (
+    <Link href={t.href} className="flex min-h-14 items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 transition active:scale-[0.99] hover:shadow-sm" style={{ color: INK }}>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: t.mendesak ? "#FBE5E3" : "#FBF0D5" }}>
+        <Icon n={IKON_TINDAKAN[t.icon]} s={17} c={t.mendesak ? "#A8322B" : "#8A5A00"} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[11px] font-semibold uppercase tracking-wide" style={{ color: t.mendesak ? "#A8322B" : "#8A5A00" }}>{t.kelompok}</span>
+        <span className="block truncate text-[14px] font-medium leading-snug">{t.judul}</span>
+        <span className="line-clamp-2 block text-[12.5px] leading-snug" style={{ color: MUTED }}>{t.rincian}</span>
+      </span>
+      <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full px-3.5 text-[12.5px] font-medium text-white" style={{ background: INK }}>{t.aksi}<Icon n="arrow" s={13} c="#fff" /></span>
+    </Link>
+  );
+}
+
+function Tindakan({ daftar }: { daftar: ItemTindakan[] }) {
+  const mendesak = daftar.filter((t) => t.mendesak).length;
+  const awal = daftar.slice(0, TAMPIL_AWAL);
+  const sisa = daftar.slice(TAMPIL_AWAL);
+  return (
+    <Bagian judul="Perlu tindakan Anda" kanan={daftar.length > 0 ? (
+      <span className="flex gap-1.5">
+        {mendesak > 0 && <span className="rounded-full bg-[#FBE5E3] px-2.5 py-1 text-[11.5px] font-semibold text-[#A8322B]">{mendesak} mendesak</span>}
+        <span className="rounded-full bg-[#FBF0D5] px-2.5 py-1 text-[11.5px] font-semibold text-[#8A5A00]">{daftar.length} hal</span>
+      </span>
+    ) : undefined}>
+      {daftar.length === 0 ? (
         <div className="flex items-center gap-3 rounded-2xl bg-[#DDF3E8] px-3.5 py-3.5">
           <Icon n="check" s={20} c="#0B6B4A" />
-          <div className="text-[13.5px]" style={{ color: "#0B6B4A" }}><b className="font-semibold">Semua beres.</b> Tidak ada yang menunggu keputusan atau pemeriksaan.</div>
+          <div className="text-[13.5px]" style={{ color: "#0B6B4A" }}><b className="font-semibold">Semua beres.</b> Tidak ada yang menunggu keputusan atau pemeriksaan Anda.</div>
         </div>
       ) : (
-        <ul className="space-y-1.5">
-          {aktif.map((b) => (
-            <li key={b.href + b.label}>
-              <Link href={b.href} className="flex min-h-12 items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5 transition active:scale-[0.99]" style={{ color: INK }}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FBF0D5]"><Icon n={b.icon} s={16} c="#8A5A00" /></span>
-                <span className="min-w-0 flex-1 text-[13.5px] leading-snug">{b.label}</span>
-                <span className="text-[17px] font-semibold tabular-nums" style={{ color: "#8A5A00" }}>{b.v}</span>
-                <Icon n="arrow" s={14} c={MUTED} />
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="grid gap-1.5 md:grid-cols-2">{awal.map((t) => <li key={t.id}><BarisTindakan t={t} /></li>)}</ul>
+          {sisa.length > 0 && (
+            <details className="group mt-2">
+              <summary className="flex h-10 cursor-pointer list-none items-center justify-center rounded-full bg-white text-[13px] font-medium" style={{ color: INK }}>
+                <span className="group-open:hidden">Lihat {sisa.length} lainnya</span><span className="hidden group-open:inline">Sembunyikan</span>
+              </summary>
+              <ul className="mt-1.5 grid gap-1.5 md:grid-cols-2">{sisa.map((t) => <li key={t.id}><BarisTindakan t={t} /></li>)}</ul>
+            </details>
+          )}
+        </>
       )}
     </Bagian>
   );
 }
-
 /* --------------------------------------------------------------- angka */
 function Angka({ href, label, nilai, catatan, tone, icon }: { href: string; label: string; nilai: string; catatan?: string; tone?: "warn" | "ok"; icon: IconName }) {
   const warna = tone === "warn" ? "#B4443C" : tone === "ok" ? "#0B6B4A" : INK;
@@ -113,17 +137,7 @@ function ArusKas({ buku }: { buku: BukuBulanan[] }) {
 }
 
 /* ---------------------------------------------------------------- utama */
-export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus }: Props) {
-  const butir = [
-    izin.persetujuan && { href: "/persetujuan", v: d.persetujuan_menunggu, label: "PO menunggu persetujuan", icon: "check" as const },
-    izin.keuangan && { href: "/keuangan", v: d.biaya_menunggu, label: "Biaya menunggu keputusan Owner", icon: "cash" as const },
-    izin.stok && { href: "/stok", v: d.koreksi_menunggu, label: "Koreksi stok menunggu Owner", icon: "box" as const },
-    izin.produksi && { href: "/produksi", v: d.produksi_menunggu, label: "Produksi menunggu pemeriksaan", icon: "factory" as const },
-    izin.mutu && { href: "/mutu", v: d.lot_menunggu_mutu, label: "Lot menunggu cek mutu", icon: "flask" as const },
-    izin.penjualan && { href: "/penjualan", v: d.pesanan_belum_dikirim, label: "Pesanan belum dikirim", icon: "truck" as const },
-  ].filter(Boolean) as { href: string; v: number; label: string; icon: IconName }[];
-  const adaTindakan = izin.persetujuan || izin.keuangan || izin.stok || izin.produksi || izin.mutu || izin.penjualan;
-
+export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan }: Props) {
   const selisih = d.kas_masuk_bulan_ini - d.kas_keluar_bulan_ini;
   const adaKas = buku.length > 0;
 
@@ -134,10 +148,12 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus }: 
         <p className="mt-0.5 text-[19px] font-medium tracking-tight md:text-[21px]" style={{ color: INK }}>{salam}{nama ? `, ${nama}` : ""}</p>
       </div>
 
-      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-3">
-        <div className="contents lg:col-span-2 lg:flex lg:flex-col lg:gap-4">
+      <Tindakan daftar={tindakan} />
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
           {(izin.keuangan || izin.penjualan || izin.pembelian || izin.stok) && (
-            <div className="order-2 grid grid-cols-2 gap-2.5 lg:order-none">
+            <div className="grid grid-cols-2 gap-2.5">
               {izin.keuangan && <Angka href="/keuangan" icon="cash" label="Kas bulan ini" nilai={rp(selisih)} tone={selisih < 0 ? "warn" : selisih > 0 ? "ok" : undefined}
                 catatan={`Masuk ${rp(d.kas_masuk_bulan_ini)} · keluar ${rp(d.kas_keluar_bulan_ini)}`} />}
               {izin.penjualan && <Angka href="/penjualan" icon="truck" label="Piutang" nilai={rp(d.piutang)} tone={d.invoice_terlambat > 0 ? "warn" : undefined}
@@ -148,13 +164,13 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus }: 
           )}
 
           {izin.keuangan && (
-            <Bagian className="order-3 lg:order-none" judul="Arus kas 6 bulan terakhir" kanan={<Selengkapnya href="/keuangan" label="Buku kas" />}>
+            <Bagian judul="Arus kas 6 bulan terakhir" kanan={<Selengkapnya href="/keuangan" label="Buku kas" />}>
               {adaKas ? <ArusKas buku={buku} /> : <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada transaksi kas. Pembayaran, biaya yang disetujui, dan impor akan muncul di sini.</p>}
             </Bagian>
           )}
 
           {izin.laporan && (
-            <Bagian className="order-4 lg:order-none" judul={siklus ? `Siklus terbaru · ${siklus.kode}` : "Siklus terbaru"} kanan={<Selengkapnya href={siklus ? `/laporan?c=${siklus.cycle_id}` : "/laporan"} label="Laporan" />}>
+            <Bagian judul={siklus ? `Siklus terbaru · ${siklus.kode}` : "Siklus terbaru"} kanan={<Selengkapnya href={siklus ? `/laporan?c=${siklus.cycle_id}` : "/laporan"} label="Laporan" />}>
               {siklus ? (
                 <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                   <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="chart" label="Pendapatan" nilai={rp(siklus.pendapatan_total)} />
@@ -170,11 +186,9 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus }: 
           )}
         </div>
 
-        <div className="contents lg:flex lg:flex-col lg:gap-4">
-          {adaTindakan && <div className="order-1 lg:order-none"><Tindakan butir={butir} /></div>}
-
+        <div className="space-y-4">
           {(izin.keuangan || izin.pembelian) && (
-            <Bagian className="order-5 lg:order-none" judul="Kelengkapan dokumen" kanan={<Selengkapnya href="/keuangan" label="Periksa" />}>
+            <Bagian judul="Kelengkapan dokumen" kanan={<Selengkapnya href="/keuangan" label="Periksa" />}>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: d.dokumen_kurang > 0 ? "#FBF0D5" : "#DDF3E8" }}>
                   <Icon n={d.dokumen_kurang > 0 ? "note" : "check"} s={17} c={d.dokumen_kurang > 0 ? "#8A5A00" : "#0B6B4A"} />
@@ -187,7 +201,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus }: 
           )}
 
           {(izin.produksi || izin.stok) && (
-            <Bagian className="order-6 lg:order-none" judul="Lantai produksi">
+            <Bagian judul="Lantai produksi">
               <div className="grid grid-cols-2 gap-2.5">
                 {izin.produksi && <Angka href="/produksi" icon="factory" label="Produksi berjalan" nilai={String(d.produksi_berjalan)} />}
                 {izin.stok && <Angka href="/gudang" icon="snow" label="Titipan di gudang" nilai={kgT(d.stok_titipan_kg)} />}

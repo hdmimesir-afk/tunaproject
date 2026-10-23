@@ -6,6 +6,7 @@ import { Judul } from "@/components/shell/Judul";
 import { requireSesi } from "@/lib/data/auth";
 import { ambilDashboard, bukuBulanan } from "@/lib/data/keuangan";
 import { trenSiklus } from "@/lib/data/laporan";
+import { daftarTindakan } from "@/lib/data/tindakan";
 import { supabaseConfigured } from "@/lib/env";
 import { boleh } from "@/lib/izin";
 
@@ -46,8 +47,9 @@ async function DashboardData() {
   };
   const [d, buku, tren] = await Promise.all([ambilDashboard(), izin.keuangan ? bukuBulanan() : Promise.resolve([]), izin.laporan ? trenSiklus() : Promise.resolve([])]);
   // Siklus terbaru yang sudah punya penjualan; bila belum ada, siklus terbaru apa pun.
+  const tindakan = await daftarTindakan(sesi, buku);
   const siklus = tren.filter((t) => t.pendapatan_total > 0).at(-1) ?? tren.at(-1) ?? null;
   const { salam, tanggal } = salamDanTanggal();
   const namaDepan = (sesi.nama || "").trim().split(/\s+/)[0] ?? "";
-  return <DashboardOwner d={d} izin={izin} nama={namaDepan} salam={salam} tanggal={tanggal} buku={[...buku].reverse()} siklus={siklus} />;
+  return <DashboardOwner d={d} izin={izin} nama={namaDepan} salam={salam} tanggal={tanggal} buku={[...buku].reverse()} siklus={siklus} tindakan={tindakan} />;
 }
