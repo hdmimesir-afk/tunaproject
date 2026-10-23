@@ -11,10 +11,12 @@ test("Super Admin membuat akun petugas, petugas mengaktifkan lewat tautan lalu m
 
   await masuk(page, ADMIN);
   await page.goto("/akses");
-  await page.getByLabel("Nama", { exact: true }).fill("Petugas Baru E2E");
-  await page.getByLabel("Email", { exact: true }).fill(email);
-  await page.getByLabel("Peran", { exact: true }).selectOption({ label: "Petugas Lapangan" });
-  await page.getByRole("button", { name: "Buat akun" }).click();
+  // Form "Buat akun" saja; daftar pengguna di bawahnya juga punya pilihan peran per baris.
+  const form = page.locator("form").filter({ has: page.getByRole("button", { name: "Buat akun" }) });
+  await form.locator('input[name="nama"]').fill("Petugas Baru E2E");
+  await form.locator('input[name="email"]').fill(email);
+  await form.locator('select[name="roleId"]').selectOption({ label: "Petugas Lapangan" });
+  await form.getByRole("button", { name: "Buat akun" }).click();
   const kolom = page.getByTestId("tautan-aktivasi").first();
   await expect(kolom).toHaveValue(/\/auth\/confirm\?token_hash=.+&type=invite$/, { timeout: 30_000 });
   const tautan = await kolom.inputValue();
