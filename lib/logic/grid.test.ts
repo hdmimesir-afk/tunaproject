@@ -61,7 +61,7 @@ describe("periksaBaris", () => {
     expect(g.get("id-2")?.noLoin).toBe("Nomor ganda");
   });
   it("grade dan berat wajib", () => {
-    const g = periksaBaris([baris(1, "", { gradeId: "" })]);
+    const g = periksaBaris([baris(1, "", { gradeId: "", versi: 1 })]);
     expect(g.get("id-1")?.gradeId).toBeDefined();
     expect(g.get("id-1")?.kg).toBeDefined();
   });
