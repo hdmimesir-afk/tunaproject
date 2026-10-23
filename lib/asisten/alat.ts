@@ -10,7 +10,9 @@ import { createClient } from "@/lib/supabase/server";
    Tautan hanya ke halaman internal yang sudah dikenal. */
 
 export type Tautan = { label: string; href: string };
-export type HasilAlat = { ringkas: string[]; data: unknown; tautan: Tautan[] };
+/** Rincian berbentuk tabel; kolom ke-`kananDari` dan seterusnya rata kanan (angka). */
+export type TabelAlat = { kepala: string[]; baris: string[][]; kananDari?: number };
+export type HasilAlat = { ringkas: string[]; data: unknown; tautan: Tautan[]; tabel?: TabelAlat };
 
 export type DefAlat = {
   nama: string;
@@ -43,7 +45,8 @@ async function piutangTerlambat(sb: Sb): Promise<HasilAlat> {
   const baris = data ?? [];
   const total = baris.reduce((a, r) => a + Math.round(Number(r.sisa) * 100), 0) / 100;
   return {
-    ringkas: baris.length === 0 ? ["Tidak ada invoice yang terlambat."] : [`${baris.length} invoice terlambat, total sisa ${rp(total)}.`, ...baris.map((r) => `${r.kode} · ${r.buyer_nama} · sisa ${rp(Number(r.sisa))} · terlambat ${r.hari_telat} hari (jatuh tempo ${tanggal(r.jatuh_tempo as string)})`)],
+    ringkas: baris.length === 0 ? ["Tidak ada invoice yang terlambat."] : [`${baris.length} invoice terlambat dengan total sisa tagihan ${rp(total)}.`],
+    tabel: baris.length === 0 ? undefined : { kepala: ["Invoice", "Pembeli", "Jatuh tempo", "Terlambat", "Sisa tagihan"], kananDari: 3, baris: baris.map((r) => [r.kode as string, r.buyer_nama as string, tanggal(r.jatuh_tempo as string), `${r.hari_telat} hari`, rp(Number(r.sisa))]) },
     data: baris, tautan: [{ label: "Piutang dan invoice", href: "/penjualan" }, ...baris.slice(0, 5).map((r) => ({ label: r.kode as string, href: `/penjualan?inv=${r.id}` }))],
   };
 }
@@ -59,7 +62,8 @@ async function saldoKas(sb: Sb): Promise<HasilAlat> {
     if (r.arah === "masuk") { masuk += s; if (ini) masukB += s; } else { keluar += s; if (ini) keluarB += s; }
   }
   return {
-    ringkas: [`Saldo kas tercatat ${rp((masuk - keluar) / 100)} (masuk ${rp(masuk / 100)}, keluar ${rp(keluar / 100)}).`, `Bulan ini: masuk ${rp(masukB / 100)}, keluar ${rp(keluarB / 100)}, selisih ${rp((masukB - keluarB) / 100)}.`, "Saldo dihitung dari buku kas di sistem, belum termasuk modal awal atau catatan lama."],
+    ringkas: [`Saldo kas tercatat ${rp((masuk - keluar) / 100)}.`, "Saldo dihitung dari buku kas di sistem, belum termasuk modal awal atau catatan lama."],
+    tabel: { kepala: ["", "Uang masuk", "Uang keluar", "Selisih"], kananDari: 1, baris: [["Bulan ini", rp(masukB / 100), rp(keluarB / 100), rp((masukB - keluarB) / 100)], ["Seluruhnya", rp(masuk / 100), rp(keluar / 100), rp((masuk - keluar) / 100)]] },
     data: { masuk: masuk / 100, keluar: keluar / 100, masukBulanIni: masukB / 100, keluarBulanIni: keluarB / 100 }, tautan: [{ label: "Buku kas", href: "/keuangan" }],
   };
 }
@@ -79,8 +83,8 @@ async function hasilEkor(sb: Sb, input: { produksi?: string }): Promise<HasilAla
   const baris = (ek.data ?? []).map((e) => ({ ekor: e.no_ekor as number, utuh: Number(e.berat_utuh_kg), loinG: loin.get(e.no_ekor as number) ?? 0 }))
     .map((e) => ({ ...e, pct: hasilPerEkor(e.loinG, e.utuh) })).sort((a, b) => a.ekor - b.ekor);
   return {
-    ringkas: baris.length === 0 ? [`${prod.kode}: belum ada berat ikan utuh per ekor, jadi hasil per ekor belum bisa dihitung.`]
-      : [`Hasil per ekor ${prod.kode}:`, ...baris.map((e) => `Ekor ${e.ekor}: utuh ${kg(e.utuh)}, loin ${kg(e.loinG / 1000)}, hasil ${e.pct === null ? "-" : `${e.pct.toLocaleString("id-ID", { minimumFractionDigits: 1 })}%`}`)],
+    ringkas: baris.length === 0 ? [`${prod.kode}: belum ada berat ikan utuh per ekor, jadi hasil per ekor belum bisa dihitung.`] : [`Hasil per ekor untuk ${prod.kode} (loin ÷ berat ikan utuh).`],
+    tabel: baris.length === 0 ? undefined : { kepala: ["Ekor", "Utuh", "Loin", "Hasil"], kananDari: 1, baris: baris.map((e) => [String(e.ekor), kg(e.utuh), kg(e.loinG / 1000), e.pct === null ? "-" : `${e.pct.toLocaleString("id-ID", { minimumFractionDigits: 1 })}%`]) },
     data: baris, tautan: [{ label: `Produksi ${prod.kode}`, href: `/produksi?p=${prod.id}` }],
   };
 }
@@ -94,7 +98,8 @@ async function jadwalBentrok(sb: Sb): Promise<HasilAlat> {
   for (const b of j) for (const o of cariBentrok(j.filter((x) => x.id > b.id), b)) bentrok.push(`${b.label} bentrok dengan ${o.label}`);
   const wib = new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta", hourCycle: "h23" });
   return {
-    ringkas: [j.length === 0 ? "Tidak ada jadwal 14 hari ke depan." : `${j.length} jadwal 14 hari ke depan:`, ...j.map((b) => `${b.label}: ${wib.format(b.mulai)} – ${wib.format(b.selesai)}`), bentrok.length === 0 ? "Tidak ada jadwal yang bentrok." : `Bentrok: ${bentrok.join("; ")}.`],
+    ringkas: [j.length === 0 ? "Tidak ada jadwal 14 hari ke depan." : `${j.length} jadwal dalam 14 hari ke depan.`, bentrok.length === 0 ? "Tidak ada jadwal yang bentrok." : `Bentrok: ${bentrok.join("; ")}.`],
+    tabel: j.length === 0 ? undefined : { kepala: ["Jadwal", "Mulai", "Selesai"], baris: j.map((b) => [b.label, wib.format(b.mulai), wib.format(b.selesai)]) },
     data: { jadwal: j.length, bentrok }, tautan: [{ label: "Jadwal mesin", href: "/gudang" }],
   };
 }
@@ -104,7 +109,8 @@ async function perluPersetujuan(sb: Sb): Promise<HasilAlat> {
   if (error || !data) throw new Error("Gagal membaca antrean.");
   const d = data as Record<string, number>;
   return {
-    ringkas: [`PO menunggu persetujuan: ${d.persetujuan_menunggu}.`, `Biaya menunggu Owner: ${d.biaya_menunggu}.`, `Koreksi stok menunggu Owner: ${d.koreksi_menunggu}.`, `Produksi menunggu pemeriksaan: ${d.produksi_menunggu}.`, `Lot menunggu cek mutu: ${d.lot_menunggu_mutu}.`],
+    ringkas: [`${d.persetujuan_menunggu + d.biaya_menunggu + d.koreksi_menunggu + d.produksi_menunggu + d.lot_menunggu_mutu} hal menunggu keputusan atau pemeriksaan.`],
+    tabel: { kepala: ["Yang menunggu", "Jumlah"], kananDari: 1, baris: [["PO menunggu persetujuan", String(d.persetujuan_menunggu)], ["Biaya menunggu Owner", String(d.biaya_menunggu)], ["Koreksi stok menunggu Owner", String(d.koreksi_menunggu)], ["Produksi menunggu pemeriksaan", String(d.produksi_menunggu)], ["Lot menunggu cek mutu", String(d.lot_menunggu_mutu)]] },
     data: d, tautan: [{ label: "Persetujuan", href: "/persetujuan" }, { label: "Biaya", href: "/keuangan" }, { label: "Stok", href: "/stok" }, { label: "Produksi", href: "/produksi" }],
   };
 }
@@ -120,7 +126,8 @@ async function isiGudang(sb: Sb): Promise<HasilAlat> {
   for (const u of unit.data ?? []) per.set(u.pemilik_nama as string, (per.get(u.pemilik_nama as string) ?? 0) + Math.round(Number(u.sisa_kg) * 1000));
   const total = Number(g.isi_sendiri_kg) + Number(g.isi_titipan_kg);
   return {
-    ringkas: [`Gudang terisi ${kg(total)} dari ${kg(g.kapasitas_kg)} (sisa ${kg(Math.max(0, g.kapasitas_kg - total))}).`, `Stok sendiri ${kg(g.isi_sendiri_kg)}, titipan ${kg(g.isi_titipan_kg)}.`, ...[...per.entries()].map(([n, gram]) => `Titipan ${n}: ${kg(gram / 1000)}`)],
+    ringkas: [`Gudang terisi ${kg(total)} dari kapasitas ${kg(g.kapasitas_kg)}; sisa ruang ${kg(Math.max(0, g.kapasitas_kg - total))}.`],
+    tabel: { kepala: ["Isi gudang", "Berat"], kananDari: 1, baris: [["Stok milik sendiri", kg(g.isi_sendiri_kg)], ...[...per.entries()].map(([n, gram]) => [`Titipan ${n}`, kg(gram / 1000)])] },
     data: { ...g, titipanPerPelanggan: Object.fromEntries(per) }, tautan: [{ label: "Gudang dingin", href: "/gudang" }, { label: "Stok", href: "/stok" }],
   };
 }
@@ -136,7 +143,8 @@ async function kelengkapan(sb: Sb): Promise<HasilAlat> {
   const tanpa = (po.data ?? []).filter((p) => !punya.has(p.id as string));
   const jumlah = Number((d.data as { dokumen_kurang: number } | null)?.dokumen_kurang ?? 0);
   return {
-    ringkas: [`${jumlah} transaksi belum punya nota atau bukti (PO, biaya, pembayaran).`, ...tanpa.slice(0, 10).map((p) => `PO ${p.kode} · ${p.supplier_nama} · ${rp(Number(p.total))} belum ada nota`)],
+    ringkas: [`${jumlah} transaksi belum punya nota atau bukti (PO, biaya, pembayaran).`],
+    tabel: tanpa.length === 0 ? undefined : { kepala: ["PO tanpa nota", "Pemasok", "Total"], kananDari: 2, baris: tanpa.slice(0, 10).map((p) => [p.kode as string, p.supplier_nama as string, rp(Number(p.total))]) },
     data: { jumlah, poTanpaNota: tanpa.map((p) => p.kode) }, tautan: [{ label: "Pembelian", href: "/pembelian" }, { label: "Keuangan", href: "/keuangan" }, ...tanpa.slice(0, 3).map((p) => ({ label: p.kode as string, href: `/pembelian?po=${p.id}` }))],
   };
 }
@@ -151,8 +159,8 @@ async function biayaSiklus(sb: Sb, input: { siklus?: string }): Promise<HasilAla
   const per = new Map<string, number>();
   for (const b of by ?? []) per.set(b.kategori_nama as string, (per.get(b.kategori_nama as string) ?? 0) + Math.round(Number(b.jumlah) * 100));
   return {
-    ringkas: [`${s.kode}: pendapatan ${rp(Number(s.pendapatan_total))}, biaya ${rp(Number(s.biaya_total))} (ikan ${rp(Number(s.biaya_ikan))}, lain ${rp(Number(s.biaya_lain))}), laba kotor ${rp(Number(s.laba_kotor))}${s.margin_pct !== null ? ` (margin ${String(s.margin_pct).replace(".", ",")}%)` : ""}.`,
-      ...[...per.entries()].map(([k, v]) => `Biaya ${k}: ${rp(v / 100)}`)],
+    ringkas: [`${s.kode}: laba kotor ${rp(Number(s.laba_kotor))}${s.margin_pct !== null ? ` (margin ${String(s.margin_pct).replace(".", ",")}%)` : ""} dari pendapatan ${rp(Number(s.pendapatan_total))} dan biaya ${rp(Number(s.biaya_total))}.`],
+    tabel: { kepala: ["Komponen", "Rupiah"], kananDari: 1, baris: [["Pendapatan", rp(Number(s.pendapatan_total))], ["Biaya ikan (PO disetujui)", rp(Number(s.biaya_ikan))], ...[...per.entries()].map(([k, v]) => [`Biaya ${k}`, rp(v / 100)]), ["Laba kotor", rp(Number(s.laba_kotor))]] },
     data: s, tautan: [{ label: `Laba rugi ${s.kode}`, href: `/laporan?c=${s.cycle_id}` }, { label: "Rincian siklus", href: `/siklus?c=${s.cycle_id}` }],
   };
 }

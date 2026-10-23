@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { Btn, Card, Inner } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
+import { JawabanTeks, TabelHasil, type TabelAsisten } from "./Jawaban";
 import { tanyaCepat, tanyaModel, type JawabanAsisten } from "@/lib/actions/asisten";
 
-type Pesan = { peran: "user" | "assistant"; teks: string; baris?: string[]; tautan?: { label: string; href: string }[]; galat?: boolean };
+type Pesan = { peran: "user" | "assistant"; teks: string; baris?: string[]; tabel?: TabelAsisten; tautan?: { label: string; href: string }[]; galat?: boolean };
 type Props = { alat: { nama: string; label: string }[]; modelAktif: boolean; jatah: { batas: number; sisa: number } };
 
 const CONTOH = ["Piutang mana yang sudah terlambat?", "Berapa saldo kas bulan ini?", "Apa saja yang menunggu persetujuan saya?", "Berapa isi gudang dingin sekarang?"];
@@ -22,7 +23,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
     setPesan((x) => [...x, p]);
     setTimeout(() => ujung.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 50);
   };
-  const hasil = (j: JawabanAsisten): Pesan => (j.error ? { peran: "assistant", teks: j.error, galat: true } : { peran: "assistant", teks: j.jawaban ?? "", baris: j.baris, tautan: j.tautan });
+  const hasil = (j: JawabanAsisten): Pesan => (j.error ? { peran: "assistant", teks: j.error, galat: true } : { peran: "assistant", teks: j.jawaban ?? "", baris: j.baris, tabel: j.tabel, tautan: j.tautan });
 
   const cepat = (nama: string, label: string) => {
     if (sibuk) return;
@@ -33,7 +34,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
   const kirim = (isi: string) => {
     const t = isi.trim();
     if (!t || sibuk) return;
-    const riwayat = pesan.filter((p) => !p.galat).slice(-6).map((p) => ({ peran: p.peran, teks: p.baris ? p.baris.join("\n") : p.teks }));
+    const riwayat = pesan.filter((p) => !p.galat).slice(-6).map((p) => ({ peran: p.peran, teks: p.baris ? [...p.baris, ...(p.tabel ? p.tabel.baris.map((b) => b.join(" | ")) : [])].join("\n") : p.teks }));
     tampil({ peran: "user", teks: t });
     setTeks("");
     mulai(async () => {
@@ -66,7 +67,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
           {pesan.map((p, i) => (
             <div key={i} className={p.peran === "user" ? "flex justify-end" : "flex justify-start"}>
               <div className="max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[13.5px]" style={p.peran === "user" ? { background: INK, color: "#fff" } : p.galat ? { background: "#FBE5E3", color: "#A8322B" } : { background: "#fff", color: INK }}>
-                {p.baris ? <ul className="space-y-1">{p.baris.map((b, j) => <li key={j}>{b}</li>)}</ul> : <p className="whitespace-pre-wrap">{p.teks}</p>}
+                {p.baris ? <><ul className="space-y-1">{p.baris.map((b, j) => <li key={j}>{b}</li>)}</ul>{p.tabel && <TabelHasil t={p.tabel} />}</> : p.peran === "assistant" && !p.galat ? <JawabanTeks teks={p.teks} /> : <p className="whitespace-pre-wrap">{p.teks}</p>}
                 {p.tautan && p.tautan.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {p.tautan.map((l) => <Link key={l.href} href={l.href} className="rounded-full bg-[#F1F3F8] px-2.5 py-1 text-[12px] font-medium underline-offset-2 hover:underline" style={{ color: INK }}>{l.label}</Link>)}
