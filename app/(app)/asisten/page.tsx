@@ -34,5 +34,5 @@ async function AsistenData() {
   const { data } = await sb.rpc("jatah_asisten");
   const jatah = (data as { batas: number; sisa: number } | null) ?? { batas: 30, sisa: 30 };
   const alat = DAFTAR_ALAT.filter((a) => a.izin.some((i) => boleh(sesi, i))).map((a) => ({ nama: a.nama, label: a.label }));
-  return <AsistenKelola alat={alat} modelAktif={Boolean(process.env.ANTHROPIC_API_KEY)} jatah={jatah} />;
+  return <AsistenKelola alat={alat} modelAktif={Boolean(process.env.OPENROUTER_API_KEY)} jatah={jatah} />;
 }

@@ -10,7 +10,7 @@ test("Asisten: pertanyaan cepat menampilkan data dari sistem, pertanyaan bebas m
   await expect(page.getByText(/Saldo kas tercatat/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Buku kas" })).toBeVisible();
 
-  // CI tidak punya ANTHROPIC_API_KEY: pertanyaan bebas dimatikan, bukan gagal diam-diam.
+  // CI tidak punya OPENROUTER_API_KEY: pertanyaan bebas dimatikan, bukan gagal diam-diam.
   await expect(page.getByLabel("Pertanyaan untuk Asisten")).toBeDisabled();
 });
 

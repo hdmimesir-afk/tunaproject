@@ -13,7 +13,7 @@ Daftar periksa yang dicentang bersama owner sebelum sistem dipakai sungguhan. Sa
 ## 2. Kepemilikan dan rahasia
 
 - [ ] Repo GitHub, proyek Supabase, dan proyek Vercel atas nama perusahaan; Owner terdaftar sebagai pemilik
-- [ ] Kunci `sb_secret_` dan kunci model (`ANTHROPIC_API_KEY`) hanya ada di variabel lingkungan server, tidak di repo
+- [ ] Kunci `sb_secret_` dan kunci model (`OPENROUTER_API_KEY`) hanya ada di variabel lingkungan server, tidak di repo
 - [ ] Kunci dirotasi (dibuat ulang) saat developer selesai bertugas; langkah: buat kunci baru di Supabase / Anthropic → isi di Vercel → redeploy → matikan kunci lama
 - [ ] Token GitHub pribadi developer dicabut dari mesin proyek
 
