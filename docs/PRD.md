@@ -411,35 +411,35 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Penjualan**
 
-- [ ] Migrasi: `sales_orders`, `sale_allocations`, `invoices`
-- [ ] Pesanan dari stok; tolak bila melebihi stok tersedia dikurangi pesanan draf lain (F14)
-- [ ] Alokasi penjualan ke satu atau beberapa produksi/unit simpan (F14)
-- [ ] Kirim: berat kirim dan berat diterima pembeli; stok berkurang (F14)
-- [ ] Invoice dari berat yang dikirim/diterima, jatuh tempo bawaan 14 hari (F14)
-- [ ] Pembayaran pembeli sebagian dan lunas dengan bukti transfer (F14)
-- [ ] Status tagihan: belum jatuh tempo, jatuh tempo, terlambat, lunas; tombol pengingat
+- [x] Migrasi: `sales_orders`, `sale_allocations`, `invoices`
+- [x] Pesanan dari stok; tolak bila melebihi stok tersedia dikurangi pesanan draf lain (F14)
+- [x] Alokasi penjualan ke satu atau beberapa produksi/unit simpan (F14)
+- [x] Kirim: berat kirim dan berat diterima pembeli; stok berkurang (F14)
+- [x] Invoice dari berat yang dikirim/diterima, jatuh tempo bawaan 14 hari (F14)
+- [x] Pembayaran pembeli sebagian dan lunas dengan bukti transfer (F14)
+- [x] Status tagihan: belum jatuh tempo, jatuh tempo, terlambat, lunas; tombol pengingat
 
 **Penelusuran**
 
-- [ ] View `v_rincian_siklus` dan halaman Rincian Siklus/PO dengan semua nota (F15)
-- [ ] View `v_ringkasan_harian`: transaksi, nilai beli, hasil produksi, kiriman, uang masuk (F15)
+- [x] View `v_rincian_siklus` dan halaman Rincian Siklus/PO dengan semua nota (F15)
+- [x] View `v_ringkasan_harian`: transaksi, nilai beli, hasil produksi, kiriman, uang masuk (F15)
 - [ ] Uji N:M: satu lot ke dua produksi, satu penjualan dari dua produksi, telusur dua arah
 
 **Keuangan dan laporan**
 
-- [ ] Ajukan biaya dengan kategori, nota wajib, rujukan PO/produksi/siklus (F16)
-- [ ] Unggah nota dan bukti ke Storage privat di `documents` (F16)
-- [ ] Kelengkapan dokumen: hitung transaksi tanpa bukti di dashboard
+- [x] Ajukan biaya dengan kategori, nota wajib, rujukan PO/produksi/siklus (F16)
+- [x] Unggah nota dan bukti ke Storage privat di `documents` (F16)
+- [x] Kelengkapan dokumen: hitung transaksi tanpa bukti di dashboard
 - [ ] Impor 243 transaksi Monitor Dana ke `ledger` (tanpa nomor rekening, tanpa bagian modal)
-- [ ] Laporan biaya per siklus, tagihan, pembayaran, dengan klik sampai transaksi (F17)
-- [ ] Laba rugi per siklus mengikuti contoh laporan Siklus 1 di docs/laporan: pendapatan per grade dan hasil samping, biaya langsung, laba kotor, angka per kg loin, neraca berat, tren antarsiklus (F17)
-- [ ] Ekspor CSV yang sama dengan tampilan (F17)
-- [ ] View `v_harga_beli` rata-rata tertimbang dan halaman tabel + grafik per periode, jenis, grade, pemasok (F18)
+- [x] Laporan biaya per siklus, tagihan, pembayaran, dengan klik sampai transaksi (F17)
+- [x] Laba rugi per siklus mengikuti contoh laporan Siklus 1 di docs/laporan: pendapatan per grade dan hasil samping, biaya langsung, laba kotor, angka per kg loin, neraca berat, tren antarsiklus (F17)
+- [x] Ekspor CSV yang sama dengan tampilan (F17)
+- [x] View `v_harga_beli` rata-rata tertimbang dan halaman tabel + grafik per periode, jenis, grade, pemasok (F18)
 
 **Dashboard**
 
-- [ ] View `v_dashboard` dan dashboard owner di HP: ringkasan dulu, rincian saat diketuk (F19)
-- [ ] Beranda petugas: hanya menu sesuai izin, halaman lihat tanpa tombol ubah (F19)
+- [x] View `v_dashboard` dan dashboard owner di HP: ringkasan dulu, rincian saat diketuk (F19)
+- [x] Beranda petugas: hanya menu sesuai izin, halaman lihat tanpa tombol ubah (F19)
 
 **Penutup minggu 3**
 
