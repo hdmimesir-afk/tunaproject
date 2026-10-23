@@ -1,4 +1,4 @@
-﻿# PRD Katalis ERP
+# PRD Katalis ERP
 
 22 Oktober 2026 · Disusun oleh Dar Dev
 
@@ -380,24 +380,24 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 **Stok**
 
-- [ ] Migrasi: `storage_units`, `storage_movements`
-- [ ] Hasil produksi masuk unit simpan per produk, grade, fresh/beku, lokasi (F11)
-- [ ] Jalur fresh langsung kirim tanpa masuk gudang (F11)
-- [ ] Keluar sebagian/penuh dengan berat tercatat dan timbang ulang (F11)
-- [ ] Koreksi stok lewat persetujuan Owner
+- [x] Migrasi: `storage_units`, `storage_movements`
+- [x] Hasil produksi masuk unit simpan per produk, grade, fresh/beku, lokasi (F11)
+- [x] Jalur fresh langsung kirim tanpa masuk gudang (F11)
+- [x] Keluar sebagian/penuh dengan berat tercatat dan timbang ulang (F11)
+- [x] Koreksi stok lewat persetujuan Owner
 
 **Gudang dingin dan tarif**
 
-- [ ] Titipan pelanggan masuk dan keluar; cek kapasitas 17.500 kg (F12)
-- [ ] `tariff_rules` dengan angka proposal bertanda "belum dikonfirmasi" (F12)
-- [ ] Mesin tarif: transit, pembulatan hari, minimum hari, dasar berat, ambil sebagian (F12)
-- [ ] Invoice jasa dengan rincian hitungan di `service_charges` (F12)
-- [ ] Uji kasus batas tarif: tepat 3 jam, 24 jam, 10 hari, ambil sebagian, berat masuk vs keluar
+- [x] Titipan pelanggan masuk dan keluar; cek kapasitas 17.500 kg (F12)
+- [x] `tariff_rules` dengan angka proposal bertanda "belum dikonfirmasi" (F12)
+- [x] Mesin tarif: transit, pembulatan hari, minimum hari, dasar berat, ambil sebagian (F12)
+- [x] Invoice jasa dengan rincian hitungan di `service_charges` (F12)
+- [x] Uji kasus batas tarif: tepat 3 jam, 24 jam, 10 hari, ambil sebagian, berat masuk vs keluar
 
 **Jadwal ABF**
 
-- [ ] Booking produksi dan ABF per hari/jam; giliran mitra (F13)
-- [ ] Deteksi bentrok dan pindah ke jam kosong pertama (F13)
+- [x] Booking produksi dan ABF per hari/jam; giliran mitra (F13)
+- [x] Deteksi bentrok dan pindah ke jam kosong pertama (F13)
 
 **Penutup minggu 2 (titik periksa)**
 

@@ -1,4 +1,4 @@
-﻿import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { masuk, PETUGAS } from "./akun";
 
 /* Uji grid loin: 300+ baris lewat keyboard, jaringan putus saat menyimpan, klik ganda simpan.

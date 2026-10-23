@@ -1,4 +1,4 @@
-﻿import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { ADMIN, PETUGAS, type Akun } from "./akun";
 
 async function siapkanPengguna(supabase: SupabaseClient, akun: Akun, nama: string, peran: string) {
@@ -35,6 +35,12 @@ export default async function setup() {
     const r = await supabase.from("suppliers").insert({ nama: "Pemasok E2E" }).select("id").single();
     if (r.error) throw new Error(`Gagal membuat pemasok uji: ${r.error.message}`);
     pemasok = r.data;
+  }
+
+  const { data: pelanggan } = await supabase.from("buyers").select("id").eq("nama", "Pelanggan E2E").maybeSingle();
+  if (!pelanggan) {
+    const r = await supabase.from("buyers").insert({ nama: "Pelanggan E2E" });
+    if (r.error) throw new Error(`Gagal membuat pelanggan uji: ${r.error.message}`);
   }
 
   // Lot baru yang lulus mutu, dibuat langsung (jalur terima ikan dan cek mutu sudah diuji di pgTAP).
