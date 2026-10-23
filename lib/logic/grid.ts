@@ -50,7 +50,8 @@ export function periksaBaris(baris: BarisLoin[]): Map<string, GalatBaris> {
   return galat;
 }
 
-export const barisKosong = (b: BarisLoin) => b.noLoin.trim() === "" && b.kg.trim() === "" && b.noEkor.trim() === "";
+/** Baris yang belum ditimbang (berat kosong) dan belum pernah disimpan dianggap kosong: baris baru dari Enter sudah berisi nomor dan grade otomatis. */
+export const barisKosong = (b: BarisLoin) => b.kg.trim() === "" && b.versi === undefined;
 
 export type Total = { jumlah: number; gram: number };
 

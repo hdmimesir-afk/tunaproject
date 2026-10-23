@@ -51,6 +51,10 @@ describe("periksaBaris", () => {
   it("baris kosong dilewati, baris benar lolos", () => {
     expect(periksaBaris([baris(1, "10"), { id: "k", noEkor: "", noLoin: "", gradeId: "", kg: "" }]).size).toBe(0);
   });
+  it("baris baru dari Enter (nomor dan grade terisi, berat kosong) dilewati, tetapi baris tersimpan tanpa berat salah", () => {
+    expect(periksaBaris([baris(1, "10"), baris(2, "")]).size).toBe(0);
+    expect(periksaBaris([baris(1, "10"), baris(2, "", { versi: 1 })]).get("id-2")?.kg).toBeDefined();
+  });
   it("nomor loin ganda ditandai di kedua baris", () => {
     const g = periksaBaris([baris(1, "10"), baris(2, "11", { noLoin: "1" })]);
     expect(g.get("id-1")?.noLoin).toBe("Nomor ganda");
