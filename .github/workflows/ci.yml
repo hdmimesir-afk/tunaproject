@@ -63,7 +63,13 @@ jobs:
         with:
           version: 2.121.0
       - run: npm ci
-      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,inbucket
+      - name: Jalankan Supabase lokal (ulangi bila gagal mengunduh image)
+        run: |
+          for i in 1 2 3; do
+            supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,inbucket && exit 0
+            echo "::warning::supabase start gagal (percobaan $i)"; supabase stop --no-backup || true; sleep 10
+          done
+          exit 1
       - name: Ambil kunci Supabase lokal
         run: |
           supabase status -o env > /tmp/sb.env
