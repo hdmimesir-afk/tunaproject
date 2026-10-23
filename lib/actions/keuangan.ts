@@ -68,3 +68,19 @@ export async function putuskanBiaya(_: HasilForm, fd: FormData): Promise<HasilFo
   return panggil("biaya.setuju", "putuskan_biaya", { p_id: p.data.biayaId, p_setuju: p.data.setuju === "ya", p_catatan: p.data.catatan },
     p.data.setuju === "ya" ? "Biaya disetujui dan masuk buku kas." : "Biaya ditolak.");
 }
+
+/* ---------------------------------------------------------- tutup buku */
+const Bulan = z.string().regex(/^\d{4}-\d{2}$/, "Bulan tidak valid").transform((s) => `${s}-01`);
+
+/** Menutup buku satu bulan: hanya Owner. Setelah ditutup, transaksi bertanggal di bulan itu terkunci di database. */
+export async function tutupPeriode(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ bulan: Bulan, catatan: z.string().trim().max(300), akui: z.string().optional() }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { error: "Bulan tidak valid." };
+  return panggil("periode.tutup", "tutup_periode", { p_bulan: p.data.bulan, p_catatan: p.data.catatan, p_terima_dokumen_kurang: p.data.akui === "on" }, "Buku bulan itu ditutup dan transaksinya terkunci.");
+}
+
+export async function bukaKembaliPeriode(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ bulan: Bulan, alasan: z.string().trim().min(1, "Tulis alasan").max(300) }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("periode.tutup", "buka_kembali_periode", { p_bulan: p.data.bulan, p_alasan: p.data.alasan }, "Buku bulan itu dibuka kembali.");
+}

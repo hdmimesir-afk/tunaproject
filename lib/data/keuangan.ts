@@ -41,3 +41,10 @@ export async function ambilDashboard(): Promise<Dashboard> {
   if (error) gagal("dashboard");
   return data as Dashboard;
 }
+
+export async function bukuBulanan(): Promise<import("@/lib/types/keuangan").BukuBulanan[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("v_buku_bulanan").select("*").order("bulan", { ascending: false });
+  if (error) gagal("rekap bulanan");
+  return (data ?? []) as import("@/lib/types/keuangan").BukuBulanan[];
+}

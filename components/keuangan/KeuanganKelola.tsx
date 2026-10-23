@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
+import { Periode } from "./Periode";
 import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
@@ -11,7 +12,7 @@ import type { HasilForm } from "@/lib/actions/auth";
 import { ajukanBiaya, putuskanBiaya, simpanBiaya } from "@/lib/actions/keuangan";
 import { rp, tanggal } from "@/lib/format";
 import { buatCsv } from "@/lib/logic/grid";
-import type { Biaya, BarisKas, KategoriBiaya } from "@/lib/types/keuangan";
+import type { Biaya, BarisKas, BukuBulanan, KategoriBiaya } from "@/lib/types/keuangan";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
 
 type Props = {
@@ -19,6 +20,8 @@ type Props = {
   kategori: KategoriBiaya[];
   siklus: Opsi[];
   kas: BarisKas[];
+  buku: BukuBulanan[];
+  bolehTutup: boolean;
   detail: { biaya: Biaya; berkas: Dokumen[] } | null;
   bolehTulis: boolean;
   bolehSetuju: boolean;
@@ -94,7 +97,7 @@ function Putusan({ b }: { b: Biaya }) {
   );
 }
 
-export function KeuanganKelola({ biaya, kategori, siklus, kas, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni }: Props) {
+export function KeuanganKelola({ biaya, kategori, siklus, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni }: Props) {
   const router = useRouter();
   const [baru, setBaru] = useState(false);
   const [ubah, setUbah] = useState(false);
@@ -157,6 +160,8 @@ export function KeuanganKelola({ biaya, kategori, siklus, kas, detail, bolehTuli
           ]}
         />
       </Card>
+
+      <Periode buku={buku} bolehTutup={bolehTutup} />
 
       {baru && (
         <Modal title="Catat biaya" onClose={() => setBaru(false)}>

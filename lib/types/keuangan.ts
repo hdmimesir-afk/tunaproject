@@ -96,3 +96,19 @@ export type BarisHargaBeli = { tanggal: string; supplier_id: string; supplier_na
 
 export type Transaksi = { kode: string; uraian: string; jumlah: number; tanggal?: string; href?: string };
 export type DetailBaris = { label: string; transaksi: Transaksi[] };
+
+export type BukuBulanan = {
+  bulan: string;
+  masuk: number;
+  keluar: number;
+  jumlah_transaksi: number;
+  saldo_awal: number;
+  saldo_akhir: number;
+  status: "ditutup" | "terbuka";
+  ditutup_pada: string | null;
+  catatan: string;
+  ringkasan: { tanpa_bukti?: number; jumlah_transaksi?: number } | null;
+  dibuka_kali: number;
+  alasan_buka: string;
+  bulan_berjalan: boolean;
+};

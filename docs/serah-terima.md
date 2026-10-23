@@ -47,7 +47,7 @@ Daftar periksa yang dicentang bersama owner sebelum sistem dipakai sungguhan. Sa
 - Absensi dan izin (ditunda atas keputusan owner 22 Oktober 2026)
 - Impor 243 transaksi Monitor Dana lama (perlu dirapikan bersama owner)
 - Laba bersih: butuh biaya bulanan, penyusutan, dan pajak dari owner
-- Tutup buku per periode
+- Rekonsiliasi saldo bank (tutup buku per bulan sudah ada)
 - Giliran tetap mingguan mitra di jadwal mesin
 
 ## Persetujuan
