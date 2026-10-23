@@ -43,7 +43,7 @@ export function Btn({ children, onClick, v = "dark", size = "md", disabled, titl
   const st = { dark: { background: INK, color: "#fff" }, light: { background: "#fff", color: INK, boxShadow: "0 1px 2px rgba(20,24,40,.08)" }, danger: { background: "#FBE5E3", color: "#A8322B" }, ghost: { background: "transparent", color: MUTED } }[v];
   return (
     <button type={type} title={title} disabled={disabled} onClick={onClick} style={st}
-      className={`${full ? "w-full" : ""} inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40 ${size === "sm" ? "h-8 px-3.5 text-[12.5px]" : "h-11 px-5 text-[14px]"}`}>
+      className={`${full ? "w-full" : ""} inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40 ${size === "sm" ? "h-10 px-4 text-[13px] md:h-8 md:px-3.5 md:text-[12.5px]" : "h-11 px-5 text-[14px]"}`}>
       {children}
     </button>
   );

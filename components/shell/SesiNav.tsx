@@ -19,7 +19,7 @@ export async function SesiNav() {
   const slugs = sesi ? MODULES.filter((m) => boleh(sesi, m.izin)).map((m) => m.slug) : [];
   return (
     <>
-      <Nav slugs={slugs} />
+      <Nav slugs={slugs} pengguna={sesi ? { nama: sesi.nama || sesi.email, peran: sesi.roleNama ?? "" } : null} />
       {sesi && (
         <form action={keluar} className="mt-3 hidden items-center justify-between gap-2 rounded-2xl px-3 py-2.5 md:flex" style={{ background: "#1B1D21" }}>
           <div className="min-w-0">

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Sistem pencatatan PT Katalis Lintas Global: pembelian ikan, produksi, stok, penjualan, dan keuangan.",
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#00171F" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#00171F" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

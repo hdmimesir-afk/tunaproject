@@ -201,14 +201,14 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
       )}
 
       <div className="overflow-x-auto rounded-[20px] bg-white">
-        <table className="w-full min-w-[560px] text-[13.5px]">
+        <table className="w-full min-w-[480px] text-[13.5px]">
           <thead>
             <tr className="text-left text-[12px]" style={{ color: MUTED }}>
-              <th className="w-20 px-3 py-2.5 font-medium">No. ekor</th>
-              <th className="w-24 px-3 py-2.5 font-medium">No. loin</th>
-              <th className="w-36 px-3 py-2.5 font-medium">Grade</th>
+              <th className="w-16 px-2 py-2.5 font-medium md:w-20 md:px-3">Ekor</th>
+              <th className="w-16 px-2 py-2.5 font-medium md:w-24 md:px-3">Loin</th>
+              <th className="w-28 px-2 py-2.5 font-medium md:w-36 md:px-3">Grade</th>
               <th className="px-3 py-2.5 font-medium">Berat (kg)</th>
-              <th className="w-28 px-3 py-2.5 text-right font-medium">Aksi</th>
+              <th className="w-24 px-2 py-2.5 text-right font-medium md:w-28 md:px-3">Aksi</th>
             </tr>
           </thead>
           <tbody>
