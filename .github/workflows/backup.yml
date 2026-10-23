@@ -32,6 +32,11 @@ jobs:
           tar czf cadangan.tar.gz skema.sql data.sql
           gpg --batch --yes --pinentry-mode loopback --passphrase "$PASS" --symmetric --cipher-algo AES256 -o "cadangan-$(date +%F).tar.gz.gpg" cadangan.tar.gz
           rm -f skema.sql data.sql cadangan.tar.gz
+      - name: Pastikan berkas cadangan tidak kosong
+        run: |
+          ukuran=$(stat -c %s cadangan-*.tar.gz.gpg)
+          echo "Ukuran cadangan: $ukuran byte" | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$ukuran" -gt 10000
       - uses: actions/upload-artifact@v4
         with:
           name: cadangan-${{ github.run_id }}

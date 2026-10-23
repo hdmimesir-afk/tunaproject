@@ -58,8 +58,8 @@ Versi 1 memuat 12 modul (absensi ditunda atas keputusan owner 22 Oktober 2026) s
 | Gudang dingin dan tarif | Mesin tarif dari pengaturan, invoice jasa rinci | Pengingat batas hari ke pelanggan |
 | Penjualan | Pesanan, kirim (berat kirim dan terima), invoice, bayar sebagian | - |
 | Harga beli | Tabel + grafik per periode, jenis, grade, pemasok | Analisis lanjutan |
-| Keuangan | Kategori biaya, laporan biaya/tagihan/bayar, laba rugi per siklus sesuai contoh laporan Siklus 1 | Tutup buku dengan kunci periode, rekonsiliasi bank |
-| Dashboard | Owner di HP, menu petugas disaring | Halaman kerja khusus per peran |
+| Keuangan | Kategori biaya, laporan biaya/tagihan/bayar, laba rugi per siklus sesuai contoh laporan Siklus 1, tutup buku per periode dengan kunci | Rekonsiliasi bank |
+| Dashboard | Owner di HP, menu petugas disaring, daftar "Perlu tindakan Anda" yang tiap barisnya menuju halaman penyelesaiannya | Halaman kerja khusus per peran |
 | Absensi | Ditunda (keputusan owner) | Pengenalan wajah |
 | Jadwal ABF | Cek bentrok, pindah ke jam kosong | Kalender per tanggal |
 | Asisten AI dan simulasi | Alat baca terbatas; slider harga | Model bahasa; simpan skenario |
@@ -302,10 +302,10 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [ ] Akun Vercel Hobby dan Supabase Free (paket gratis) di email yang bisa dipindah ke perusahaan (ditunda)
 - [x] Satu repo untuk semua (`hdmimesir-afk/tunaproject`): sistem ERP di `/`, penawaran di `/penawaran`, rancangan dan PRD tetap; folder `supabase/migrations`
 - [x] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
-- [ ] Pasang MCP Context7 di alat setiap developer dan AI coding agent
+- [x] Pasang MCP Context7 di alat setiap developer dan AI coding agent (terpasang di alat Dar Dev; developer tambahan memasangnya sendiri)
 - [x] CI: typecheck, lint, test, tes database, dan `npm audit` dicek di setiap push dan pull request
 - [ ] Dua proyek Supabase (uji dan produksi) region Singapura dan preview per cabang di Vercel
-- [ ] Pakai kunci `sb_publishable_` dan `sb_secret_`; variabel lingkungan dipisah per lingkungan
+- [x] Pakai kunci `sb_publishable_` dan `sb_secret_`; variabel lingkungan lokal dan produksi dipisah (preview per cabang menunggu proyek Supabase uji)
 
 ### Minggu 1: fondasi, pembelian, dan persetujuan
 
@@ -352,7 +352,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Alur draf → diajukan → perlu revisi → disetujui/ditolak (F03)
 - [x] Kartu persetujuan dengan nota/bukti di sebelah tombol Setuju (F03)
 - [x] Setuju massal dengan layar daftar, jumlah, dan total (F04)
-- [x] Konfirmasi kedua untuk tombol berisiko (setuju, tolak, bayar, dan ajukan sudah; tutup buku menyusul di Fase 5)
+- [x] Konfirmasi kedua untuk tombol berisiko (setuju, tolak, bayar, ajukan, dan tutup buku)
 - [x] Tabel `payments` dan bayar pemasok terpisah dari persetujuan; status bayar dihitung (F03)
 
 **Penutup minggu 1**
@@ -434,12 +434,14 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Laporan biaya per siklus, tagihan, pembayaran, dengan klik sampai transaksi (F17)
 - [x] Laba rugi per siklus mengikuti contoh laporan Siklus 1 di docs/laporan: pendapatan per grade dan hasil samping, biaya langsung, laba kotor, angka per kg loin, neraca berat, tren antarsiklus (F17)
 - [x] Ekspor CSV yang sama dengan tampilan (F17)
+- [x] Tutup buku per periode: bulan yang ditutup terkunci (trigger di database), hanya Owner yang bisa membuka kembali dengan alasan
 - [x] View `v_harga_beli` rata-rata tertimbang dan halaman tabel + grafik per periode, jenis, grade, pemasok (F18)
 
 **Dashboard**
 
 - [x] View `v_dashboard` dan dashboard owner di HP: ringkasan dulu, rincian saat diketuk (F19)
 - [x] Beranda petugas: hanya menu sesuai izin, halaman lihat tanpa tombol ubah (F19)
+- [x] Dashboard owner: daftar "Perlu tindakan Anda" per transaksi (persetujuan PO, biaya, koreksi stok, produksi, mutu, pengiriman, tagihan terlambat, tutup buku); tiap baris menuju halamannya, dan tautan persetujuan menyorot pengajuan yang dimaksud
 
 **Penutup minggu 3**
 

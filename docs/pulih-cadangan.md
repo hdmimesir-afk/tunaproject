@@ -4,7 +4,7 @@ Cadangan dibuat tiap malam oleh `.github/workflows/backup.yml` (skema dan data, 
 
 ## Yang disiapkan sekali
 
-1. Variabel repo `BACKUP_AKTIF = true`; rahasia `SUPABASE_DB_URL` dan `BACKUP_PASSPHRASE` (simpan frasa sandi di tempat terpisah dari repo, dipegang minimal dua orang).
+1. Variabel repo `BACKUP_AKTIF = true`; rahasia `SUPABASE_DB_URL` dan `BACKUP_PASSPHRASE` (simpan frasa sandi di tempat terpisah dari repo, dipegang minimal dua orang). Isi lewat GitHub: Settings > Secrets and variables > Actions. `SUPABASE_DB_URL` memakai tautan **Session pooler** dari tombol Connect di dashboard Supabase (bukan Direct connection, karena server GitHub tidak punya IPv6), dengan kata sandi database di dalamnya. Jangan ditempel ke chat.
 2. Satu proyek Supabase kosong untuk uji pulih (jangan proyek asli). Paket gratis cukup.
 
 ## Langkah uji

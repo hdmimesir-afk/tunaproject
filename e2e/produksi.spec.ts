@@ -72,6 +72,39 @@ test.describe("grid loin", () => {
     await expect(page.getByTestId("total-loin")).toHaveText(tampil(totalGram(40)));
   });
 
+  test("dua petugas mengedit loin yang sama: yang membawa versi lama tidak menimpa diam-diam", async ({ page, browser }) => {
+    test.setTimeout(120_000);
+    await mulaiProduksi(page);
+    await page.getByLabel("Berat baris 1").fill("5,500");
+    await page.getByRole("button", { name: "Simpan loin" }).click();
+    await tungguStatus(page, /Tersimpan di server/);
+
+    // Petugas kedua membuka produksi yang sama dari perangkat lain dan memuat versi saat ini.
+    const kedua = await browser.newContext({ baseURL: test.info().project.use.baseURL });
+    const page2 = await kedua.newPage();
+    try {
+      await masuk(page2, PETUGAS);
+      await page2.goto(page.url());
+      await expect(page2.getByLabel("Berat baris 1")).toHaveValue("5,500");
+
+      // Petugas pertama mengoreksi dulu dan menyimpan.
+      await page.getByLabel("Berat baris 1").fill("6,500");
+      await page.getByRole("button", { name: "Simpan loin" }).click();
+      await tungguStatus(page, /Tersimpan di server/);
+
+      // Petugas kedua masih memegang versi lama: simpan harus ditolak sebagai konflik, bukan menimpa.
+      await page2.getByLabel("Berat baris 1").fill("7,500");
+      await page2.getByRole("button", { name: "Simpan loin" }).click();
+      await expect(page2.getByText(/sudah diubah orang lain dan tidak ditimpa/)).toBeVisible({ timeout: 30_000 });
+
+      // Isi di server tetap hasil koreksi petugas pertama.
+      await page.reload();
+      await expect(page.getByLabel("Berat baris 1")).toHaveValue("6,500");
+    } finally {
+      await kedua.close();
+    }
+  });
+
   test("nomor loin ganda ditandai sebelum dikirim", async ({ page }) => {
     await mulaiProduksi(page);
     await page.getByLabel("Berat baris 1").fill("5,5");

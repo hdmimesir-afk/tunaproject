@@ -121,7 +121,7 @@ function FormTarif({ aturan, onTutup, hariIni }: { aturan: AturanTarif; onTutup:
 /* -------------------------------------------------------------- jadwal */
 function FormBooking({ booking, mitra, onTutup }: { booking: Booking[]; mitra: Opsi[]; onTutup: () => void }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(buatBooking, undefined);
-  const [mulai, setMulai] = useState(sekarangInputWib());
+  const [mulai, setMulai] = useState(() => sekarangInputWib());
   const [selesai, setSelesai] = useState(() => keInputWib(new Date(Date.now() + 2 * 3600 * 1000)));
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
 
