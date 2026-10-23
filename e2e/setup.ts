@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+﻿import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { ADMIN, PETUGAS, type Akun } from "./akun";
 
 async function siapkanPengguna(supabase: SupabaseClient, akun: Akun, nama: string, peran: string) {
@@ -14,7 +14,7 @@ async function siapkanPengguna(supabase: SupabaseClient, akun: Akun, nama: strin
 }
 
 /* Menyiapkan data uji di Supabase LOKAL: Super Admin dan Petugas Lapangan (tanpa MFA), satu pemasok,
-   dan tiga lot ikan 2.000 kg yang sudah lulus mutu untuk uji produksi. Aman dijalankan berulang. */
+   dan delapan lot ikan 2.000 kg yang sudah lulus mutu untuk uji produksi. Aman dijalankan berulang. */
 export default async function setup() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
@@ -38,12 +38,12 @@ export default async function setup() {
   }
 
   // Lot baru yang lulus mutu, dibuat langsung (jalur terima ikan dan cek mutu sudah diuji di pgTAP).
-  const po = await supabase.from("purchase_orders").insert({ supplier_id: pemasok.id, kg: 6000, harga_per_kg: 45000, catatan: "e2e-produksi" }).select("id, kode").single();
+  const po = await supabase.from("purchase_orders").insert({ supplier_id: pemasok.id, kg: 16000, harga_per_kg: 45000, catatan: "e2e-produksi" }).select("id, kode").single();
   if (po.error) throw new Error(`Gagal membuat PO uji: ${po.error.message}`);
   const grade = await supabase.from("grades").select("id").eq("kode", "A-SO").single();
   if (grade.error) throw new Error(`Grade A-SO tidak ada: ${grade.error.message}`);
-  // Tiga lot: tiap tes produksi memakai satu lot penuh.
-  for (let i = 0; i < 3; i++) {
+  // Delapan lot: tiap percobaan tes produksi (termasuk ulangan) memakai satu lot penuh.
+  for (let i = 0; i < 8; i++) {
     const lot = await supabase.from("lots").insert({ po_id: po.data.id, po_kode: po.data.kode, supplier_id: pemasok.id, kg: 2000, sisa_kg: 2000, qc: "lulus", grade_id: grade.data.id });
     if (lot.error) throw new Error(`Gagal membuat lot uji: ${lot.error.message}`);
   }

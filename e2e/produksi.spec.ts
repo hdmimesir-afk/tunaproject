@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+﻿import { expect, test, type Page } from "@playwright/test";
 import { masuk, PETUGAS } from "./akun";
 
 /* Uji grid loin: 300+ baris lewat keyboard, jaringan putus saat menyimpan, klik ganda simpan.
@@ -20,6 +20,16 @@ async function mulaiProduksi(page: Page) {
   await expect(page.getByText("Loin per potong")).toBeVisible();
 }
 
+/** Tunggu teks status simpan; bila tidak muncul, gagal dengan teks status yang sebenarnya supaya sebabnya terbaca di CI. */
+async function tungguStatus(page: Page, pola: RegExp, timeout = 30_000) {
+  const status = page.getByTestId("status-simpan");
+  try {
+    await expect(status).toHaveText(pola, { timeout });
+  } catch {
+    throw new Error(`Status simpan tidak sesuai ${pola}. Status sekarang: "${(await status.innerText()).replace(/\s+/g, " ")}"`);
+  }
+}
+
 /** Isi baris pertama lalu Enter untuk baris berikutnya: hanya keyboard. */
 async function isiBaris(page: Page, dari: number, sampai: number) {
   for (let i = dari; i < sampai; i++) {
@@ -39,7 +49,7 @@ test.describe("grid loin", () => {
 
     const simpan = page.getByRole("button", { name: "Simpan loin" });
     await simpan.dblclick(); // klik ganda
-    await expect(page.getByText(/Tersimpan di server/)).toBeVisible({ timeout: 30_000 });
+    await tungguStatus(page, /Tersimpan di server/);
 
     await page.reload();
     await expect(page.getByTestId("total-loin")).toHaveText(tampil(totalGram(JUMLAH)));
@@ -52,12 +62,12 @@ test.describe("grid loin", () => {
     await isiBaris(page, 0, 40);
     await context.setOffline(true);
     await page.getByRole("button", { name: "Simpan loin" }).click();
-    await expect(page.getByText(/Tidak ada sinyal/).first()).toBeVisible({ timeout: 20_000 });
+    await tungguStatus(page, /Tidak ada sinyal/, 20_000);
     await expect(page.getByTestId("total-loin")).toHaveText(tampil(totalGram(40)));
 
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event("online"))); // pastikan peristiwa "online" sampai ke halaman
-    await expect(page.getByText(/Tersimpan di server/)).toBeVisible({ timeout: 30_000 });
+    await tungguStatus(page, /Tersimpan di server/);
     await page.reload();
     await expect(page.getByTestId("total-loin")).toHaveText(tampil(totalGram(40)));
   });

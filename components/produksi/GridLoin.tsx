@@ -183,7 +183,7 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div role="status" aria-live="polite" className="text-[12.5px] font-medium" style={{ color: warna }}>
+        <div role="status" aria-live="polite" data-testid="status-simpan" className="text-[12.5px] font-medium" style={{ color: warna }}>
           {!online && <span className="mr-2 rounded-full bg-[#FBE5E3] px-2 py-0.5 text-[11.5px] text-[#A8322B]">Tanpa sinyal</span>}
           {label}
         </div>
