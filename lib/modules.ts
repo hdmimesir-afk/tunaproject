@@ -2,7 +2,7 @@ import type { IconName } from "@/components/ui";
 
 /* Daftar modul versi 1, fase pengerjaannya, dan izin untuk melihatnya di menu.
    Izin modul fase berikutnya ditambahkan di migrasi fase itu; sampai saat itu hanya Owner yang melihatnya.
-   Absensi ditunda owner, jadi tidak ada di sini. */
+   Absensi dikerjakan di fase 7 (setelah sistem inti), tanpa peta pihak ketiga. */
 export type Modul = { slug: string; label: string; icon: IconName; fase: number; isi: string; izin: string | null };
 
 export const MODULES: Modul[] = [
@@ -18,6 +18,7 @@ export const MODULES: Modul[] = [
   { slug: "laporan", label: "Laporan", icon: "chart", fase: 5, izin: "laporan.read", isi: "Laba rugi per siklus, harga beli, CSV" },
   { slug: "siklus", label: "Rincian Siklus", icon: "list", fase: 5, izin: "siklus.read", isi: "Satu siklus dari beli ikan sampai uang masuk" },
   { slug: "asisten", label: "Asisten AI", icon: "sparkles", fase: 6, izin: "asisten.use", isi: "Tanya jawab dari data, hanya baca" },
+  { slug: "absensi", label: "Absensi", icon: "clock", fase: 7, izin: "absensi.absen", isi: "Absen masuk dan pulang dengan lokasi dan foto, izin, rekap" },
   { slug: "akses", label: "Akses", icon: "shield", fase: 1, izin: "akses.kelola", isi: "Pengguna, peran, dan izin" },
   { slug: "pengaturan", label: "Pengaturan", icon: "lock", fase: 1, izin: "master.read", isi: "Data master, tarif, target hasil" },
 ];

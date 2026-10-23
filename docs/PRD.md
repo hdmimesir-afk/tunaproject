@@ -46,7 +46,7 @@ Lima peran awal, disimpan di tabel `roles` dan `role_permissions` sehingga Owner
 
 ## Cakupan
 
-Versi 1 memuat 12 modul (absensi ditunda atas keputusan owner 22 Oktober 2026) sampai kedalaman "versi pertama"; fitur lanjutan masuk masa garansi atau permintaan perubahan.
+Versi 1 memuat 13 modul (absensi dikerjakan setelah sistem inti, 23 Oktober 2026, tanpa peta pihak ketiga) sampai kedalaman "versi pertama"; fitur lanjutan masuk masa garansi atau permintaan perubahan.
 
 | Modul | Masuk versi 1 | Menyusul |
 | --- | --- | --- |
@@ -60,11 +60,11 @@ Versi 1 memuat 12 modul (absensi ditunda atas keputusan owner 22 Oktober 2026) s
 | Harga beli | Tabel + grafik per periode, jenis, grade, pemasok | Analisis lanjutan |
 | Keuangan | Kategori biaya, laporan biaya/tagihan/bayar, laba rugi per siklus sesuai contoh laporan Siklus 1, tutup buku per periode dengan kunci | Rekonsiliasi bank |
 | Dashboard | Owner di HP, menu petugas disaring, daftar "Perlu tindakan Anda" yang tiap barisnya menuju halaman penyelesaiannya | Halaman kerja khusus per peran |
-| Absensi | Ditunda (keputusan owner) | Pengenalan wajah |
+| Absensi | Absen masuk dan pulang dengan GPS perangkat (tanpa peta pihak ketiga), foto langsung dari kamera, waktu server; izin, sakit, libur; rekap | Pengenalan wajah |
 | Jadwal ABF | Cek bentrok, pindah ke jam kosong | Kalender per tanggal |
 | Asisten AI dan simulasi | Alat baca terbatas; slider harga | Model bahasa; simpan skenario |
 
-**Tidak termasuk versi 1:** absensi dan izin karyawan (ditunda), pengenalan wajah, integrasi timbangan digital, rekonsiliasi bank otomatis, notifikasi WA/email, pajak (menunggu aturan dari finance), dan impor data selain master data, Siklus 1, dan Monitor Dana.
+**Tidak termasuk versi 1:** pengenalan wajah, peta pihak ketiga (Google Maps), integrasi timbangan digital, rekonsiliasi bank otomatis, notifikasi WA/email, pajak (menunggu aturan dari finance), dan impor data selain master data, Siklus 1, dan Monitor Dana.
 
 ## Alur utama
 
@@ -108,8 +108,8 @@ Setiap kebutuhan di bawah selesai bila kriteria terimanya lulus di lingkungan uj
 | F17 | Laporan | Biaya per siklus, tagihan, pembayaran, laba rugi per siklus mengikuti contoh laporan Siklus 1 (docs/laporan), CSV | Angka laporan bisa diklik sampai transaksi; CSV sama dengan tampilan | 3 |
 | F18 | Harga beli | Harga per kg rata-rata tertimbang per hari/minggu, jenis, grade, pemasok | Harga baru tidak mengubah harga transaksi lama | 3 |
 | F19 | Dashboard | Ringkasan owner di HP, rincian muncul saat diketuk | Angka cocok dengan view dan ikut berubah saat data berubah | 3 |
-| F20 | Absensi | Ditunda (keputusan owner 22 Okt): absen dengan lokasi, foto langsung, waktu server | Gagal di luar radius dengan alasan jelas; foto tidak bisa dari galeri | 4 |
-| F21 | Absensi | Ditunda: izin, sakit, libur dari HP dan rekap untuk owner | Rekap hadir, terlambat, izin, sakit, tidak hadir per orang | 4 |
+| F20 | Absensi | Absen dengan lokasi GPS perangkat (jarak dihitung di database, tanpa peta), foto langsung dari kamera, waktu server | Gagal di luar radius dengan alasan jelas; foto diambil dari aliran kamera, bukan galeri | 4 |
+| F21 | Absensi | Izin, sakit, libur dari HP, diputuskan Owner, dan rekap untuk Super Admin dan Owner | Rekap hadir, terlambat, izin, sakit, tidak hadir per orang | 4 |
 | F22 | Asisten AI | Jawab pertanyaan dari alat baca terbatas, dengan tautan ke modul | Hanya baca; data mengikuti izin pengguna | 4 |
 | F23 | Simulasi | Slider harga ikan dan dampak laba | Rumus sesuai lembar asumsi | 4 |
 
@@ -179,7 +179,7 @@ Database Postgres di Supabase, aplikasi Next.js di Vercel, keduanya atas nama pe
 | Penjualan | `sales_orders`, `sale_allocations`, `invoices` | Penjualan bisa dari beberapa produksi; invoice penjualan dan jasa |
 | Jasa gudang | `tariff_rules`, `service_charges`, `bookings` | Tarif sebagai pengaturan; rincian hitungan tagihan; jadwal ABF |
 | Keuangan | `ledger`, `documents`, `accounting_periods` | Buku kas dengan kategori dan rujukan PO/produksi; nota dan bukti di Storage |
-| Absensi | `employees`, `work_sites`, `attendance`, `leave_requests` | Ditunda bersama modul absensi; tabel dibuat saat modul dikerjakan |
+| Absensi | `work_sites`, `attendance`, `leave_requests` | Pengguna sistem sekaligus karyawan (tanpa tabel `employees` terpisah). Absen yang ditolak juga tersimpan. Foto di bucket privat `absensi` |
 | Jejak | `activity_log`, `production_items_history` | Sebelum/sesudah setiap perubahan, tidak bisa diubah atau dihapus |
 
 **Views untuk dashboard dan Asisten AI:** `v_ringkasan_harian`, `v_rincian_siklus`, `v_neraca_produksi`, `v_harga_beli`, `v_stok_per_pemilik`, `v_rekap_kehadiran`, `v_laba_rugi`. Semua memakai izin pemanggil (`security_invoker`).
@@ -198,7 +198,7 @@ Rincian kolom per tabel ada di `docs/rencana-eksekusi.md` bagian 2.
 | Gagal simpan | Selalu tampil pesan, tidak pernah diam | Matikan koneksi database saat menyimpan |
 | Perangkat | Owner diutamakan di HP; petugas di HP atau desktop; satu komponen untuk dua tata letak | Semua layar utama diuji di lebar 375 px dan desktop |
 | Lingkungan | Lokal → preview per cabang → produksi; proyek Supabase uji dan produksi terpisah | Data demo tidak pernah menyentuh data nyata |
-| Absensi | Ditunda; berlaku saat modul absensi dikerjakan: waktu dari server, foto langsung dari kamera, akurasi GPS dicatat | Di dalam/luar radius, akurasi buruk, kamera ditolak, jam ponsel salah |
+| Absensi | Waktu dari server, foto langsung dari kamera, akurasi GPS dan jarak dicatat. GPS palsu tidak bisa dicegah penuh dari browser; yang bisa diperiksa: akurasi, jarak, foto, dan percobaan yang ditolak | Di dalam/luar radius, akurasi buruk, kamera ditolak, jam ponsel salah |
 
 ## Stack teknologi
 
@@ -226,7 +226,7 @@ Versi di bawah adalah rilis stabil terbaru di npm per 21 Oktober 2026; versi dik
 - Supabase Free menjeda proyek yang sepi selama 7 hari; pemakaian harian mencegahnya, tetapi jeda bisa terjadi saat libur panjang.
 - Supabase Free tidak menyediakan unduhan cadangan; cadangan harian dibuat sendiri (lihat Keamanan data).
 - Batas database 500 MB dan penyimpanan berkas 1 GB; cukup untuk data transaksi, perlu dipantau untuk foto nota.
-- Pemilik akun dan siapa yang membayar saat naik paket masih menunggu keputusan owner dan investor.
+- Pemilik akun dan paket: diputuskan 23 Oktober 2026, server milik Dar Dev sendiri dan tidak naik paket. Risiko di atas diterima dengan sadar.
 
 ## Keamanan data
 
@@ -298,7 +298,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Deploy halaman `/rancangan` dan kirim ke owner
 - [x] Jawaban owner untuk 7 persetujuan dan 14 pertanyaan diterima lewat WhatsApp 22 Oktober 2026
 - [ ] Putuskan tambah 1 developer untuk minggu 2–4
-- [ ] Tanyakan owner dan investor: pemilik akun server dan biaya saat naik paket (owner)
+- [x] Pemilik akun server dan biaya saat naik paket: Dar Dev sendiri, tidak naik paket (23 Okt 2026)
 - [ ] Akun Vercel Hobby dan Supabase Free (paket gratis) di email yang bisa dipindah ke perusahaan (ditunda)
 - [x] Satu repo untuk semua (`hdmimesir-afk/tunaproject`): sistem ERP di `/`, penawaran di `/penawaran`, rancangan dan PRD tetap; folder `supabase/migrations`
 - [x] Inisialisasi stack dengan versi di bagian Stack teknologi; kunci versi di `package-lock.json`
@@ -450,9 +450,14 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 
 ### Minggu 4: uji siklus nyata dan mulai pakai
 
-**Absensi (ditunda)**
+**Absensi**
 
-Absensi dan izin ditunda atas keputusan owner 22 Oktober 2026 dan dikerjakan setelah sistem inti dipakai. Waktunya dipakai untuk uji cadangan dan merapikan laporan.
+Ditunda pada 22 Oktober 2026, lalu dikerjakan 23 Oktober 2026 setelah sistem inti selesai. Tanpa Google Maps: lokasi kerja ditandai dengan tombol "Pakai lokasi saya sekarang" (atau isi garis lintang dan bujur), radius bawaan 50 m dan batas akurasi GPS 30 m, hari kerja Senin sampai Sabtu.
+
+- [x] Migrasi `work_sites`, `attendance`, `leave_requests`, bucket foto privat, izin `absensi.absen/rekap/kelola/setuju`
+- [x] Absen masuk dan pulang: GPS, foto kamera langsung, waktu server, satu kali per hari, percobaan yang ditolak tersimpan (F20)
+- [x] Izin, sakit, libur diputuskan Owner (muncul di "Perlu tindakan Anda") dan rekap hadir, terlambat, izin, sakit, tidak hadir (F21)
+- [ ] Coba di HP asli: izin kamera dan lokasi, absen di lokasi kerja (owner/petugas)
 
 **Asisten AI dan simulasi**
 
@@ -492,8 +497,9 @@ Owner menjawab pada 22 Oktober 2026. Yang masih terbuka: pemilik akun server dan
 | Limbah dan susut | Ditimbang total saja | Satu angka limbah dan satu angka susut per produksi |
 | Tarif cold storage dan ABF | Rp76/kg/hari, ABF tetap | Simpan Rp76/kg/hari, ABF Rp3.500/kg, minimum 10 hari dari proposal (belum dikonfirmasi) |
 | Laporan laba rugi | Data historis dan statistik; contoh dibuat developer | Contoh laporan Siklus 1 di docs/laporan |
-| Pengguna sistem | Super Admin, Finance, Owner | Ditambah Kepala Produksi/QC dan Petugas Lapangan (usulan); nama orang belum ada |
-| Absensi | Ditunda | Tidak masuk versi 1 |
+| Pengguna sistem | Super Admin, Finance, Owner | Ditambah Kepala Produksi/QC dan Petugas Lapangan (usulan). 23 Okt: cukup jabatan, tidak perlu nama orang |
+| Absensi | Ditunda | 23 Okt: dikerjakan, tetap pakai kamera, tanpa Google Maps |
+| Pemilik server, paket, developer (23 Okt) | Server milik Dar Dev sendiri; tidak naik paket; developer: Dar Dev sendiri | Tetap Vercel Hobby dan Supabase Free. Risiko diterima: ketentuan Hobby untuk non-komersial, dan proyek Free dijeda bila sepi 7 hari |
 | Server dan biaya bulanan | Belum dibahas; tanyakan owner dan investor | Mulai paket gratis; pemilik akun menunggu |
 
 **Bahan yang perlu dikirim owner**

@@ -22,6 +22,10 @@ const nextConfig = {
         { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
         { key: "Content-Security-Policy", value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'" },
       ],
+    }, {
+      // Hanya halaman Absensi yang boleh memakai kamera dan lokasi (header dengan kunci sama di aturan terakhir menang).
+      source: "/absensi/:path*",
+      headers: [{ key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self), payment=()" }],
     }];
   },
   async redirects() {

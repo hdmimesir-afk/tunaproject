@@ -98,6 +98,19 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
     });
   }
 
+  // 9. Izin atau sakit karyawan menunggu keputusan Owner.
+  if (boleh(sesi, "absensi.setuju")) {
+    tambah(async () => {
+      const { data } = await sb.rpc("daftar_izin");
+      const menunggu = ((data ?? []) as { id: string; nama: string; jenis: string; dari: string; sampai: string; alasan: string; status: string; milik_saya: boolean }[])
+        .filter((i) => i.status === "diajukan" && !i.milik_saya).slice(0, BATAS);
+      for (const i of menunggu) {
+        const tgl = i.dari === i.sampai ? tanggal(i.dari) : `${tanggal(i.dari)} s.d. ${tanggal(i.sampai)}`;
+        hasil.push({ id: `izn-${i.id}`, kelompok: "Izin karyawan", icon: "calendar", judul: `${i.nama} · ${i.jenis}`, rincian: `${tgl} · ${i.alasan}`, aksi: "Putuskan", href: "/absensi", mendesak: false });
+      }
+    });
+  }
+
   await Promise.all(tugas);
 
   // 8. Buku bulan yang sudah berakhir dan siap ditutup (hanya yang tertua).
