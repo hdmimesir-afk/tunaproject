@@ -37,9 +37,9 @@ select is((select terlambat_menit from public.attendance where user_id = '000000
 select is(
   (public.catat_absen('masuk', -0.94893, 100.3543, 10, '00000000-0000-0000-0000-0000000000b3/masuk-2.jpg') ->> 'ok'),
   'false', 'absen masuk kedua di hari yang sama ditolak');
-select like(
-  (public.catat_absen('masuk', -0.94893, 100.3543, 10, '00000000-0000-0000-0000-0000000000b3/masuk-3.jpg') ->> 'alasan'),
-  '%sudah absen masuk%', 'alasan penolakan menyebut sudah absen');
+select ok(
+  (public.catat_absen('masuk', -0.94893, 100.3543, 10, '00000000-0000-0000-0000-0000000000b3/masuk-3.jpg') ->> 'alasan') like '%sudah absen masuk%',
+  'alasan penolakan menyebut sudah absen');
 
 -- Sekitar 111 m dari titik (0,001 derajat): di luar radius 50 m. Percobaannya tetap tersimpan.
 select is(
