@@ -23,3 +23,5 @@ docs/invoice/
 # playwright
 /test-results/
 /playwright-report/
+.vercel
+.env*

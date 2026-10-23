@@ -430,7 +430,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Ajukan biaya dengan kategori, nota wajib, rujukan PO/produksi/siklus (F16)
 - [x] Unggah nota dan bukti ke Storage privat di `documents` (F16)
 - [x] Kelengkapan dokumen: hitung transaksi tanpa bukti di dashboard
-- [ ] Impor 243 transaksi Monitor Dana ke `ledger` (tanpa nomor rekening, tanpa bagian modal)
+- [x] Impor transaksi Monitor Dana ke `ledger` (tanpa nomor rekening, tanpa bagian modal): 235 baris uang keluar, Rp2.160.890.880, 27 Okt 2026
 - [x] Laporan biaya per siklus, tagihan, pembayaran, dengan klik sampai transaksi (F17)
 - [x] Laba rugi per siklus mengikuti contoh laporan Siklus 1 di docs/laporan: pendapatan per grade dan hasil samping, biaya langsung, laba kotor, angka per kg loin, neraca berat, tren antarsiklus (F17)
 - [x] Ekspor CSV yang sama dengan tampilan (F17)

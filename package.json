@@ -20,7 +20,8 @@
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "buat-owner": "tsx --env-file=.env.local scripts/buat-owner.ts",
     "buat-pengguna": "tsx --env-file=.env.local scripts/buat-pengguna.ts",
-    "cocokkan-pulih": "tsx --env-file=.env.local scripts/cocokkan-pulih.ts"
+    "cocokkan-pulih": "tsx --env-file=.env.local scripts/cocokkan-pulih.ts",
+    "impor-monitor-dana": "tsx --env-file=.env.local scripts/impor-monitor-dana.ts"
   },
   "dependencies": {
     "@fontsource/google-sans": "^5.3.2",
@@ -52,6 +53,7 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.13.0",
     "eslint-config-next": "16.4.2",
+    "exceljs": "^4.4.0",
     "playwright-core": "^1.64.0",
     "pptxgenjs": "^4.0.1",
     "supabase": "2.121.0",
