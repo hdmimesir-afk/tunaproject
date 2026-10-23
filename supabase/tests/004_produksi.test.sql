@@ -117,7 +117,7 @@ select results_eq(
   $$select belum_jelas_kg::text from public.v_neraca_produksi n join public.productions p on p.id = n.production_id where p.catatan = 'uji-prd'$$,
   array['34.344'], 'selisih belum jelas adalah sisa hitungan');
 select results_eq(
-  $$select (susut_kg is null)::text from public.v_neraca_produksi n join public.productions p on p.id = n.production_id where p.catatan = 'uji-prd'$$,
+  $$select (n.susut_kg is null)::text from public.v_neraca_produksi n join public.productions p on p.id = n.production_id where p.catatan = 'uji-prd'$$,
   array['true'], 'susut yang belum ditimbang tetap kosong, bukan nol');
 select throws_ok(
   $$select public.simpan_komponen((select id from public.productions where catatan = 'uji-prd'), '[]'::jsonb, 1000, null)$$,
