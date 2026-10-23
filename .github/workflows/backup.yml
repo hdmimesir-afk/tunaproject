@@ -16,7 +16,7 @@ jobs:
     if: ${{ vars.BACKUP_AKTIF == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 2.121.0
       - name: Dump skema dan data
