@@ -13,7 +13,7 @@ import type { Ekor, ItemLoin } from "@/lib/types/produksi";
    Keyboard saja cukup: Enter pindah ke baris bawah (baris baru di akhir), panah atas/bawah pindah baris.
    Isian tersimpan otomatis di perangkat (Dexie) dan dikirim ulang saat sinyal kembali. */
 
-const sel = "h-10 w-full rounded-xl border bg-white px-2.5 text-[14px] outline-none focus:border-[#00171F]";
+const sel = "h-10 w-full rounded-xl border bg-white px-1.5 text-[14px] outline-none focus:border-[#00171F] md:px-2.5";
 
 const dariServer = (loin: ItemLoin[]): BarisLoin[] =>
   loin.filter((l) => !l.batal).sort((a, b) => a.no_loin - b.no_loin)
@@ -201,14 +201,14 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
       )}
 
       <div className="overflow-x-auto rounded-[20px] bg-white">
-        <table className="w-full min-w-[480px] text-[13.5px]">
+        <table className="w-full min-w-[320px] text-[13.5px] md:min-w-[480px]">
           <thead>
             <tr className="text-left text-[12px]" style={{ color: MUTED }}>
-              <th className="w-16 px-2 py-2.5 font-medium md:w-20 md:px-3">Ekor</th>
-              <th className="w-16 px-2 py-2.5 font-medium md:w-24 md:px-3">Loin</th>
-              <th className="w-28 px-2 py-2.5 font-medium md:w-36 md:px-3">Grade</th>
-              <th className="px-3 py-2.5 font-medium">Berat (kg)</th>
-              <th className="w-24 px-2 py-2.5 text-right font-medium md:w-28 md:px-3">Aksi</th>
+              <th className="w-12 px-1 py-2.5 font-medium md:w-20 md:px-3">Ekor</th>
+              <th className="w-12 px-1 py-2.5 font-medium md:w-24 md:px-3">Loin</th>
+              <th className="w-[88px] px-1 py-2.5 font-medium md:w-36 md:px-3">Grade</th>
+              <th className="px-1 py-2.5 font-medium md:px-3">Berat (kg)</th>
+              <th className="w-14 px-1 py-2.5 text-right font-medium md:w-28 md:px-3">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -218,31 +218,31 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
               const batas = (salah?: string) => (salah || bentrok ? "#E4A7A2" : "#E2E4EA");
               return (
                 <tr key={b.id} className="border-t border-[#EEF0F4]" style={bentrok ? { background: "#FDF3F2" } : undefined}>
-                  <td className="px-3 py-1.5">
+                  <td className="px-1 py-1.5 md:px-3">
                     <input data-sel={`${r}-0`} className={sel} style={{ borderColor: batas(g?.noEkor) }} inputMode="numeric" aria-label={`No. ekor baris ${r + 1}`} disabled={!bolehEdit}
                       value={b.noEkor} onChange={(e) => ubah(b.id, "noEkor", e.target.value)} onKeyDown={(e) => geser(e, r, 0)} />
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-1 py-1.5 md:px-3">
                     <input data-sel={`${r}-1`} className={sel} style={{ borderColor: batas(g?.noLoin) }} inputMode="numeric" aria-label={`No. loin baris ${r + 1}`} disabled={!bolehEdit}
                       value={b.noLoin} onChange={(e) => ubah(b.id, "noLoin", e.target.value)} onKeyDown={(e) => geser(e, r, 1)} />
                     {g?.noLoin && <span className="block text-[11px]" style={{ color: "#A8322B" }}>{g.noLoin}</span>}
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-1 py-1.5 md:px-3">
                     <select data-sel={`${r}-2`} className={sel} style={{ borderColor: batas(g?.gradeId) }} aria-label={`Grade baris ${r + 1}`} disabled={!bolehEdit}
                       value={b.gradeId} onChange={(e) => ubah(b.id, "gradeId", e.target.value)} onKeyDown={(e) => geser(e, r, 2)}>
                       <option value="" disabled>Pilih</option>
                       {grade.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
                     </select>
                   </td>
-                  <td className="px-3 py-1.5">
+                  <td className="px-1 py-1.5 md:px-3">
                     <input data-sel={`${r}-3`} className={`${sel} text-right tabular-nums`} style={{ borderColor: batas(g?.kg) }} inputMode="decimal" placeholder="0,000" aria-label={`Berat baris ${r + 1}`} disabled={!bolehEdit}
                       value={b.kg} onChange={(e) => ubah(b.id, "kg", e.target.value)} onKeyDown={(e) => geser(e, r, 3)} />
                     {g?.kg && <span className="block text-[11px]" style={{ color: "#A8322B" }}>{g.kg}</span>}
                   </td>
-                  <td className="px-3 py-1.5 text-right">
+                  <td className="px-1 py-1.5 text-right md:px-3">
                     {bolehEdit && (b.versi === undefined
-                      ? <Btn size="sm" v="ghost" onClick={() => hapusLokal(b.id)} disabled={baris.length <= 1}>Hapus baris</Btn>
-                      : <Btn size="sm" v="ghost" onClick={() => setBatal(b)}>Batalkan</Btn>)}
+                      ? <Btn size="sm" v="ghost" onClick={() => hapusLokal(b.id)} disabled={baris.length <= 1}><span className="md:hidden">Hapus</span><span className="hidden md:inline">Hapus baris</span></Btn>
+                      : <Btn size="sm" v="ghost" onClick={() => setBatal(b)}><span className="md:hidden">Batal</span><span className="hidden md:inline">Batalkan</span></Btn>)}
                   </td>
                 </tr>
               );

@@ -1,0 +1,3 @@
+/* Layar contoh hanya dimuat dalam iframe di /update: tanpa bilah gulir, supaya tampak seperti layar perangkat. */
+html, body { overflow: hidden; scrollbar-width: none; }
+::-webkit-scrollbar { display: none; }

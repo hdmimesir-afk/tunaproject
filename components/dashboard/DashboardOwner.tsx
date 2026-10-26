@@ -43,7 +43,7 @@ function BarisTindakan({ t }: { t: ItemTindakan }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[11px] font-semibold uppercase tracking-wide" style={{ color: t.mendesak ? "#A8322B" : "#8A5A00" }}>{t.kelompok}</span>
-        <span className="block truncate text-[14px] font-medium leading-snug">{t.judul}</span>
+        <span className="line-clamp-2 block break-words text-[14px] font-medium leading-snug">{t.judul}</span>
         <span className="line-clamp-2 block text-[12.5px] leading-snug" style={{ color: MUTED }}>{t.rincian}</span>
       </span>
       <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full px-3.5 text-[12.5px] font-medium text-white" style={{ background: INK }}>{t.aksi}<Icon n="arrow" s={13} c="#fff" /></span>
@@ -69,13 +69,13 @@ function Tindakan({ daftar }: { daftar: ItemTindakan[] }) {
         </div>
       ) : (
         <>
-          <ul className="grid gap-1.5 md:grid-cols-2">{awal.map((t) => <li key={t.id}><BarisTindakan t={t} /></li>)}</ul>
+          <ul className="grid grid-cols-1 gap-1.5 md:grid-cols-2">{awal.map((t) => <li key={t.id} className="min-w-0"><BarisTindakan t={t} /></li>)}</ul>
           {sisa.length > 0 && (
             <details className="group mt-2">
               <summary className="flex h-10 cursor-pointer list-none items-center justify-center rounded-full bg-white text-[13px] font-medium" style={{ color: INK }}>
                 <span className="group-open:hidden">Lihat {sisa.length} lainnya</span><span className="hidden group-open:inline">Sembunyikan</span>
               </summary>
-              <ul className="mt-1.5 grid gap-1.5 md:grid-cols-2">{sisa.map((t) => <li key={t.id}><BarisTindakan t={t} /></li>)}</ul>
+              <ul className="mt-1.5 grid grid-cols-1 gap-1.5 md:grid-cols-2">{sisa.map((t) => <li key={t.id} className="min-w-0"><BarisTindakan t={t} /></li>)}</ul>
             </details>
           )}
         </>
