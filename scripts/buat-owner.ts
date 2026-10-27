@@ -2,7 +2,7 @@
    akun berikutnya diundang dari halaman Akses.
    Pakai: npm run buat-owner -- owner@contoh.com "Nama Owner"
    Butuh NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SECRET_KEY di .env.local. Kata sandi sementara dicetak sekali;
-   ganti setelah masuk, lalu daftarkan aplikasi authenticator (Owner wajib MFA). */
+   ganti setelah masuk. */
 import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 

@@ -234,7 +234,7 @@ Keamanan berlapis: database menolak akses yang tidak berhak walau kode aplikasi 
 
 | Lapisan | Aturan | Cara cek |
 | --- | --- | --- |
-| Login | Supabase Auth dengan cookie httpOnly lewat `@supabase/ssr`; MFA (TOTP) wajib untuk Owner dan Finance | Login Owner tanpa kode kedua ditolak |
+| Login | Supabase Auth dengan cookie httpOnly lewat `@supabase/ssr`; kode kedua (MFA) dihapus pada 27 Okt 2026 atas keputusan Dar Dev, jadi kata sandi yang kuat menjadi satu-satunya penjaga akun | Kata sandi bawaan diganti sebelum dipakai; percobaan masuk dibatasi |
 | Verifikasi identitas di server | Halaman dan data dilindungi dengan `auth.getClaims()`; objek user dari `getSession()` tidak dipakai untuk keputusan izin | Review kode: tidak ada `getSession()` untuk otorisasi |
 | Proxy | `proxy.ts` hanya menyegarkan sesi dan mengarahkan ke login; tidak dianggap pengaman | Tes akses Server Action langsung lewat POST tanpa sesi: ditolak |
 | Server Action | Setiap action memeriksa ulang sesi, izin peran, dan kepemilikan data lewat satu lapisan akses data (`import 'server-only'`) | Tes IDOR: pengguna A tidak bisa mengubah data milik siklus yang tidak boleh ia akses |
@@ -320,7 +320,7 @@ Task disusun per minggu dan merujuk kode fitur di bagian Kebutuhan fitur. Centan
 - [x] Migrasi skema: akses, master, siklus, jejak (tabel pembelian dan persetujuan menyusul di Fase 2)
 - [x] Tipe angka: berat `numeric(12,3)`, uang `numeric(16,2)`; tidak ada `float`
 - [x] Login Supabase Auth lewat `@supabase/ssr` dan undangan pengguna
-- [x] MFA (TOTP) wajib untuk Owner dan Finance
+- [x] MFA (TOTP) untuk Owner dan Finance dibuat, lalu dihapus 27 Okt 2026 atas keputusan Dar Dev (cukup kata sandi)
 - [x] `proxy.ts` untuk menyegarkan sesi; halaman dan data dilindungi dengan `auth.getClaims()`
 - [x] Lapisan akses data `server-only`; setiap Server Action memeriksa sesi, izin, dan kepemilikan
 - [x] `roles` dan `role_permissions` dengan matriks awal 5 peran (F01)

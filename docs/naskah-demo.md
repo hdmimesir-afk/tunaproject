@@ -8,7 +8,7 @@ Prinsip demo: **tunjukkan dari HP owner**, karena owner akan memantau dari HP. B
 
 - [ ] Satu siklus uji kecil sudah dijalankan di sistem (lihat langkah 1 di "sebelum serah terima"): PO, terima, produksi beberapa loin, stok, pesanan, kirim, invoice, bayar. Beri nama yang jelas uji, misalnya pemasok "UJI COBA". Siklus inilah yang ditelusuri saat demo.
 - [ ] Biarkan **satu PO uji berstatus "diperiksa"** (belum disetujui) supaya owner bisa menyetujuinya sendiri saat demo.
-- [ ] HP owner: buka https://katalis-erp.vercel.app, sudah masuk dan lolos kode kedua (MFA). Simpan ke layar utama (Tambahkan ke Layar Utama).
+- [ ] HP owner: buka https://katalis-erp.vercel.app, sudah masuk. Simpan ke layar utama (Tambahkan ke Layar Utama).
 - [ ] HP Anda: masuk sebagai akun petugas uji, di halaman Produksi, siklus uji terbuka.
 - [ ] Laptop: masuk sebagai Owner, untuk ditampilkan ke layar besar bila ada.
 - [ ] Sinyal: cek di ruang rapat. Siapkan hotspot cadangan.
@@ -106,7 +106,7 @@ Prinsip demo: **tunjukkan dari HP owner**, karena owner akan memantau dari HP. B
 
 > "Setiap orang hanya melihat menu sesuai jabatannya. Petugas tidak melihat harga beli. Aturan ini dijaga di database, bukan hanya disembunyikan di layar."
 
-> "Akun Bapak dan Finance memakai kode kedua di HP. Data dicadangkan otomatis setiap malam dan dienkripsi."
+> "Setiap orang masuk dengan kata sandinya sendiri, dan Bapak membuatnya sendiri lewat tautan sekali pakai. Data dicadangkan otomatis setiap malam dan dienkripsi."
 
 ---
 

@@ -9,9 +9,9 @@ Status per 23 Oktober 2026 (baris yang sudah dikerjakan developer diberi tanda �
 ### 1. Akun dan akses
 
 - [ ] **Kata sandi sementara `admin123` sudah diganti** oleh Owner
-- [x] Kode autentikator (MFA) Owner sudah terdaftar ✓
+- [x] Kode kedua (MFA) dihapus; Owner dan Finance cukup kata sandi ✓
 - [ ] Akun Finance, Super Admin, Kepala Produksi/QC, dan Petugas Lapangan dibuat di **Akses → Buat akun pengguna**; tautan aktivasi dikirim lewat WhatsApp dan setiap orang membuat kata sandinya sendiri (berlaku 24 jam, sekali pakai)
-- [ ] Finance mendaftarkan autentikator pada masuk pertama
+- [ ] Kata sandi tiap akun kuat (minimal 10 karakter) dan dibuat sendiri oleh pemiliknya lewat tautan
 - [ ] Akun orang yang keluar dinonaktifkan di menu Akses (tidak dihapus); lupa sandi: tombol **Tautan atur sandi**
 
 ### 2. Data awal

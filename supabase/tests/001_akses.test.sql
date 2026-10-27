@@ -1,7 +1,7 @@
--- Fase 1 · Akses: peran, izin, MFA, profil. Jalankan: supabase test db
+-- Fase 1 · Akses: peran, izin, profil. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
+select plan(25);
 
 -- Pengguna uji. Profil dibuat otomatis oleh trigger; peran diisi sebagai sistem (tanpa auth.uid).
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -53,19 +53,13 @@ select is_empty($$select * from public.activity_log$$, 'petugas tidak bisa memba
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000006", "role": "authenticated", "aal": "aal1"}';
 select ok(not private.has_permission('master.read'), 'pengguna nonaktif tidak punya izin');
 
--- Owner wajib MFA.
+-- Tanpa MFA: Owner dan Finance cukup masuk dengan kata sandi (aal1) dan tetap memegang izin sesuai perannya.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal1"}';
-select ok(not private.has_permission('master.read'), 'owner tanpa MFA (aal1) ditolak');
-set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}';
-select ok(private.has_permission('aksi.apa.saja'), 'owner dengan MFA memegang semua izin');
-select ok((select count(*) > 0 from public.activity_log), 'owner dengan MFA bisa membaca jejak');
-
--- Finance wajib MFA.
+select ok(private.has_permission('aksi.apa.saja'), 'owner yang masuk dengan kata sandi saja memegang semua izin');
+select ok((select count(*) > 0 from public.activity_log), 'owner tanpa kode kedua bisa membaca jejak');
+select is((public.sesi_saya() ->> 'wajib_mfa'), 'false', 'tidak ada kewajiban MFA untuk owner');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "aal": "aal1"}';
-select ok(not private.has_permission('master.read'), 'finance tanpa MFA ditolak');
-set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000002", "role": "authenticated", "aal": "aal2"}';
-select ok(private.has_permission('master.read'), 'finance dengan MFA boleh membaca data master');
-
+select ok(private.has_permission('master.read'), 'finance tanpa kode kedua boleh membaca data master');
 -- Super Admin mengelola akses, tapi tidak bisa menyentuh Owner atau menambah izin sendiri.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000003", "role": "authenticated", "aal": "aal1"}';
 select results_eq($$select count(*)::int from public.profiles where email like '%@uji.local'$$, array[6], 'super admin melihat semua profil');

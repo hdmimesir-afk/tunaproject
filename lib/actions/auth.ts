@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { supabaseConfigured } from "@/lib/env";
-import { parseSesi, perluMfa, tujuanAman } from "@/lib/izin";
+import { parseSesi, tujuanAman } from "@/lib/izin";
 import { createClient } from "@/lib/supabase/server";
 
 export type HasilForm = { error?: string; kolom?: Record<string, string[] | undefined>; pesan?: string; id?: string; tautan?: string } | undefined;
@@ -13,7 +13,7 @@ const Masuk = z.object({
   password: z.string().min(1, "Isi kata sandi"),
 });
 
-/** Masuk dengan email dan kata sandi, lalu ke verifikasi MFA bila perannya mewajibkan. */
+/** Masuk dengan email dan kata sandi. Tidak ada langkah kode kedua (MFA dihapus 27 Okt 2026). */
 export async function masuk(_: HasilForm, fd: FormData): Promise<HasilForm> {
   if (!supabaseConfigured) return { error: "Database belum disambungkan." };
   const p = Masuk.safeParse({ email: fd.get("email"), password: fd.get("password") });
@@ -25,44 +25,11 @@ export async function masuk(_: HasilForm, fd: FormData): Promise<HasilForm> {
   if (error) return { error: "Email atau kata sandi salah." };
 
   const sesi = parseSesi((await supabase.rpc("sesi_saya")).data);
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (!sesi?.aktif || !sesi.roleId) {
     await supabase.auth.signOut();
     return { error: "Akun belum aktif. Hubungi pengelola akses." };
   }
-  const butuhKodeKedua = perluMfa(sesi) || (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2");
-  redirect(butuhKodeKedua ? "/login/mfa" : tujuanAman(fd.get("next")));
-}
-
-/** Mulai mendaftarkan aplikasi authenticator: kembalikan QR dan kode rahasia. */
-export async function mulaiDaftarMfa(): Promise<{ factorId: string; qr: string; rahasia: string } | { error: string }> {
-  const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  if (!claims?.claims) return { error: "Sesi berakhir. Silakan masuk lagi." };
-
-  // Faktor lama yang belum selesai didaftarkan dibersihkan dulu supaya pendaftaran baru tidak bentrok.
-  const { data: daftar } = await supabase.auth.mfa.listFactors();
-  for (const f of daftar?.all ?? []) {
-    if (f.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: f.id });
-  }
-  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `KATALIS ERP ${Date.now()}` });
-  if (error || !data) return { error: "Gagal memulai pendaftaran kode. Coba lagi." };
-  return { factorId: data.id, qr: data.totp.qr_code, rahasia: data.totp.secret };
-}
-
-const Kode = z.object({
-  factorId: z.string().min(1),
-  code: z.string().regex(/^\d{6}$/, "Kode terdiri dari 6 angka"),
-});
-
-/** Verifikasi kode 6 angka dari aplikasi authenticator (pendaftaran pertama atau masuk berikutnya). */
-export async function verifikasiMfa(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const p = Kode.safeParse({ factorId: fd.get("factorId"), code: String(fd.get("code") ?? "").replace(/\s/g, "") });
-  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  const supabase = await createClient();
-  const { error } = await supabase.auth.mfa.challengeAndVerify(p.data);
-  if (error) return { error: "Kode salah atau sudah kedaluwarsa." };
-  redirect("/dashboard");
+  redirect(tujuanAman(fd.get("next")));
 }
 
 const SandiBaru = z.object({
@@ -81,9 +48,8 @@ export async function aturSandiBaru(_: HasilForm, fd: FormData): Promise<HasilFo
   if (error) {
     if (error.code === "same_password") return { error: "Kata sandi baru harus berbeda dari yang lama." };
     if (error.code === "weak_password") return { error: "Kata sandi terlalu lemah. Pakai gabungan huruf dan angka yang lebih panjang." };
-    return { error: "Kata sandi gagal disimpan. Bila akun ini memakai kode kedua, masuk dengan kode dulu lalu coba lagi." };
+    return { error: "Kata sandi gagal disimpan. Coba lagi, atau minta tautan baru ke pengelola akses." };
   }
-  // Dashboard mengarahkan ke pendaftaran kode kedua bila peran mewajibkannya (Owner, Finance).
   redirect("/dashboard");
 }
 

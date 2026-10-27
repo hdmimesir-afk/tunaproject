@@ -4,7 +4,7 @@ Untuk pelatihan sebelum mulai pakai. Tiap peran hanya melihat menu yang sesuai i
 
 ## Semua peran
 
-- **Masuk pertama kali:** buka tautan aktivasi yang dikirim lewat WhatsApp (sekali pakai, berlaku 24 jam), buat kata sandi sendiri, lalu masuk. Owner dan Finance juga mendaftarkan aplikasi autentikator (kode 6 angka). Lupa sandi atau tautan kedaluwarsa: minta **Tautan atur sandi** ke Super Admin.
+- **Masuk pertama kali:** buka tautan aktivasi yang dikirim lewat WhatsApp (sekali pakai, berlaku 24 jam), buat kata sandi sendiri, lalu masuk. Lupa sandi atau tautan kedaluwarsa: minta **Tautan atur sandi** ke Super Admin.
 - **Absen:** menu Absensi → Absen masuk / Absen pulang. Izinkan kamera dan lokasi bila browser bertanya. Harus berada di dalam radius lokasi kerja; foto diambil langsung, bukan dari galeri; jam dicatat server. Bila ditolak, alasannya tampil (misalnya "di luar radius" atau "GPS kurang akurat": pindah ke tempat terbuka lalu coba lagi).
 - **Izin, sakit, libur:** Absensi → Izin dan sakit → Ajukan. Owner yang memutuskan; pengajuan yang belum diputuskan bisa dibatalkan sendiri.
 

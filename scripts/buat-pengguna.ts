@@ -2,7 +2,7 @@
    Pakai: npm run buat-pengguna -- email@contoh.com "Nama" finance
    Peran: owner, finance, super_admin, kepala_produksi, petugas_lapangan.
    Butuh NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SECRET_KEY di .env.local. Kata sandi sementara dicetak sekali.
-   Owner dan Finance wajib mendaftarkan authenticator saat pertama masuk. */
+   Owner dan Finance wajib mendaftarkan kata sandi saat pertama masuk. */
 import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
