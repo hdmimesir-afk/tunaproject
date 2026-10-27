@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
+import { BukuKas } from "./BukuKas";
 import { Periode } from "./Periode";
 import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
@@ -11,7 +12,6 @@ import { MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { ajukanBiaya, putuskanBiaya, simpanBiaya } from "@/lib/actions/keuangan";
 import { rp, tanggal } from "@/lib/format";
-import { buatCsv } from "@/lib/logic/grid";
 import type { Biaya, BarisKas, BukuBulanan, KategoriBiaya } from "@/lib/types/keuangan";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
 
@@ -113,22 +113,10 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
   const router = useRouter();
   const [baru, setBaru] = useState(false);
   const [ubah, setUbah] = useState(false);
-  const [arah, setArah] = useState<"semua" | "masuk" | "keluar">("semua");
   const menunggu = biaya.filter((b) => b.status === "diajukan");
   const bulan = hariIni.slice(0, 7);
   const masukBulan = kas.filter((k) => k.arah === "masuk" && k.tanggal.startsWith(bulan)).reduce((a, k) => a + Math.round(k.jumlah * 100), 0) / 100;
   const keluarBulan = kas.filter((k) => k.arah === "keluar" && k.tanggal.startsWith(bulan)).reduce((a, k) => a + Math.round(k.jumlah * 100), 0) / 100;
-  const tampilKas = kas.filter((k) => arah === "semua" || k.arah === arah);
-
-  const unduhKas = () => {
-    const csv = buatCsv(["Kode", "Tanggal", "Arah", "Kategori", "Uraian", "Jumlah (Rp)"], tampilKas.map((k) => [k.kode, k.tanggal, k.arah, k.kategori_nama, k.uraian, String(k.jumlah).replace(".", ",")]));
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `buku-kas-${hariIni}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <div className="space-y-4">
@@ -155,23 +143,7 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
         />
       </Card>
 
-      <Card title="Buku kas" right={<div className="flex gap-2">
-        <select aria-label="Filter arah" className="h-8 rounded-full border border-[#E2E4EA] bg-white px-3 text-[12.5px]" value={arah} onChange={(e) => setArah(e.target.value as typeof arah)}>
-          <option value="semua">Semua</option><option value="masuk">Uang masuk</option><option value="keluar">Uang keluar</option>
-        </select>
-        <Btn size="sm" v="light" onClick={unduhKas} disabled={tampilKas.length === 0}>Unduh CSV</Btn></div>}>
-        <DataList
-          rows={tampilKas}
-          empty="Belum ada transaksi kas. Pembayaran pemasok, pembayaran pembeli, dan biaya yang disetujui masuk otomatis."
-          cols={[
-            { h: "Tanggal", r: (k: BarisKas) => <><span className="font-medium">{tanggal(k.tanggal)}</span><span className="block text-[12px]" style={{ color: MUTED }}>{k.kode}</span></> },
-            { h: "Uraian", r: (k) => k.uraian },
-            { h: "Kategori", r: (k) => k.kategori_nama },
-            { h: "Masuk", r: (k) => (k.arah === "masuk" ? rp(k.jumlah) : "-"), right: true },
-            { h: "Keluar", r: (k) => (k.arah === "keluar" ? rp(k.jumlah) : "-"), right: true },
-          ]}
-        />
-      </Card>
+      <BukuKas kas={kas} hariIni={hariIni} />
 
       <Periode buku={buku} bolehTutup={bolehTutup} />
 

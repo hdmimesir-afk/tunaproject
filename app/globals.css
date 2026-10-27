@@ -8,6 +8,11 @@
   --charcoal: #00171F;
 }
 html, body { margin: 0; height: 100%; background: #00111A; color: var(--charcoal); font-family: "Google Sans", "Product Sans", system-ui, sans-serif; font-weight: 400; -webkit-font-smoothing: antialiased; }
+/* Sistem ERP: huruf Google Sans seperti semula. Angka sama lebar supaya kolom tabel lurus. */
+.erp table, .erp .tabular-nums { font-variant-numeric: tabular-nums; }
+.erp input, .erp select, .erp textarea, .erp button { font-family: inherit; }
+/* Scrollbar menu samping: tipis dan gelap, tidak mencolok di atas latar ink. */
+.erp-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
 .slide-text { box-sizing: border-box; white-space: pre-wrap; overflow-wrap: break-word; }
 .mono { font-family: inherit; }
 button:focus-visible, a:focus-visible { outline: 3px solid #9fddd8; outline-offset: 3px; }

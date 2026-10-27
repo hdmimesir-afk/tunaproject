@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Suspense } from "react";
 import { SesiNav } from "@/components/shell/SesiNav";
 import { INK } from "@/components/ui/tokens";
@@ -6,20 +7,23 @@ import { INK } from "@/components/ui/tokens";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 /* Kerangka aplikasi. Sesi dibaca di dalam <Suspense> (Cache Components), jadi kerangka tetap statis
-   dan menu muncul begitu sesi terbaca. */
+   dan menu muncul begitu sesi terbaca. Desktop: menu samping + isi lebar. HP: bilah atas, isi satu kolom, tab bawah melayang
+   (keduanya dirender oleh Nav; fallback di bawah menjaga tinggi bilah atas selama sesi dibaca). */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh md:flex" style={{ background: INK }}>
-      <aside className="px-4 pb-0 pt-3 md:pb-3 md:pt-4 md:sticky md:top-0 md:z-20 md:flex md:h-dvh md:w-[240px] md:shrink-0 md:flex-col md:px-3 md:pt-5" style={{ background: INK }}>
-        <div className="mb-2 flex items-baseline gap-2 px-2 md:mb-5 md:block">
-          <div className="text-[17px] font-semibold tracking-tight text-white">KATALIS ERP</div>
-          <div className="hidden text-[11.5px] text-[#8A9199] md:block">PT Katalis Lintas Global</div>
-        </div>
-        <Suspense fallback={<div className="h-10 md:flex-1" />}>
-          <SesiNav />
-        </Suspense>
-      </aside>
-      <main className="min-h-dvh min-w-0 flex-1 rounded-t-[28px] px-4 pb-28 pt-5 md:pb-12 md:pt-6 md:rounded-l-[32px] md:rounded-tr-none md:px-8" style={{ background: "linear-gradient(180deg,#EFF1F6 0%,#E9EDF5 60%,#DFE6F2 100%)" }}>
+    <div className="erp min-h-dvh md:flex" style={{ background: INK }}>
+      <Suspense fallback={
+        <>
+          <aside className="hidden w-[248px] shrink-0 md:block" style={{ background: INK }} />
+          <div className="flex h-14 items-center gap-3 px-4 md:hidden">
+            <Image src="/brand/katalis-mark-white.png" alt="" width={28} height={28} priority className="h-7 w-7" />
+            <div className="text-[16px] font-semibold tracking-tight text-white">KATALIS ERP</div>
+          </div>
+        </>
+      }>
+        <SesiNav />
+      </Suspense>
+      <main className="min-h-dvh min-w-0 flex-1 rounded-t-[28px] px-4 pb-32 pt-5 md:pb-12 md:pt-6 md:rounded-l-[32px] md:rounded-tr-none md:px-8" style={{ background: "linear-gradient(180deg,#EFF1F6 0%,#E9EDF5 60%,#DFE6F2 100%)" }}>
         {children}
       </main>
     </div>

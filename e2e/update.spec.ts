@@ -1,11 +1,11 @@
-import { expect, test } from "@playwright/test";
+﻿import { expect, test } from "@playwright/test";
 
 /* Halaman laporan progres /update bisa dibuka tanpa masuk, dan layar contohnya (komponen asli dengan data contoh) termuat. */
 
 test("laporan progres terbuka tanpa login dan memuat bingkai perangkat", async ({ page }) => {
   await page.goto("/update");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Sistem selesai dibangun/);
-  await expect(page.getByRole("heading", { name: "Isi tiap modul" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Apa yang bisa dilakukan di tiap menu" })).toBeVisible();
   await expect(page.locator("iframe")).toHaveCount(8);
   await expect(page.getByRole("cell", { name: "Ya" }).first()).toBeVisible();
 });
@@ -31,3 +31,4 @@ test("layar contoh dashboard di lebar HP tidak meluber ke samping", async ({ bro
     await konteks.close();
   }
 });
+

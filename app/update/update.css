@@ -38,7 +38,11 @@ html:has(.update) { scroll-padding-top: 72px; scroll-behavior: smooth; scrollbar
 /* bilah atas */
 .u-bar { position: sticky; top: 0; z-index: 30; background: var(--color-paper); border-bottom: 1px solid var(--color-rule); }
 .u-bar-isi { display: flex; align-items: center; gap: var(--space-lg); min-height: 56px; }
-.u-merek { font-weight: 600; font-size: var(--text-md); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+.u-merek { display: inline-flex; align-items: center; gap: var(--space-xs); font-weight: 600; font-size: var(--text-md); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+/* Logo di PNG berlatar putih: multiply melarutkan putihnya ke warna kertas di bawahnya. */
+.u-logo { width: 28px; height: 28px; flex: none; mix-blend-mode: multiply; }
+.u-logo-besar { display: block; width: auto; height: 60px; margin: calc(var(--space-sm) * -1) 0 var(--space-sm) calc(var(--space-sm) * -1); mix-blend-mode: multiply; }
+.u-kaki-isi { display: flex; align-items: center; gap: var(--space-sm); }
 .u-merek span { color: var(--color-muted); font-weight: 400; margin-left: var(--space-xs); }
 .u-bar nav { display: flex; gap: var(--space-xs); margin-left: auto; overflow-x: auto; scrollbar-width: none; }
 .u-bar nav a { padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); font-size: var(--text-sm); color: var(--color-ink-2); text-decoration: none; white-space: nowrap; transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out); }
@@ -104,13 +108,14 @@ html:has(.update) { scroll-padding-top: 72px; scroll-behavior: smooth; scrollbar
 .u-bingkai { position: relative; background: var(--color-bezel); border: 1px solid var(--color-bezel-2); }
 .u-layar { position: relative; width: 100%; overflow: hidden; background: var(--color-paper-3); }
 .u-layar iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; pointer-events: none; background: var(--color-paper-3); max-width: none; }
-.u-laptop .u-bingkai { padding: 2.2% 2.2% 2.6%; border-radius: 14px 14px 6px 6px; }
-.u-laptop .u-layar { border-radius: 4px; }
+/* Bezel tipis: layar mengisi hampir seluruh bingkai supaya isi sistem terlihat sebesar mungkin. */
+.u-laptop .u-bingkai { padding: 0.8% 0.8% 1%; border-radius: 9px 9px 4px 4px; }
+.u-laptop .u-layar { border-radius: 2px; }
 .u-dasar { height: 12px; margin-inline: -4%; background: var(--color-base); border-radius: 2px 2px 14px 14px; box-shadow: inset 0 3px 0 var(--color-paper-3); }
 .u-hp { max-width: 300px; margin-inline: auto; }
-.u-hp .u-bingkai { padding: 6.5% 5.5% 6.5%; border-radius: 38px; }
-.u-hp .u-layar { border-radius: 26px; }
-.u-pulau { position: absolute; z-index: 2; top: 2.4%; left: 50%; width: 24%; height: 2.2%; transform: translateX(-50%); border-radius: var(--radius-pill); background: var(--color-bezel-2); }
+.u-hp .u-bingkai { padding: 2.4% 2.2%; border-radius: 28px; }
+.u-hp .u-layar { border-radius: 22px; }
+.u-pulau { position: absolute; z-index: 2; top: 1.3%; left: 50%; width: 18%; height: 1.5%; transform: translateX(-50%); border-radius: var(--radius-pill); background: var(--color-bezel); }
 .u-garis { display: block; width: 34%; height: 4px; margin: var(--space-sm) auto 0; border-radius: var(--radius-pill); background: var(--color-base); }
 
 /* modul */
@@ -169,6 +174,7 @@ html:has(.update) { scroll-padding-top: 72px; scroll-behavior: smooth; scrollbar
   .u-hp-baris { grid-template-columns: minmax(0, 1fr); }
   .u-hero-visual .u-laptop { width: 100%; }
   .u-hero-visual .u-hp { width: 34%; }
+  .u-hp-baris .u-hp { max-width: 330px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .update *, .update *::before, .update *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }

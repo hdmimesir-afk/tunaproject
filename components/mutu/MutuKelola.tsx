@@ -1,13 +1,12 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
+import { Btn, Card, Field, Inner, Modal, Stat, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { cekMutuLot, terimaIkan } from "@/lib/actions/mutu";
-import { tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { LABEL_QC } from "@/lib/logic/pembelian";
+import { DaftarLot } from "./DaftarLot";
 import type { LotBaris, Opsi, POSiapTerima } from "@/lib/types/pembelian";
 
 const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]";
@@ -124,21 +123,7 @@ export function MutuKelola({ lots, poSiap, grade, bolehTerima, bolehMutu }: { lo
 
       {bolehTerima && <TerimaIkan poSiap={poSiap} />}
 
-      <Card title="Lot ikan">
-        <DataList
-          rows={lots}
-          empty="Belum ada ikan diterima."
-          cols={[
-            { h: "Lot", r: (l: LotBaris) => <><span className="font-medium">{l.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{l.po_kode} · {l.suppliers?.nama ?? "-"}</span></> },
-            { h: "Diterima", r: (l) => `${formatKg(l.kg)} kg · ${tanggal(l.tanggal_terima)}`, right: true },
-            { h: "Sisa", r: (l) => `${formatKg(l.sisa_kg)} kg`, right: true },
-            { h: "Mutu", r: (l) => <Pill t={LABEL_QC[l.qc]} /> },
-            { h: "Kelas", r: (l) => l.grades?.kode ?? "-" },
-            { h: "Catatan", r: (l) => (l.sebelum_disetujui ? "Bongkar malam" : l.qc_catatan || l.catatan || "-") },
-          ]}
-          actions={(l) => bolehMutu && l.sisa_kg === l.kg ? <Btn size="sm" v="light" onClick={() => setCek(l)}>{l.qc === "menunggu" ? "Cek mutu" : "Ubah"}</Btn> : null}
-        />
-      </Card>
+      <DaftarLot lots={lots} bolehMutu={bolehMutu} onCek={setCek} />
       {cek && <CekMutu key={cek.id} lot={cek} grade={grade} onTutup={() => setCek(null)} />}
       <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Lot yang lulus dengan kelas mutu bisa dipakai untuk produksi (Fase 3). Lot yang sudah dipakai tidak bisa diubah mutunya.</p></Inner>
     </div>

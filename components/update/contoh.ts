@@ -34,12 +34,12 @@ export const siklusTerbaru: BarisLabaSiklus = {
 };
 
 export const tindakan: Tindakan[] = [
-  { id: "t1", kelompok: "Persetujuan PO", icon: "check", judul: "PO-0012 · Pemasok Contoh A", rincian: "Beli ikan 200 kg · Rp9.000.000", aksi: "Setujui", href: "/persetujuan", mendesak: true },
-  { id: "t2", kelompok: "Tagihan terlambat", icon: "cash", judul: "INV-0004 · Pembeli Contoh B", rincian: "Sisa Rp4.200.000 · terlambat 3 hari (jatuh tempo 23 Okt 2026)", aksi: "Tagih", href: "/penjualan", mendesak: true },
+  { id: "t1", kelompok: "Persetujuan PO", icon: "check", judul: "PO-0012 · CV Mina Laut Jaya", rincian: "Beli ikan 200 kg · Rp9.000.000", aksi: "Setujui", href: "/persetujuan", mendesak: true },
+  { id: "t2", kelompok: "Tagihan terlambat", icon: "cash", judul: "INV-0004 · PT Pasifik Seafood Ekspor", rincian: "Sisa Rp4.200.000 · terlambat 3 hari (jatuh tempo 23 Okt 2026)", aksi: "Tagih", href: "/penjualan", mendesak: true },
   { id: "t3", kelompok: "Biaya", icon: "cash", judul: "BYA-0007 · Pengemasan dan pengiriman", rincian: "Kemasan siklus SIK-0003 · Rp500.000", aksi: "Putuskan", href: "/keuangan", mendesak: false },
   { id: "t4", kelompok: "Produksi", icon: "factory", judul: "PRD-004 · menunggu persetujuan Owner", rincian: "Loin 145,875 kg dari 200,000 kg (72,9%), selisih belum jelas 4,125 kg", aksi: "Setujui", href: "/produksi", mendesak: false },
   { id: "t5", kelompok: "Mutu", icon: "flask", judul: "LOT-0009 · PO-0012", rincian: "200,000 kg menunggu cek mutu", aksi: "Cek mutu", href: "/mutu", mendesak: false },
-  { id: "t6", kelompok: "Izin karyawan", icon: "calendar", judul: "Petugas Contoh · sakit", rincian: "27 Okt 2026 · demam", aksi: "Putuskan", href: "/absensi", mendesak: false },
+  { id: "t6", kelompok: "Izin karyawan", icon: "calendar", judul: "Budi Santoso · sakit", rincian: "27 Okt 2026 · demam", aksi: "Putuskan", href: "/absensi", mendesak: false },
   { id: "t7", kelompok: "Tutup siklus", icon: "list", judul: "SIK-0002 sudah lunas", rincian: "Uang masuk Rp21.400.000. Tutup supaya tidak dipakai lagi untuk transaksi baru.", aksi: "Tutup siklus", href: "/siklus", mendesak: false },
 ];
 
@@ -55,27 +55,27 @@ const pengajuan = (id: string, kode: string, status: "diajukan" | "diperiksa" | 
 export const IDSOROT = "apv-12";
 export const persetujuan: DataPersetujuan = {
   antrean: [
-    pengajuan("apv-12", "APV-0012", "diperiksa", "PO-0012", 200, 45_000, 42_000, "Pemasok Contoh A", 1),
-    pengajuan("apv-14", "APV-0014", "diperiksa", "PO-0014", 120, 41_000, 41_000, "Pemasok Contoh C", 1),
-    pengajuan("apv-13", "APV-0013", "diajukan", "PO-0013", 150, 43_500, 43_500, "Pemasok Contoh B", 2),
+    pengajuan("apv-12", "APV-0012", "diperiksa", "PO-0012", 200, 45_000, 42_000, "CV Mina Laut Jaya", 1),
+    pengajuan("apv-14", "APV-0014", "diperiksa", "PO-0014", 120, 41_000, 41_000, "PT Nusantara Bahari", 1),
+    pengajuan("apv-13", "APV-0013", "diajukan", "PO-0013", 150, 43_500, 43_500, "UD Samudra Timur", 2),
   ],
   riwayat: [
-    pengajuan("apv-11", "APV-0011", "disetujui", "PO-0011", 180, 42_000, null, "Pemasok Contoh A", 1),
-    pengajuan("apv-10", "APV-0010", "ditolak", "PO-0010", 60, 78_000, 42_000, "Pemasok Contoh D", 1),
+    pengajuan("apv-11", "APV-0011", "disetujui", "PO-0011", 180, 42_000, null, "CV Mina Laut Jaya", 1),
+    pengajuan("apv-10", "APV-0010", "ditolak", "PO-0010", 60, 78_000, 42_000, "Pengepul Baru Bitung", 1),
   ],
   nota: {
     "ref-apv-12": [{ id: "d1", ref_tabel: "purchase_orders", ref_id: "ref-apv-12", jenis: "nota", nama_asli: "nota-pemasok-a.jpg", ukuran: 182_000, tipe: "image/jpeg", dibuat_pada: jam(7), dibuat_oleh: "u-admin" }],
     "ref-apv-14": [{ id: "d2", ref_tabel: "purchase_orders", ref_id: "ref-apv-14", jenis: "nota", nama_asli: "nota-pemasok-c.pdf", ukuran: 96_000, tipe: "application/pdf", dibuat_pada: jam(7), dibuat_oleh: "u-admin" }],
     "ref-apv-13": [],
   },
-  bongkarMalam: [{ id: "l-8", kode: "LOT-0008", po_kode: "PO-0013", kg: 150, tanggal_terima: "2026-10-25", supplier_nama: "Pemasok Contoh B" }],
+  bongkarMalam: [{ id: "l-8", kode: "LOT-0008", po_kode: "PO-0013", kg: 150, tanggal_terima: "2026-10-25", supplier_nama: "UD Samudra Timur" }],
 };
 export const penggunaPersetujuan: Record<string, Pengguna> = {
-  "u-admin": { nama: "Admin Contoh", role: "super_admin" }, "u-fin": { nama: "Finance Contoh", role: "finance" }, "u-owner": { nama: "Pak Hilmy", role: "owner" },
+  "u-admin": { nama: "Dewi Admin", role: "super_admin" }, "u-fin": { nama: "Rina Finance", role: "finance" }, "u-owner": { nama: "Pak Hilmy", role: "owner" },
 };
 
 /* ----------------------------------------------------------------- produksi */
-export const gradeContoh: Opsi[] = [{ id: "g-a", label: "A dengan kulit" }, { id: "g-b", label: "B dengan kulit" }];
+export const gradeContoh: Opsi[] = [{ id: "g-a", label: "A-SO" }, { id: "g-b", label: "B-SO" }];
 const loin = (no: number, ekor: number, grade: string, kg: number): ItemLoin => ({ id: `lo-${no}`, no_ekor: ekor, no_loin: no, grade_id: grade, kg, versi: 1, batal: false, alasan_batal: "" });
 export const loinContoh: ItemLoin[] = [
   loin(1, 1, "g-a", 18.25), loin(2, 1, "g-a", 16.875), loin(3, 1, "g-b", 9.5), loin(4, 2, "g-a", 15.125),
@@ -92,12 +92,12 @@ export const saya: Absen[] = [
   absen("a2", "2026-10-24", "pulang", "16:35", "berhasil"),
   absen("a3", "2026-10-24", "masuk", "08:41", "berhasil", 41),
   absen("a4", "2026-10-23", "pulang", "16:31", "berhasil"),
-  absen("a5", "2026-10-23", "masuk", "08:03", "gagal", 0, "Anda 214 m dari Lokasi kerja contoh, di luar radius 100 m.", 214),
+  absen("a5", "2026-10-23", "masuk", "08:03", "gagal", 0, "Anda 214 m dari Pabrik pengolahan Bitung, di luar radius 100 m.", 214),
   absen("a6", "2026-10-23", "masuk", "08:05", "berhasil"),
 ];
-export const lokasi: LokasiKerja[] = [{ id: "lk-1", nama: "Lokasi kerja contoh", lat: 0, lng: 0, radius_m: 100, akurasi_maks_m: 30, jam_masuk: "08:00:00", toleransi_menit: 15, aktif: true }];
+export const lokasi: LokasiKerja[] = [{ id: "lk-1", nama: "Pabrik pengolahan Bitung", lat: 0, lng: 0, radius_m: 100, akurasi_maks_m: 30, jam_masuk: "08:00:00", toleransi_menit: 15, aktif: true }];
 export const izinSaya: Izin[] = [
-  { id: "iz-1", user_id: "u-petugas", nama: "Petugas Contoh", jenis: "sakit", dari: "2026-10-27", sampai: "2026-10-27", alasan: "Demam", status: "diajukan", catatan_keputusan: "", dibuat_pada: "2026-10-26T06:40:00+07:00", milik_saya: true },
+  { id: "iz-1", user_id: "u-petugas", nama: "Budi Santoso", jenis: "sakit", dari: "2026-10-27", sampai: "2026-10-27", alasan: "Demam", status: "diajukan", catatan_keputusan: "", dibuat_pada: "2026-10-26T06:40:00+07:00", milik_saya: true },
 ];
 
 /* ------------------------------------------------------------------ siklus */
@@ -108,10 +108,10 @@ export const daftarSiklus: RingkasSiklus[] = [
 ];
 export const rantai: RantaiSiklus = {
   ringkas: daftarSiklus[0],
-  po: [{ id: "po-12", kode: "PO-0012", supplier_nama: "Pemasok Contoh A", kg: 200, total: 9_000_000, status_persetujuan: "disetujui", total_bayar: 9_000_000 }],
+  po: [{ id: "po-12", kode: "PO-0012", supplier_nama: "CV Mina Laut Jaya", kg: 200, total: 9_000_000, status_persetujuan: "disetujui", total_bayar: 9_000_000 }],
   lot: [{ id: "lot-9", kode: "LOT-0009", po_kode: "PO-0012", kg: 200, qc: "lulus" }],
   produksi: [{ id: "prd-4", kode: "PRD-004", status: "diperiksa", masuk_kg: 200, loin_kg: 145.875 }],
-  pesanan: [{ id: "psn-6", kode: "PSN-0006", buyer_nama: "Pembeli Contoh B", status: "terkirim", total_final: 15_935_000, total_pesan: 16_000_000, invoice_kode: "INV-0004", invoice_id: "inv-4" }],
+  pesanan: [{ id: "psn-6", kode: "PSN-0006", buyer_nama: "PT Pasifik Seafood Ekspor", status: "terkirim", total_final: 15_935_000, total_pesan: 16_000_000, invoice_kode: "INV-0004", invoice_id: "inv-4" }],
   invoice: [{ id: "inv-4", kode: "INV-0004", total: 15_935_000, sisa: 0, status_tagihan: "lunas" }],
   biaya: [{ id: "bya-7", kode: "BYA-0007", kategori_nama: "Pengemasan dan pengiriman", jumlah: 500_000, status: "disetujui" }],
 };

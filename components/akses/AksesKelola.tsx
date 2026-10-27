@@ -3,7 +3,8 @@
 import { useActionState, useState } from "react";
 import { Btn, Card, Field, Inner, Pill, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
-import { tautanAturSandi, ubahPengguna, undangPengguna } from "@/lib/actions/akses";
+import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
+import { lepasPeran, tautanAturSandi, ubahEmail, ubahPengguna, undangPengguna } from "@/lib/actions/akses";
 import type { HasilForm } from "@/lib/actions/auth";
 
 export type Pengguna = { user_id: string; nama: string; email: string; role_id: string | null; aktif: boolean };
@@ -85,13 +86,54 @@ function Baris({ u, peran, saya, bolehOwner }: { u: Pengguna; peran: Peran[]; sa
   );
 }
 
-/** Baris pengguna beserta tombol tautan atur sandi (di luar form ubah peran supaya dua form tidak bersarang). */
+/** Ganti email masuk: tombol membuka isian kecil; setelah berhasil menampilkan pesan hasilnya. */
+function UbahEmailForm({ u }: { u: Pengguna }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(ubahEmail, undefined);
+  const [buka, setBuka] = useState(false);
+  if (state?.pesan && !state.error) return <p role="status" className="max-w-[420px] rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>{state.pesan}</p>;
+  if (!buka) return <Btn size="sm" v="ghost" onClick={() => setBuka(true)}>Ubah email</Btn>;
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="userId" value={u.user_id} />
+      <div className="flex flex-wrap items-center gap-2">
+        <input name="email" type="email" required defaultValue={u.email} aria-label={`Email baru ${u.nama || u.email}`} className="h-9 w-[260px] max-w-full rounded-xl border border-[#E2E4EA] bg-white px-3 text-[13px] outline-none focus:border-[#00171F]" />
+        <Btn type="submit" size="sm" disabled={pending}>{pending ? "Menyimpan..." : "Simpan email"}</Btn>
+        <Btn size="sm" v="ghost" onClick={() => setBuka(false)}>Batal</Btn>
+      </div>
+      <Galat state={state} />
+    </form>
+  );
+}
+
+/** Lepas peran: dua langkah (konfirmasi dulu), lalu peran kosong dan akun nonaktif. Form sendiri, di luar form ubah peran. */
+function TombolLepasPeran({ u, namaPeran }: { u: Pengguna; namaPeran: string }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(lepasPeran, undefined);
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="userId" value={u.user_id} />
+      <KonfirmasiDua size="sm" v="danger" label="Lepas peran" labelYa="Ya, lepas peran dan nonaktifkan" pending={pending}
+        pesan={`Peran ${namaPeran} dilepas dari ${u.nama || u.email} dan akunnya dinonaktifkan, jadi tidak bisa masuk. Peran bisa diberikan lagi kapan saja.`} />
+      <Galat state={state} />
+    </form>
+  );
+}
+
+/** Baris pengguna beserta tombol tautan atur sandi dan lepas peran (di luar form ubah peran supaya form tidak bersarang). */
 function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwner: boolean }) {
   const bolehTautan = p.u.user_id !== p.saya && (p.u.role_id !== "owner" || p.bolehOwner);
+  const namaPeran = p.peran.find((x) => x.id === p.u.role_id)?.nama;
+  // Email boleh diganti untuk semua akun, termasuk akun sendiri; akun Owner hanya oleh Owner.
+  const bolehEmail = p.u.role_id !== "owner" || p.bolehOwner;
   return (
     <div className="space-y-1">
       <Baris {...p} />
-      {bolehTautan && <div className="px-4 pb-1"><TombolTautanSandi userId={p.u.user_id} /></div>}
+      {(bolehTautan || bolehEmail) && (
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-1 px-4 pb-1">
+          {bolehEmail && <UbahEmailForm u={p.u} />}
+          {bolehTautan && <TombolTautanSandi userId={p.u.user_id} />}
+          {bolehTautan && p.u.role_id && namaPeran && <TombolLepasPeran u={p.u} namaPeran={namaPeran} />}
+        </div>
+      )}
     </div>
   );
 }

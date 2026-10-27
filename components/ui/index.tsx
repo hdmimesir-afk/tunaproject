@@ -5,8 +5,8 @@
 
 import { useState } from "react";
 import {
-  ArrowUpRight, Calendar, ChartColumn, ChevronLeft, CircleCheck, Clock, Download, Ellipsis, Factory, FileText, FlaskConical,
-  LayoutGrid, List, Lock, Menu, Package, Plus, Search, SendHorizontal, ShieldCheck, ShoppingCart, Snowflake, Sparkles, Truck,
+  ArrowDownLeft, ArrowUpRight, Calendar, ChartColumn, ChevronLeft, ChevronRight, CircleCheck, House, Clock, Download, Ellipsis, Factory, FileText, FlaskConical,
+  LayoutGrid, List, Lock, Menu, Package, PanelLeftClose, PanelLeftOpen, Plus, Search, SendHorizontal, ShieldCheck, ShoppingCart, Snowflake, Sparkles, Truck,
   User, Wallet, X, type LucideIcon,
 } from "lucide-react";
 import { INK, MUTED, TILE } from "./tokens";
@@ -14,9 +14,9 @@ import { INK, MUTED, TILE } from "./tokens";
 export { INK, MUTED, TILE, BLUE } from "./tokens";
 
 /* ----------------------------------------------------------------- icons */
-export type IconName = "grid" | "box" | "check" | "chart" | "user" | "search" | "menu" | "arrow" | "dots" | "plus" | "back" | "calendar" | "note" | "cart" | "factory" | "shield" | "snow" | "cash" | "truck" | "clock" | "flask" | "lock" | "list" | "download" | "close" | "sparkles" | "send";
+export type IconName = "grid" | "box" | "check" | "chart" | "user" | "search" | "menu" | "arrow" | "dots" | "plus" | "back" | "calendar" | "note" | "cart" | "factory" | "shield" | "snow" | "cash" | "truck" | "clock" | "flask" | "lock" | "list" | "download" | "close" | "sparkles" | "send" | "home" | "next" | "panel-close" | "panel-open" | "masuk";
 const LUCIDE: Record<IconName, LucideIcon> = {
-  grid: LayoutGrid, box: Package, check: CircleCheck, chart: ChartColumn, user: User, search: Search, menu: Menu, arrow: ArrowUpRight, dots: Ellipsis, plus: Plus, close: X, sparkles: Sparkles, send: SendHorizontal, back: ChevronLeft,
+  grid: LayoutGrid, box: Package, check: CircleCheck, chart: ChartColumn, user: User, search: Search, menu: Menu, arrow: ArrowUpRight, dots: Ellipsis, plus: Plus, close: X, sparkles: Sparkles, send: SendHorizontal, back: ChevronLeft, next: ChevronRight, home: House, "panel-close": PanelLeftClose, "panel-open": PanelLeftOpen, masuk: ArrowDownLeft,
   calendar: Calendar, note: FileText, cart: ShoppingCart, factory: Factory, shield: ShieldCheck, snow: Snowflake, cash: Wallet, truck: Truck, clock: Clock, flask: FlaskConical, lock: Lock, list: List, download: Download,
 };
 export const Icon = ({ n, c = INK, s = 22 }: { n: IconName; c?: string; s?: number }) => {
@@ -31,6 +31,7 @@ const PILL: Record<string, [string, string]> = {
   Diajukan: ["#FBF0D5", "#8A5A00"], "Perlu revisi": ["#FBF0D5", "#8A5A00"], Disetujui: ["#E4EEFB", "#2D5F9A"], Ditolak: ["#FBE5E3", "#A8322B"], Diterima: ["#DDF3E8", "#0B6B4A"],
   Menunggu: ["#FBF0D5", "#8A5A00"], Lulus: ["#DDF3E8", "#0B6B4A"], Draf: ["#ECEDF1", "#5A5F68"], Dikirim: ["#E4EEFB", "#2D5F9A"], Disimpan: ["#E4EEFB", "#2D5F9A"], Diambil: ["#ECEDF1", "#5A5F68"],
   Bentrok: ["#FBE5E3", "#A8322B"], Terkunci: ["#ECEDF1", "#5A5F68"], Terbuka: ["#DDF3E8", "#0B6B4A"],
+  Terkirim: ["#DDF3E8", "#0B6B4A"], Dibatalkan: ["#FBE5E3", "#A8322B"],
   Aktif: ["#DDF3E8", "#0B6B4A"], Nonaktif: ["#ECEDF1", "#5A5F68"], "Tanpa peran": ["#FBF0D5", "#8A5A00"],
 };
 export const Pill = ({ t }: { t: string }) => {
@@ -43,7 +44,7 @@ export function Btn({ children, onClick, v = "dark", size = "md", disabled, titl
   const st = { dark: { background: INK, color: "#fff" }, light: { background: "#fff", color: INK, boxShadow: "0 1px 2px rgba(20,24,40,.08)" }, danger: { background: "#FBE5E3", color: "#A8322B" }, ghost: { background: "transparent", color: MUTED } }[v];
   return (
     <button type={type} title={title} disabled={disabled} onClick={onClick} style={st}
-      className={`${full ? "w-full" : ""} inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium transition active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40 ${size === "sm" ? "h-10 px-4 text-[13px] md:h-8 md:px-3.5 md:text-[12.5px]" : "h-11 px-5 text-[14px]"}`}>
+      className={`${full ? "w-full" : ""} inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium transition hover:brightness-110 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-40 ${size === "sm" ? "h-10 px-4 text-[13px] md:h-8 md:px-3.5 md:text-[12.5px]" : "h-11 px-5 text-[14px]"}`}>
       {children}
     </button>
   );
@@ -88,7 +89,7 @@ export const Field = ({ label, children, hint, error }: { label: string; childre
     {error ? <span className="mt-1 block text-[11.5px]" style={{ color: "#A8322B" }}>{error}</span> : hint && <span className="mt-1 block text-[11.5px]" style={{ color: MUTED }}>{hint}</span>}
   </label>
 );
-const inputCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]";
+const inputCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none transition focus:border-[#00171F] focus:ring-3 focus:ring-[#00171F]/10";
 export const TextIn = (p: React.InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={inputCls} />;
 export const SelectIn = ({ options, ...p }: { options: string[] } & React.SelectHTMLAttributes<HTMLSelectElement>) => (
   <select {...p} className={inputCls}>{options.map((o) => <option key={o}>{o}</option>)}</select>
@@ -132,26 +133,36 @@ export function DataList<T>({ cols, rows, actions, empty = "Belum ada data." }: 
           </tbody>
         </table>
       </div>
-      <div className="space-y-2.5 md:hidden">
-        {rows.map((r, i) => (
-          <div key={i} className="rounded-[20px] p-4" style={{ background: TILE }}>
-            <div className="text-[14px] font-medium" style={{ color: INK }}>{first.r(r)}</div>
-            <div className="mt-2 space-y-1.5">
-              {rest.map((c) => {
-                const isi = c.r(r);
-                // Baris kosong ("-") disembunyikan; teks panjang ditumpuk di bawah labelnya supaya terbaca.
-                if (isi === "-" || isi === "" || isi === null || isi === undefined || isi === false) return null;
-                const panjang = typeof isi === "string" && isi.length > 26;
-                return panjang ? (
-                  <div key={c.h} className="text-[12.5px]"><div style={{ color: MUTED }}>{c.h}</div><div className="mt-0.5 break-words font-medium" style={{ color: INK }}>{isi}</div></div>
-                ) : (
-                  <div key={c.h} className="flex items-center justify-between gap-3 text-[12.5px]"><span className="shrink-0" style={{ color: MUTED }}>{c.h}</span><span className="min-w-0 break-words text-right font-medium" style={{ color: INK }}>{isi}</span></div>
-                );
-              })}
+      <div className="space-y-2 md:hidden">
+        {rows.map((r, i) => {
+          // Kolom "Status" naik ke samping judul; sisanya dua kolom, label kecil di atas nilainya. Nilai kosong ("-") disembunyikan.
+          const status = rest.find((c) => c.h === "Status");
+          const isiStatus = status ? status.r(r) : null;
+          const lain = rest.filter((c) => c !== status).map((c) => ({ c, isi: c.r(r) }))
+            .filter(({ isi }) => !(isi === "-" || isi === "" || isi === null || isi === undefined || isi === false));
+          return (
+            <div key={i} className="rounded-[18px] bg-white p-3.5" style={{ boxShadow: "0 1px 2px rgba(20,24,40,.05)" }}>
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="min-w-0 text-[14px] font-medium leading-snug" style={{ color: INK }}>{first.r(r)}</div>
+                {isiStatus !== null && isiStatus !== undefined && isiStatus !== false && <div className="shrink-0">{isiStatus}</div>}
+              </div>
+              {lain.length > 0 && (
+                <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-[#EEF0F4] pt-2.5">
+                  {lain.map(({ c, isi }) => {
+                    const panjang = typeof isi === "string" && isi.length > 22;
+                    return (
+                      <div key={c.h} className={`min-w-0 ${panjang ? "col-span-2" : ""}`}>
+                        <div className="text-[11px]" style={{ color: MUTED }}>{c.h}</div>
+                        <div className={`mt-px break-words text-[13px] font-medium leading-snug ${c.right ? "tabular-nums" : ""}`} style={{ color: INK }}>{isi}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {actions && <div className="mt-3 flex flex-wrap gap-2">{actions(r)}</div>}
             </div>
-            {actions && <div className="mt-3 flex flex-wrap gap-2">{actions(r)}</div>}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );

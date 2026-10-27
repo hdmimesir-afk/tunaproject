@@ -1,3 +1,8 @@
 /* Layar contoh hanya dimuat dalam iframe di /update: tanpa bilah gulir, supaya tampak seperti layar perangkat. */
 html, body { overflow: hidden; scrollbar-width: none; }
 ::-webkit-scrollbar { display: none; }
+
+/* Kepadatan layar contoh: isi halaman diperkecil supaya kartu, tombol, dan huruf tidak terlalu besar di dalam bingkai
+   perangkat dan lebih banyak data terlihat sekaligus. Hanya memengaruhi isi (`.kompak`), bukan kerangka menu. */
+.kompak { zoom: 0.8; }
+@media (max-width: 767px) { .kompak { zoom: 0.84; } }

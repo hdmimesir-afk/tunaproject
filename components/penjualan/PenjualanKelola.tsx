@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
-import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
+import { Btn, Card, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
+import { DaftarInvoice, DaftarPesanan } from "./DaftarPenjualan";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
@@ -358,33 +359,12 @@ export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa,
       </div>
 
       <Card title="Pesanan jual" right={bolehBuat && <Btn size="sm" onClick={() => setBaru(true)}>Buat pesanan</Btn>}>
-        <DataList
-          rows={pesanan}
-          empty={bolehBuat ? "Belum ada pesanan. Ketuk Buat pesanan dan pilih dari stok." : "Belum ada pesanan."}
-          cols={[
-            { h: "Pesanan", r: (p: Pesanan) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{p.buyer_nama} · {tanggal(p.tanggal)}</span></> },
-            { h: "Berat", r: (p) => kgTeks(p.status === "terkirim" ? p.kg_final : p.kg_pesan), right: true },
-            { h: "Total", r: (p) => rp(p.status === "terkirim" ? p.total_final : p.total_pesan), right: true },
-            { h: "Status", r: (p) => <Pill t={LABEL_PESANAN[p.status]} /> },
-            { h: "Invoice", r: (p) => p.invoice_kode ?? "-" },
-          ]}
-          actions={(p) => <Btn size="sm" v="light" onClick={() => router.push(`/penjualan?p=${p.id}`)}>Buka</Btn>}
-        />
+        <DaftarPesanan rows={pesanan} onBuka={(id) => router.push(`/penjualan?p=${id}`)}
+          kosong={bolehBuat ? "Belum ada pesanan. Ketuk Buat pesanan dan pilih dari stok." : "Belum ada pesanan."} />
       </Card>
 
       <Card title="Piutang dan invoice">
-        <DataList
-          rows={invoice}
-          empty="Belum ada invoice."
-          cols={[
-            { h: "Invoice", r: (i: Invoice) => <><span className="font-medium">{i.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{i.buyer_nama} · jatuh tempo {tanggal(i.jatuh_tempo)}</span></> },
-            { h: "Jenis", r: (i) => (i.jenis === "gudang_dingin" ? "Jasa gudang" : "Penjualan") },
-            { h: "Total", r: (i) => rp(i.total), right: true },
-            { h: "Sisa", r: (i) => rp(i.sisa), right: true },
-            { h: "Status", r: (i) => <Pill t={i.status_tagihan === "terlambat" ? `Terlambat ${i.hari_telat} hari` : LABEL_TAGIHAN[i.status_tagihan]} /> },
-          ]}
-          actions={(i) => <Btn size="sm" v="light" onClick={() => router.push(`/penjualan?inv=${i.id}`)}>Buka</Btn>}
-        />
+        <DaftarInvoice rows={invoice} onBuka={(id) => router.push(`/penjualan?inv=${id}`)} kosong="Belum ada invoice." />
       </Card>
 
       {bolehInvoice && jasa.length > 0 && (

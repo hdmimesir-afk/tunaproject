@@ -93,6 +93,55 @@ export async function tautanAturSandi(_: HasilForm, fd: FormData): Promise<Hasil
   };
 }
 
+const UbahEmail = z.object({ userId: z.uuid(), email: z.email("Email tidak valid").transform((v) => v.trim().toLowerCase()) });
+
+/** Ganti email masuk pengguna. Email ada di Supabase Auth dan di salinan profil; trigger profil menolak perubahan email dari klien pengguna,
+   jadi dua-duanya diubah lewat klien admin setelah izin, aturan Owner, dan duplikat diperiksa. Kata sandi tidak berubah. */
+export async function ubahEmail(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izinAkses();
+  if ("error" in a) return a;
+  const p = UbahEmail.safeParse({ userId: fd.get("userId"), email: fd.get("email") });
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors, error: "Email tidak valid." };
+
+  const supabase = await createClient();
+  const { data: profil } = await supabase.from("profiles").select("email, nama, role_id, aktif").eq("user_id", p.data.userId).maybeSingle();
+  if (!profil) return { error: "Pengguna tidak ditemukan." };
+  if (profil.role_id === "owner" && !a.sesi.semuaIzin) return { error: "Email akun Owner hanya bisa diubah oleh Owner." };
+  if (String(profil.email).toLowerCase() === p.data.email) return { error: "Email baru sama dengan email sekarang." };
+  const { data: dipakai } = await supabase.from("profiles").select("user_id").eq("email", p.data.email).neq("user_id", p.data.userId).maybeSingle();
+  if (dipakai) return { error: "Email ini sudah dipakai pengguna lain." };
+
+  const admin = klienAdmin();
+  if ("error" in admin) return admin;
+  const { error } = await admin.auth.admin.updateUserById(p.data.userId, { email: p.data.email, email_confirm: true });
+  if (error) return { error: error.message.toLowerCase().includes("already") ? "Email ini sudah terdaftar di akun lain." : "Email gagal diubah. Coba lagi." };
+  const { error: e2 } = await admin.from("profiles").update({ email: p.data.email, diubah_oleh: a.sesi.userId }).eq("user_id", p.data.userId);
+  if (e2) return { error: `Email masuk sudah diganti, tapi salinan profil belum ikut berubah: ${pesanDb(e2)}` };
+  refresh();
+  return { pesan: `Email ${profil.nama || ""} diganti menjadi ${p.data.email}. Kata sandinya tidak berubah; ia masuk dengan email baru.`.replace("  ", " ") };
+}
+
+const Lepas = z.object({ userId: z.uuid() });
+
+/** Lepas peran pengguna: peran dikosongkan dan akun dinonaktifkan (tanpa peran tidak ada izin apa pun). Tidak ada baris yang dihapus;
+   akun bisa diberi peran dan diaktifkan lagi. Database menolak melepas peran akun sendiri dan akun Owner oleh bukan Owner. */
+export async function lepasPeran(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izinAkses();
+  if ("error" in a) return a;
+  const p = Lepas.safeParse({ userId: fd.get("userId") });
+  if (!p.success) return { error: "Pengguna tidak valid." };
+  if (p.data.userId === a.sesi.userId) return { error: "Tidak bisa melepas peran akun sendiri." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("profiles")
+    .update({ role_id: null, aktif: false })
+    .eq("user_id", p.data.userId)
+    .select("user_id");
+  if (error) return { error: pesanDb(error) };
+  if (!data?.length) return { error: "Pengguna tidak ditemukan atau Anda tidak berhak mengubahnya." };
+  refresh();
+  return { pesan: "Peran dilepas dan akun dinonaktifkan." };
+}
+
 const Ubah = z.object({
   userId: z.uuid(),
   roleId: z.enum(PERAN),
