@@ -107,6 +107,7 @@ export function SiklusKelola({ daftar, detail, bolehTutup }: { daftar: RingkasSi
         <DataList
           rows={daftar}
           empty="Belum ada siklus. Siklus dibuat otomatis saat PO memilih Siklus baru."
+          cari={(s) => `${s.kode} ${s.ref_po_pembeli} ${s.no_bongkar} ${s.status}`}
           cols={[
             { h: "Siklus", r: (s: RingkasSiklus) => <><span className="font-medium">{s.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{s.ref_po_pembeli || "tanpa PO pembeli"}</span></> },
             { h: "Beli ikan", r: (s) => rp(s.nilai_beli), right: true },

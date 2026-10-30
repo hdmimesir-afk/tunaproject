@@ -55,6 +55,9 @@ export type Dashboard = {
   stok_titipan_kg: number;
   pesanan_belum_dikirim: number;
   dokumen_kurang: number;
+  /** Barang penunjang yang stoknya sudah di bawah minimum atau habis. Kolom ini baru ada setelah migrasi 20261101000200. */
+  barang_menipis?: number;
+  barang_habis?: number;
 };
 
 export type RingkasSiklus = {
@@ -91,6 +94,8 @@ export type BarisLabaSiklus = {
   laba_kotor: number;
   margin_pct: number | null;
   loin_kg: number;
+  /** Ikan yang benar-benar masuk produksi (kg_ikan adalah yang dipesan di PO). Ada setelah migrasi 20261101000200. */
+  kg_diolah?: number;
 };
 
 export type BarisHargaBeli = { tanggal: string; supplier_id: string; supplier_nama: string; grade_kode: string; kg: number; nilai: number; jumlah_lot: number };

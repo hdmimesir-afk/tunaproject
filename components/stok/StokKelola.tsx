@@ -6,17 +6,20 @@ import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { ajukanKoreksi, ambilStok, masukkanHasil, putuskanKoreksi } from "@/lib/actions/stok";
+import { ajukanKoreksi, ambilStok, masukkanHasil, pindahRuangan, putuskanKoreksi } from "@/lib/actions/stok";
+import { PilihRuangan } from "@/components/gudang/Ruangan";
 import { waktu } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { GerakStok, IsiGudang, ProduksiSiapStok, UnitStok } from "@/lib/types/stok";
+import type { Barang, GerakBarang, GerakStok, IsiGudang, ProduksiSiapStok, Ruangan, UnitStok } from "@/lib/types/stok";
+import { NAMA_KATEGORI, Penunjang } from "./Penunjang";
 
 type Koreksi = GerakStok & { unit_kode: string; sisa_kg: number };
 
-type Props = {
+type PropsIkan = {
   units: UnitStok[];
   isi: IsiGudang;
+  ruangan: Ruangan[];
   koreksi: Koreksi[];
   produksi: ProduksiSiapStok[];
   produk: Opsi[];
@@ -29,7 +32,7 @@ type Props = {
 const kgTeks = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
 
 /* -------------------------------------------------------- hasil masuk */
-function FormHasil({ produksi, produk, grade, onTutup }: { produksi: ProduksiSiapStok[]; produk: Opsi[]; grade: Opsi[]; onTutup: () => void }) {
+function FormHasil({ produksi, produk, grade, ruangan, onTutup }: { produksi: ProduksiSiapStok[]; produk: Opsi[]; grade: Opsi[]; ruangan: Ruangan[]; onTutup: () => void }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(masukkanHasil, undefined);
   const [langsung, setLangsung] = useState(false);
   const [kondisi, setKondisi] = useState("beku");
@@ -67,7 +70,8 @@ function FormHasil({ produksi, produk, grade, onTutup }: { produksi: ProduksiSia
             </Field>
             <Field label="Berat (kg)" error={state?.kolom?.kg?.[0]}><TextIn name="kg" inputMode="decimal" placeholder="0,000" required /></Field>
           </div>
-          {!langsung && <Field label="Lokasi di gudang" hint="Misalnya rak atau ruang."><TextIn name="lokasi" maxLength={60} /></Field>}
+          {!langsung && ruangan.length > 0 && <PilihRuangan ruangan={ruangan} />}
+          {!langsung && <Field label="Rak atau posisi" hint="Boleh kosong."><TextIn name="lokasi" maxLength={60} /></Field>}
           {kondisi === "fresh" && (
             <label className="flex items-start gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
               <input type="checkbox" name="langsungKirim" className="mt-0.5 h-4 w-4 accent-[#00171F]" checked={langsung} onChange={(e) => setLangsung(e.target.checked)} />
@@ -95,6 +99,27 @@ function FormAmbil({ unit, onTutup }: { unit: UnitStok; onTutup: () => void }) {
       <Field label="Keterangan" hint="Misalnya tujuan kirim."><TextIn name="alasan" maxLength={300} /></Field>
       {unit.buyer_id && <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Titipan pelanggan: tagihan jasa dibuat otomatis saat diambil.</p>}
       <KonfirmasiDua full label="Catat pengambilan" labelYa="Ya, ambil dari gudang" pending={pending} pesan="Stok berkurang sesuai berat yang ditimbang. Lanjutkan?" />
+    </form>
+  );
+}
+
+/* --------------------------------------------------------- pindah ruangan */
+function FormPindah({ unit, ruangan, onTutup }: { unit: UnitStok; ruangan: Ruangan[]; onTutup: () => void }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(pindahRuangan, undefined);
+  useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
+  const sekarang = ruangan.find((r) => r.id === unit.room_id);
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="unitId" value={unit.id} />
+      <PesanForm state={state?.error ? state : undefined} />
+      <p className="text-[13px]" style={{ color: MUTED }}>{unit.pemilik_nama} · {unit.product_nama}{unit.grade_kode ? ` ${unit.grade_kode}` : ""} · {kgTeks(unit.sisa_kg)}. Sekarang di: {sekarang ? sekarang.nama : "belum ditempatkan"}.</p>
+      <Field label="Pindah ke ruangan" error={state?.kolom?.ruanganId?.[0]}>
+        <select name="ruanganId" className={pilihCls} defaultValue="" required>
+          <option value="" disabled>Pilih ruangan</option>
+          {ruangan.filter((r) => r.id !== unit.room_id).map((r) => <option key={r.id} value={r.id}>{r.nama} · muat {kgTeks(Math.max(0, r.kapasitas_kg - r.isi_kg))} lagi</option>)}
+        </select>
+      </Field>
+      <Btn type="submit" full disabled={pending}>{pending ? "Memindah..." : "Pindahkan"}</Btn>
     </form>
   );
 }
@@ -148,14 +173,45 @@ function PutusanKoreksi({ k }: { k: Koreksi }) {
 }
 
 /* --------------------------------------------------------------- utama */
-export function StokKelola({ units, isi, koreksi, produksi, produk, grade, bolehTulis, bolehSetuju, bolehTitipan }: Props) {
+type Tab = "ikan" | "kerja" | "pekerja";
+type Props = PropsIkan & { barang: Barang[]; riwayat: GerakBarang[]; tabAwal?: Tab };
+
+/** Tiga tab: stok ikan (hasil produksi dan titipan), penunjang kerja, dan penunjang pekerja. */
+export function StokKelola({ barang, riwayat, tabAwal = "ikan", ...ikan }: Props) {
+  const [tab, setTab] = useState<Tab>(tabAwal);
+  const menipis = (k: "kerja" | "pekerja") => barang.filter((b) => b.kategori === k && b.aktif && b.status_stok !== "aman").length;
+  const tabs: { id: Tab; label: string; peringatan?: number }[] = [
+    { id: "ikan", label: "Ikan" },
+    { id: "kerja", label: NAMA_KATEGORI.kerja, peringatan: menipis("kerja") },
+    { id: "pekerja", label: NAMA_KATEGORI.pekerja, peringatan: menipis("pekerja") },
+  ];
+  return (
+    <div className="space-y-4">
+      <div role="tablist" aria-label="Jenis stok" className="flex w-full gap-1 overflow-x-auto rounded-full bg-white p-1 md:w-fit">
+        {tabs.map((t) => (
+          <button key={t.id} role="tab" type="button" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
+            className="flex h-10 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 text-[13px] font-medium transition md:h-9 md:flex-none md:px-5"
+            style={tab === t.id ? { background: "#00171F", color: "#fff" } : { color: MUTED }}>
+            {t.label}
+            {!!t.peringatan && <span className="rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold leading-none" style={tab === t.id ? { background: "rgba(255,255,255,.2)" } : { background: "#FBF0D5", color: "#8A5A00" }} title="Barang menipis atau habis">{t.peringatan}</span>}
+          </button>
+        ))}
+      </div>
+      {tab === "ikan" ? <StokIkan {...ikan} /> : <Penunjang kategori={tab} barang={barang} riwayat={riwayat} bolehTulis={ikan.bolehTulis} />}
+    </div>
+  );
+}
+
+function StokIkan({ units, isi, ruangan, koreksi, produksi, produk, grade, bolehTulis, bolehSetuju, bolehTitipan }: PropsIkan) {
   const [hasil, setHasil] = useState(false);
   const [ambil, setAmbil] = useState<UnitStok | null>(null);
   const [koreksiUnit, setKoreksiUnit] = useState<UnitStok | null>(null);
+  const [pindah, setPindah] = useState<UnitStok | null>(null);
   const [semua, setSemua] = useState(false);
   const tampil = semua ? units : units.filter((u) => u.status === "aktif");
   const totalIsi = isi.isi_sendiri_kg + isi.isi_titipan_kg;
   const bolehAmbil = (u: UnitStok) => u.status === "aktif" && (u.buyer_id ? bolehTitipan : bolehTulis);
+  const namaRuangan = new Map(ruangan.map((r) => [r.id, r.nama]));
 
   return (
     <div className="space-y-4">
@@ -176,24 +232,27 @@ export function StokKelola({ units, isi, koreksi, produksi, produk, grade, boleh
         <DataList
           rows={tampil}
           empty="Belum ada stok."
+          cari={(u) => `${u.kode} ${u.pemilik_nama} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.production_kode ?? ""} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
           cols={[
             { h: "Unit", r: (u: UnitStok) => <><span className="font-medium">{u.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.pemilik_nama}{u.production_kode ? ` · ${u.production_kode}` : ""}</span></> },
             { h: "Produk", r: (u) => `${u.product_nama}${u.grade_kode ? ` · ${u.grade_kode}` : ""}` },
             { h: "Kondisi", r: (u) => <Pill t={u.langsung_kirim ? "Langsung kirim" : u.kondisi === "beku" ? "Beku" : "Fresh"} /> },
-            { h: "Lokasi", r: (u) => u.lokasi || "-" },
+            { h: "Ruangan", r: (u) => (u.langsung_kirim ? "-" : (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : "")) },
             { h: "Masuk", r: (u) => kgTeks(u.kg_masuk), right: true },
             { h: "Sisa", r: (u) => kgTeks(u.sisa_kg), right: true },
           ]}
           actions={(u) => (
             <>
               {bolehAmbil(u) && <Btn size="sm" v="light" onClick={() => setAmbil(u)}>Ambil</Btn>}
+              {bolehAmbil(u) && ruangan.length > 0 && <Btn size="sm" v="ghost" onClick={() => setPindah(u)}>Pindah</Btn>}
               {bolehTulis && u.status === "aktif" && <Btn size="sm" v="ghost" onClick={() => setKoreksiUnit(u)}>Koreksi</Btn>}
             </>
           )}
         />
       </Card>
 
-      {hasil && <Modal title="Hasil produksi masuk stok" onClose={() => setHasil(false)}><FormHasil produksi={produksi} produk={produk} grade={grade} onTutup={() => setHasil(false)} /></Modal>}
+      {hasil && <Modal title="Hasil produksi masuk stok" onClose={() => setHasil(false)}><FormHasil produksi={produksi} produk={produk} grade={grade} ruangan={ruangan} onTutup={() => setHasil(false)} /></Modal>}
+      {pindah && <Modal title={`Pindah ${pindah.kode}`} onClose={() => setPindah(null)}><FormPindah unit={pindah} ruangan={ruangan} onTutup={() => setPindah(null)} /></Modal>}
       {ambil && <Modal title={`Ambil ${ambil.kode}`} onClose={() => setAmbil(null)}><FormAmbil unit={ambil} onTutup={() => setAmbil(null)} /></Modal>}
       {koreksiUnit && <Modal title={`Koreksi ${koreksiUnit.kode}`} onClose={() => setKoreksiUnit(null)}><FormKoreksi unit={koreksiUnit} onTutup={() => setKoreksiUnit(null)} /></Modal>}
     </div>

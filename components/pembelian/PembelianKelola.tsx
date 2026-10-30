@@ -46,6 +46,7 @@ export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, bol
         <DataList
           rows={daftar}
           empty={bolehTulis ? "Belum ada PO. Ketuk Buat PO untuk mulai." : "Belum ada PO."}
+          cari={(p) => `${p.kode} ${p.supplier_nama} ${p.siklus_kode ?? ""} ${LABEL_PO[p.status_persetujuan]} ${LABEL_TERIMA[p.status_terima]} ${LABEL_BAYAR[p.status_bayar]}`}
           cols={[
             { h: "PO", r: (p: POBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{p.supplier_nama} · {tanggal(p.tanggal)}</span></> },
             { h: "Berat", r: (p) => `${formatKg(p.kg)} kg`, right: true },

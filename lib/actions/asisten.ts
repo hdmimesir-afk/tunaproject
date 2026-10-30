@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
-import { DAFTAR_ALAT, jalankanAlat, type TabelAlat, type Tautan } from "@/lib/asisten/alat";
+import { DAFTAR_ALAT, jalankanAlat, type Laporan, type TabelAlat, type Tautan } from "@/lib/asisten/alat";
 import { requireSesi } from "@/lib/data/auth";
 import { boleh } from "@/lib/izin";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +11,7 @@ import { pesanDb } from "./pesan";
 /* Asisten AI: hanya membaca. Alat bacanya memakai token pengguna (RLS berlaku). Pertanyaan bebas lewat OpenRouter
    (OPENROUTER_API_KEY di server); pertanyaan cepat menjalankan alat langsung tanpa model dan tidak memakai jatah harian. */
 
-export type JawabanAsisten = { jawaban?: string; baris?: string[]; tabel?: TabelAlat; tautan?: Tautan[]; error?: string; sisa?: number };
+export type JawabanAsisten = { jawaban?: string; baris?: string[]; tabel?: TabelAlat; laporan?: Laporan; tautan?: Tautan[]; error?: string; sisa?: number };
 
 const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 const BATAS_PUTARAN = 6;
@@ -31,7 +31,12 @@ Cara menjawab (jawabanmu ditampilkan sebagai markdown):
 - Tebalkan hanya angka atau nama yang paling penting. Daftar poin hanya untuk langkah atau butir yang memang terpisah.
 - Rupiah ditulis Rp1.234.567. Berat dalam kg dengan koma desimal (300,94 kg). Tanggal ditulis 5 Nov 2026. Persen satu desimal.
 - Bila ada hal yang perlu perhatian (terlambat, bentrok, melebihi kapasitas, selisih belum jelas), sebut itu di kalimat pertama atau kedua, jangan disembunyikan di bawah.
-- Bila pertanyaan kurang jelas atau data kosong, katakan satu kalimat apa yang kurang dan apa yang bisa ditanyakan sebagai gantinya.`;
+- Bila pertanyaan kurang jelas atau data kosong, katakan satu kalimat apa yang kurang dan apa yang bisa ditanyakan sebagai gantinya.
+
+Laporan langsung:
+- Bila pengguna meminta laporan, rekap, atau ringkasan (harian, mingguan, bulanan, "kondisi usaha sekarang", "apa kabar hari ini"), langsung panggil alat laporan_periode (periode hari_ini, minggu_ini, atau bulan_ini; kalau tidak disebut pakai hari_ini). Jangan bertanya balik dulu.
+- Sistem sudah menampilkan laporan lengkap (bagian dan tabelnya) dari hasil alat. Jangan menyalin tabelnya. Tulis hanya sorotan 2 sampai 4 kalimat: angka terpenting, hal yang perlu perhatian (tagihan terlambat, ruangan hampir penuh, barang penunjang menipis, yang menunggu keputusan), dan satu saran tindakan bila ada.
+- Pertanyaan soal ruangan gudang (ABF 1, 2, 3 dan Cold Storage 1) dijawab dengan alat isi_ruangan; soal barang penunjang (apron, masker, kemasan) dengan alat barang_menipis.`;
 
 async function sesiAsisten() {
   const sesi = await requireSesi();
@@ -41,8 +46,8 @@ async function sesiAsisten() {
 
 const bolehAlat = (sesi: Awaited<ReturnType<typeof requireSesi>>, izin: string[]) => izin.some((i) => boleh(sesi, i));
 
-/** Pertanyaan cepat: alat dijalankan langsung dan hasilnya ditampilkan apa adanya. */
-export async function tanyaCepat(nama: string): Promise<JawabanAsisten> {
+/** Pertanyaan cepat: alat dijalankan langsung dan hasilnya ditampilkan apa adanya. `periode` hanya dipakai alat laporan. */
+export async function tanyaCepat(nama: string, periode?: string): Promise<JawabanAsisten> {
   const s = await sesiAsisten();
   if ("error" in s) return { error: s.error };
   const alat = DAFTAR_ALAT.find((a) => a.nama === nama);
@@ -51,9 +56,9 @@ export async function tanyaCepat(nama: string): Promise<JawabanAsisten> {
   const { data: id, error } = await sb.rpc("mulai_asisten", { p_mode: "cepat", p_pertanyaan: alat.label });
   if (error) return { error: pesanDb(error) };
   try {
-    const h = await jalankanAlat(alat.nama, {});
+    const h = await jalankanAlat(alat.nama, periode ? { periode } : {}, s.sesi);
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: [alat.nama], p_masuk: 0, p_keluar: 0, p_status: "selesai" });
-    return { baris: h.ringkas, tabel: h.tabel, tautan: h.tautan };
+    return { baris: h.ringkas, tabel: h.tabel, laporan: h.laporan, tautan: h.tautan };
   } catch {
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: [alat.nama], p_masuk: 0, p_keluar: 0, p_status: "gagal" });
     return { error: "Data tidak bisa dibaca sekarang. Coba lagi sebentar." };
@@ -120,6 +125,7 @@ export async function tanyaModel(input: z.input<typeof Tanya>): Promise<JawabanA
   const pesan: PesanOr[] = [{ role: "system", content: SISTEM }, ...p.data.riwayat.map((r) => ({ role: r.peran, content: r.teks }) as PesanOr), { role: "user", content: p.data.pertanyaan }];
   const dipakai: string[] = [];
   const tautan = new Map<string, Tautan>();
+  let laporan: Laporan | undefined;
   let masuk = 0, keluar = 0;
 
   try {
@@ -143,10 +149,11 @@ export async function tanyaModel(input: z.input<typeof Tanya>): Promise<JawabanA
         try {
           let argumen: Record<string, unknown> = {};
           try { argumen = JSON.parse(t.function.arguments || "{}") as Record<string, unknown>; } catch { /* argumen rusak: pakai kosong */ }
-          const h = await jalankanAlat(def.nama, argumen);
+          const h = await jalankanAlat(def.nama, argumen, s.sesi);
           dipakai.push(def.nama);
           for (const l of h.tautan) tautan.set(l.href, l);
-          pesan.push({ role: "tool", tool_call_id: t.id, content: JSON.stringify({ ringkas: h.ringkas, tabel: h.tabel, data: h.tabel ? undefined : h.data }).slice(0, 12000) });
+          if (h.laporan) laporan = h.laporan;
+          pesan.push({ role: "tool", tool_call_id: t.id, content: JSON.stringify({ ringkas: h.ringkas, tabel: h.tabel, laporan: h.laporan ? { judul: h.laporan.judul, periode: h.laporan.periode, bagian: h.laporan.bagian } : undefined, data: h.tabel || h.laporan ? undefined : h.data }).slice(0, 12000) });
         } catch {
           pesan.push({ role: "tool", tool_call_id: t.id, content: "Data tidak bisa dibaca sekarang." });
         }
@@ -155,7 +162,7 @@ export async function tanyaModel(input: z.input<typeof Tanya>): Promise<JawabanA
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: dipakai, p_masuk: masuk, p_keluar: keluar, p_status: "selesai" });
     const { data: jatah } = await sb.rpc("jatah_asisten");
     refresh();
-    return { jawaban: jawaban || "Maaf, belum ada jawaban. Coba tanyakan dengan cara lain.", tautan: [...tautan.values()].slice(0, 8), sisa: (jatah as { sisa: number } | null)?.sisa };
+    return { jawaban: jawaban || "Maaf, belum ada jawaban. Coba tanyakan dengan cara lain.", laporan, tautan: [...tautan.values()].slice(0, 8), sisa: (jatah as { sisa: number } | null)?.sisa };
   } catch (e) {
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: dipakai, p_masuk: masuk, p_keluar: keluar, p_status: "gagal" });
     if (e instanceof GalatModel && (e.status === 401 || e.status === 403)) return { error: "Kunci OpenRouter di server tidak valid. Hubungi pengelola sistem." };

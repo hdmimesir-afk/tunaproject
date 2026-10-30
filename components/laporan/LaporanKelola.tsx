@@ -161,6 +161,7 @@ function TrenTab({ tren }: { tren: BarisLabaSiklus[] }) {
       <DataList
         rows={baris}
         empty="Belum ada siklus."
+        cari={(b) => b.kode}
         cols={[
           { h: "Siklus", r: (b: (typeof baris)[number]) => <span className="font-medium">{b.kode}</span> },
           { h: "Ikan", r: (b) => `${kgT(b.ikanKg)} kg`, right: true },

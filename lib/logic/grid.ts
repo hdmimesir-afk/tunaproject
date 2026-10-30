@@ -94,8 +94,10 @@ export const tampilKg = (gram: number) => (gram / 1000).toLocaleString("id-ID", 
 /** CSV dengan titik koma (Excel Indonesia) dan berat tiga desimal persis seperti di layar. */
 export function buatCsv(kepala: string[], isi: (string | number)[][]) {
   const sel = (v: string | number) => {
-    const s = String(v);
-    return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    let s = String(v);
+    // Teks yang diawali = + - @ dibaca Excel sebagai rumus; angka asli (number) dibiarkan.
+    if (typeof v === "string" && /^[=+\-@\t\r]/.test(s) && !/^-?[\d.,]+$/.test(s)) s = `'${s}`;
+    return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return "﻿" + [kepala, ...isi].map((r) => r.map(sel).join(";")).join("\r\n");
 }

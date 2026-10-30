@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { AturanTarif, Booking, GerakStok, IsiGudang, ProduksiSiapStok, Tagihan, UnitStok } from "@/lib/types/stok";
+import type { AturanTarif, Barang, Booking, GerakBarang, GerakStok, IsiGudang, ProduksiSiapStok, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
 
 /* Lapisan akses data stok dan gudang dingin. Klien pengguna, jadi RLS dan izin database berlaku. */
 
@@ -21,6 +21,30 @@ export async function isiGudang(): Promise<IsiGudang> {
   const { data, error } = await sb.from("v_gudang_isi").select("*").maybeSingle();
   if (error) gagal("isi gudang");
   return (data as IsiGudang | null) ?? { kapasitas_kg: 17500, isi_sendiri_kg: 0, isi_titipan_kg: 0 };
+}
+
+/** Ruangan gudang dingin (ABF dan CS) beserta isinya. Kosong bila migrasi ruangan belum terpasang, supaya halaman lama tetap terbuka. */
+export async function daftarRuangan(): Promise<Ruangan[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("v_ruangan_isi").select("*").eq("aktif", true).order("urutan");
+  if (error) return [];
+  return (data ?? []) as Ruangan[];
+}
+
+/** Barang penunjang (kerja dan pekerja) beserta stok hasil hitung riwayatnya. Kosong bila migrasi belum terpasang. */
+export async function daftarBarang(): Promise<Barang[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("v_supply_stok").select("*").order("kategori").order("nama");
+  if (error) return [];
+  return (data ?? []) as Barang[];
+}
+
+/** Riwayat masuk, keluar, dan koreksi barang penunjang, terbaru dulu. */
+export async function riwayatBarang(): Promise<GerakBarang[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("supply_movements").select("*").order("tanggal", { ascending: false }).order("dibuat_pada", { ascending: false }).limit(400);
+  if (error) return [];
+  return (data ?? []) as GerakBarang[];
 }
 
 /** Koreksi stok yang menunggu keputusan Owner, beserta unitnya. */

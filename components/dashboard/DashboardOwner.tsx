@@ -4,11 +4,17 @@ import { INK, MUTED } from "@/components/ui/tokens";
 import { rp } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
 import type { Tindakan as ItemTindakan } from "@/lib/data/tindakan";
+import { RuanganPanel } from "@/components/gudang/Ruangan";
 import type { BarisLabaSiklus, BukuBulanan, Dashboard } from "@/lib/types/keuangan";
+import type { IsiGudang, Ruangan } from "@/lib/types/stok";
 
 type Izin = { persetujuan: boolean; keuangan: boolean; penjualan: boolean; pembelian: boolean; produksi: boolean; stok: boolean; mutu: boolean; laporan: boolean };
 
-type Props = { d: Dashboard; izin: Izin; nama: string; salam: string; tanggal: string; buku: BukuBulanan[]; siklus: BarisLabaSiklus | null; tindakan: ItemTindakan[] };
+type Props = {
+  d: Dashboard; izin: Izin; nama: string; salam: string; tanggal: string; buku: BukuBulanan[]; siklus: BarisLabaSiklus | null; tindakan: ItemTindakan[];
+  /** Ruangan gudang dingin (ABF dan CS) beserta isinya, dan isi gudang total untuk menghitung yang belum ditempatkan. */
+  ruangan?: Ruangan[]; isiGudang?: IsiGudang;
+};
 
 const kgT = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
 const persen = (n: number) => `${n.toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
@@ -137,9 +143,12 @@ function ArusKas({ buku }: { buku: BukuBulanan[] }) {
 }
 
 /* ---------------------------------------------------------------- utama */
-export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan }: Props) {
+export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan, ruangan = [], isiGudang }: Props) {
   const selisih = d.kas_masuk_bulan_ini - d.kas_keluar_bulan_ini;
   const adaKas = buku.length > 0;
+  const isiRuangan = ruangan.reduce((a, r) => a + Math.round(r.isi_kg * 1000), 0) / 1000;
+  const belumDitempatkan = isiGudang ? Math.max(0, isiGudang.isi_sendiri_kg + isiGudang.isi_titipan_kg - isiRuangan) : 0;
+  const penunjangPerhatian = (d.barang_menipis ?? 0) + (d.barang_habis ?? 0);
 
   return (
     <div className="space-y-4">
@@ -163,6 +172,12 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
             </div>
           )}
 
+          {izin.stok && ruangan.length > 0 && (
+            <Bagian judul="Gudang dingin per ruangan" kanan={<Selengkapnya href="/gudang" label="Gudang" />}>
+              <RuanganPanel ruangan={ruangan} belumDitempatkanKg={belumDitempatkan} ringkas />
+            </Bagian>
+          )}
+
           {izin.keuangan && (
             <Bagian judul="Arus kas 6 bulan terakhir" kanan={<Selengkapnya href="/keuangan" label="Buku kas" />}>
               {adaKas ? <ArusKas buku={buku} /> : <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada transaksi kas. Pembayaran, biaya yang disetujui, dan impor akan muncul di sini.</p>}
@@ -177,7 +192,8 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
                   <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="chart" label="Biaya" nilai={rp(siklus.biaya_total)} />
                   <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="chart" label="Laba kotor" nilai={rp(siklus.laba_kotor)} tone={siklus.laba_kotor < 0 ? "warn" : siklus.pendapatan_total > 0 ? "ok" : undefined}
                     catatan={siklus.margin_pct !== null ? `Margin ${persen(Number(siklus.margin_pct))}` : undefined} />
-                  <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="factory" label="Hasil olahan" nilai={siklus.kg_ikan > 0 ? persen((siklus.loin_kg / siklus.kg_ikan) * 100) : "-"} catatan={`Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_ikan)}`} />
+                  <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="factory" label="Hasil olahan" nilai={(siklus.kg_diolah ?? siklus.kg_ikan) > 0 ? persen((siklus.loin_kg / (siklus.kg_diolah ?? siklus.kg_ikan)) * 100) : "-"}
+                    catatan={siklus.kg_diolah !== undefined ? `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_diolah)} yang sudah diolah` : `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_ikan)}`} />
                 </div>
               ) : (
                 <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada siklus. Laba rugi tampil di sini setelah ada pembelian, produksi, dan penjualan.</p>
@@ -205,6 +221,21 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
               <div className="grid grid-cols-2 gap-2.5">
                 {izin.produksi && <Angka href="/produksi" icon="factory" label="Produksi berjalan" nilai={String(d.produksi_berjalan)} />}
                 {izin.stok && <Angka href="/gudang" icon="snow" label="Titipan di gudang" nilai={kgT(d.stok_titipan_kg)} />}
+              </div>
+            </Bagian>
+          )}
+
+          {izin.stok && d.barang_menipis !== undefined && (
+            <Bagian judul="Barang penunjang" kanan={<Selengkapnya href="/stok?tab=kerja" label="Stok" />}>
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: penunjangPerhatian > 0 ? "#FBF0D5" : "#DDF3E8" }}>
+                  <Icon n={penunjangPerhatian > 0 ? "box" : "check"} s={17} c={penunjangPerhatian > 0 ? "#8A5A00" : "#0B6B4A"} />
+                </span>
+                <div className="min-w-0 text-[13px] leading-snug" style={{ color: INK }}>
+                  {penunjangPerhatian > 0
+                    ? <><b className="text-[17px] font-semibold tabular-nums">{penunjangPerhatian}</b> barang perlu diisi ulang ({d.barang_menipis} menipis, {d.barang_habis ?? 0} habis)</>
+                    : <>Semua barang penunjang masih aman.</>}
+                </div>
               </div>
             </Bagian>
           )}

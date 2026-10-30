@@ -6,18 +6,21 @@ import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { batalkanBooking, buatBooking, pindahBooking, terimaTitipan, ubahTarif } from "@/lib/actions/stok";
+import { batalkanBooking, buatBooking, pindahBooking, terimaTitipan, ubahRuangan, ubahTarif } from "@/lib/actions/stok";
 import { rp, tanggal } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
 import { cariBentrok, slotKosong } from "@/lib/logic/jadwal";
+import { formatKg } from "@/lib/logic/neraca";
 import { uraikanBiaya } from "@/lib/logic/tarif";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { AturanTarif, Booking, IsiGudang, Tagihan, UnitStok } from "@/lib/types/stok";
+import type { AturanTarif, Booking, IsiGudang, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
 import { jamWib, keInputWib, sekarangInputWib } from "@/lib/waktu";
+import { PilihRuangan, RuanganPanel } from "./Ruangan";
 
 type Props = {
   titipan: UnitStok[];
   isi: IsiGudang;
+  ruangan: Ruangan[];
   tagihan: Tagihan[];
   tarif: AturanTarif[];
   booking: Booking[];
@@ -34,7 +37,24 @@ const kgTeks = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
 const LABEL_JASA = { simpan: "Simpan", abf: "ABF", transit: "Transit" } as const;
 
 /* ------------------------------------------------------------ titipan */
-function FormTitipan({ pelanggan, produk, grade, onTutup }: { pelanggan: Opsi[]; produk: Opsi[]; grade: Opsi[]; onTutup: () => void }) {
+function FormRuangan({ r, onTutup }: { r: Ruangan; onTutup: () => void }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(ubahRuangan, undefined);
+  useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="ruanganId" value={r.id} />
+      <PesanForm state={state?.error ? state : undefined} />
+      <p className="text-[12.5px]" style={{ color: MUTED }}>{r.nama} saat ini berisi {kgTeks(r.isi_kg)}. Kapasitas tidak boleh di bawah isi, dan ruangan yang masih berisi tidak bisa dinonaktifkan.</p>
+      <Field label="Kapasitas (kg)" error={state?.kolom?.kapasitas?.[0]}><TextIn name="kapasitas" inputMode="decimal" defaultValue={formatKg(r.kapasitas_kg)} required /></Field>
+      <label className="flex items-center gap-2.5 text-[13px]"><input type="checkbox" name="dikonfirmasi" className="h-4 w-4 accent-[#00171F]" defaultChecked={r.dikonfirmasi} />Kapasitas ini sudah dikonfirmasi owner</label>
+      <label className="flex items-center gap-2.5 text-[13px]"><input type="checkbox" name="aktif" className="h-4 w-4 accent-[#00171F]" defaultChecked={r.aktif} />Ruangan aktif dipakai</label>
+      <Field label="Catatan"><TextIn name="catatan" maxLength={300} defaultValue={r.catatan} /></Field>
+      <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Simpan ruangan"}</Btn>
+    </form>
+  );
+}
+
+function FormTitipan({ pelanggan, produk, grade, ruangan, onTutup }: { pelanggan: Opsi[]; produk: Opsi[]; grade: Opsi[]; ruangan: Ruangan[]; onTutup: () => void }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(terimaTitipan, undefined);
   const [kondisi, setKondisi] = useState("fresh");
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
@@ -54,7 +74,8 @@ function FormTitipan({ pelanggan, produk, grade, onTutup }: { pelanggan: Opsi[];
             <Field label="Kondisi"><select name="kondisi" className={pilihCls} value={kondisi} onChange={(e) => setKondisi(e.target.value)}><option value="fresh">Fresh</option><option value="beku">Beku</option></select></Field>
             <Field label="Berat (kg)" error={state?.kolom?.kg?.[0]}><TextIn name="kg" inputMode="decimal" placeholder="0,000" required /></Field>
           </div>
-          <Field label="Lokasi" hint="Misalnya rak atau ruang."><TextIn name="lokasi" maxLength={60} /></Field>
+          {ruangan.length > 0 && <PilihRuangan ruangan={ruangan} />}
+          <Field label="Rak atau posisi" hint="Boleh kosong."><TextIn name="lokasi" maxLength={60} /></Field>
           {kondisi === "fresh" && (
             <label className="flex items-start gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
               <input type="checkbox" name="perluAbf" className="mt-0.5 h-4 w-4 accent-[#00171F]" /><span>Dibekukan di ABF (ditagih terpisah).</span>
@@ -189,8 +210,11 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
 }
 
 /* --------------------------------------------------------------- utama */
-export function GudangKelola({ titipan, isi, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehTarif, hariIni }: Props) {
+export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehTarif, hariIni }: Props) {
   const [terima, setTerima] = useState(false);
+  const [aturRuangan, setAturRuangan] = useState<Ruangan | null>(null);
+  const namaRuangan = new Map(ruangan.map((r) => [r.id, r.nama]));
+  const isiRuangan = ruangan.reduce((a, r) => a + Math.round(r.isi_kg * 1000), 0) / 1000;
   const [rincian, setRincian] = useState<Tagihan | null>(null);
   const [ubah, setUbah] = useState<AturanTarif | null>(null);
   const [jadwalBaru, setJadwalBaru] = useState(false);
@@ -211,15 +235,22 @@ export function GudangKelola({ titipan, isi, tagihan, tarif, booking, pelanggan,
         <Stat value={rp(tagihan.reduce((a, t) => a + Math.round(t.jumlah * 100), 0) / 100)} label="Total tagihan jasa tercatat" />
       </div>
 
+      <Card title="Ruangan gudang dingin" right={<span className="px-1 text-[12px]" style={{ color: MUTED }}>3 ABF dan 1 CS</span>}>
+        <div className="px-1 pb-1">
+          <RuanganPanel ruangan={ruangan} belumDitempatkanKg={Math.max(0, total - isiRuangan)} onAtur={bolehTarif ? setAturRuangan : undefined} />
+        </div>
+      </Card>
+
       <Card title="Titipan pelanggan" right={bolehTulis && <Btn size="sm" onClick={() => setTerima(true)}>Terima titipan</Btn>}>
         <DataList
           rows={aktif}
           empty="Tidak ada titipan di gudang."
+          cari={(u) => `${u.pemilik_nama} ${u.kode} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
           cols={[
             { h: "Pelanggan", r: (u: UnitStok) => <><span className="font-medium">{u.pemilik_nama}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.kode} · masuk {tanggal(u.masuk_pada)}</span></> },
             { h: "Produk", r: (u) => `${u.product_nama}${u.grade_kode ? ` · ${u.grade_kode}` : ""}` },
             { h: "Kondisi", r: (u) => <Pill t={u.kondisi === "beku" ? "Beku" : u.perlu_abf ? "Fresh + ABF" : "Fresh"} /> },
-            { h: "Lokasi", r: (u) => u.lokasi || "-" },
+            { h: "Ruangan", r: (u) => (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : "") },
             { h: "Sisa", r: (u) => kgTeks(u.sisa_kg), right: true },
           ]}
         />
@@ -230,6 +261,7 @@ export function GudangKelola({ titipan, isi, tagihan, tarif, booking, pelanggan,
         <DataList
           rows={tagihan}
           empty="Belum ada tagihan jasa."
+          cari={(t) => `${t.kode} ${t.pemilik_nama} ${LABEL_JASA[t.jenis]}`}
           cols={[
             { h: "Tagihan", r: (t: Tagihan) => <><span className="font-medium">{t.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{t.pemilik_nama}</span></> },
             { h: "Jenis", r: (t) => <Pill t={LABEL_JASA[t.jenis]} /> },
@@ -270,7 +302,8 @@ export function GudangKelola({ titipan, isi, tagihan, tarif, booking, pelanggan,
         />
       </Card>
 
-      {terima && <Modal title="Terima titipan" onClose={() => setTerima(false)}><FormTitipan pelanggan={pelanggan} produk={produk} grade={grade} onTutup={() => setTerima(false)} /></Modal>}
+      {terima && <Modal title="Terima titipan" onClose={() => setTerima(false)}><FormTitipan pelanggan={pelanggan} produk={produk} grade={grade} ruangan={ruangan} onTutup={() => setTerima(false)} /></Modal>}
+      {aturRuangan && <Modal title={`Atur ${aturRuangan.nama}`} onClose={() => setAturRuangan(null)}><FormRuangan r={aturRuangan} onTutup={() => setAturRuangan(null)} /></Modal>}
       {rincian && <RincianTagihan t={rincian} onTutup={() => setRincian(null)} />}
       {ubah && <Modal title={`Ubah tarif ${LABEL_JASA[ubah.jenis]}`} onClose={() => setUbah(null)}><FormTarif aturan={ubah} hariIni={hariIni} onTutup={() => setUbah(null)} /></Modal>}
       {jadwalBaru && <Modal title="Tambah jadwal" onClose={() => setJadwalBaru(false)}><FormBooking booking={booking} mitra={mitra} onTutup={() => setJadwalBaru(false)} /></Modal>}

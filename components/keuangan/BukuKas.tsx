@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Btn, Card, Icon, Pill } from "@/components/ui";
+import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { rp, tanggal } from "@/lib/format";
 import { buatCsv } from "@/lib/logic/grid";
@@ -30,11 +31,13 @@ function hariLengkap(s: string) {
 }
 
 const sen = (n: number) => Math.round(n * 100);
+const teksKas = (k: BarisKas) => `${k.kode} ${k.uraian} ${k.kategori_nama} ${k.arah === "masuk" ? "uang masuk" : "uang keluar"} ${tanggal(k.tanggal)} ${k.jumlah}`;
 
 /** Buku kas: ringkasan, filter arah, dan transaksi dikelompokkan per hari. Tabel di desktop, kartu di HP. */
 export function BukuKas({ kas, hariIni }: { kas: BarisKas[]; hariIni: string }) {
   const [arah, setArah] = useState<Arah>("semua");
-  const tampil = useMemo(() => kas.filter((k) => arah === "semua" || k.arah === arah), [kas, arah]);
+  const dasar = useMemo(() => kas.filter((k) => arah === "semua" || k.arah === arah), [kas, arah]);
+  const { q, setQ, hasil: tampil } = useCari(dasar, teksKas);
   const jumlah = { semua: kas.length, masuk: kas.filter((k) => k.arah === "masuk").length, keluar: kas.filter((k) => k.arah === "keluar").length };
   const masuk = tampil.filter((k) => k.arah === "masuk").reduce((a, k) => a + sen(k.jumlah), 0) / 100;
   const keluar = tampil.filter((k) => k.arah === "keluar").reduce((a, k) => a + sen(k.jumlah), 0) / 100;
@@ -80,10 +83,11 @@ export function BukuKas({ kas, hariIni }: { kas: BarisKas[]; hariIni: string }) 
             <Ringkas label="Selisih" nilai={rp(masuk - keluar)} warna={masuk - keluar < 0 ? "#B4443C" : HIJAU} />
           </div>
         </div>
+        {kas.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari uraian, kode, kategori, atau jumlah" tampil={tampil.length} total={dasar.length} />}
 
         {perHari.length === 0 ? (
           <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
-            {kas.length === 0 ? "Belum ada transaksi kas. Pembayaran pemasok, pembayaran pembeli, dan biaya yang disetujui masuk otomatis." : "Tidak ada transaksi untuk filter ini."}
+            {kas.length === 0 ? "Belum ada transaksi kas. Pembayaran pemasok, pembayaran pembeli, dan biaya yang disetujui masuk otomatis." : q.trim() ? `Tidak ada transaksi yang cocok dengan “${q.trim()}”.` : "Tidak ada transaksi untuk filter ini."}
           </div>
         ) : (
           <div className="overflow-hidden rounded-[20px] bg-white">

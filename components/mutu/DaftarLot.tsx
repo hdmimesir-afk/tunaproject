@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Btn, Card, Pill } from "@/components/ui";
+import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
@@ -11,6 +12,7 @@ import type { LotBaris } from "@/lib/types/pembelian";
 type Saring = "semua" | "menunggu" | "lulus" | "ditahan";
 const KOLOM = "md:grid md:grid-cols-[minmax(0,1.25fr)_150px_190px_minmax(0,1fr)_104px] md:gap-5";
 const AMBER = "#8A5A00";
+const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.suppliers?.nama ?? ""} ${l.grades?.kode ?? ""} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
 /** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label satu baris. Tabel di desktop, kartu di HP. */
 export function DaftarLot({ lots, bolehMutu, onCek }: { lots: LotBaris[]; bolehMutu: boolean; onCek: (l: LotBaris) => void }) {
@@ -21,7 +23,8 @@ export function DaftarLot({ lots, bolehMutu, onCek }: { lots: LotBaris[]; bolehM
     lulus: lots.filter((l) => l.qc === "lulus").length,
     ditahan: lots.filter((l) => l.qc === "ditahan").length,
   }), [lots]);
-  const tampil = saring === "semua" ? lots : lots.filter((l) => l.qc === saring);
+  const dasar = saring === "semua" ? lots : lots.filter((l) => l.qc === saring);
+  const { q, setQ, hasil: tampil } = useCari(dasar, teksLot);
   const pilihan: { id: Saring; label: string }[] = [{ id: "semua", label: "Semua" }, { id: "menunggu", label: "Menunggu" }, { id: "lulus", label: "Lulus" }, { id: "ditahan", label: "Ditahan" }];
 
   return (
@@ -37,10 +40,11 @@ export function DaftarLot({ lots, bolehMutu, onCek }: { lots: LotBaris[]; bolehM
             </button>
           ))}
         </div>
+        {lots.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari lot, PO, pemasok, atau kelas" tampil={tampil.length} total={dasar.length} />}
 
         {tampil.length === 0 ? (
           <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
-            {lots.length === 0 ? "Belum ada ikan diterima." : "Tidak ada lot untuk filter ini."}
+            {lots.length === 0 ? "Belum ada ikan diterima." : q.trim() ? `Tidak ada lot yang cocok dengan “${q.trim()}”.` : "Tidak ada lot untuk filter ini."}
           </div>
         ) : (
           <div className="overflow-hidden rounded-[20px] bg-white">

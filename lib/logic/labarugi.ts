@@ -109,11 +109,12 @@ export function hitungLabaRugi(input: InputLabaRugi): LabaRugi {
 /** Satu baris tren antarsiklus dari v_laba_rugi_siklus. */
 export type BarisTren = { kode: string; ikanKg: number; hasilPct: number; pendapatan: number; biaya: number; laba: number; marginPct: number | null; hargaIkanPerKg: number };
 
-export function ringkasTren(baris: { kode: string; kg_ikan: number; loin_kg: number; pendapatan_total: number; biaya_total: number; biaya_ikan: number; laba_kotor: number; margin_pct: number | null }[]): BarisTren[] {
+export function ringkasTren(baris: { kode: string; kg_ikan: number; kg_diolah?: number; loin_kg: number; pendapatan_total: number; biaya_total: number; biaya_ikan: number; laba_kotor: number; margin_pct: number | null }[]): BarisTren[] {
   return baris.map((b) => ({
     kode: b.kode,
     ikanKg: b.kg_ikan,
-    hasilPct: pct(Math.round(b.loin_kg * 1000), Math.round(b.kg_ikan * 1000)),
+    // Hasil dibagi ikan yang benar-benar diolah (bila ada); kg_ikan adalah yang dipesan di PO. Harga per kg tetap memakai yang dibeli.
+    hasilPct: pct(Math.round(b.loin_kg * 1000), Math.round((b.kg_diolah ?? b.kg_ikan) * 1000)),
     pendapatan: b.pendapatan_total,
     biaya: b.biaya_total,
     laba: b.laba_kotor,

@@ -13,6 +13,8 @@ export type UnitStok = {
   grade_kode: string | null;
   kondisi: KondisiStok;
   lokasi: string;
+  /** Ruangan gudang dingin (ABF atau CS); kosong untuk data lama yang belum ditempatkan. */
+  room_id: string | null;
   production_id: string | null;
   production_kode: string | null;
   kg_masuk: number;
@@ -96,4 +98,50 @@ export type Booking = {
 };
 
 export type IsiGudang = { kapasitas_kg: number; isi_sendiri_kg: number; isi_titipan_kg: number };
+
+/* ------------------------------------------------------- ruangan gudang */
+export type JenisRuangan = "abf" | "cs";
+export type Ruangan = {
+  id: string;
+  kode: string;
+  nama: string;
+  jenis: JenisRuangan;
+  kapasitas_kg: number;
+  urutan: number;
+  dikonfirmasi: boolean;
+  catatan: string;
+  aktif: boolean;
+  isi_sendiri_kg: number;
+  isi_titipan_kg: number;
+  isi_kg: number;
+  jumlah_unit: number;
+};
+
+/* ------------------------------------------------------ stok penunjang */
+export type KategoriBarang = "kerja" | "pekerja";
+export type StatusBarang = "aman" | "menipis" | "habis";
+export type Barang = {
+  id: string;
+  kode: string;
+  kategori: KategoriBarang;
+  nama: string;
+  satuan: string;
+  stok_minimum: number;
+  lokasi: string;
+  keterangan: string;
+  aktif: boolean;
+  stok: number;
+  status_stok: StatusBarang;
+  terakhir: string | null;
+};
+export type GerakBarang = {
+  id: string;
+  item_id: string;
+  jenis: "masuk" | "keluar" | "koreksi";
+  jumlah: number;
+  tanggal: string;
+  penerima: string;
+  catatan: string;
+  dibuat_pada: string;
+};
 export type ProduksiSiapStok = { id: string; kode: string; sisaKg: number };

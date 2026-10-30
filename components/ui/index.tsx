@@ -3,7 +3,8 @@
 /* Komponen tampilan dasar, disalin dari components/demo/ui.tsx di repo deck (katalis-erp-pitch)
    tanpa bagian yang terikat ke data demo. Tata letak HP dan desktop memakai breakpoint `md`. */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { cocok, KotakCari } from "./Cari";
 import {
   ArrowDownLeft, ArrowUpRight, Calendar, ChartColumn, ChevronLeft, ChevronRight, CircleCheck, House, Clock, Download, Ellipsis, Factory, FileText, FlaskConical,
   LayoutGrid, List, Lock, Menu, Package, PanelLeftClose, PanelLeftOpen, Plus, Search, SendHorizontal, ShieldCheck, ShoppingCart, Snowflake, Sparkles, Truck,
@@ -32,6 +33,7 @@ const PILL: Record<string, [string, string]> = {
   Menunggu: ["#FBF0D5", "#8A5A00"], Lulus: ["#DDF3E8", "#0B6B4A"], Draf: ["#ECEDF1", "#5A5F68"], Dikirim: ["#E4EEFB", "#2D5F9A"], Disimpan: ["#E4EEFB", "#2D5F9A"], Diambil: ["#ECEDF1", "#5A5F68"],
   Bentrok: ["#FBE5E3", "#A8322B"], Terkunci: ["#ECEDF1", "#5A5F68"], Terbuka: ["#DDF3E8", "#0B6B4A"],
   Terkirim: ["#DDF3E8", "#0B6B4A"], Dibatalkan: ["#FBE5E3", "#A8322B"],
+  Aman: ["#DDF3E8", "#0B6B4A"], Cukup: ["#DDF3E8", "#0B6B4A"], Longgar: ["#DDF3E8", "#0B6B4A"], Terisi: ["#E4EEFB", "#2D5F9A"], "Hampir penuh": ["#FBF0D5", "#8A5A00"], Penuh: ["#FBE5E3", "#A8322B"], Kosong: ["#ECEDF1", "#5A5F68"], Menipis: ["#FBF0D5", "#8A5A00"], Habis: ["#FBE5E3", "#A8322B"],
   Aktif: ["#DDF3E8", "#0B6B4A"], Nonaktif: ["#ECEDF1", "#5A5F68"], "Tanpa peran": ["#FBF0D5", "#8A5A00"],
 };
 export const Pill = ({ t }: { t: string }) => {
@@ -114,12 +116,21 @@ export function Modal({ title, onClose, children, footer, lebar }: { title: stri
 
 /* ----------------------------------------------------------- data list */
 export interface Col<T> { h: string; r: (row: T) => React.ReactNode; right?: boolean }
-/** Tabel di desktop, kartu bertumpuk di HP. Kolom pertama menjadi judul kartu. */
-export function DataList<T>({ cols, rows, actions, empty = "Belum ada data." }: { cols: Col<T>[]; rows: T[]; actions?: (row: T) => React.ReactNode; empty?: string }) {
-  if (rows.length === 0) return <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{empty}</div></Inner>;
+/** Tabel di desktop, kartu bertumpuk di HP. Kolom pertama menjadi judul kartu.
+    Bila `cari` diberikan (fungsi yang menghasilkan teks yang bisa dicari dari satu baris), kotak pencarian tampil di atas daftar. */
+export function DataList<T>({ cols, rows, actions, empty = "Belum ada data.", cari }: { cols: Col<T>[]; rows: T[]; actions?: (row: T) => React.ReactNode; empty?: string; cari?: (row: T) => string }) {
+  const [q, setQ] = useState("");
+  const semua = rows;
+  rows = useMemo(() => (cari && q.trim() ? semua.filter((r) => cocok(cari(r), q)) : semua), [semua, cari, q]);
+  if (semua.length === 0) return <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{empty}</div></Inner>;
   const [first, ...rest] = cols;
+  const kotak = cari ? <KotakCari q={q} onUbah={setQ} tampil={rows.length} total={semua.length} className="mb-2.5" /> : null;
+  if (rows.length === 0) {
+    return <>{kotak}<Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Tidak ada yang cocok dengan &ldquo;{q.trim()}&rdquo;.</div></Inner></>;
+  }
   return (
     <>
+      {kotak}
       <div className="hidden overflow-x-auto rounded-[20px] bg-white md:block">
         <table className="w-full text-[13.5px]">
           <thead><tr className="text-left text-[12px]" style={{ color: MUTED }}>{cols.map((c) => <th key={c.h} className={`px-4 py-3 font-medium ${c.right ? "text-right" : ""}`}>{c.h}</th>)}{actions && <th className="px-4 py-3 text-right font-medium">Aksi</th>}</tr></thead>

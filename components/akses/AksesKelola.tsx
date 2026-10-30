@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { KotakCari, useCari } from "@/components/ui/Cari";
 import { Btn, Card, Field, Inner, Pill, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
@@ -163,13 +164,18 @@ function Undang({ peran, bolehOwner }: { peran: Peran[]; bolehOwner: boolean }) 
 }
 
 export function AksesKelola({ pengguna, peran, saya, bolehOwner }: { pengguna: Pengguna[]; peran: Peran[]; saya: string; bolehOwner: boolean }) {
+  const namaPeran = new Map(peran.map((p) => [p.id, p.nama]));
+  const teks = useMemo(() => (u: Pengguna) => `${u.nama} ${u.email} ${u.role_id ? namaPeran.get(u.role_id) ?? "" : "tanpa peran"} ${u.aktif ? "aktif" : "nonaktif"}`, [peran]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { q, setQ, hasil } = useCari(pengguna, teks);
   return (
     <div className="space-y-4">
       <Undang peran={peran} bolehOwner={bolehOwner} />
       <Card title={`${pengguna.length} pengguna`}>
         <div className="space-y-2">
+          {pengguna.length > 3 && <KotakCari q={q} onUbah={setQ} placeholder="Cari nama, email, atau peran" tampil={hasil.length} total={pengguna.length} />}
           {pengguna.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Belum ada pengguna.</p></Inner>}
-          {pengguna.map((u) => <BarisPengguna key={u.user_id} u={u} peran={peran} saya={saya} bolehOwner={bolehOwner} />)}
+          {pengguna.length > 0 && hasil.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Tidak ada pengguna yang cocok dengan &ldquo;{q.trim()}&rdquo;.</p></Inner>}
+          {hasil.map((u) => <BarisPengguna key={u.user_id} u={u} peran={peran} saya={saya} bolehOwner={bolehOwner} />)}
         </div>
       </Card>
     </div>

@@ -98,6 +98,7 @@ export function ProduksiKelola({ daftar, lotSiap, grade, samping, pengguna, deta
         <DataList
           rows={daftar}
           empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai produksi dan pilih lot yang lulus mutu." : "Belum ada produksi."}
+          cari={(p) => `${p.kode} ${p.siklus_kode ?? ""} ${p.status.replace("_", " ")} ${p.tanggal}`}
           cols={[
             { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.siklus_kode ? ` · ${p.siklus_kode}` : ""}</span></> },
             { h: "Ikan masuk", r: (p) => `${kgTeks(p.masuk_kg)} kg`, right: true },

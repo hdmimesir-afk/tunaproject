@@ -11,6 +11,12 @@ html, body { margin: 0; height: 100%; background: #00111A; color: var(--charcoal
 /* Sistem ERP: huruf Google Sans seperti semula. Angka sama lebar supaya kolom tabel lurus. */
 .erp table, .erp .tabular-nums { font-variant-numeric: tabular-nums; }
 .erp input, .erp select, .erp textarea, .erp button { font-family: inherit; }
+/* Cetak satu laporan Asisten: sisa halaman disembunyikan, hanya kartu yang diberi kelas laporan-aktif yang dicetak. */
+@media print {
+  body.cetak-laporan * { visibility: hidden !important; }
+  body.cetak-laporan .laporan-aktif, body.cetak-laporan .laporan-aktif * { visibility: visible !important; }
+  body.cetak-laporan .laporan-aktif { position: absolute; left: 0; top: 0; width: 100%; padding: 12mm; background: #fff; box-shadow: none; }
+}
 /* Scrollbar menu samping: tipis dan gelap, tidak mencolok di atas latar ink. */
 .erp-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent; }
 .slide-text { box-sizing: border-box; white-space: pre-wrap; overflow-wrap: break-word; }

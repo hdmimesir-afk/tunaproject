@@ -5,9 +5,12 @@ import { useRef, useState, useTransition } from "react";
 import { Btn, Card, Inner } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { JawabanTeks, TabelHasil, type TabelAsisten } from "./Jawaban";
+import { KartuLaporan } from "./Laporan";
 import { tanyaCepat, tanyaModel, type JawabanAsisten } from "@/lib/actions/asisten";
+import type { Laporan } from "@/lib/asisten/alat";
 
-type Pesan = { peran: "user" | "assistant"; teks: string; baris?: string[]; tabel?: TabelAsisten; tautan?: { label: string; href: string }[]; galat?: boolean };
+type Pesan = { peran: "user" | "assistant"; teks: string; baris?: string[]; tabel?: TabelAsisten; laporan?: Laporan; tautan?: { label: string; href: string }[]; galat?: boolean };
+const PERIODE_LAPORAN = [{ id: "hari_ini", label: "Laporan hari ini" }, { id: "minggu_ini", label: "Laporan minggu ini" }, { id: "bulan_ini", label: "Laporan bulan ini" }];
 type Props = { alat: { nama: string; label: string }[]; modelAktif: boolean; jatah: { batas: number; sisa: number } };
 
 const CONTOH = ["Piutang mana yang sudah terlambat?", "Berapa saldo kas bulan ini?", "Apa saja yang menunggu persetujuan saya?", "Berapa isi gudang dingin sekarang?"];
@@ -23,18 +26,18 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
     setPesan((x) => [...x, p]);
     setTimeout(() => ujung.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 50);
   };
-  const hasil = (j: JawabanAsisten): Pesan => (j.error ? { peran: "assistant", teks: j.error, galat: true } : { peran: "assistant", teks: j.jawaban ?? "", baris: j.baris, tabel: j.tabel, tautan: j.tautan });
+  const hasil = (j: JawabanAsisten): Pesan => (j.error ? { peran: "assistant", teks: j.error, galat: true } : { peran: "assistant", teks: j.jawaban ?? "", baris: j.baris, tabel: j.tabel, laporan: j.laporan, tautan: j.tautan });
 
-  const cepat = (nama: string, label: string) => {
+  const cepat = (nama: string, label: string, periode?: string) => {
     if (sibuk) return;
     tampil({ peran: "user", teks: label });
-    mulai(async () => tampil(hasil(await tanyaCepat(nama))));
+    mulai(async () => tampil(hasil(await tanyaCepat(nama, periode))));
   };
 
   const kirim = (isi: string) => {
     const t = isi.trim();
     if (!t || sibuk) return;
-    const riwayat = pesan.filter((p) => !p.galat).slice(-6).map((p) => ({ peran: p.peran, teks: p.baris ? [...p.baris, ...(p.tabel ? p.tabel.baris.map((b) => b.join(" | ")) : [])].join("\n") : p.teks }));
+    const riwayat = pesan.filter((p) => !p.galat && !p.laporan).slice(-6).map((p) => ({ peran: p.peran, teks: p.baris ? [...p.baris, ...(p.tabel ? p.tabel.baris.map((b) => b.join(" | ")) : [])].join("\n") : p.teks }));
     tampil({ peran: "user", teks: t });
     setTeks("");
     mulai(async () => {
@@ -49,7 +52,9 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
       <Card title="Pertanyaan cepat">
         <div className="flex flex-wrap gap-2 px-2.5 pb-2.5">
           {alat.length === 0 && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada data yang bisa dibaca Asisten untuk peran Anda.</p>}
-          {alat.map((a) => <Btn key={a.nama} size="sm" v="light" disabled={sibuk} onClick={() => cepat(a.nama, a.label)}>{a.label}</Btn>)}
+          {alat.map((a) => a.nama === "laporan_periode"
+            ? PERIODE_LAPORAN.map((p) => <Btn key={p.id} size="sm" v="dark" disabled={sibuk} onClick={() => cepat(a.nama, p.label, p.id)}>{p.label}</Btn>)
+            : <Btn key={a.nama} size="sm" v="light" disabled={sibuk} onClick={() => cepat(a.nama, a.label)}>{a.label}</Btn>)}
         </div>
         <p className="px-2.5 pb-2 text-[12px]" style={{ color: MUTED }}>Menampilkan data apa adanya dari sistem, tanpa menebak. Tidak memakai jatah harian.</p>
       </Card>
@@ -67,7 +72,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
           {pesan.map((p, i) => (
             <div key={i} className={p.peran === "user" ? "flex justify-end" : "flex justify-start"}>
               <div className="max-w-[92%] rounded-2xl px-3.5 py-2.5 text-[13.5px]" style={p.peran === "user" ? { background: INK, color: "#fff" } : p.galat ? { background: "#FBE5E3", color: "#A8322B" } : { background: "#fff", color: INK }}>
-                {p.baris ? <><ul className="space-y-1">{p.baris.map((b, j) => <li key={j}>{b}</li>)}</ul>{p.tabel && <TabelHasil t={p.tabel} />}</> : p.peran === "assistant" && !p.galat ? <JawabanTeks teks={p.teks} /> : <p className="whitespace-pre-wrap">{p.teks}</p>}
+                {p.laporan ? <KartuLaporan l={p.laporan} ringkas={p.baris} /> : p.baris ? <><ul className="space-y-1">{p.baris.map((b, j) => <li key={j}>{b}</li>)}</ul>{p.tabel && <TabelHasil t={p.tabel} />}</> : p.peran === "assistant" && !p.galat ? <JawabanTeks teks={p.teks} /> : <p className="whitespace-pre-wrap">{p.teks}</p>}
                 {p.tautan && p.tautan.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {p.tautan.map((l) => <Link key={l.href} href={l.href} className="rounded-full bg-[#F1F3F8] px-2.5 py-1 text-[12px] font-medium underline-offset-2 hover:underline" style={{ color: INK }}>{l.label}</Link>)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon, Pill } from "@/components/ui";
+import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { rp, tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
@@ -10,6 +11,8 @@ import type { Invoice, Pesanan } from "@/lib/types/penjualan";
 const HIJAU = "#0B6B4A";
 const MERAH = "#B4443C";
 const kgTeks = (n: number) => `${formatKg(n)} kg`;
+const teksPesanan = (p: Pesanan) => `${p.kode} ${p.buyer_nama} ${p.invoice_kode ?? ""} ${LABEL_PESANAN[p.status]} ${p.siklus_kode ?? ""}`;
+const teksInvoice = (i: Invoice) => `${i.kode} ${i.buyer_nama} ${i.jenis === "gudang_dingin" ? "jasa gudang" : "penjualan"} ${i.status_tagihan.replaceAll("_", " ")}`;
 const KOLOM_PESANAN = "md:grid md:grid-cols-[minmax(0,1.3fr)_120px_150px_120px_110px_20px] md:items-center md:gap-5";
 const KOLOM_INVOICE = "md:grid md:grid-cols-[minmax(0,1.3fr)_110px_150px_170px_150px_20px] md:items-center md:gap-5";
 
@@ -28,9 +31,12 @@ function Wadah({ judul, kosong, ada, kepala, kolom, children }: { judul: string;
 const barisCls = "group block w-full border-t border-[#EEF0F4] px-4 py-4 text-left transition first:border-t-0 hover:bg-[#FAFBFD] active:bg-[#F4F6FA] md:px-5";
 
 /** Daftar pesanan jual: satu baris yang bisa diketuk penuh. Kartu bernilai besar di HP, tabel lebar di desktop. */
-export function DaftarPesanan({ rows, kosong, onBuka }: { rows: Pesanan[]; kosong: string; onBuka: (id: string) => void }) {
+export function DaftarPesanan({ rows: semua, kosong, onBuka }: { rows: Pesanan[]; kosong: string; onBuka: (id: string) => void }) {
+  const { q, setQ, hasil: rows } = useCari(semua, teksPesanan);
   return (
-    <Wadah judul="Pesanan jual" kosong={kosong} ada={rows.length > 0} kolom={KOLOM_PESANAN} kepala={["Pesanan", "Berat", "Total", "Status", "Invoice", ""]}>
+    <div className="space-y-2.5">
+      {semua.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari pesanan, pembeli, atau invoice" tampil={rows.length} total={semua.length} />}
+    <Wadah judul="Pesanan jual" kosong={semua.length === 0 ? kosong : `Tidak ada pesanan yang cocok dengan “${q.trim()}”.`} ada={rows.length > 0} kolom={KOLOM_PESANAN} kepala={["Pesanan", "Berat", "Total", "Status", "Invoice", ""]}>
       {rows.map((p) => {
         const final = p.status === "terkirim";
         const kg = final ? p.kg_final : p.kg_pesan;
@@ -67,15 +73,19 @@ export function DaftarPesanan({ rows, kosong, onBuka }: { rows: Pesanan[]; koson
         );
       })}
     </Wadah>
+    </div>
   );
 }
 
 const STATUS_TAGIHAN: Record<string, string> = { belum_jatuh_tempo: "Belum jatuh tempo", jatuh_tempo: "Jatuh tempo", lunas: "Lunas", terlambat: "Terlambat", dibatalkan: "Dibatalkan" };
 
 /** Daftar piutang dan invoice: sisa tagihan menonjol, batang pembayaran, dan tanda terlambat yang jelas. */
-export function DaftarInvoice({ rows, kosong, onBuka }: { rows: Invoice[]; kosong: string; onBuka: (id: string) => void }) {
+export function DaftarInvoice({ rows: semua, kosong, onBuka }: { rows: Invoice[]; kosong: string; onBuka: (id: string) => void }) {
+  const { q, setQ, hasil: rows } = useCari(semua, teksInvoice);
   return (
-    <Wadah judul="Piutang dan invoice" kosong={kosong} ada={rows.length > 0} kolom={KOLOM_INVOICE} kepala={["Invoice", "Jenis", "Total", "Pembayaran", "Status", ""]}>
+    <div className="space-y-2.5">
+      {semua.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari invoice, pembeli, atau status" tampil={rows.length} total={semua.length} />}
+    <Wadah judul="Piutang dan invoice" kosong={semua.length === 0 ? kosong : `Tidak ada invoice yang cocok dengan “${q.trim()}”.`} ada={rows.length > 0} kolom={KOLOM_INVOICE} kepala={["Invoice", "Jenis", "Total", "Pembayaran", "Status", ""]}>
       {rows.map((i) => {
         const terlambat = i.status_tagihan === "terlambat";
         const lunas = i.status_tagihan === "lunas";
@@ -130,5 +140,6 @@ export function DaftarInvoice({ rows, kosong, onBuka }: { rows: Invoice[]; koson
         );
       })}
     </Wadah>
+    </div>
   );
 }

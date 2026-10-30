@@ -131,6 +131,7 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
         <DataList
           rows={biaya}
           empty={bolehTulis ? "Belum ada biaya. Ketuk Catat biaya, lampirkan nota, lalu ajukan." : "Belum ada biaya."}
+          cari={(b) => `${b.kode} ${b.uraian} ${b.kategori_nama} ${rujukanTeks(b)} ${LABEL[b.status]}`}
           cols={[
             { h: "Biaya", r: (b: Biaya) => <><span className="font-medium">{b.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{b.uraian}</span></> },
             { h: "Kategori", r: (b) => b.kategori_nama },
