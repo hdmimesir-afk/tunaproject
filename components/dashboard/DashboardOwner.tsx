@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Icon, type IconName } from "@/components/ui";
+import { AngkaMuat, Icon, type IconName } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { rp } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
@@ -98,7 +98,7 @@ function Angka({ href, label, nilai, catatan, tone, icon }: { href: string; labe
         <span className="text-[12px] font-medium md:text-[12.5px]" style={{ color: MUTED }}>{label}</span>
         <Icon n={icon} s={16} c="#9AA2AB" />
       </div>
-      <div className={`mt-2 whitespace-nowrap font-medium leading-none tracking-tight tabular-nums md:text-[24px] ${nilai.length > 12 ? "text-[17px] min-[400px]:text-[19px]" : "text-[20px] min-[400px]:text-[22px]"}`} style={{ color: warna }}>{nilai}</div>
+      <div className="mt-2"><AngkaMuat teks={nilai} desktop={24} className="font-medium" style={{ color: warna }} /></div>
       {catatan && <div className="mt-1.5 text-[11.5px] leading-snug md:text-[12px]" style={{ color: tone === "warn" ? "#B4443C" : MUTED }}>{catatan}</div>}
     </Link>
   );

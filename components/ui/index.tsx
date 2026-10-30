@@ -68,12 +68,24 @@ export function Card({ title, right, children, className = "" }: { title?: strin
 
 export const Inner = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => <div className={`rounded-[20px] p-4 ${className}`} style={{ background: TILE }}>{children}</div>;
 
+/** Angka besar yang mengecil sendiri sampai muat di lebar kartunya (container query), tidak pernah meluber atau terpotong.
+    Ukuran memuncak di `mobil` px (layar kecil) dan `desktop` px (md ke atas); lantainya 11 px. */
+export function AngkaMuat({ teks, mobil = 22, desktop = 26, className = "", style }: { teks: string; mobil?: number; desktop?: number; className?: string; style?: React.CSSProperties }) {
+  const k = Math.max(1, teks.length * 0.62).toFixed(2);
+  const vars = { "--am": `max(11px, min(${mobil}px, calc(100cqw / ${k})))`, "--ad": `max(11px, min(${desktop}px, calc(100cqw / ${k})))` } as React.CSSProperties;
+  return (
+    <div className="min-w-0 [container-type:inline-size]">
+      <div className={`whitespace-nowrap leading-none tracking-tight tabular-nums text-[length:var(--am)] md:text-[length:var(--ad)] ${className}`} style={{ ...vars, ...style }}>{teks}</div>
+    </div>
+  );
+}
+
 export function Stat({ value, label, onClick, tone }: { value: string; label: string; onClick?: () => void; tone?: "warn" | "ok" }) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag type={onClick ? "button" : undefined} onClick={onClick} className={`relative block min-w-0 rounded-[20px] p-3.5 pt-4 text-left md:p-4 md:pt-5 ${onClick ? "transition active:scale-[0.96]" : ""}`} style={{ background: TILE }}>
       {onClick && <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white"><Icon n="arrow" s={14} /></span>}
-      <div className={`whitespace-nowrap font-normal leading-none tracking-tight tabular-nums md:text-[26px] ${value.length > 11 ? "text-[17px] min-[400px]:text-[19px]" : "text-[20px] min-[400px]:text-[22px]"}`} style={{ color: tone === "warn" ? "#B4443C" : tone === "ok" ? "#0B6B4A" : INK }}>{value}</div>
+      <AngkaMuat teks={value} className="font-normal" style={{ color: tone === "warn" ? "#B4443C" : tone === "ok" ? "#0B6B4A" : INK }} />
       <div className="mt-3 text-[12px] leading-snug md:mt-4 md:text-[12.5px]" style={{ color: MUTED }}>{label}</div>
     </Tag>
   );

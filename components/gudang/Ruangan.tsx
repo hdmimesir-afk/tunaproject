@@ -1,4 +1,4 @@
-import { Bar, Btn, Field, Pill } from "@/components/ui";
+import { AngkaMuat, Bar, Btn, Field, Pill } from "@/components/ui";
 import { pilihCls } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { formatKg } from "@/lib/logic/neraca";
@@ -54,9 +54,7 @@ export function RuanganPanel({ ruangan, belumDitempatkanKg = 0, ringkas = false,
                 {!ringkas && onAtur && <Btn size="sm" v="ghost" onClick={() => onAtur(r)}>Atur</Btn>}
               </div>
               <div className="mt-2.5"><Pill t={statusIsi(p, r.isi_kg)} /></div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[20px] font-semibold leading-tight tabular-nums md:text-[22px]" style={{ color: warnaIsi(p) }}>{kg(r.isi_kg)}</span>
-              </div>
+              <AngkaMuat teks={kg(r.isi_kg)} mobil={20} desktop={22} className="font-semibold" style={{ color: warnaIsi(p) }} />
               <div className="mt-2" role="img" aria-label={`${r.nama} terisi ${formatKg(p, 1)} persen`}><Bar pct={p} color={warnaIsi(p)} /></div>
               <dl className="mt-2 space-y-0.5 text-[11.5px] tabular-nums" style={{ color: MUTED }}>
                 <div className="flex justify-between gap-2"><dt>Terisi</dt><dd style={{ color: INK }}>{formatKg(p, 1)}%</dd></div>
