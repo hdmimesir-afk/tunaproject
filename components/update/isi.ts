@@ -210,14 +210,14 @@ export const LIVE = [
   "Sistemnya sudah bisa dibuka di internet dan tersambung ke database. Orang yang belum masuk diarahkan ke halaman login.",
   "Seluruh fitur sudah terpasang, termasuk absensi dan perbaikan dari hasil pemeriksaan saya terhadap rancangan.",
   "235 catatan uang keluar dari Monitor Dana sudah ada di buku kas.",
-  "Satu lokasi kerja absensi sudah saya tandai, yaitu Cold Storage Bungus. Titiknya akan saya betulkan setelah koordinat dari tim lapangan masuk.",
+  "Satu lokasi kerja absensi sudah saya tandai, yaitu Cold Storage Bungus. Titiknya saya samakan dengan pin kantor di Google Maps.",
   "Akun owner sudah ada. Akun jabatan lain kita buat bareng saat serah terima, lewat menu Akses.",
 ] as const;
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
   { judul: "Uji lengkap pembaruan 4 November", isi: "Pemeriksaan kode, 98 pemeriksaan logika, dan pembuatan versi jadi sudah lulus. Uji database, uji alur dari awal sampai akhir, dan satu undangan akun sungguhan belum saya jalankan. File Excel juga belum saya buka di aplikasi Excel." },
-  { judul: "Koordinat kantor untuk absen GPS", isi: "Saya butuh titik lokasi dari tim lapangan untuk membetulkan lokasi kerja di sistem. Sebelum itu masuk, masalah absen GPS belum selesai." },
+  { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps sudah saya siapkan untuk sistem. Masalah absen GPS baru bisa dibilang selesai setelah dicoba dari HP di kantor, karena pin di peta bisa sedikit berbeda dengan tempat orang berdiri saat absen." },
   { judul: "Urutan menu lengkap", isi: "Pembelian, Persetujuan, Mutu dan Penerimaan, lalu Produksi sudah saya susun. Urutan menu lainnya menunggu daftar lengkap dari tim pengguna." },
   { judul: "Konsekuensi satu akun per jabatan", isi: "Semua petugas lapangan memakai satu akun yang sama. Jadi absen masuk dan pulang cuma bisa tercatat satu kali per hari untuk semuanya, dan catatan perubahan cuma menunjukkan jabatannya, bukan orangnya." },
   { judul: "Dicoba orang di lapangan", isi: "Timbangan di HP saat sinyal lemah, serta absen dengan kamera dan GPS di lokasi, baru saya uji pakai perangkat tiruan. Belum dicoba di HP petugas yang asli, dan ini yang paling saya mau segera dicoba." },

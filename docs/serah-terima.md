@@ -19,7 +19,7 @@ Status per 23 Oktober 2026 (baris yang sudah dikerjakan developer diberi tanda �
 - [ ] Master data diisi: pemasok, pembeli (dengan kontak untuk pengingat), produk, grade, jenis hasil samping
 - [x] Kategori biaya (8 kelompok) tersedia ✓
 - [x] Monitor Dana diimpor ke buku kas: 235 transaksi uang keluar, Rp2.160.890.880 ✓ (setoran investor tidak diimpor; keputusan owner: dicatat sebagai modal atau diberi keterangan)
-- [x] Lokasi kerja absensi: Cold Storage Bungus, radius 100 m, jam masuk 08.00 ✓ (dipastikan titiknya saat di lokasi)
+- [x] Lokasi kerja absensi: Cold Storage Bungus, radius 100 m, jam masuk 08.00 ✓ (titik -1.028063, 100.395313 dari pin Google Maps lewat migrasi 20261104000300; dipastikan saat di lokasi)
 - [ ] Tarif gudang dingin dikonfirmasi owner (minimum hari, masa transit, dasar berat) dan ditandai "Dikonfirmasi"
 
 ### 3. Keamanan dan cadangan
