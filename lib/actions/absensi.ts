@@ -87,6 +87,9 @@ const FormLokasi = z.object({
   radius: z.coerce.number().int("Radius bulat").min(10, "Minimal 10 m").max(1000, "Maksimal 1000 m"),
   akurasiMaks: z.coerce.number().int("Akurasi bulat").min(5, "Minimal 5 m").max(500, "Maksimal 500 m"),
   jamMasuk: z.string().regex(/^\d{2}:\d{2}$/, "Isi jam masuk"),
+  jamPulang: z.string().regex(/^\d{2}:\d{2}$/, "Isi jam pulang"),
+  jamMasukSabtu: z.string().regex(/^\d{2}:\d{2}$/, "Isi jam masuk Sabtu"),
+  jamPulangSabtu: z.string().regex(/^\d{2}:\d{2}$/, "Isi jam pulang Sabtu"),
   toleransi: z.coerce.number().int("Toleransi bulat").min(0, "Minimal 0").max(240, "Maksimal 240 menit"),
   aktif: z.string().optional(),
 });
@@ -97,6 +100,7 @@ export async function simpanLokasiKerja(_: HasilForm, fd: FormData): Promise<Has
   return panggil("absensi.kelola", "simpan_lokasi_kerja", {
     p_id: p.data.id, p_nama: p.data.nama, p_lat: p.data.lat, p_lng: p.data.lng, p_radius: p.data.radius, p_akurasi_maks: p.data.akurasiMaks,
     p_jam_masuk: p.data.jamMasuk, p_toleransi: p.data.toleransi, p_aktif: p.data.aktif === "on",
+    p_jam_pulang: p.data.jamPulang, p_jam_masuk_sabtu: p.data.jamMasukSabtu, p_jam_pulang_sabtu: p.data.jamPulangSabtu,
   }, "Lokasi kerja disimpan.");
 }
 

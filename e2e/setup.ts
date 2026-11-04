@@ -24,6 +24,9 @@ export default async function setup() {
   const supabase = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
   await siapkanPengguna(supabase, ADMIN, "Admin E2E", "super_admin");
   await siapkanPengguna(supabase, PETUGAS, "Petugas E2E", "petugas_lapangan");
+  // Satu akun aktif per peran: akun dari uji akses sebelumnya dinonaktifkan supaya perannya kosong lagi.
+  const { error: eLama } = await supabase.from("profiles").update({ aktif: false }).like("email", "e2e-baru-%");
+  if (eLama) throw new Error(`Gagal menonaktifkan akun uji lama: ${eLama.message}`);
 
   // Pastikan akun uji benar-benar bisa masuk lewat kunci publik, supaya kegagalan login ketahuan sebabnya.
   const publik = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "", { auth: { persistSession: false, autoRefreshToken: false } });

@@ -6,6 +6,9 @@ export type LokasiKerja = {
   radius_m: number;
   akurasi_maks_m: number;
   jam_masuk: string;
+  jam_pulang: string;
+  jam_masuk_sabtu: string;
+  jam_pulang_sabtu: string;
   toleransi_menit: number;
   aktif: boolean;
 };
@@ -21,6 +24,7 @@ export type Absen = {
   hasil: "berhasil" | "gagal";
   alasan_gagal: string;
   terlambat_menit: number;
+  pulang_awal_menit: number;
 };
 
 export type AbsenHarian = {
@@ -35,6 +39,7 @@ export type AbsenHarian = {
   hasil: "berhasil" | "gagal";
   alasan_gagal: string;
   terlambat_menit: number;
+  pulang_awal_menit: number;
 };
 
 export type JenisIzin = "izin" | "sakit" | "libur";

@@ -4,7 +4,8 @@ import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalSt
 import { Btn, Inner, Modal } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { batalkanLoin, simpanLoin } from "@/lib/actions/produksi";
-import { barisKosong, buatCsv, gramKeTeks, hasilPerEkor, hitungTotal, keGram, nomorLoinBerikut, periksaBaris, tampilKg, type BarisLoin } from "@/lib/logic/grid";
+import { unduhExcel } from "@/lib/excel";
+import { barisKosong, gramKeTeks, hasilPerEkor, hitungTotal, keGram, nomorLoinBerikut, periksaBaris, tampilKg, type BarisLoin } from "@/lib/logic/grid";
 import { bacaDraf, hapusDraf, simpanDraf } from "@/lib/offline/draft";
 import type { Opsi } from "@/lib/types/pembelian";
 import type { Ekor, ItemLoin } from "@/lib/types/produksi";
@@ -158,16 +159,17 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
   const buangDraf = () => { void hapusDraf(produksiId); setDraf(null); };
   const ambilServer = () => { setBaris(dariServer(loin)); setKonflik([]); setKotor(false); setDicoba(false); void hapusDraf(produksiId); setStatus({ jenis: "bersih", pesan: "Memakai data terbaru dari server." }); };
 
-  const unduhCsv = () => {
+  const unduhBerkas = () => {
     const isi = baris.filter((b) => !barisKosong(b) && keGram(b.kg) !== null)
-      .map((b) => [b.noEkor, b.noLoin, namaGrade.get(b.gradeId) ?? "", gramKeTeks(keGram(b.kg) ?? 0).replace(".", ",")]);
-    const csv = buatCsv(["No. ekor", "No. loin", "Grade", "Berat (kg)"], [...isi, ["", "", "TOTAL", gramKeTeks(total.gram).replace(".", ",")]]);
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${kode}-loin.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+      .map((b) => [b.noEkor, b.noLoin, namaGrade.get(b.gradeId) ?? "", gramKeTeks(keGram(b.kg) ?? 0)]);
+    void unduhExcel(`${kode}-loin`, {
+      judul: `Loin produksi ${kode}`,
+      bagian: [{
+        kolom: [{ judul: "No. ekor" }, { judul: "No. loin" }, { judul: "Grade" }, { judul: "Berat (kg)", jenis: "kg" }],
+        baris: [...isi, ["", "", "TOTAL", gramKeTeks(total.gram)]],
+        tebal: [isi.length],
+      }],
+    });
   };
 
   const warna = status.jenis === "gagal" ? "#A8322B" : status.jenis === "kotor" ? "#8A5A00" : status.jenis === "menyimpan" ? MUTED : "#0B6B4A";
@@ -188,7 +190,7 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
           {label}
         </div>
         <div className="flex gap-2">
-          <Btn size="sm" v="light" onClick={unduhCsv} disabled={total.jumlah === 0}>Unduh CSV</Btn>
+          <Btn size="sm" v="light" onClick={unduhBerkas} disabled={total.jumlah === 0}>Unduh Excel</Btn>
           {bolehEdit && <Btn size="sm" onClick={kirim} disabled={sibuk || (!kotor && konflik.length === 0)}>{sibuk ? "Menyimpan..." : "Simpan loin"}</Btn>}
         </div>
       </div>

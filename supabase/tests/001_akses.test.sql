@@ -1,7 +1,7 @@
 -- Fase 1 · Akses: peran, izin, profil. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(27);
 
 -- Pengguna uji. Profil dibuat otomatis oleh trigger; peran diisi sebagai sistem (tanpa auth.uid).
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -63,9 +63,15 @@ select ok(private.has_permission('master.read'), 'finance tanpa kode kedua boleh
 -- Super Admin mengelola akses, tapi tidak bisa menyentuh Owner atau menambah izin sendiri.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000003", "role": "authenticated", "aal": "aal1"}';
 select results_eq($$select count(*)::int from public.profiles where email like '%@uji.local'$$, array[6], 'super admin melihat semua profil');
+select throws_ok(
+  $$update public.profiles set role_id = 'kepala_produksi', aktif = true where user_id = '00000000-0000-0000-0000-000000000006'$$,
+  'KT001', null, 'peran yang sudah punya akun aktif tidak bisa diberikan lagi');
+select lives_ok(
+  $$update public.profiles set aktif = false where user_id = '00000000-0000-0000-0000-000000000004'$$,
+  'super admin menonaktifkan pemegang peran');
 select results_eq(
   $$update public.profiles set role_id = 'kepala_produksi', aktif = true where user_id = '00000000-0000-0000-0000-000000000006' returning role_id$$,
-  array['kepala_produksi'], 'super admin memberi peran ke pengguna baru');
+  array['kepala_produksi'], 'super admin memberi peran yang sudah kosong ke pengguna baru');
 select throws_ok(
   $$update public.profiles set role_id = 'owner' where user_id = '00000000-0000-0000-0000-000000000006'$$,
   '42501', null, 'super admin tidak bisa memberi peran owner');
@@ -79,11 +85,11 @@ select throws_ok(
   $$delete from public.profiles where user_id = '00000000-0000-0000-0000-000000000006'$$,
   '42501', null, 'profil tidak bisa dihapus');
 
--- Owner boleh memberi peran owner.
+-- Owner lolos aturan peran Owner, tapi tetap kena aturan satu akun per peran (KT001, bukan 42501).
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}';
-select results_eq(
-  $$update public.profiles set role_id = 'owner' where user_id = '00000000-0000-0000-0000-000000000006' returning role_id$$,
-  array['owner'], 'owner boleh memberi peran owner');
+select throws_ok(
+  $$update public.profiles set role_id = 'owner' where user_id = '00000000-0000-0000-0000-000000000006'$$,
+  'KT001', null, 'owner tidak bisa membuat owner kedua yang aktif');
 
 select * from finish();
 rollback;

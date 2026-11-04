@@ -19,20 +19,25 @@ async function izin(aksi: string): Promise<HasilForm | null> {
 
 const FormTerima = z.object({
   poId: z.uuid("Pilih PO"),
-  kg: z.coerce.number("Isi berat").positive("Berat harus lebih dari nol").max(10_000_000).transform((n) => Math.round(n * 1000) / 1000),
+  beratBeda: z.string().optional(),
+  kg: z.string().optional(),
   catatan: z.string().trim().max(300),
   sebelumDisetujui: z.string().optional(),
 });
 
-/** Terima ikan dari satu PO (boleh sebagian dan berulang). Bongkar malam: boleh sebelum PO disetujui, dengan tanda. */
+const BeratBeda = z.coerce.number("Isi berat").positive("Berat harus lebih dari nol").max(10_000_000).transform((n) => Math.round(n * 1000) / 1000);
+
+/** Terima ikan dari satu PO. Berat memakai sisa PO; diisi hanya bila kiriman nyata berbeda. Bongkar malam: boleh sebelum PO disetujui, dengan tanda. */
 export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const tolak = await izin("penerimaan.write");
   if (tolak) return tolak;
   const p = FormTerima.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const beda = p.data.beratBeda === "on" ? BeratBeda.safeParse(p.data.kg) : null;
+  if (beda && !beda.success) return { kolom: { kg: z.flattenError(beda.error).formErrors } };
   const supabase = await createClient();
   const { error } = await supabase.rpc("terima_po", {
-    p_po: p.data.poId, p_kg: p.data.kg, p_catatan: p.data.catatan, p_sebelum_disetujui: p.data.sebelumDisetujui === "on",
+    p_po: p.data.poId, p_kg: beda?.success ? beda.data : null, p_catatan: p.data.catatan, p_sebelum_disetujui: p.data.sebelumDisetujui === "on",
   });
   if (error) return { error: pesanDb(error) };
   refresh();

@@ -18,7 +18,7 @@ update public.profiles set role_id = 'petugas_lapangan', aktif = true, nama = 'P
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000b2", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
-  $$select public.simpan_lokasi_kerja(null, 'Pabrik Uji', -0.9492, 100.3543, 50, 30, '23:59', 0, true)$$,
+  $$select public.simpan_lokasi_kerja(null, 'Pabrik Uji', -0.9492, 100.3543, 50, 30, '23:58', 0, true, '23:59', '23:58', '23:59')$$,
   'admin menambah lokasi kerja dengan koordinat dari GPS, tanpa peta');
 select is((select count(*)::int from public.work_sites), 1, 'satu lokasi kerja tersimpan');
 select throws_ok($$select public.simpan_lokasi_kerja(null, 'Salah', -0.9, 100.3, 5, 30, '08:00', 15, true)$$, 'KT001', null, 'radius di bawah 10 meter ditolak');
@@ -83,7 +83,7 @@ select lives_ok($$select public.ajukan_izin('izin', current_date + 10, current_d
 -- Jam masuk digeser ke 00.00 tanpa toleransi, supaya absen masuk berikutnya terlambat.
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000b2", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
-  $$select public.simpan_lokasi_kerja((select id from public.work_sites where nama = 'Pabrik Uji'), 'Pabrik Uji', -0.9492, 100.3543, 50, 30, '00:00', 0, true)$$,
+  $$select public.simpan_lokasi_kerja((select id from public.work_sites where nama = 'Pabrik Uji'), 'Pabrik Uji', -0.9492, 100.3543, 50, 30, '00:00', 0, true, '17:00', '00:00', '12:00')$$,
   'admin mengubah jam masuk dan toleransi');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000b4", "role": "authenticated", "aal": "aal1"}';
 select is(

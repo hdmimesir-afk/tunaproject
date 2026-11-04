@@ -5,7 +5,7 @@ import { Btn, Card, Icon, Pill } from "@/components/ui";
 import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { rp, tanggal } from "@/lib/format";
-import { buatCsv } from "@/lib/logic/grid";
+import { unduhExcel } from "@/lib/excel";
 import type { BarisKas } from "@/lib/types/keuangan";
 
 type Arah = "semua" | "masuk" | "keluar";
@@ -49,21 +49,20 @@ export function BukuKas({ kas, hariIni }: { kas: BarisKas[]; hariIni: string }) 
     return [...peta.entries()];
   }, [tampil]);
 
-  const unduh = () => {
-    const csv = buatCsv(["Kode", "Tanggal", "Arah", "Kategori", "Uraian", "Jumlah (Rp)"], tampil.map((k) => [k.kode, k.tanggal, k.arah, k.kategori_nama, k.uraian, String(k.jumlah).replace(".", ",")]));
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `buku-kas-${hariIni}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const unduh = () => unduhExcel(`buku-kas-${hariIni}`, {
+    judul: "Buku kas",
+    keterangan: `Per ${tanggal(hariIni)}`,
+    bagian: [{
+      kolom: [{ judul: "Kode" }, { judul: "Tanggal" }, { judul: "Arah" }, { judul: "Kategori" }, { judul: "Uraian" }, { judul: "Jumlah (Rp)", jenis: "rupiah" }],
+      baris: tampil.map((k) => [k.kode, tanggal(k.tanggal), k.arah === "masuk" ? "Masuk" : "Keluar", k.kategori_nama, k.uraian, k.jumlah]),
+    }],
+  });
 
   // Di HP label dipendekkan supaya tiga pilihan muat satu baris.
   const pilihan: { id: Arah; label: string; pendek: string }[] = [{ id: "semua", label: "Semua", pendek: "Semua" }, { id: "masuk", label: "Uang masuk", pendek: "Masuk" }, { id: "keluar", label: "Uang keluar", pendek: "Keluar" }];
 
   return (
-    <Card title="Buku kas" right={<Btn size="sm" v="light" onClick={unduh} disabled={tampil.length === 0}><Icon n="download" s={15} />Unduh CSV</Btn>}>
+    <Card title="Buku kas" right={<Btn size="sm" v="light" onClick={unduh} disabled={tampil.length === 0}><Icon n="download" s={15} />Unduh Excel</Btn>}>
       <div className="space-y-3">
         {/* Filter arah + ringkasan untuk yang sedang ditampilkan */}
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

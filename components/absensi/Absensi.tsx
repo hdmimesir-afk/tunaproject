@@ -48,6 +48,7 @@ function KartuHariIni({ p }: { p: Props }) {
           <div className="rounded-2xl bg-white px-3.5 py-3">
             <div style={{ color: MUTED }}>Pulang</div>
             <div className="mt-0.5 text-[20px] tabular-nums" style={{ color: INK }} data-testid="jam-pulang">{h.pulang ? jam(h.pulang.waktu) : "-"}</div>
+            {h.pulang && h.pulang.pulang_awal_menit > 0 && <div className="text-[12px]" style={{ color: "#A8322B" }}>Pulang awal {h.pulang.pulang_awal_menit} menit</div>}
           </div>
         </div>
         {!adaLokasi && <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Belum ada lokasi kerja. Minta Super Admin menambahkannya di bawah.</p>}
@@ -205,7 +206,7 @@ function KartuRekap({ p }: { p: Props }) {
             { h: "Jenis", r: (a) => a.jenis === "masuk" ? "Masuk" : "Pulang" },
             { h: "Jam", r: (a) => jam(a.waktu) },
             { h: "Lokasi", r: (a) => a.jarak_m != null ? `${a.lokasi} · ${tampilJarak(a.jarak_m)}` : a.lokasi },
-            { h: "Hasil", r: (a) => a.hasil === "berhasil" ? <Tanda ok>{a.terlambat_menit > 0 ? `Terlambat ${a.terlambat_menit} mnt` : "Berhasil"}</Tanda> : <Tanda ok={false}>{a.alasan_gagal}</Tanda> },
+            { h: "Hasil", r: (a) => a.hasil === "berhasil" ? <Tanda ok>{a.terlambat_menit > 0 ? `Terlambat ${a.terlambat_menit} mnt` : a.pulang_awal_menit > 0 ? `Pulang awal ${a.pulang_awal_menit} mnt` : "Berhasil"}</Tanda> : <Tanda ok={false}>{a.alasan_gagal}</Tanda> },
           ]}
           actions={(a) => <TombolFoto id={a.id} />}
         />
@@ -244,7 +245,10 @@ function FormLokasi({ lokasi, onTutup }: { lokasi: LokasiKerja | null; onTutup: 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Radius (meter)" hint="Jarak terjauh dari titik." error={state?.kolom?.radius?.[0]}><TextIn name="radius" type="number" inputMode="numeric" defaultValue={lokasi?.radius_m ?? 50} required /></Field>
           <Field label="Batas akurasi GPS (m)" hint="Lebih buruk dari ini ditolak." error={state?.kolom?.akurasiMaks?.[0]}><TextIn name="akurasiMaks" type="number" inputMode="numeric" defaultValue={lokasi?.akurasi_maks_m ?? 30} required /></Field>
-          <Field label="Jam masuk" error={state?.kolom?.jamMasuk?.[0]}><TextIn name="jamMasuk" type="time" defaultValue={lokasi ? lokasi.jam_masuk.slice(0, 5) : "08:00"} required /></Field>
+          <Field label="Senin-Jumat masuk" error={state?.kolom?.jamMasuk?.[0]}><TextIn name="jamMasuk" type="time" defaultValue={lokasi ? lokasi.jam_masuk.slice(0, 5) : "08:00"} required /></Field>
+          <Field label="Senin-Jumat pulang" error={state?.kolom?.jamPulang?.[0]}><TextIn name="jamPulang" type="time" defaultValue={lokasi ? lokasi.jam_pulang.slice(0, 5) : "17:00"} required /></Field>
+          <Field label="Sabtu masuk" error={state?.kolom?.jamMasukSabtu?.[0]}><TextIn name="jamMasukSabtu" type="time" defaultValue={lokasi ? lokasi.jam_masuk_sabtu.slice(0, 5) : "08:00"} required /></Field>
+          <Field label="Sabtu pulang" error={state?.kolom?.jamPulangSabtu?.[0]}><TextIn name="jamPulangSabtu" type="time" defaultValue={lokasi ? lokasi.jam_pulang_sabtu.slice(0, 5) : "12:00"} required /></Field>
           <Field label="Toleransi terlambat (menit)" error={state?.kolom?.toleransi?.[0]}><TextIn name="toleransi" type="number" inputMode="numeric" defaultValue={lokasi?.toleransi_menit ?? 15} required /></Field>
         </div>
         <label className="flex items-center gap-2.5 text-[13px]"><input type="checkbox" name="aktif" className="h-4 w-4 accent-[#00171F]" defaultChecked={lokasi?.aktif ?? true} />Lokasi aktif</label>
@@ -266,7 +270,8 @@ function KartuLokasi({ lokasi }: { lokasi: LokasiKerja[] }) {
           { h: "Titik", r: (l) => `${l.lat}, ${l.lng}` },
           { h: "Radius", r: (l) => `${l.radius_m} m` },
           { h: "Batas akurasi", r: (l) => `${l.akurasi_maks_m} m` },
-          { h: "Jam masuk", r: (l) => `${tampilJam(l.jam_masuk)} (+${l.toleransi_menit} mnt)` },
+          { h: "Senin-Jumat", r: (l) => `${tampilJam(l.jam_masuk)}-${tampilJam(l.jam_pulang)} (+${l.toleransi_menit} mnt)` },
+          { h: "Sabtu", r: (l) => `${tampilJam(l.jam_masuk_sabtu)}-${tampilJam(l.jam_pulang_sabtu)}` },
           { h: "Status", r: (l) => <Pill t={l.aktif ? "Aktif" : "Nonaktif"} /> },
         ]}
         actions={(l) => (
@@ -296,7 +301,7 @@ export function Absensi(p: Props) {
           cols={[
             { h: "Waktu", r: (a) => waktu(a.waktu) },
             { h: "Jenis", r: (a) => a.jenis === "masuk" ? "Masuk" : "Pulang" },
-            { h: "Hasil", r: (a) => a.hasil === "berhasil" ? <Tanda ok>{a.terlambat_menit > 0 ? `Terlambat ${a.terlambat_menit} mnt` : "Berhasil"}</Tanda> : <Tanda ok={false}>Ditolak: {a.alasan_gagal}</Tanda> },
+            { h: "Hasil", r: (a) => a.hasil === "berhasil" ? <Tanda ok>{a.terlambat_menit > 0 ? `Terlambat ${a.terlambat_menit} mnt` : a.pulang_awal_menit > 0 ? `Pulang awal ${a.pulang_awal_menit} mnt` : "Berhasil"}</Tanda> : <Tanda ok={false}>Ditolak: {a.alasan_gagal}</Tanda> },
             { h: "Jarak", r: (a) => a.jarak_m != null ? tampilJarak(a.jarak_m) : "-" },
           ]}
         />

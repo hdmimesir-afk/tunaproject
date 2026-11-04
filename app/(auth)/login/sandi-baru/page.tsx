@@ -8,19 +8,23 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Buat kata sandi" };
 
-export default function SandiBaruPage() {
+type Cari = Promise<{ token_hash?: string; type?: string }>;
+
+export default function SandiBaruPage({ searchParams }: { searchParams: Cari }) {
   return (
     <AuthCard judul="Buat kata sandi">
       <Suspense fallback={<div className="mt-5 h-48" />}>
-        <SandiBaruIsi />
+        <SandiBaruIsi searchParams={searchParams} />
       </Suspense>
     </AuthCard>
   );
 }
 
-/** Hanya untuk sesi yang dibuat oleh tautan undangan atau atur ulang (/auth/confirm). */
-async function SandiBaruIsi() {
+/** Lewat tautan undangan atau atur ulang: form langsung tampil dan token dipakai saat disimpan. Tanpa token, butuh sesi yang masih berlaku. */
+async function SandiBaruIsi({ searchParams }: { searchParams: Cari }) {
   if (!supabaseConfigured) redirect("/login");
+  const { token_hash: tokenHash, type } = await searchParams;
+  if (tokenHash && (type === "invite" || type === "recovery")) return <SandiBaruForm tokenHash={tokenHash} jenis={type} />;
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) redirect("/login?status=tautan");

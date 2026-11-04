@@ -85,7 +85,7 @@ export const ekorContoh: Ekor[] = [{ id: "e-1", no_ekor: 1, berat_utuh_kg: 62.5 
 
 /* ----------------------------------------------------------------- absensi */
 const absen = (id: string, tanggal: string, jenis: "masuk" | "pulang", hhmm: string, hasil: "berhasil" | "gagal", telat = 0, alasan = "", jarak: number | null = 28): Absen => ({
-  id, user_id: "u-petugas", jenis, waktu: `${tanggal}T${hhmm}:00+07:00`, tanggal, akurasi_m: 9, jarak_m: jarak, hasil, alasan_gagal: alasan, terlambat_menit: telat,
+  id, user_id: "u-petugas", jenis, waktu: `${tanggal}T${hhmm}:00+07:00`, tanggal, akurasi_m: 9, jarak_m: jarak, hasil, alasan_gagal: alasan, terlambat_menit: telat, pulang_awal_menit: 0,
 });
 export const saya: Absen[] = [
   absen("a1", "2026-10-26", "masuk", "07:52", "berhasil"),
@@ -95,7 +95,7 @@ export const saya: Absen[] = [
   absen("a5", "2026-10-23", "masuk", "08:03", "gagal", 0, "Anda 214 m dari Pabrik pengolahan Bitung, di luar radius 100 m.", 214),
   absen("a6", "2026-10-23", "masuk", "08:05", "berhasil"),
 ];
-export const lokasi: LokasiKerja[] = [{ id: "lk-1", nama: "Pabrik pengolahan Bitung", lat: 0, lng: 0, radius_m: 100, akurasi_maks_m: 30, jam_masuk: "08:00:00", toleransi_menit: 15, aktif: true }];
+export const lokasi: LokasiKerja[] = [{ id: "lk-1", nama: "Pabrik pengolahan Bitung", lat: 0, lng: 0, radius_m: 100, akurasi_maks_m: 30, jam_masuk: "08:00:00", jam_pulang: "17:00:00", jam_masuk_sabtu: "08:00:00", jam_pulang_sabtu: "12:00:00", toleransi_menit: 15, aktif: true }];
 export const izinSaya: Izin[] = [
   { id: "iz-1", user_id: "u-petugas", nama: "Budi Santoso", jenis: "sakit", dari: "2026-10-27", sampai: "2026-10-27", alasan: "Demam", status: "diajukan", catatan_keputusan: "", dibuat_pada: "2026-10-26T06:40:00+07:00", milik_saya: true },
 ];

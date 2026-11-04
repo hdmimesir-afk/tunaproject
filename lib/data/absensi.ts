@@ -18,7 +18,7 @@ export async function absenSaya(userId: string): Promise<Absen[]> {
   const sb = await createClient();
   const { data, error } = await sb
     .from("attendance")
-    .select("id, user_id, jenis, waktu, tanggal, akurasi_m, jarak_m, hasil, alasan_gagal, terlambat_menit")
+    .select("id, user_id, jenis, waktu, tanggal, akurasi_m, jarak_m, hasil, alasan_gagal, terlambat_menit, pulang_awal_menit")
     .eq("user_id", userId)
     .order("waktu", { ascending: false })
     .limit(60);

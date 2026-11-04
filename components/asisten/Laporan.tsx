@@ -4,27 +4,26 @@ import { useRef } from "react";
 import { Btn, Icon } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { waktu } from "@/lib/format";
-import { buatCsv } from "@/lib/logic/grid";
+import { unduhExcel, type LaporanExcel } from "@/lib/excel";
 import type { Laporan } from "@/lib/asisten/alat";
 import { TabelHasil } from "./Jawaban";
 
 /* Laporan dari Asisten: satu kartu berbagian (judul, kalimat ringkas, tabel). Bisa dicetak atau disimpan sebagai PDF lewat dialog cetak
-   peramban, dan diunduh sebagai CSV. Isinya sama persis dengan yang tampil; tidak ada angka yang dihitung ulang di sini. */
+   peramban, dan diunduh sebagai Excel. Isinya sama persis dengan yang tampil; tidak ada angka yang dihitung ulang di sini. */
 
 const namaBerkas = (judul: string) => judul.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-function csvLaporan(l: Laporan) {
-  const lebar = Math.max(1, ...l.bagian.map((b) => b.tabel?.kepala.length ?? 1));
-  const kosong = (r: string[]) => [...r, ...Array(Math.max(0, lebar - r.length)).fill("")];
-  const baris: string[][] = [[l.judul], [`Periode: ${l.periode}`], [`Dibuat: ${waktu(l.dibuat)}`], []].map(kosong);
-  for (const b of l.bagian) {
-    baris.push(kosong([b.judul]));
-    for (const r of b.ringkas ?? []) baris.push(kosong([r]));
-    if (b.tabel) { baris.push(kosong(b.tabel.kepala)); for (const r of b.tabel.baris) baris.push(kosong(r)); }
-    baris.push(kosong([]));
-  }
-  const [kepala, ...isi] = baris;
-  return buatCsv(kepala, isi);
+function excelLaporan(l: Laporan): LaporanExcel {
+  return {
+    judul: l.judul,
+    keterangan: `Periode: ${l.periode} · Dibuat: ${waktu(l.dibuat)}`,
+    bagian: l.bagian.map((b) => ({
+      judul: b.judul,
+      ringkas: b.ringkas,
+      kolom: (b.tabel?.kepala ?? []).map((judul) => ({ judul })),
+      baris: b.tabel?.baris ?? [],
+    })),
+  };
 }
 
 export function KartuLaporan({ l, ringkas }: { l: Laporan; ringkas?: string[] }) {
@@ -41,14 +40,7 @@ export function KartuLaporan({ l, ringkas }: { l: Laporan; ringkas?: string[] })
     window.print();
   };
 
-  const unduh = () => {
-    const url = URL.createObjectURL(new Blob([csvLaporan(l)], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${namaBerkas(l.judul)}-${new Date(l.dibuat).toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" })}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const unduh = () => unduhExcel(`${namaBerkas(l.judul)}-${new Date(l.dibuat).toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" })}`, excelLaporan(l));
 
   return (
     <div ref={kartu} className="laporan-cetak -mx-1 overflow-hidden rounded-2xl border border-[#E2E4EA] bg-white" aria-label={l.judul}>
@@ -60,7 +52,7 @@ export function KartuLaporan({ l, ringkas }: { l: Laporan; ringkas?: string[] })
         </div>
         <div className="flex gap-1.5 print:hidden">
           <Btn size="sm" v="light" onClick={cetak}><Icon n="note" s={14} />Cetak atau PDF</Btn>
-          <Btn size="sm" v="light" onClick={unduh}><Icon n="download" s={14} />Unduh CSV</Btn>
+          <Btn size="sm" v="light" onClick={unduh}><Icon n="download" s={14} />Unduh Excel</Btn>
         </div>
       </div>
       <div className="space-y-4 px-4 py-4">

@@ -22,7 +22,7 @@ function KotakTautan({ state }: { state: HasilForm }) {
   const [disalin, setDisalin] = useState(false);
   if (!state?.tautan) return null;
   const tautan = state.tautan;
-  const pesanWa = `Akun KATALIS ERP Anda sudah dibuat. Buka tautan ini untuk membuat kata sandi (sekali pakai, berlaku 24 jam):\n${tautan}`;
+  const pesanWa = `Akun KATALIS ERP Anda sudah dibuat${state.emailMasuk ? `, email masuk: ${state.emailMasuk}` : ""}. Buka tautan ini untuk membuat kata sandi (sekali pakai, berlaku 24 jam):\n${tautan}`;
   const salin = () => { void navigator.clipboard.writeText(tautan).then(() => setDisalin(true)).catch(() => setDisalin(false)); };
   return (
     <div role="status" className="space-y-2.5 rounded-2xl px-3.5 py-3 text-[12.5px]" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>
@@ -51,10 +51,11 @@ function TombolTautanSandi({ userId }: { userId: string }) {
 }
 
 /** Satu baris pengguna: ubah peran dan status. Akun sendiri dan akun Owner (bagi bukan Owner) dikunci. */
-function Baris({ u, peran, saya, bolehOwner }: { u: Pengguna; peran: Peran[]; saya: string; bolehOwner: boolean }) {
+function Baris({ u, peran, saya, bolehOwner, terisi }: { u: Pengguna; peran: Peran[]; saya: string; bolehOwner: boolean; terisi: Set<string> }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(ubahPengguna, undefined);
   const terkunci = u.user_id === saya || (u.role_id === "owner" && !bolehOwner);
-  const pilihan = peran.filter((p) => bolehOwner || p.id !== "owner");
+  // Satu peran untuk satu akun aktif: peran milik akun lain tidak ditawarkan.
+  const pilihan = peran.filter((p) => (bolehOwner || p.id !== "owner") && (p.id === u.role_id || !terisi.has(p.id)));
   return (
     <form action={action} className="rounded-[20px] bg-white p-4">
       <input type="hidden" name="userId" value={u.user_id} />
@@ -120,7 +121,7 @@ function TombolLepasPeran({ u, namaPeran }: { u: Pengguna; namaPeran: string }) 
 }
 
 /** Baris pengguna beserta tombol tautan atur sandi dan lepas peran (di luar form ubah peran supaya form tidak bersarang). */
-function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwner: boolean }) {
+function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwner: boolean; terisi: Set<string> }) {
   const bolehTautan = p.u.user_id !== p.saya && (p.u.role_id !== "owner" || p.bolehOwner);
   const namaPeran = p.peran.find((x) => x.id === p.u.role_id)?.nama;
   // Email boleh diganti untuk semua akun, termasuk akun sendiri; akun Owner hanya oleh Owner.
@@ -139,8 +140,17 @@ function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwne
   );
 }
 
-function Undang({ peran, bolehOwner }: { peran: Peran[]; bolehOwner: boolean }) {
+function Undang({ peran, bolehOwner, terisi }: { peran: Peran[]; bolehOwner: boolean; terisi: Set<string> }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(undangPengguna, undefined);
+  const kosong = peran.filter((p) => (bolehOwner || p.id !== "owner") && !terisi.has(p.id));
+  // Saat tautan baru saja dibuat perannya sudah terisi, jadi form tetap tampil supaya tautannya masih bisa disalin.
+  if (kosong.length === 0 && !state?.tautan) {
+    return (
+      <Card title="Buat akun pengguna">
+        <p className="px-2.5 pb-2.5 text-[13px]" style={{ color: MUTED }}>Semua peran sudah punya akun. Satu peran hanya untuk satu akun aktif; untuk mengganti pemegangnya, nonaktifkan akun lamanya dulu.</p>
+      </Card>
+    );
+  }
   return (
     <Card title="Buat akun pengguna">
       <form action={action} className="grid gap-3 px-2.5 pb-2.5 md:grid-cols-[1fr_1fr_200px_auto] md:items-end">
@@ -149,14 +159,14 @@ function Undang({ peran, bolehOwner }: { peran: Peran[]; bolehOwner: boolean }) 
         <Field label="Peran" error={state?.kolom?.roleId?.[0]}>
           <select name="roleId" defaultValue="" className="h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3 text-[14px]" required>
             <option value="" disabled>Pilih peran</option>
-            {peran.filter((p) => bolehOwner || p.id !== "owner").map((p) => <option key={p.id} value={p.id}>{p.nama}</option>)}
+            {kosong.map((p) => <option key={p.id} value={p.id}>{p.nama}</option>)}
           </select>
         </Field>
         <Btn type="submit" disabled={pending}>{pending ? "Membuat..." : "Buat akun"}</Btn>
         <div className="space-y-2 md:col-span-4">
           <Galat state={state} />
           <KotakTautan state={state} />
-          <p className="text-[12px]" style={{ color: MUTED }}>Email hanya dipakai sebagai nama masuk; tidak ada email yang dikirim. Kirim tautan yang muncul ke orangnya, lalu ia membuat kata sandi sendiri.</p>
+          <p className="text-[12px]" style={{ color: MUTED }}>Email hanya dipakai sebagai nama masuk; tidak ada email yang dikirim. Kirim tautan yang muncul ke orangnya, lalu ia membuat kata sandi sendiri. Satu peran hanya untuk satu akun aktif, jadi hanya peran yang masih kosong yang bisa dipilih.</p>
         </div>
       </form>
     </Card>
@@ -167,15 +177,16 @@ export function AksesKelola({ pengguna, peran, saya, bolehOwner }: { pengguna: P
   const namaPeran = new Map(peran.map((p) => [p.id, p.nama]));
   const teks = useMemo(() => (u: Pengguna) => `${u.nama} ${u.email} ${u.role_id ? namaPeran.get(u.role_id) ?? "" : "tanpa peran"} ${u.aktif ? "aktif" : "nonaktif"}`, [peran]); // eslint-disable-line react-hooks/exhaustive-deps
   const { q, setQ, hasil } = useCari(pengguna, teks);
+  const terisi = new Set(pengguna.filter((u) => u.aktif && u.role_id).map((u) => u.role_id as string));
   return (
     <div className="space-y-4">
-      <Undang peran={peran} bolehOwner={bolehOwner} />
+      <Undang peran={peran} bolehOwner={bolehOwner} terisi={terisi} />
       <Card title={`${pengguna.length} pengguna`}>
         <div className="space-y-2">
           {pengguna.length > 3 && <KotakCari q={q} onUbah={setQ} placeholder="Cari nama, email, atau peran" tampil={hasil.length} total={pengguna.length} />}
           {pengguna.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Belum ada pengguna.</p></Inner>}
           {pengguna.length > 0 && hasil.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Tidak ada pengguna yang cocok dengan &ldquo;{q.trim()}&rdquo;.</p></Inner>}
-          {hasil.map((u) => <BarisPengguna key={u.user_id} u={u} peran={peran} saya={saya} bolehOwner={bolehOwner} />)}
+          {hasil.map((u) => <BarisPengguna key={u.user_id} u={u} peran={peran} saya={saya} bolehOwner={bolehOwner} terisi={terisi} />)}
         </div>
       </Card>
     </div>

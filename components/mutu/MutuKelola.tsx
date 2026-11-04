@@ -32,6 +32,7 @@ function TerimaIkan({ poSiap }: { poSiap: POSiapTerima[] }) {
 
 function FormTerima({ poSiap, onSukses }: { poSiap: POSiapTerima[]; onSukses: (pesan: string) => void }) {
   const [poId, setPoId] = useState("");
+  const [beda, setBeda] = useState(false);
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev, fd) => {
     const r = await terimaIkan(prev, fd);
     if (r?.pesan) onSukses(r.pesan);
@@ -56,10 +57,21 @@ function FormTerima({ poSiap, onSukses }: { poSiap: POSiapTerima[]; onSukses: (p
                 ))}
               </select>
             </Field>
+            {po && (
+              <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }} data-testid="berat-dari-po">
+                Berat dari PO: <b className="tabular-nums">{formatKg(po.kg - po.kg_diterima)} kg</b>. Tidak perlu ditimbang ulang di sini.
+              </p>
+            )}
+            <label className="flex items-start gap-2.5 text-[13px]" style={{ color: INK }}>
+              <input type="checkbox" name="beratBeda" checked={beda} onChange={(e) => setBeda(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#00171F]" />
+              <span>Kiriman nyata berbeda dari PO</span>
+            </label>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Berat ditimbang (kg)" error={state?.kolom?.kg?.[0]}>
-                <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" required />
-              </Field>
+              {beda && (
+                <Field label="Berat kiriman (kg)" error={state?.kolom?.kg?.[0]}>
+                  <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" required />
+                </Field>
+              )}
               <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
             </div>
             {belumDisetujui && (

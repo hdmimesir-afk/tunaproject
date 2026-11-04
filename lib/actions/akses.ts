@@ -54,12 +54,16 @@ export async function undangPengguna(_: HasilForm, fd: FormData): Promise<HasilF
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   if (p.data.roleId === "owner" && !a.sesi.semuaIzin) return { error: "Hanya Owner yang boleh membuat akun Owner." };
 
+  // Dicek sebelum akun dibuat supaya tidak tersisa akun tanpa peran. Database tetap menjadi penjaga terakhirnya.
+  const supabase = await createClient();
+  const { data: pemegang } = await supabase.from("profiles").select("nama, email").eq("role_id", p.data.roleId).eq("aktif", true).limit(1).maybeSingle();
+  if (pemegang) return { error: `Peran ini sudah dipakai akun ${pemegang.nama || pemegang.email}. Satu peran hanya untuk satu akun aktif; nonaktifkan akun itu dulu.` };
+
   const admin = klienAdmin();
   if ("error" in admin) return admin;
   const { data, error } = await admin.auth.admin.generateLink({ type: "invite", email: p.data.email, options: { data: { nama: p.data.nama } } });
   if (error || !data.user) return { error: error?.message.toLowerCase().includes("already") ? "Email ini sudah terdaftar. Pakai tombol Tautan atur sandi di daftar pengguna." : "Akun gagal dibuat." };
 
-  const supabase = await createClient();
   const { error: e2 } = await supabase.from("profiles")
     .update({ nama: p.data.nama, role_id: p.data.roleId, aktif: true })
     .eq("user_id", data.user.id);
@@ -68,6 +72,7 @@ export async function undangPengguna(_: HasilForm, fd: FormData): Promise<HasilF
   return {
     pesan: `Akun ${p.data.email} dibuat. Kirim tautan ini ke ${p.data.nama}; tautan hanya bisa dipakai sekali dan berlaku 24 jam.`,
     tautan: tautanAktivasi(await asalSitus(), data.properties.hashed_token, "invite"),
+    emailMasuk: p.data.email,
   };
 }
 
@@ -90,6 +95,7 @@ export async function tautanAturSandi(_: HasilForm, fd: FormData): Promise<Hasil
   return {
     pesan: `Kirim tautan ini ke ${profil.nama || profil.email}; tautan hanya bisa dipakai sekali dan berlaku 24 jam.`,
     tautan: tautanAktivasi(await asalSitus(), data.properties.hashed_token, "recovery"),
+    emailMasuk: profil.email as string,
   };
 }
 

@@ -7,7 +7,8 @@ import { Bar, Btn, Card, DataList, Inner, Pill, Stat } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { DataLabaRugi } from "@/lib/data/laporan";
 import { rp, tanggal } from "@/lib/format";
-import { buatCsv, tampilKg } from "@/lib/logic/grid";
+import { unduhExcel, type SelExcel } from "@/lib/excel";
+import { tampilKg } from "@/lib/logic/grid";
 import { awalMinggu, hargaRataTertimbang, hitungLabaRugi, ringkasTren } from "@/lib/logic/labarugi";
 import { hargaIkanImpas, hitungSimulasi, skenarioDasar, type DasarSimulasi, type Skenario } from "@/lib/logic/simulasi";
 import type { BarisHargaBeli, BarisLabaSiklus, DetailBaris } from "@/lib/types/keuangan";
@@ -56,19 +57,22 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
 
   const unduh = () => {
     if (!r || !data) return;
-    const isi: (string | number)[][] = [
-      ...r.pendapatan.map((b) => ["Pendapatan", b.label, kgT(b.kg), b.hargaPerKg ?? "", String(b.jumlah).replace(".", ","), persen(b.persen)]),
-      ["Pendapatan", "Total pendapatan", "", "", String(r.totalPendapatan).replace(".", ","), "100,0%"],
-      ...r.biaya.map((b) => ["Biaya langsung", b.label, kgT(b.kg), b.hargaPerKg ?? "", String(b.jumlah).replace(".", ","), persen(b.persen)]),
-      ["Biaya langsung", "Total biaya langsung", "", "", String(r.totalBiaya).replace(".", ","), ""],
-      ["Hasil", "Laba kotor siklus", "", "", String(r.labaKotor).replace(".", ","), persen(r.marginPct)],
+    const baris: SelExcel[][] = [
+      ...r.pendapatan.map((b) => ["Pendapatan", b.label, b.kg, b.hargaPerKg, b.jumlah, b.persen]),
+      ["Pendapatan", "Total pendapatan", null, null, r.totalPendapatan, 100],
+      ...r.biaya.map((b) => ["Biaya langsung", b.label, b.kg, b.hargaPerKg, b.jumlah, b.persen]),
+      ["Biaya langsung", "Total biaya langsung", null, null, r.totalBiaya, null],
+      ["Hasil", "Laba kotor siklus", null, null, r.labaKotor, r.marginPct],
     ];
-    const url = URL.createObjectURL(new Blob([buatCsv(["Bagian", "Uraian", "Berat (kg)", "Harga/kg", "Rupiah", "% pendapatan"], isi)], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `laba-rugi-${data.siklus.kode}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const totalPendapatan = r.pendapatan.length;
+    void unduhExcel(`laba-rugi-${data.siklus.kode}`, {
+      judul: `Laba rugi siklus ${data.siklus.kode}`,
+      bagian: [{
+        kolom: [{ judul: "Bagian" }, { judul: "Uraian" }, { judul: "Berat (kg)", jenis: "kg" }, { judul: "Harga/kg", jenis: "rupiah" }, { judul: "Rupiah", jenis: "rupiah" }, { judul: "% pendapatan", jenis: "persen" }],
+        baris,
+        tebal: [totalPendapatan, totalPendapatan + r.biaya.length + 1, totalPendapatan + r.biaya.length + 2],
+      }],
+    });
   };
 
   return (
@@ -78,7 +82,7 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
           <option value="" disabled>Pilih siklus</option>
           {tren.map((t) => <option key={t.cycle_id} value={t.cycle_id}>{t.kode}{t.ref_po_pembeli ? ` · ${t.ref_po_pembeli}` : ""}</option>)}
         </select>
-        {r && <Btn size="sm" v="light" onClick={unduh}>Unduh CSV</Btn>}
+        {r && <Btn size="sm" v="light" onClick={unduh}>Unduh Excel</Btn>}
       </div>
 
       {!data || !r ? (
@@ -147,17 +151,15 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
 /* ----------------------------------------------------------------- tren */
 function TrenTab({ tren }: { tren: BarisLabaSiklus[] }) {
   const baris = ringkasTren(tren);
-  const unduh = () => {
-    const url = URL.createObjectURL(new Blob([buatCsv(["Siklus", "Ikan (kg)", "Hasil olahan (%)", "Harga ikan/kg", "Pendapatan", "Biaya", "Laba kotor", "Margin (%)"],
-      baris.map((b) => [b.kode, kgT(b.ikanKg), String(b.hasilPct).replace(".", ","), b.hargaIkanPerKg, String(b.pendapatan).replace(".", ","), String(b.biaya).replace(".", ","), String(b.laba).replace(".", ","), b.marginPct === null ? "" : String(b.marginPct).replace(".", ",")]))], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "tren-antarsiklus.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const unduh = () => unduhExcel("tren-antarsiklus", {
+    judul: "Tren antarsiklus",
+    bagian: [{
+      kolom: [{ judul: "Siklus" }, { judul: "Ikan (kg)", jenis: "kg" }, { judul: "Hasil olahan", jenis: "persen" }, { judul: "Harga ikan/kg", jenis: "rupiah" }, { judul: "Pendapatan", jenis: "rupiah" }, { judul: "Biaya", jenis: "rupiah" }, { judul: "Laba kotor", jenis: "rupiah" }, { judul: "Margin", jenis: "persen" }],
+      baris: baris.map((b) => [b.kode, b.ikanKg, b.hasilPct, b.hargaIkanPerKg, b.pendapatan, b.biaya, b.laba, b.marginPct]),
+    }],
+  });
   return (
-    <Card title="Tren antarsiklus" right={<Btn size="sm" v="light" onClick={unduh} disabled={baris.length === 0}>Unduh CSV</Btn>}>
+    <Card title="Tren antarsiklus" right={<Btn size="sm" v="light" onClick={unduh} disabled={baris.length === 0}>Unduh Excel</Btn>}>
       <DataList
         rows={baris}
         empty="Belum ada siklus."
@@ -222,17 +224,17 @@ function HargaTab({ harga }: { harga: BarisHargaBeli[] }) {
     }
     return [...m.values()].sort((a, b) => a.periode.localeCompare(b.periode)).map((a) => ({ periode: a.periode, kg: a.kg / 1000, nilai: a.nilaiSen / 100, lot: a.lot, harga: hargaRataTertimbang(a.kg / 1000, a.nilaiSen / 100) }));
   }, [harga, periode, pemasok, grade]);
-  const unduh = () => {
-    const url = URL.createObjectURL(new Blob([buatCsv(["Periode", "Berat (kg)", "Nilai (Rp)", "Harga rata-rata tertimbang (Rp/kg)", "Jumlah lot"], baris.map((b) => [b.periode, kgT(b.kg), String(b.nilai).replace(".", ","), b.harga, b.lot]))], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "harga-beli.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const unduh = () => unduhExcel("harga-beli", {
+    judul: "Harga beli rata-rata tertimbang",
+    keterangan: periode === "minggu" ? "Per minggu" : "Per hari",
+    bagian: [{
+      kolom: [{ judul: "Periode" }, { judul: "Berat (kg)", jenis: "kg" }, { judul: "Nilai (Rp)", jenis: "rupiah" }, { judul: "Harga rata-rata (Rp/kg)", jenis: "rupiah" }, { judul: "Jumlah lot", jenis: "angka" }],
+      baris: baris.map((b) => [b.periode, b.kg, b.nilai, b.harga, b.lot]),
+    }],
+  });
   const sel = "h-9 rounded-full border border-[#E2E4EA] bg-white px-3 text-[12.5px]";
   return (
-    <Card title="Harga beli rata-rata tertimbang" right={<Btn size="sm" v="light" onClick={unduh} disabled={baris.length === 0}>Unduh CSV</Btn>}>
+    <Card title="Harga beli rata-rata tertimbang" right={<Btn size="sm" v="light" onClick={unduh} disabled={baris.length === 0}>Unduh Excel</Btn>}>
       <div className="flex flex-wrap gap-2 px-2.5 pb-2.5">
         <select aria-label="Periode" className={sel} value={periode} onChange={(e) => setPeriode(e.target.value as "hari" | "minggu")}><option value="minggu">Per minggu</option><option value="hari">Per hari</option></select>
         <select aria-label="Pemasok" className={sel} value={pemasok} onChange={(e) => setPemasok(e.target.value)}><option value="">Semua pemasok</option>{daftarPemasok.map(([id, nama]) => <option key={id} value={id}>{nama}</option>)}</select>
