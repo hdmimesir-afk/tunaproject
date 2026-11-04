@@ -201,7 +201,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di setiap aksi, dan di database. Nota dan foto absen disimpan di tempat tertutup, dan hanya bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi supaya kata sandi tidak bisa ditebak-tebak." },
   { judul: "Angka tidak bergeser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa pembulatan diam-diam. Saya uji dengan 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhan hasilnya sama persis." },
   { judul: "Satu putaran penuh sudah diuji", isi: "Saya jalankan pembelian sampai uang masuk lewat kelima jabatan, lalu mencocokkan angka di neraca, stok, tagihan, rincian siklus, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Diperiksa otomatis setiap ada perubahan", isi: "Setiap kali sistem saya ubah, pemeriksaan otomatis berjalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Untuk pembaruan 4 November, uji lengkapnya belum saya jalankan (lihat bagian yang masih tersisa)." },
+  { judul: "Diperiksa otomatis setiap ada perubahan", isi: "Setiap kali sistem saya ubah, pemeriksaan otomatis berjalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Untuk pembaruan 4 November, uji alur lengkapnya belum saya jalankan (lihat bagian yang masih tersisa)." },
   { judul: "Cadangan harian", isi: "Database dicadangkan tiap malam dan dienkripsi. Empat pencadangan tercatat berhasil, tiga di antaranya otomatis terjadwal. Satu hal yang belum saya lakukan: mencoba memulihkan cadangan ke tempat kosong (lihat bagian yang masih tersisa)." },
 ] as const;
 
@@ -216,8 +216,8 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Uji lengkap pembaruan 4 November", isi: "Pemeriksaan kode, 98 pemeriksaan logika, dan pembuatan versi jadi sudah lulus. Uji database, uji alur dari awal sampai akhir, dan satu undangan akun sungguhan belum saya jalankan. File Excel juga belum saya buka di aplikasi Excel." },
-  { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps sudah saya siapkan untuk sistem. Masalah absen GPS baru bisa dibilang selesai setelah dicoba dari HP di kantor, karena pin di peta bisa sedikit berbeda dengan tempat orang berdiri saat absen." },
+  { judul: "Uji lengkap pembaruan 4 November", isi: "Pemeriksaan kode, 98 pemeriksaan logika, dan pembuatan versi jadi sudah lulus. Aturan database juga lulus 526 pemeriksaan di database uji sementara. Uji alur dari awal sampai akhir dan satu undangan akun sungguhan belum saya jalankan. File Excel juga belum saya buka di aplikasi Excel." },
+  { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps sudah terpasang di sistem. Masalah absen GPS baru bisa dibilang selesai setelah dicoba dari HP di kantor, karena pin di peta bisa sedikit berbeda dengan tempat orang berdiri saat absen." },
   { judul: "Urutan menu lengkap", isi: "Pembelian, Persetujuan, Mutu dan Penerimaan, lalu Produksi sudah saya susun. Urutan menu lainnya menunggu daftar lengkap dari tim pengguna." },
   { judul: "Konsekuensi satu akun per jabatan", isi: "Semua petugas lapangan memakai satu akun yang sama. Jadi absen masuk dan pulang cuma bisa tercatat satu kali per hari untuk semuanya, dan catatan perubahan cuma menunjukkan jabatannya, bukan orangnya." },
   { judul: "Dicoba orang di lapangan", isi: "Timbangan di HP saat sinyal lemah, serta absen dengan kamera dan GPS di lokasi, baru saya uji pakai perangkat tiruan. Belum dicoba di HP petugas yang asli, dan ini yang paling saya mau segera dicoba." },
