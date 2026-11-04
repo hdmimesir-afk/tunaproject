@@ -1,6 +1,6 @@
 # Panduan singkat per peran
 
-Untuk pelatihan sebelum mulai pakai. Tiap peran hanya melihat menu yang sesuai izinnya. Tombol yang berisiko (setuju, tolak, bayar, kirim, selesai) selalu meminta konfirmasi kedua.
+Untuk pelatihan sebelum mulai pakai. Versi lengkap dengan gambar layar ada di halaman `/tutorial`. Tiap peran hanya melihat menu yang sesuai izinnya. Tombol yang berisiko (setuju, tolak, bayar, kirim, selesai) selalu meminta konfirmasi kedua.
 
 ## Semua peran
 
@@ -10,7 +10,7 @@ Untuk pelatihan sebelum mulai pakai. Tiap peran hanya melihat menu yang sesuai i
 
 ## Petugas Lapangan (HP)
 
-- **Terima ikan:** Mutu dan Penerimaan → pilih PO → isi berat timbang → Catat penerimaan. Ikan datang malam sebelum PO disetujui: centang bongkar malam.
+- **Terima ikan:** Mutu dan Penerimaan → pilih PO (berat terisi dari PO; bila kiriman berbeda, centang Kiriman nyata berbeda dari PO) → Catat penerimaan. Ikan datang malam sebelum PO disetujui: centang bongkar malam.
 - **Timbang loin:** Produksi → Mulai produksi dari lot yang lulus mutu → isi grid. Ketik berat lalu **Enter** untuk baris berikutnya. Nomor loin dan grade terisi otomatis dari baris sebelumnya.
 - **Sinyal putus:** teruskan mengetik. Indikator di atas grid menunjukkan "belum disimpan"; isian aman di HP dan terkirim sendiri saat sinyal kembali. Jangan hapus data browser sebelum muncul "Semua tersimpan di server".
 - **Komponen hasil:** isi hasil samping, limbah, dan susut (total). Kosong berarti belum ditimbang, bukan nol.
@@ -28,7 +28,7 @@ Untuk pelatihan sebelum mulai pakai. Tiap peran hanya melihat menu yang sesuai i
 - **Pembelian:** periksa PO yang diajukan (Persetujuan), bayar PO yang sudah disetujui Owner. Disetujui bukan berarti dibayar.
 - **Penjualan:** terbitkan invoice setelah pesanan terkirim; catat berat diterima pembeli sebelum invoice terbit. Catat pembayaran masuk dan lampirkan bukti transfer.
 - **Biaya:** catat biaya, pilih PO atau produksi terkait bila ada (siklusnya ikut otomatis), lampirkan nota, ajukan ke Owner. Biaya yang disetujui masuk buku kas otomatis.
-- **Laporan:** laba rugi per siklus, tren, harga beli. Ketuk baris untuk melihat transaksinya; Unduh CSV memakai angka yang sama dengan layar.
+- **Laporan:** laba rugi per siklus, tren, harga beli. Ketuk baris untuk melihat transaksinya; Unduh Excel memakai angka yang sama dengan layar.
 
 ## Super Admin
 

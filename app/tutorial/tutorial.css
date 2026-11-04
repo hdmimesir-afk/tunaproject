@@ -1,0 +1,109 @@
+/* Halaman panduan: warna dan huruf mengikuti aplikasi. Semua kelas diawali t- supaya tidak mengenai halaman lain. */
+.tutorial {
+  --t-ink: #00171f; --t-ink-2: #3f4c55; --t-muted: #66727c; --t-rule: #dfe3ea; --t-paper: #f6f7fa; --t-card: #fff; --t-warn-bg: #fbf0d5; --t-warn: #7a5000;
+  min-height: 100dvh; background: var(--t-paper); color: var(--t-ink); font-size: 1rem; line-height: 1.6;
+}
+html:has(.tutorial) { scroll-padding-top: 138px; scroll-behavior: smooth; }
+.tutorial *, .tutorial *::before, .tutorial *::after { box-sizing: border-box; }
+.tutorial :focus-visible { outline: 2px solid #1f6fb2; outline-offset: 2px; }
+.tutorial h1, .tutorial h2, .tutorial h3, .tutorial p, .tutorial ol, .tutorial ul, .tutorial dl, .tutorial dd, .tutorial figure { margin: 0; }
+.tutorial h1, .tutorial h2, .tutorial h3 { font-weight: 600; letter-spacing: -0.015em; text-wrap: balance; }
+.tutorial ul { padding: 0; list-style: none; }
+
+.t-bar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 60px; padding: 8px max(16px, calc((100vw - 1240px) / 2)); background: var(--t-paper); border-bottom: 1px solid var(--t-rule); }
+.t-merek { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: inherit; text-decoration: none; white-space: nowrap; }
+.t-merek img { mix-blend-mode: multiply; }
+.t-merek span { margin-left: 4px; font-weight: 400; color: var(--t-muted); }
+.t-masuk { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--t-ink); color: #fff; font-size: 0.875rem; font-weight: 500; text-decoration: none; white-space: nowrap; }
+
+.t-kepala { max-width: 1240px; margin-inline: auto; padding: 40px 16px 24px; }
+.t-kepala h1 { font-size: clamp(1.9rem, 2.4vw + 1.2rem, 2.9rem); line-height: 1.1; }
+.t-kepala > p { max-width: 62ch; margin-top: 12px; font-size: 1.0625rem; color: var(--t-ink-2); }
+.tutorial .t-alur { display: flex; flex-wrap: wrap; gap: 6px 4px; margin-top: 20px; padding: 0; list-style: none; font-size: 0.8125rem; color: var(--t-ink-2); }
+.t-alur li:not(:last-child)::after { content: "→"; margin-left: 6px; margin-right: 2px; color: var(--t-muted); }
+
+.t-saring { position: sticky; top: 60px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px max(16px, calc((100vw - 1240px) / 2)); background: var(--t-paper); border-block: 1px solid var(--t-rule); }
+.t-chip { display: flex; flex: 1 1 auto; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.t-chip button { flex: none; min-height: 40px; padding: 0 14px; border: 1px solid var(--t-rule); border-radius: 999px; background: var(--t-card); color: var(--t-ink); font: inherit; font-size: 0.875rem; cursor: pointer; }
+.t-chip button[aria-pressed="true"] { background: var(--t-ink); border-color: var(--t-ink); color: #fff; font-weight: 500; }
+.t-cari { flex: 0 1 300px; min-width: 200px; }
+.t-cari input { width: 100%; height: 40px; padding: 0 14px; border: 1px solid var(--t-rule); border-radius: 999px; background: var(--t-card); color: inherit; font: inherit; font-size: 16px; }
+
+.t-tata { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; max-width: 1240px; margin-inline: auto; padding: 24px 16px 40px; }
+.t-toc { position: sticky; top: 140px; align-self: start; max-height: calc(100dvh - 160px); overflow-y: auto; font-size: 0.875rem; }
+.t-toc-kelompok { margin-top: 16px !important; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--t-muted); }
+.t-toc > div:first-child .t-toc-kelompok { margin-top: 0 !important; }
+.t-toc a, .t-toc-hp a { display: block; padding: 5px 0; color: var(--t-ink); text-decoration: none; }
+.t-toc a:hover { text-decoration: underline; }
+.t-toc-hp { display: none; }
+
+.t-isi { min-width: 0; }
+.t-bab { padding-bottom: 40px; }
+.t-bab + .t-bab { padding-top: 32px; border-top: 1px solid var(--t-rule); }
+.t-bab > header h2 { font-size: 1.75rem; line-height: 1.2; }
+.t-bab > header p { max-width: 68ch; margin-top: 6px; color: var(--t-ink-2); }
+.t-buka { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.875rem; font-weight: 500; color: #15598f; text-underline-offset: 3px; }
+
+.t-tugas { margin-top: 16px; padding: 22px; border-radius: 20px; background: var(--t-card); }
+.t-tugas-samping { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 28px; align-items: start; }
+.t-narasi h3 { font-size: 1.125rem; line-height: 1.3; }
+.t-narasi > p { margin-top: 8px; max-width: 68ch; color: var(--t-ink-2); }
+.tutorial .t-untuk { margin-top: 6px; font-size: 0.8125rem; font-weight: 500; color: var(--t-muted); }
+.tutorial .t-langkah { margin-top: 12px; padding: 0; list-style: none; counter-reset: langkah; }
+.t-langkah li { position: relative; max-width: 68ch; padding: 0 0 10px 36px; counter-increment: langkah; }
+.t-langkah li::before { content: counter(langkah); position: absolute; left: 0; top: 0; width: 25px; height: 25px; border-radius: 50%; background: var(--t-paper); font-size: 0.8125rem; font-weight: 600; line-height: 25px; text-align: center; }
+.tutorial .t-catatan { margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: var(--t-warn-bg); color: var(--t-warn); font-size: 0.9375rem; }
+
+.tutorial .t-putaran { margin-top: 16px; padding: 0; list-style: none; counter-reset: putaran; border-radius: 20px; background: var(--t-card); overflow: hidden; }
+.t-putaran li { display: grid; grid-template-columns: 34px 170px minmax(0, 1fr) 170px; gap: 12px; align-items: baseline; padding: 12px 18px; counter-increment: putaran; }
+.t-putaran li + li { border-top: 1px solid var(--t-rule); }
+.t-putaran li::before { content: counter(putaran); font-size: 0.8125rem; font-weight: 600; color: var(--t-muted); }
+.t-siapa { font-size: 0.875rem; font-weight: 600; }
+.t-putaran p { margin: 0; font-size: 0.9375rem; color: var(--t-ink-2); }
+.t-putaran a { display: inline-flex; align-items: center; min-height: 24px; font-size: 0.8125rem; color: #15598f; text-underline-offset: 3px; }
+.t-putaran .t-giliran { background: #e8f1f8; }
+.t-putaran .t-redup { color: var(--t-muted); }
+.t-putaran .t-redup p, .t-putaran .t-redup .t-siapa { color: var(--t-muted); font-weight: 400; }
+.t-gambar { margin-top: 16px !important; }
+.t-tugas-samping .t-gambar { margin-top: 0 !important; }
+.t-gambar a { display: block; }
+.t-gambar img { display: block; width: 100%; height: auto; border: 1px solid var(--t-rule); border-radius: 12px; background: var(--t-paper); }
+.t-gambar figcaption { margin-top: 8px; font-size: 0.8125rem; color: var(--t-muted); }
+.t-gambar-sempit, .t-gambar-hp { max-width: 340px; }
+.t-gambar-hp { max-width: 280px; justify-self: center; }
+.t-kosong { padding: 32px 0; color: var(--t-ink-2); }
+
+.t-lampiran { max-width: 1240px; margin-inline: auto; padding: 32px 16px; border-top: 1px solid var(--t-rule); }
+.t-lampiran h2 { font-size: 1.5rem; }
+.t-tabel { margin-top: 16px; overflow-x: auto; border-radius: 16px; background: var(--t-card); }
+.t-tabel table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 0.875rem; }
+.t-tabel th, .t-tabel td { padding: 10px 14px; border-bottom: 1px solid var(--t-rule); text-align: left; font-weight: 400; }
+.t-tabel thead th { font-weight: 600; }
+.t-tabel td { color: var(--t-muted); }
+.t-tabel td.t-ya { color: #17634a; font-weight: 500; }
+.tutorial .t-istilah { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px 32px; margin-top: 16px; }
+.t-istilah dt { font-weight: 600; }
+.t-istilah dd { color: var(--t-ink-2); font-size: 0.9375rem; }
+
+@media (max-width: 900px) {
+  html:has(.tutorial) { scroll-padding-top: 76px; }
+  .t-tata { grid-template-columns: minmax(0, 1fr); gap: 12px; padding-top: 12px; }
+  .t-toc { display: none; }
+  .t-toc-hp { display: block; padding: 4px 16px; border-radius: 16px; background: var(--t-card); }
+  .t-toc-hp summary { display: flex; align-items: center; min-height: 44px; font-weight: 500; cursor: pointer; }
+  .t-toc-hp nav { padding-bottom: 8px; font-size: 0.9375rem; }
+  .t-toc-hp a { padding: 8px 0; }
+  .t-putaran li { grid-template-columns: 26px minmax(0, 1fr); gap: 2px 8px; }
+  .t-putaran p, .t-putaran a { grid-column: 2; }
+  .t-putaran a { min-height: 44px; }
+  .t-tugas { padding: 18px; }
+  .t-tugas-samping { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .t-saring { position: static; }
+  .t-cari { flex: 1 1 100%; }
+  .t-merek span { display: none; }
+}
+@media print {
+  .t-bar, .t-saring, .t-toc, .t-toc-hp, .t-buka { display: none; }
+  .t-tata { display: block; }
+  .t-tugas { break-inside: avoid; }
+}

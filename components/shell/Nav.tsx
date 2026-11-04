@@ -107,6 +107,13 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
               </div>
             </div>
           ))}
+          <div className={ringkas ? "mt-2 border-t border-white/10 pt-2" : "mt-4"}>
+            <Link href="/tutorial" title={ringkas ? "Panduan" : undefined} aria-label={ringkas ? "Panduan" : undefined}
+              className={`flex items-center rounded-full text-[14px] text-[#C6CCD3] transition hover:bg-white/[0.07] ${ringkas ? "mx-auto h-11 w-11 justify-center" : "gap-3 px-3.5 py-2.5"}`}>
+              <Icon n="list" s={19} c="#9AA2AB" />
+              {!ringkas && <span className="truncate">Panduan</span>}
+            </Link>
+          </div>
         </nav>
 
         {pengguna && (
@@ -198,6 +205,9 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
                 </div>
               );
             })}
+            <Link href="/tutorial" onClick={() => setBuka(false)} className="flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-white text-[13px] font-medium" style={{ color: INK }}>
+              <Icon n="list" s={18} c={INK} />Panduan
+            </Link>
           </div>
         </div>
       )}
