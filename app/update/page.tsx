@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { Perangkat } from "@/components/update/Perangkat";
-import { ANGKA, BELUM, BERIKUTNYA, KUALITAS, LIVE, MATRIKS, MODUL, PERAN, PERJALANAN, TANGGAL, TUGAS_PERAN } from "@/components/update/isi";
+import { ANGKA, BELUM, BERIKUTNYA, KUALITAS, LIVE, MATRIKS, MODUL, PERAN, PERIKSA_LENGKAP, PERJALANAN, TANGGAL, TUGAS_PERAN } from "@/components/update/isi";
 import "./update.css";
 
 export const metadata: Metadata = {
@@ -45,7 +45,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="ringkasan" aria-labelledby="h-ringkasan">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-ringkasan">Singkatnya: sistemnya sudah jadi</h2>
-            <p className="u-pengantar">Sekarang saya sudah tidak lagi membangun. Yang tersisa tinggal mencobanya di lapangan, dan beberapa hal yang memang cuma bisa diputuskan owner.</p>
+            <p className="u-pengantar">Fitur yang kita sepakati sudah selesai. Yang saya kerjakan sekarang penyesuaian dari catatan rapat. Sisanya tinggal mencobanya di lapangan, dan beberapa hal yang memang cuma bisa diputuskan owner.</p>
             <ul className="u-angka u-badan">
               {ANGKA.map((a) => <li key={a.nilai}><span className="u-besar">{a.nilai}</span><p>{a.label}</p></li>)}
             </ul>
@@ -57,7 +57,7 @@ export default function UpdatePage() {
               <div>
                 <h3 className="u-sub">Cara membaca laporan ini</h3>
                 <p style={{ marginTop: "var(--space-md)", color: "var(--color-ink-2)" }}>
-                  Angka di laporan ini saya ambil dari hasil hitung dan pemeriksaan per {TANGGAL}, bukan perkiraan. Layar di bagian Tampilan adalah halaman sistem yang asli, cuma saya isi data contoh, jadi susunannya persis seperti yang nanti dilihat pengguna. Data perusahaan tidak ada di halaman ini.
+                  Angka di laporan ini hasil hitung dan pemeriksaan, bukan perkiraan. Jumlah pemeriksaan otomatis dan catatan kas berasal dari pemeriksaan lengkap {PERIKSA_LENGKAP}. Layar di bagian Tampilan adalah halaman sistem yang asli, cuma saya isi data contoh, jadi susunannya persis seperti yang nanti dilihat pengguna. Data perusahaan tidak ada di halaman ini.
                 </p>
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="belum" aria-labelledby="h-belum">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-belum">Yang masih tersisa</h2>
-            <p className="u-pengantar">Tidak ada fitur yang tertinggal. Yang tersisa: mencobanya di lapangan, serta bahan dan keputusan dari owner.</p>
+            <p className="u-pengantar">Tidak ada fitur yang tertinggal. Yang tersisa: uji lengkap pembaruan terakhir, mencobanya di lapangan, serta bahan dan keputusan dari tim dan owner.</p>
             <ul className="u-belum u-badan">
               {BELUM.map((b) => <li key={b.judul}><strong>{b.judul}</strong><p>{b.isi}</p></li>)}
             </ul>
