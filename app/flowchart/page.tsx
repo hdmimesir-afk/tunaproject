@@ -128,7 +128,7 @@ export default function FlowchartPage() {
         <section className="f-bagian" aria-labelledby="judul">
           <p className="f-sumber">Dari flowchart_v1.pdf · 5 November 2026</p>
           <h1 id="judul">Apa aja yang perlu disesuaikan di sistem</h1>
-          <p className="f-pengantar">Tim Katalis ngirim flowchart, yaitu gambar alur kerja yang diinginkan. Di sini kita bandingin sama sistem yang jalan sekarang.</p>
+          <p className="f-pengantar">Ini hasil perbandingan flowchart dari tim Katalis dengan sistem yang jalan sekarang.</p>
           <p className="f-pengantar">Sekarang pencatatan mulai dari surat pesanan, dan daging ikan ditimbang satu-satu. Di flowchart, pencatatan mulai pas ikan tiba, dan daging ikan cukup dicatat totalnya. Layanan ngolah ikan punya orang lain juga belum ada di sistem. Sebelum mulai dikerjain, ada empat hal yang perlu diputusin dulu.</p>
           <ul className="f-jalur" aria-label="Tiga jenis kegiatan usaha di flowchart">
             {JALUR.map((j) => <li key={j.nama}><b>{j.nama}</b><span>{j.isi}</span></li>)}
