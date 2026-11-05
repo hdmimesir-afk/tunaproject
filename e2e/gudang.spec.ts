@@ -10,7 +10,7 @@ test.describe("gudang dingin", () => {
     await dialog.getByLabel("Pelanggan pemilik titipan").selectOption({ label: "Pelanggan E2E" });
     await dialog.getByLabel("Produk").selectOption({ label: "Loin tuna" });
     await dialog.getByLabel("Berat (kg)").fill("250");
-    await dialog.getByLabel("Lokasi").fill("E2E-1");
+    await dialog.getByLabel("Rak atau posisi").fill("E2E-1");
     await dialog.getByRole("button", { name: "Terima titipan" }).click();
     await expect(page.getByText("250,000 kg").first()).toBeVisible();
 
