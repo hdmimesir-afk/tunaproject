@@ -73,6 +73,20 @@
   .f-keputusan li { padding: 14px 14px 14px 52px; }
   .f-keputusan li::before { left: 14px; top: 14px; }
   .f-koreksi article { padding: 14px; }
+
+  /* Di HP, tiap baris tabel jadi satu kartu dengan label di atas isinya, supaya tidak perlu digeser ke samping. */
+  .f-tabel { overflow: visible; border-radius: 0; background: none; }
+  .f-tabel table, .f-tabel tbody, .f-tabel tr, .f-tabel th, .f-tabel td { display: block; width: 100%; }
+  .f-tabel table { min-width: 0; }
+  .f-tabel thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .f-tabel tbody { display: grid; gap: 10px; }
+  .f-tabel tr { padding: 14px; border-radius: 16px; background: var(--f-card); }
+  .f-tabel tbody th, .f-tabel td, .f-tabel tbody tr:last-child th, .f-tabel tbody tr:last-child td { padding: 0; border: 0; }
+  .f-tabel tbody th { font-size: 1rem; line-height: 1.35; }
+  .f-tabel td { margin-top: 12px; }
+  .f-tabel td::before { content: attr(data-label); display: block; margin-bottom: 2px; font-size: 0.8125rem; font-weight: 600; color: var(--f-muted); }
+  .f-contoh dl > div { align-items: baseline; }
+  .f-contoh dt { min-width: 0; }
 }
 @media print {
   .f-bar { display: none; }

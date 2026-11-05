@@ -157,9 +157,9 @@ export default function FlowchartPage() {
                 {ALUR.map((a) => (
                   <tr key={a.nama}>
                     <th scope="row">{a.nama} <span className="f-hal">{a.hal}</span></th>
-                    <td>{a.flowchart}</td>
-                    <td>{a.sekarang}</td>
-                    <td>{a.dibuat}</td>
+                    <td data-label="Menurut flowchart">{a.flowchart}</td>
+                    <td data-label="Di sistem sekarang">{a.sekarang}</td>
+                    <td data-label="Yang perlu ditambah">{a.dibuat}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,8 +177,8 @@ export default function FlowchartPage() {
                 {BENTROK.map((b) => (
                   <tr key={b.aturan}>
                     <th scope="row">{b.aturan}</th>
-                    <td>{b.flowchart}</td>
-                    <td><span className="f-tanda">{b.keputusan}</span></td>
+                    <td data-label="Di flowchart">{b.flowchart}</td>
+                    <td data-label="Lihat keputusan"><span className="f-tanda">{b.keputusan}</span></td>
                   </tr>
                 ))}
               </tbody>
