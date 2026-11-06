@@ -47,6 +47,16 @@
 .f-hal { display: block; font-size: 0.8125rem; font-weight: 400; color: var(--f-muted); }
 .f-tanda { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--f-warn-bg); color: var(--f-warn); font-size: 0.8125rem; font-weight: 500; white-space: nowrap; }
 
+.f-tanda-siap { background: #ddf3e8; color: #0b6b4a; }
+.flowchart .f-status { display: grid; gap: 1px; overflow: hidden; border-radius: 16px; background: var(--f-rule); }
+.f-status li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 14px 18px; background: var(--f-card); }
+.f-nomor { width: 24px; height: 24px; border-radius: 50%; background: var(--f-paper); font-size: 0.8125rem; font-weight: 600; line-height: 24px; text-align: center; }
+.f-status p { max-width: 72ch; color: var(--f-ink-2); }
+.flowchart .f-lain { display: grid; gap: 12px; }
+.f-lain li { display: grid; gap: 4px; }
+.f-lain li > span { max-width: 72ch; color: var(--f-ink-2); font-size: 0.9375rem; }
+.f-lain li > span b { color: var(--f-ink); }
+
 .f-koreksi { display: grid; gap: 10px; }
 .f-koreksi article { display: grid; gap: 6px; min-width: 0; padding: 18px; border-radius: 16px; background: var(--f-card); }
 .f-koreksi article > p { max-width: 72ch; color: var(--f-ink-2); }
@@ -73,6 +83,8 @@
   .f-keputusan li { padding: 14px 14px 14px 52px; }
   .f-keputusan li::before { left: 14px; top: 14px; }
   .f-koreksi article { padding: 14px; }
+  .f-status li { grid-template-columns: 24px minmax(0, 1fr); padding: 14px; }
+  .f-status li .f-tanda { grid-column: 2; justify-self: start; }
 
   /* Di HP, tiap baris tabel jadi satu kartu dengan label di atas isinya, supaya tidak perlu digeser ke samping. */
   .f-tabel { overflow: visible; border-radius: 0; background: none; }

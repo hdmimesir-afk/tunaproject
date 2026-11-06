@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 test("laporan flowchart terbuka tanpa login", async ({ page }) => {
   await page.goto("/flowchart");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Apa aja yang perlu disesuaikan di sistem");
-  await expect(page.getByRole("heading", { name: "Empat hal yang perlu diputusin tim Katalis" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Lima pertanyaan lanjutan buat tim Katalis" })).toBeVisible();
 });
 
 test("laporan flowchart di lebar HP tidak meluber ke samping", async ({ browser }) => {
