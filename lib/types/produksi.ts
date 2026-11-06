@@ -42,6 +42,8 @@ export type ItemLoin = {
   batal: boolean;
   alasan_batal: string;
 };
+/** Berat loin total per grade (cara sehari-hari). Kg 0 = grade itu dikosongkan lagi. */
+export type LoinTotal = { id: string; grade_id: string; kg: number };
 export type Ekor = { id: string; no_ekor: number; berat_utuh_kg: number };
 export type KomponenSamping = { id: string; category_id: string; kg: number };
 export type RiwayatLoin = { id: number; item_id: string; aksi: "tambah" | "koreksi" | "batal"; sebelum: Record<string, unknown> | null; sesudah: Record<string, unknown>; oleh: string | null; pada: string };

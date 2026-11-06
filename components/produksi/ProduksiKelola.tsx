@@ -102,7 +102,7 @@ export function ProduksiKelola({ daftar, lotSiap, grade, samping, pengguna, deta
           cols={[
             { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.siklus_kode ? ` · ${p.siklus_kode}` : ""}</span></> },
             { h: "Ikan masuk", r: (p) => `${kgTeks(p.masuk_kg)} kg`, right: true },
-            { h: "Loin", r: (p) => `${kgTeks(p.loin_kg)} kg · ${p.jumlah_loin} potong`, right: true },
+            { h: "Loin", r: (p) => `${kgTeks(p.loin_kg)} kg${p.jumlah_loin > 0 ? ` · ${p.jumlah_loin} potong` : ""}`, right: true },
             { h: "Hasil", r: (p) => `${formatPct(p.hasil_pct)}%`, right: true },
             { h: "Belum jelas", r: (p) => `${kgTeks(p.belum_jelas_kg)} kg (${formatPct(p.belum_jelas_pct)}%)`, right: true },
             { h: "Status", r: (p) => <Pill t={LABEL_PRODUKSI[p.status]} /> },

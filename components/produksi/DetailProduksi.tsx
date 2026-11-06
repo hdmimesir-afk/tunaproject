@@ -1,16 +1,17 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { Btn, Field, Inner, Modal, Pill, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { mintaPerbaikan, periksaProduksi, selesaikanProduksi, setujuiProduksi, simpanEkor, simpanKomponen } from "@/lib/actions/produksi";
+import { mintaPerbaikan, periksaProduksi, selesaikanProduksi, setujuiProduksi, simpanEkor, simpanKomponen, simpanLoinTotal } from "@/lib/actions/produksi";
 import type { DetailProduksi as Detail } from "@/lib/data/produksi";
 import { tanggal, waktu } from "@/lib/format";
-import { gramKeTeks, tampilKg } from "@/lib/logic/grid";
+import { gramKeTeks, keGram, tampilKg } from "@/lib/logic/grid";
 import { formatPct, hitungNeraca, type BatasHasil } from "@/lib/logic/neraca";
 import { LABEL_PRODUKSI } from "@/lib/logic/produksi";
+import { bacaDraf } from "@/lib/offline/draft";
 import type { Opsi, Pengguna } from "@/lib/types/pembelian";
 import { cetakFormulir } from "./cetak";
 import { GridLoin } from "./GridLoin";
@@ -70,12 +71,55 @@ function Neraca({ p, batas }: { p: Detail["produksi"]; batas: BatasHasil }) {
         <Baris k={`Selisih belum jelas · ${formatPct(n.belumJelasPct)}%`} v={`${kgTeks(n.belumJelasKg)} kg`} tebal warna={n.belumJelasKg > 0 ? "#8A5A00" : "#0B6B4A"} />
       </div>
       <p className="mt-1 text-[11.5px]" style={{ color: MUTED }}>Selisih adalah sisa hitungan: ikan masuk dikurangi semua yang ditimbang. Tidak diisi otomatis dan tidak dipindah ke susut.</p>
-      {n.perluDiperiksa && p.jumlah_loin > 0 && (
+      {n.perluDiperiksa && p.loin_kg > 0 && (
         <p className="mt-2 rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
           Hasil {formatPct(n.hasilPct)}% di luar batas wajar {batas.minPct}–{batas.maxPct}%. Periksa timbangan dan nomor loin.
         </p>
       )}
-      {p.jumlah_loin > 0 && <p className="mt-1.5 text-[12px]" style={{ color: MUTED }}>Rencana hasil {batas.rencanaPct}%: {n.diAtasRencana ? "tercapai" : "belum tercapai"}.</p>}
+      {p.loin_kg > 0 && <p className="mt-1.5 text-[12px]" style={{ color: MUTED }}>Rencana hasil {batas.rencanaPct}%: {n.diAtasRencana ? "tercapai" : "belum tercapai"}.</p>}
+    </Inner>
+  );
+}
+
+/* --------------------------------------------------- loin total per grade */
+function FormLoinTotal({ detail, grade }: { detail: Detail; grade: Opsi[] }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(simpanLoinTotal, undefined);
+  const awal = useMemo(() => new Map(detail.total.filter((t) => t.kg > 0).map((t) => [t.grade_id, inputKg(t.kg)])), [detail.total]);
+  const [nilai, setNilai] = useState<Record<string, string>>(() => Object.fromEntries(grade.map((g) => [g.id, awal.get(g.id) ?? ""])));
+  const gram = Object.values(nilai).reduce<number | null>((a, v) => {
+    if (a === null) return null;
+    if (v.trim() === "" || /^0([.,]0{1,3})?$/.test(v.trim())) return a;
+    const g = keGram(v);
+    return g === null ? null : a + g;
+  }, 0);
+  return (
+    <form action={action} className="space-y-3">
+      <input type="hidden" name="produksiId" value={detail.produksi.id} />
+      <input type="hidden" name="baris" value={JSON.stringify(grade.map((g) => ({ grade_id: g.id, kg: nilai[g.id] ?? "" })))} />
+      <Pesan state={state} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        {grade.map((g) => (
+          <Field key={g.id} label={`${g.label} (kg)`}>
+            <TextIn inputMode="decimal" placeholder="0" value={nilai[g.id] ?? ""} onChange={(e) => setNilai((n) => ({ ...n, [g.id]: e.target.value }))} />
+          </Field>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[13px] tabular-nums" style={{ color: gram === null ? "#A8322B" : INK }} data-testid="total-loin-isian">
+          {gram === null ? "Periksa angkanya (maksimal 3 desimal)." : `Total ${tampilKg(gram)} kg`}
+        </span>
+        <Btn type="submit" size="sm" disabled={pending || gram === null}>{pending ? "Menyimpan..." : "Simpan total loin"}</Btn>
+      </div>
+    </form>
+  );
+}
+
+function DaftarLoinTotal({ total, namaGrade }: { total: Detail["total"]; namaGrade: Map<string, string> }) {
+  const isi = total.filter((t) => t.kg > 0);
+  if (isi.length === 0) return <p className="text-[13px]" style={{ color: MUTED }}>Belum ada berat loin.</p>;
+  return (
+    <Inner className="!p-3.5">
+      {isi.map((t) => <Baris key={t.id} k={namaGrade.get(t.grade_id) ?? "Grade"} v={`${kgTeks(t.kg)} kg`} />)}
     </Inner>
   );
 }
@@ -211,6 +255,18 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
   const namaSamping = useMemo(() => new Map(samping.map((s) => [s.id, s.label])), [samping]);
   const noLoin = useMemo(() => new Map(loin.map((l) => [l.id, l.no_loin])), [loin]);
   const [tampilRiwayat, setTampilRiwayat] = useState(false);
+  // Satu produksi memakai satu cara: total per grade (sehari-hari) atau per potong (pilihan). Database menolak campuran.
+  const adaPotong = loin.some((l) => !l.batal);
+  const adaTotal = detail.total.some((t) => t.kg > 0);
+  const [cara, setCara] = useState<"total" | "potong">(adaPotong ? "potong" : "total");
+  const caraAktif = adaPotong ? "potong" : adaTotal ? "total" : cara;
+  // Draf grid yang belum terkirim (misalnya sinyal putus) membuka cara per potong supaya drafnya terlihat.
+  useEffect(() => {
+    if (!bolehEdit || adaPotong || adaTotal) return;
+    let batal = false;
+    bacaDraf(p.id).then((d) => { if (!batal && d && d.baris.length > 0) setCara("potong"); });
+    return () => { batal = true; };
+  }, [p.id, bolehEdit, adaPotong, adaTotal]);
 
   return (
     <Modal title={`${p.kode} · ${tanggal(p.tanggal)}`} onClose={onTutup} lebar>
@@ -234,11 +290,18 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         </div>
       </Bagian>
 
-      <Bagian judul="Loin per potong">
-        <GridLoin key={p.id + ":" + p.status}produksiId={p.id} kode={p.kode} loin={loin} grade={grade} ekor={ekor} bolehEdit={bolehEdit} />
-      </Bagian>
+      {caraAktif === "total" ? (
+        <Bagian judul="Loin total per grade" kanan={bolehEdit && !adaTotal && <Btn size="sm" v="ghost" onClick={() => setCara("potong")}>Timbang per potong</Btn>}>
+          {bolehEdit ? <FormLoinTotal key={p.id} detail={detail} grade={grade} /> : <DaftarLoinTotal total={detail.total} namaGrade={namaGrade} />}
+          {bolehEdit && <p className="mt-2 text-[12px]" style={{ color: MUTED }}>Cukup isi berat total loin tiap grade. Kalau perlu menimbang satu per satu, pakai Timbang per potong sebelum mengisi total.</p>}
+        </Bagian>
+      ) : (
+        <Bagian judul="Loin per potong" kanan={bolehEdit && !adaPotong && <Btn size="sm" v="ghost" onClick={() => setCara("total")}>Isi total per grade</Btn>}>
+          <GridLoin key={p.id + ":" + p.status}produksiId={p.id} kode={p.kode} loin={loin} grade={grade} ekor={ekor} bolehEdit={bolehEdit} />
+        </Bagian>
+      )}
 
-      {(bolehEdit || ekor.length > 0) && (
+      {caraAktif === "potong" && (bolehEdit || ekor.length > 0) && (
         <Bagian judul="Berat ikan utuh per ekor (boleh kosong)">
           {bolehEdit ? <FormEkor produksiId={p.id} ekor={ekor} /> : (
             <p className="text-[13px]" style={{ color: MUTED }}>{ekor.map((e) => `Ekor ${e.no_ekor}: ${kgTeks(e.berat_utuh_kg)} kg`).join(" · ")}</p>
@@ -274,7 +337,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         </div>
       </Bagian>
 
-      <Bagian judul="Riwayat koreksi loin" kanan={<Btn size="sm" v="ghost" onClick={() => setTampilRiwayat((x) => !x)}>{tampilRiwayat ? "Sembunyikan" : `Tampilkan (${riwayat.length})`}</Btn>}>
+      {caraAktif === "potong" && <Bagian judul="Riwayat koreksi loin" kanan={<Btn size="sm" v="ghost" onClick={() => setTampilRiwayat((x) => !x)}>{tampilRiwayat ? "Sembunyikan" : `Tampilkan (${riwayat.length})`}</Btn>}>
         {tampilRiwayat && (
           riwayat.length === 0 ? <p className="text-[13px]" style={{ color: MUTED }}>Belum ada perubahan.</p> : (
             <ul className="max-h-64 space-y-1 overflow-y-auto">
@@ -291,7 +354,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
             </ul>
           )
         )}
-      </Bagian>
+      </Bagian>}
     </Modal>
   );
 }

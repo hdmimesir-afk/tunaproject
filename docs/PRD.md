@@ -66,6 +66,15 @@ Versi 1 memuat 13 modul (absensi dikerjakan setelah sistem inti, 23 Oktober 2026
 
 **Tidak termasuk versi 1:** pengenalan wajah, peta pihak ketiga (Google Maps), integrasi timbangan digital, rekonsiliasi bank otomatis, notifikasi WA/email, pajak (menunggu aturan dari finance), dan impor data selain master data, Siklus 1, dan Monitor Dana.
 
+## Keputusan tim Katalis atas flowchart_v1 (6 November 2026)
+
+Jawaban atas empat pertanyaan di halaman `/flowchart`. Bagian lain PRD ini tetap berlaku sampai poin terkait dikerjakan.
+
+1. Flowchart menambah alur, tidak menggantikan PO, persetujuan pesanan, cek mutu, dan pemeriksaan hasil olahan. Kedatangan ikan dan nota nelayan tidak boleh menunggu PO atau persetujuan; PO cukup ditautkan bila ada. Berat dan grade terbawa otomatis ke tahap berikutnya. **Belum dikerjakan**, menunggu jawaban: siapa menyetujui harga nelayan tanpa PO dan apakah pembayaran menunggu persetujuan.
+2. Tarif gudang: lama simpan dari jam masuk sampai jam keluar, dibulatkan ke atas per 24 jam. Pembekuan Rp3.500/kg untuk semua barang, sekali per titipan. Tarif simpan dan transit diinput saat membuat tagihan. Minimal 10 hari berlaku per titipan; kekurangannya ditagih saat titipan habis keluar (contoh: 100 kg, 50 kg keluar hari ke-2 dan 50 kg hari ke-7 = 450 kg-hari, ditagih 1.000 kg-hari). Titipan lintas periode: pembulatan dan minimal dihitung sekali dari jam masuk; tiap tagihan hanya memuat hari yang belum ditagih. **Belum dikerjakan**, menunggu jawaban: minimal bila sebagian lewat hari ke-10, kapan tarif transit dipakai, dan pembekuan untuk barang yang datang sudah beku.
+3. Loin tidak wajib ditimbang per potong; sehari-hari cukup berat total per grade. Yield dihitung per produksi. Penelusuran berhenti di kedatangan ikan (bongkaran) dan nelayan. **Sudah dikerjakan** (migrasi `20261106000100`).
+4. Nota nelayan, tanda terima titipan, tagihan penitipan, jasa olah, dan tagihan jasa olah masuk cakupan tetapi bukan prioritas dan tidak wajib di versi 1. Dokumennya dibuat admin; sistem cukup menyimpan lampiran. **Lampiran di lot dan titipan sudah dikerjakan**; jasa olah dan tagihannya menyusul.
+
 ## Alur utama
 
 Satu siklus berjalan dari beli ikan sampai laporan tanpa ketik ulang.
@@ -96,7 +105,7 @@ Setiap kebutuhan di bawah selesai bila kriteria terimanya lulus di lingkungan uj
 | F05 | Penerimaan | Terima ikan jadi lot, termasuk sebagian; bongkar malam diberi tanda | Lot baru berstatus "menunggu cek mutu"; bongkar malam muncul di antrean Owner pagi | 1 |
 | F06 | Mutu | Cek mutu per lot: lulus dengan kelas, atau ditahan | Hanya lot lulus dengan sisa berat > 0 yang bisa diproduksi | 1 |
 | F07 | Produksi | Alokasi satu atau beberapa lot ke satu produksi | Satu lot ke dua produksi dan sebaliknya tertelusuri dua arah | 2 |
-| F08 | Produksi | Grid loin per potong sesuai FRM-PRD-01 rev 01: no. ekor (opsional), no. loin, grade, berat 3 desimal | Keyboard saja cukup; tambah baris cepat; total otomatis; draft tersimpan saat jaringan putus | 2 |
+| F08 | Produksi | Berat loin total per grade sebagai cara sehari-hari; grid loin per potong sesuai FRM-PRD-01 rev 01 (no. ekor opsional, no. loin, grade, berat 3 desimal) sebagai pilihan | Satu produksi memakai satu cara, tidak dicampur; grid: keyboard saja cukup, tambah baris cepat, total otomatis, draft tersimpan saat jaringan putus | 2 |
 | F09 | Produksi | Komponen hasil: hasil samping per jenis, limbah, susut tercatat | Neraca tampil dalam kg dan %; selisih belum jelas tidak pernah terisi sendiri | 2 |
 | F10 | Produksi | Pemeriksaan produksi oleh QC lalu Owner | Status "diperiksa" hanya bisa setelah selisih dijelaskan atau diterima Owner | 2 |
 | F11 | Stok | Unit simpan per pemilik, produk, grade, fresh/beku, lokasi | Berat masuk, keluar, dan sisa tercatat; fresh langsung kirim tidak perlu masuk gudang | 2 |
@@ -123,7 +132,7 @@ Aturan ini dijaga di database (constraint, trigger, fungsi), bukan hanya di tamp
 ikan masuk = loin + hasil samping + limbah + susut tercatat + selisih belum jelas
 ```
 
-- Loin = jumlah semua potong di grid loin. Hasil (%) = loin ÷ ikan masuk; hasil per ekor = loin dengan no. ekor yang sama ÷ berat utuh ekor itu.
+- Loin = jumlah total per grade, atau jumlah semua potong di grid loin bila produksi itu ditimbang per potong. Hasil (%) = loin ÷ ikan masuk, per produksi (contoh 600 ÷ 1.000 = 60%); hasil per ekor = loin dengan no. ekor yang sama ÷ berat utuh ekor itu (hanya untuk cara per potong).
 - Rencana hasil 60%. Di luar 40–80% = peringatan dan tanda periksa, bukan penolakan. Angka ini disimpan di pengaturan.
 - Total komponen yang ditimbang tidak boleh melebihi ikan masuk.
 - Contoh Siklus 1: 481,000 = 300,940 loin + 87,000 hasil samping terjual + 65,000 limbah (tulang tengah dan tetelan hitam, dibuang) + 28,060 belum jelas (5,8%). Susut belum ditimbang, jadi kosong, bukan nol. Limbah dan susut ditimbang totalnya saja, tidak per jenis (keputusan owner).
@@ -174,7 +183,7 @@ Database Postgres di Supabase, aplikasi Next.js di Vercel, keduanya atas nama pe
 | Siklus | `cycles` | Kode internal + no. PO pembeli + no. bongkar, status terbuka/ditutup |
 | Pembelian | `purchase_orders`, `lots`, `payments` | Status persetujuan terpisah dari status bayar; lot dengan status mutu dan kelas |
 | Persetujuan | `approvals`, `approval_rules` | Diajukan, diperiksa, disetujui oleh siapa dan kapan; `batch_id` untuk setuju massal |
-| Produksi | `productions`, `lot_allocations`, `production_items`, `production_components` | Status draf/berjalan/selesai/diperiksa; satu baris per potong loin (`kg numeric(12,3)`); komponen hasil per jenis |
+| Produksi | `productions`, `lot_allocations`, `production_loin_totals`, `production_items`, `production_components` | Status draf/berjalan/selesai/diperiksa; loin total per grade, atau satu baris per potong loin (`kg numeric(12,3)`), tidak dicampur dalam satu produksi; komponen hasil per jenis |
 | Stok | `storage_units`, `storage_movements` | Pemilik, produk, grade, fresh/beku, lokasi, berat masuk/keluar/sisa |
 | Penjualan | `sales_orders`, `sale_allocations`, `invoices` | Penjualan bisa dari beberapa produksi; invoice penjualan dan jasa |
 | Jasa gudang | `tariff_rules`, `service_charges`, `bookings` | Tarif sebagai pengaturan; rincian hitungan tagihan; jadwal ABF |

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Btn, Icon } from "@/components/ui";
+import { Btn, Icon, Modal } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { catatDokumen, urlDokumen } from "@/lib/actions/pembelian";
 import { ukuranBerkas, waktu } from "@/lib/format";
@@ -14,7 +14,8 @@ import type { Dokumen, JenisDokumen, RefDokumen } from "@/lib/types/pembelian";
 const TIPE = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
 const BATAS = 10 * 1024 * 1024;
 export const LABEL_JENIS: Record<JenisDokumen, string> = {
-  nota: "Nota", bukti_transfer: "Bukti transfer", surat_jalan: "Surat jalan", foto_timbangan: "Foto timbangan", lainnya: "Lainnya",
+  nota: "Nota", bukti_transfer: "Bukti transfer", surat_jalan: "Surat jalan", foto_timbangan: "Foto timbangan",
+  tanda_terima: "Tanda terima", tagihan: "Tagihan", lainnya: "Lainnya",
 };
 
 /** Foto iPhone format HEIC diubah jadi JPEG di browser sebelum diunggah (pustaka dimuat hanya saat dibutuhkan). */
@@ -68,6 +69,28 @@ export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: {
       </Btn>
       {galat && <div role="alert" className="mt-2 text-[12.5px]" style={{ color: "#A8322B" }}>{galat}</div>}
     </div>
+  );
+}
+
+/** Tombol "Lampiran (n)" yang membuka daftar berkas satu catatan, plus tombol unggah per jenis bila boleh menulis.
+    Dipakai untuk dokumen yang dibuat admin di luar sistem (nota nelayan, tanda terima, tagihan). */
+export function TombolLampiran({ judul, refTabel, refId, dokumen, unggah, bolehTulis }: {
+  judul: string; refTabel: RefDokumen; refId: string; dokumen: Dokumen[]; unggah: { jenis: JenisDokumen; label: string }[]; bolehTulis: boolean;
+}) {
+  const [buka, setBuka] = useState(false);
+  return (
+    <>
+      <Btn size="sm" v="light" onClick={() => setBuka(true)}>Lampiran{dokumen.length > 0 ? ` (${dokumen.length})` : ""}</Btn>
+      {buka && (
+        <Modal title={judul} onClose={() => setBuka(false)}>
+          <div className="space-y-3">
+            <DaftarDokumen dokumen={dokumen} kosong="Belum ada lampiran." />
+            {bolehTulis && <div className="flex flex-wrap gap-2">{unggah.map((u) => <Unggah key={u.jenis} refTabel={refTabel} refId={refId} jenis={u.jenis} label={u.label} />)}</div>}
+            <p className="text-[12px]" style={{ color: MUTED }}>Foto (JPEG, PNG, WebP, HEIC) atau PDF, maksimal 10 MB.</p>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }
 

@@ -5,6 +5,7 @@ import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
+import { dokumenDari } from "@/lib/data/dokumen";
 import { daftarBooking, daftarRuangan, daftarTagihan, daftarTarif, daftarUnit, gradeStok, isiGudang, mitraAktif, pelangganAktif, produkAktif } from "@/lib/data/stok";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
@@ -43,8 +44,12 @@ async function GudangData() {
     bolehTulis ? produkAktif() : Promise.resolve([]),
     bolehTulis ? gradeStok() : Promise.resolve([]),
   ]);
+  const titipan = units.filter((u) => u.buyer_id !== null);
+  const bolehLampiran = boleh(sesi, "dokumen.read");
+  const dokumen = bolehLampiran ? await dokumenDari("storage_units", titipan.filter((u) => u.status === "aktif").map((u) => u.id)) : [];
   return (
-    <GudangKelola titipan={units.filter((u) => u.buyer_id !== null)} isi={isi} ruangan={ruangan} tagihan={tagihan} tarif={tarif} booking={booking}
-      pelanggan={pelanggan} produk={produk} grade={grade} mitra={mitra} bolehTulis={bolehTulis} bolehTarif={boleh(sesi, "pengaturan.write")} hariIni={hariIni()} />
+    <GudangKelola titipan={titipan} isi={isi} ruangan={ruangan} tagihan={tagihan} tarif={tarif} booking={booking}
+      pelanggan={pelanggan} produk={produk} grade={grade} mitra={mitra} bolehTulis={bolehTulis} bolehTarif={boleh(sesi, "pengaturan.write")} hariIni={hariIni()}
+      lampiran={bolehLampiran ? { dokumen, bolehTulis: boleh(sesi, "dokumen.write") } : null} />
   );
 }

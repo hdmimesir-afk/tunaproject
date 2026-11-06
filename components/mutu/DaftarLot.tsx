@@ -7,15 +7,24 @@ import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
 import { LABEL_QC } from "@/lib/logic/pembelian";
-import type { LotBaris } from "@/lib/types/pembelian";
+import { TombolLampiran } from "@/components/dokumen/Dokumen";
+import type { Dokumen, JenisDokumen, LotBaris } from "@/lib/types/pembelian";
 
 type Saring = "semua" | "menunggu" | "lulus" | "ditahan";
-const KOLOM = "md:grid md:grid-cols-[minmax(0,1.25fr)_150px_190px_minmax(0,1fr)_104px] md:gap-5";
+const KOLOM = "md:grid md:grid-cols-[minmax(0,1.25fr)_150px_190px_minmax(0,1fr)_auto] md:gap-5";
 const AMBER = "#8A5A00";
 const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.suppliers?.nama ?? ""} ${l.grades?.kode ?? ""} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
+/** Lampiran lot (nota nelayan, foto timbangan). Null bila pengguna tidak boleh melihat berkas. */
+export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean };
+const UNGGAH_LOT: { jenis: JenisDokumen; label: string }[] = [
+  { jenis: "nota", label: "Lampirkan nota nelayan" },
+  { jenis: "foto_timbangan", label: "Lampirkan foto timbangan" },
+  { jenis: "lainnya", label: "Lampirkan berkas lain" },
+];
+
 /** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label satu baris. Tabel di desktop, kartu di HP. */
-export function DaftarLot({ lots, bolehMutu, onCek }: { lots: LotBaris[]; bolehMutu: boolean; onCek: (l: LotBaris) => void }) {
+export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris[]; bolehMutu: boolean; onCek: (l: LotBaris) => void; lampiran: LampiranLot | null }) {
   const [saring, setSaring] = useState<Saring>("semua");
   const jumlah = useMemo(() => ({
     semua: lots.length,
@@ -52,7 +61,12 @@ export function DaftarLot({ lots, bolehMutu, onCek }: { lots: LotBaris[]; bolehM
               <span>Lot</span><span>Diterima</span><span>Pemakaian</span><span>Mutu dan catatan</span><span className="text-right">Aksi</span>
             </div>
             <ul>
-              {tampil.map((l) => <BarisLot key={l.id} l={l} aksi={bolehMutu && l.sisa_kg === l.kg ? <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onCek(l)}>{l.qc === "menunggu" ? "Cek mutu" : "Ubah"}</Btn> : null} />)}
+              {tampil.map((l) => (
+                <BarisLot key={l.id} l={l} aksi={<>
+                  {bolehMutu && l.sisa_kg === l.kg && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onCek(l)}>{l.qc === "menunggu" ? "Cek mutu" : "Ubah"}</Btn>}
+                  {lampiran && <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} unggah={UNGGAH_LOT} bolehTulis={lampiran.bolehTulis} />}
+                </>} />
+              ))}
             </ul>
           </div>
         )}
@@ -108,7 +122,7 @@ function BarisLot({ l, aksi }: { l: LotBaris; aksi: React.ReactNode }) {
         {catatan && <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: MUTED }}>{catatan}</p>}
       </div>
 
-      <div className="flex md:justify-end">{aksi}</div>
+      <div className="flex flex-wrap gap-2 md:justify-end">{aksi}</div>
     </li>
   );
 }

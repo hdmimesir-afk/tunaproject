@@ -100,9 +100,9 @@ export async function catatBayar(_: HasilForm, fd: FormData): Promise<HasilForm>
 /* ------------------------------------------------------------- dokumen */
 
 const Berkas = z.object({
-  refTabel: z.enum(["purchase_orders", "payments", "lots", "sales_orders", "invoices", "customer_payments", "expenses"]),
+  refTabel: z.enum(["purchase_orders", "payments", "lots", "sales_orders", "invoices", "customer_payments", "expenses", "storage_units"]),
   refId: z.uuid(),
-  jenis: z.enum(["nota", "bukti_transfer", "surat_jalan", "foto_timbangan", "lainnya"]),
+  jenis: z.enum(["nota", "bukti_transfer", "surat_jalan", "foto_timbangan", "tanda_terima", "tagihan", "lainnya"]),
   path: z.string().min(5).max(300).refine((p) => !p.includes("..") && !p.startsWith("/"), "Alamat berkas tidak valid"),
   namaAsli: z.string().trim().min(1).max(200),
   ukuran: z.number().int().positive().max(10 * 1024 * 1024),

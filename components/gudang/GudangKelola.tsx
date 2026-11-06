@@ -12,7 +12,8 @@ import { tampilKg } from "@/lib/logic/grid";
 import { cariBentrok, slotKosong } from "@/lib/logic/jadwal";
 import { formatKg } from "@/lib/logic/neraca";
 import { uraikanBiaya } from "@/lib/logic/tarif";
-import type { Opsi } from "@/lib/types/pembelian";
+import { TombolLampiran } from "@/components/dokumen/Dokumen";
+import type { Dokumen, JenisDokumen, Opsi } from "@/lib/types/pembelian";
 import type { AturanTarif, Booking, IsiGudang, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
 import { jamWib, keInputWib, sekarangInputWib } from "@/lib/waktu";
 import { PilihRuangan, RuanganPanel } from "./Ruangan";
@@ -31,7 +32,15 @@ type Props = {
   bolehTulis: boolean;
   bolehTarif: boolean;
   hariIni: string;
+  /** Lampiran titipan (tanda terima, tagihan dari admin). Null bila pengguna tidak boleh melihat berkas. */
+  lampiran: { dokumen: Dokumen[]; bolehTulis: boolean } | null;
 };
+
+const UNGGAH_TITIPAN: { jenis: JenisDokumen; label: string }[] = [
+  { jenis: "tanda_terima", label: "Lampirkan tanda terima" },
+  { jenis: "tagihan", label: "Lampirkan tagihan" },
+  { jenis: "lainnya", label: "Lampirkan berkas lain" },
+];
 
 const kgTeks = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
 const LABEL_JASA = { simpan: "Simpan", abf: "ABF", transit: "Transit" } as const;
@@ -210,7 +219,7 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
 }
 
 /* --------------------------------------------------------------- utama */
-export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehTarif, hariIni }: Props) {
+export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehTarif, hariIni, lampiran }: Props) {
   const [terima, setTerima] = useState(false);
   const [aturRuangan, setAturRuangan] = useState<Ruangan | null>(null);
   const namaRuangan = new Map(ruangan.map((r) => [r.id, r.nama]));
@@ -253,6 +262,10 @@ export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, p
             { h: "Ruangan", r: (u) => (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : "") },
             { h: "Sisa", r: (u) => kgTeks(u.sisa_kg), right: true },
           ]}
+          actions={lampiran ? (u) => (
+            <TombolLampiran judul={`Lampiran ${u.kode} · ${u.pemilik_nama}`} refTabel="storage_units" refId={u.id}
+              dokumen={lampiran.dokumen.filter((d) => d.ref_id === u.id)} unggah={UNGGAH_TITIPAN} bolehTulis={lampiran.bolehTulis} />
+          ) : undefined}
         />
         <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Titipan diambil dari menu Stok. Tagihan jasa dibuat otomatis saat diambil.</p>
       </Card>

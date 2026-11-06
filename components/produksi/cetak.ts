@@ -11,6 +11,15 @@ export function cetakFormulir(d: DetailProduksi, namaGrade: Map<string, string>,
   const p = d.produksi;
   const loin = d.loin.filter((l) => !l.batal);
   const baris = loin.map((l) => `<tr><td>${esc(l.no_ekor ?? "")}</td><td>${esc(l.no_loin)}</td><td>${esc(namaGrade.get(l.grade_id) ?? "")}</td><td class="r">${kg(l.kg)}</td></tr>`).join("");
+  // Produksi yang diisi total per grade mencetak satu baris per grade, bukan per potong.
+  const total = d.total.filter((t) => t.kg > 0);
+  const tabelLoin = total.length > 0 && loin.length === 0
+    ? `<h2>Loin total per grade</h2>
+<table><thead><tr><th>Grade</th><th class="r">Berat (kg)</th></tr></thead><tbody>${total.map((t) => `<tr><td>${esc(namaGrade.get(t.grade_id) ?? "")}</td><td class="r">${kg(t.kg)}</td></tr>`).join("")}</tbody>
+<tfoot><tr><th>Total</th><th class="r">${kg(p.loin_kg)}</th></tr></tfoot></table>`
+    : `<h2>Loin per potong</h2>
+<table><thead><tr><th>No. ekor</th><th>No. loin</th><th>Grade</th><th class="r">Berat (kg)</th></tr></thead><tbody>${baris}</tbody>
+<tfoot><tr><th colspan="3">Total ${loin.length} potong</th><th class="r">${kg(p.loin_kg)}</th></tr></tfoot></table>`;
   const samping = d.samping.map((s) => `<tr><td>${esc(namaSamping.get(s.category_id) ?? "Hasil samping")}</td><td class="r">${kg(s.kg)}</td></tr>`).join("");
   const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>${esc(p.kode)} · FRM-PRD-01 rev 01</title>
 <style>
@@ -23,9 +32,7 @@ export function cetakFormulir(d: DetailProduksi, namaGrade: Map<string, string>,
 <table class="kepala"><tr><td>Kode produksi</td><td><b>${esc(p.kode)}</b></td><td>Tanggal</td><td>${esc(p.tanggal)}</td></tr>
 <tr><td>Siklus</td><td>${esc(p.siklus_kode ?? "-")}</td><td>Status</td><td>${esc(p.status.replace("_", " "))}</td></tr>
 <tr><td>Lot</td><td colspan="3">${esc(d.alokasi.map((a) => `${a.lot_kode} (${kg(a.kg)} kg)`).join(", ") || "-")}</td></tr></table>
-<h2>Loin per potong</h2>
-<table><thead><tr><th>No. ekor</th><th>No. loin</th><th>Grade</th><th class="r">Berat (kg)</th></tr></thead><tbody>${baris}</tbody>
-<tfoot><tr><th colspan="3">Total ${loin.length} potong</th><th class="r">${kg(p.loin_kg)}</th></tr></tfoot></table>
+${tabelLoin}
 <h2>Komponen hasil</h2>
 <table><tbody>${samping}
 <tr><td>Limbah (total)</td><td class="r">${p.limbah_kg === null ? "belum ditimbang" : kg(p.limbah_kg)}</td></tr>

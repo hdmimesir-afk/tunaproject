@@ -6,7 +6,7 @@ import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { cekMutuLot, terimaIkan } from "@/lib/actions/mutu";
 import { formatKg } from "@/lib/logic/neraca";
-import { DaftarLot } from "./DaftarLot";
+import { DaftarLot, type LampiranLot } from "./DaftarLot";
 import type { LotBaris, Opsi, POSiapTerima } from "@/lib/types/pembelian";
 
 const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]";
@@ -121,7 +121,9 @@ function CekMutu({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
 }
 
 /* ---------------------------------------------------------------- halaman */
-export function MutuKelola({ lots, poSiap, grade, bolehTerima, bolehMutu }: { lots: LotBaris[]; poSiap: POSiapTerima[]; grade: Opsi[]; bolehTerima: boolean; bolehMutu: boolean }) {
+export function MutuKelola({ lots, poSiap, grade, bolehTerima, bolehMutu, lampiran }: {
+  lots: LotBaris[]; poSiap: POSiapTerima[]; grade: Opsi[]; bolehTerima: boolean; bolehMutu: boolean; lampiran: LampiranLot | null;
+}) {
   const [cek, setCek] = useState<LotBaris | null>(null);
   const menunggu = lots.filter((l) => l.qc === "menunggu").length;
   const ditahan = lots.filter((l) => l.qc === "ditahan").length;
@@ -135,7 +137,7 @@ export function MutuKelola({ lots, poSiap, grade, bolehTerima, bolehMutu }: { lo
 
       {bolehTerima && <TerimaIkan poSiap={poSiap} />}
 
-      <DaftarLot lots={lots} bolehMutu={bolehMutu} onCek={setCek} />
+      <DaftarLot lots={lots} bolehMutu={bolehMutu} onCek={setCek} lampiran={lampiran} />
       {cek && <CekMutu key={cek.id} lot={cek} grade={grade} onTutup={() => setCek(null)} />}
       <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Lot yang lulus dengan kelas mutu bisa dipakai untuk produksi (Fase 3). Lot yang sudah dipakai tidak bisa diubah mutunya.</p></Inner>
     </div>

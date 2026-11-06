@@ -99,6 +99,38 @@ export async function batalkanLoin(itemId: string, alasan: string): Promise<{ er
   return {};
 }
 
+/* ------------------------------------------------- loin total per grade */
+const FormLoinTotal = z.object({
+  produksiId: z.uuid(),
+  baris: z.string().transform((s, ctx) => {
+    try {
+      return z.array(z.object({ grade_id: z.uuid(), kg: z.string().max(14) })).max(50).parse(JSON.parse(s));
+    } catch {
+      ctx.addIssue({ code: "custom", message: "Data total loin tidak valid" });
+      return z.NEVER;
+    }
+  }),
+});
+
+/** Simpan berat loin total per grade (cara sehari-hari). Kosong atau 0 = grade itu tidak diisi. Aman diulang. */
+export async function simpanLoinTotal(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("produksi.write");
+  if (tolak) return tolak;
+  const p = FormLoinTotal.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { error: "Data total loin tidak valid." };
+  const baris = [];
+  for (const b of p.data.baris) {
+    const g = gramBolehNol(b.kg);
+    if (g === "salah") return { error: "Berat loin per grade harus angka dengan paling banyak tiga desimal." };
+    baris.push({ grade_id: b.grade_id, kg: kgDariGram(g ?? 0) });
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("simpan_loin_total", { p_production: p.data.produksiId, p_baris: baris });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Total loin tersimpan." };
+}
+
 /* ------------------------------------------------------- ikan utuh */
 const FormEkor = z.object({
   produksiId: z.uuid(),

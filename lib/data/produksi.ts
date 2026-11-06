@@ -2,7 +2,7 @@ import "server-only";
 import { BATAS_BAWAAN, type BatasHasil } from "@/lib/logic/neraca";
 import { createClient } from "@/lib/supabase/server";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LotSiap, ProduksiBaris, RiwayatLoin } from "@/lib/types/produksi";
+import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LoinTotal, LotSiap, ProduksiBaris, RiwayatLoin } from "@/lib/types/produksi";
 
 /* Lapisan akses data produksi. Klien pengguna, jadi RLS berlaku. Pemanggil sudah memeriksa produksi.read. */
 
@@ -59,6 +59,7 @@ export type DetailProduksi = {
   produksi: ProduksiBaris;
   alokasi: AlokasiLot[];
   loin: ItemLoin[];
+  total: LoinTotal[];
   ekor: Ekor[];
   samping: KomponenSamping[];
   riwayat: RiwayatLoin[];
@@ -66,20 +67,22 @@ export type DetailProduksi = {
 
 export async function detailProduksi(id: string): Promise<DetailProduksi | null> {
   const sb = await createClient();
-  const [p, alokasi, loin, ekor, samping, riwayat] = await Promise.all([
+  const [p, alokasi, loin, total, ekor, samping, riwayat] = await Promise.all([
     sb.from("v_productions").select("*").eq("id", id).maybeSingle(),
     sb.from("lot_allocations").select("id, lot_id, lot_kode, kg").eq("production_id", id).order("lot_kode"),
     sb.from("production_items").select("id, no_ekor, no_loin, grade_id, kg, versi, batal, alasan_batal").eq("production_id", id).order("no_loin"),
+    sb.from("production_loin_totals").select("id, grade_id, kg").eq("production_id", id),
     sb.from("production_fish").select("id, no_ekor, berat_utuh_kg").eq("production_id", id).order("no_ekor"),
     sb.from("production_components").select("id, category_id, kg").eq("production_id", id),
     sb.from("production_items_history").select("*").eq("production_id", id).order("id", { ascending: false }).limit(300),
   ]);
-  if (p.error || alokasi.error || loin.error || ekor.error || samping.error || riwayat.error) gagal("detail produksi");
+  if (p.error || alokasi.error || loin.error || total.error || ekor.error || samping.error || riwayat.error) gagal("detail produksi");
   if (!p.data) return null;
   return {
     produksi: p.data as ProduksiBaris,
     alokasi: (alokasi.data ?? []) as AlokasiLot[],
     loin: (loin.data ?? []) as ItemLoin[],
+    total: (total.data ?? []) as LoinTotal[],
     ekor: (ekor.data ?? []) as Ekor[],
     samping: (samping.data ?? []) as KomponenSamping[],
     riwayat: (riwayat.data ?? []) as RiwayatLoin[],

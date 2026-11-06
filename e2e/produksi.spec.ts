@@ -17,6 +17,8 @@ async function mulaiProduksi(page: Page) {
   await page.getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
   await page.getByRole("button", { name: "Mulai produksi" }).last().click();
   await expect(page).toHaveURL(/p=/);
+  // Cara bawaan sekarang total per grade; tes ini menguji grid per potong.
+  await page.getByRole("button", { name: "Timbang per potong" }).click();
   await expect(page.getByText("Loin per potong")).toBeVisible();
 }
 
