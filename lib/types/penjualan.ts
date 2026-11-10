@@ -62,5 +62,7 @@ export type Invoice = {
 
 export type PembayaranPembeli = { id: string; kode: string; invoice_id: string; jumlah: number; tanggal: string; catatan: string };
 export type UnitJual = { id: string; kode: string; label: string; sisaKg: number; tersediaKg: number };
+/** Hasil produksi yang belum bisa dijual: belum dimasukkan ke stok, atau masih menunggu pemeriksaan QC / persetujuan Owner. */
+export type HasilTertunda = { kode: string; sebab: "belum_stok" | "tunggu_qc" | "tunggu_owner"; kg: number };
 export type Pembeli = { id: string; nama: string; kontak: string; tempo_hari: number };
 export type JasaBelumDitagih = { id: string; kode: string; buyer_id: string; pemilik_nama: string; jenis: string; jumlah: number; kg_dasar: number };

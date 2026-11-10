@@ -171,7 +171,7 @@ export const BAB: Bab[] = [
       {
         judul: "Membuat PO",
         peran: ["owner", "admin"],
-        langkah: ["Tekan Buat PO.", "Pilih Pemasok.", "Isi Berat (kg) dan Harga per kg (Rp).", "Periksa Tanggal, lalu pilih Siklus atau Siklus baru (otomatis).", "Tekan Buat PO (draf)."],
+        langkah: ["Tekan Buat PO.", "Pilih Pemasok. Kalau belum ada di daftar, tekan Pemasok belum ada di daftar, isi namanya, lalu tekan Simpan pemasok.", "Isi Berat (kg) dan Harga per kg (Rp).", "Periksa Tanggal, lalu pilih Siklus atau Siklus baru (otomatis).", "Tekan Buat PO (draf)."],
         gambar: "02-pembelian-buat",
         keterangan: "Form Buat PO.",
       },

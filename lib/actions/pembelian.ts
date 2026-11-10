@@ -31,6 +31,24 @@ const FormPO = z.object({
   catatan: z.string().trim().max(500, "Catatan terlalu panjang"),
 });
 
+const PemasokBaru = z.object({
+  nama: z.string().trim().min(1, "Isi nama pemasok").max(120, "Nama terlalu panjang"),
+  kontak: z.string().trim().max(120, "Kontak terlalu panjang"),
+});
+
+/** Tambah pemasok langsung dari form PO (masukan Mas Bisma: tidak perlu pindah ke Pengaturan). Izin sama dengan data master. */
+export async function tambahPemasok(input: z.input<typeof PemasokBaru>): Promise<{ id?: string; label?: string; error?: string }> {
+  const a = await izin("master.write");
+  if (a.tolak) return a.tolak;
+  const p = PemasokBaru.safeParse(input);
+  if (!p.success) return { error: p.error.issues[0]?.message ?? "Data pemasok tidak valid." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("suppliers").insert({ nama: p.data.nama, kontak: p.data.kontak }).select("id, nama").single();
+  if (error || !data) return { error: error?.code === "23505" ? "Nama pemasok ini sudah ada. Pilih dari daftar." : pesanDb(error ?? {}) };
+  refresh();
+  return { id: data.id as string, label: data.nama as string };
+}
+
 /** Buat PO baru (tanpa id) atau ubah PO yang masih draf atau perlu revisi (dengan id). */
 export async function simpanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const a = await izin("pembelian.write");

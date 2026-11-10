@@ -22,10 +22,11 @@ type Props = {
   bolehBayar: boolean;
   bolehDokumen: boolean;
   bolehSiklusBaru: boolean;
+  bolehPemasokBaru: boolean;
   hariIni: string;
 };
 
-export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, bolehTulis, bolehBayar, bolehDokumen, bolehSiklusBaru, hariIni }: Props) {
+export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, bolehTulis, bolehBayar, bolehDokumen, bolehSiklusBaru, bolehPemasokBaru, hariIni }: Props) {
   const router = useRouter();
   const [buat, setBuat] = useState(false);
   const bukaPO = useCallback((id: string) => router.push(`/pembelian?po=${id}`), [router]);
@@ -61,7 +62,7 @@ export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, bol
 
       {buat && (
         <Modal title="Buat PO" onClose={() => setBuat(false)}>
-          <FormPO po={null} pemasok={pemasok} siklus={siklus} bolehSiklusBaru={bolehSiklusBaru} hariIni={hariIni}
+          <FormPO po={null} pemasok={pemasok} siklus={siklus} bolehSiklusBaru={bolehSiklusBaru} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni}
             onSelesai={(id) => { setBuat(false); if (id) bukaPO(id); }} />
         </Modal>
       )}

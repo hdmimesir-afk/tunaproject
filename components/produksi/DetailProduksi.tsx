@@ -330,6 +330,11 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
               {p.selisih_diterima && <li style={{ color: "#8A5A00" }}>Selisih diterima Owner apa adanya.</li>}
             </ul>
           </Inner>
+          {p.status === "diperiksa" && (
+            <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>
+              Produksi sudah disetujui. Supaya hasilnya bisa dipilih di pesanan, masukkan ke stok lewat menu <a href="/stok" className="font-medium underline">Stok</a>, tombol Hasil produksi masuk.
+            </p>
+          )}
           {berjalan && bolehTulis && <Selesaikan id={p.id} />}
           {p.status === "selesai" && bolehPeriksa && <PeriksaQc p={p} />}
           {p.status === "diperiksa_qc" && bolehSetuju && <SetujuiOwner p={p} />}

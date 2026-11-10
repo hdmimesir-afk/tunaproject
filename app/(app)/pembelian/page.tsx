@@ -44,7 +44,7 @@ async function PembelianData({ searchParams }: { searchParams: PageProps<"/pembe
     <PembelianKelola
       daftar={daftar} pemasok={pemasok} siklus={siklus} pengguna={pengguna} detail={detail}
       bolehTulis={boleh(sesi, "pembelian.write")} bolehBayar={boleh(sesi, "pembayaran.write")}
-      bolehDokumen={boleh(sesi, "dokumen.write")} bolehSiklusBaru={boleh(sesi, "siklus.write")} hariIni={hariIni()}
+      bolehDokumen={boleh(sesi, "dokumen.write")} bolehSiklusBaru={boleh(sesi, "siklus.write")} bolehPemasokBaru={boleh(sesi, "master.write")} hariIni={hariIni()}
     />
   );
 }

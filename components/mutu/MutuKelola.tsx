@@ -105,6 +105,11 @@ function CekMutu({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
         <Pesan state={state} />
         <p className="text-[13px]" style={{ color: MUTED }}>{lot.po_kode} · {lot.suppliers?.nama} · {formatKg(lot.kg)} kg</p>
         <div className="flex gap-2">{pilihan("lulus", "Lulus")}{pilihan("ditahan", "Tahan")}</div>
+        <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }} data-testid="arti-mutu">
+          {hasil === "lulus"
+            ? "Lulus: ikan layak diolah. Lot ini langsung bisa dipilih saat memulai produksi."
+            : "Tahan: ikan belum boleh diolah, misalnya suhu atau baunya perlu dicek ulang. Lot tidak muncul di pilihan produksi sampai diubah jadi Lulus. Penerimaan dan pembayaran ke pemasok tidak terpengaruh."}
+        </p>
         {hasil === "lulus" && (
           <Field label="Kelas mutu" error={state?.kolom?.gradeId?.[0]}>
             <select name="gradeId" defaultValue={lot.grade_id ?? ""} className={selectCls} required>
@@ -139,7 +144,7 @@ export function MutuKelola({ lots, poSiap, grade, bolehTerima, bolehMutu, lampir
 
       <DaftarLot lots={lots} bolehMutu={bolehMutu} onCek={setCek} lampiran={lampiran} />
       {cek && <CekMutu key={cek.id} lot={cek} grade={grade} onTutup={() => setCek(null)} />}
-      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Lot yang lulus dengan kelas mutu bisa dipakai untuk produksi (Fase 3). Lot yang sudah dipakai tidak bisa diubah mutunya.</p></Inner>
+      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Lulus berarti lot boleh diolah dan muncul di pilihan produksi. Tahan berarti lot belum boleh diolah sampai diubah jadi Lulus. Mutu lot yang sudah dipakai produksi tidak bisa diubah lagi.</p></Inner>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
-import { daftarInvoice, daftarPesanan, detailInvoice, detailPesanan, jasaBelumDitagih, pembeliAktif, siklusTerbuka, unitDijual } from "@/lib/data/penjualan";
+import { daftarInvoice, daftarPesanan, detailInvoice, detailPesanan, hasilBelumSiapJual, jasaBelumDitagih, pembeliAktif, siklusTerbuka, unitDijual } from "@/lib/data/penjualan";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh } from "@/lib/izin";
@@ -36,7 +36,7 @@ async function PenjualanData({ searchParams }: { searchParams: PageProps<"/penju
   const inv = z.uuid().safeParse(typeof sp.inv === "string" ? sp.inv : "");
   const bolehBuat = boleh(sesi, "penjualan.write");
   const bolehInvoice = boleh(sesi, "invoice.write");
-  const [pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI] = await Promise.all([
+  const [pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda] = await Promise.all([
     daftarPesanan(),
     daftarInvoice(),
     bolehBuat ? unitDijual(p.success ? p.data : undefined) : Promise.resolve([]),
@@ -45,10 +45,11 @@ async function PenjualanData({ searchParams }: { searchParams: PageProps<"/penju
     bolehInvoice ? jasaBelumDitagih() : Promise.resolve([]),
     p.success ? detailPesanan(p.data) : Promise.resolve(null),
     inv.success ? detailInvoice(inv.data) : Promise.resolve(null),
+    bolehBuat && boleh(sesi, "produksi.read") ? hasilBelumSiapJual() : Promise.resolve([]),
   ]);
   return (
     <PenjualanKelola
-      pesanan={pesanan} invoice={invoice} unit={unit} pembeli={pembeli} siklus={siklus} jasa={jasa} detailP={detailP} detailI={detailI}
+      pesanan={pesanan} invoice={invoice} unit={unit} pembeli={pembeli} siklus={siklus} jasa={jasa} detailP={detailP} detailI={detailI} tertunda={tertunda}
       bolehBuat={bolehBuat} bolehKirim={boleh(sesi, "pengiriman.write")} bolehInvoice={bolehInvoice} bolehBayar={boleh(sesi, "terima_bayar.write")}
       bolehDokumen={boleh(sesi, "dokumen.write")} hariIni={hariIni()}
     />

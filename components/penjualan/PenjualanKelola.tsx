@@ -17,7 +17,7 @@ import { rp, tanggal } from "@/lib/format";
 import { gramKeTeks, tampilKg } from "@/lib/logic/grid";
 import { jumlahBaris, LABEL_PESANAN, LABEL_TAGIHAN, linkWa, pesanPengingat, totalBaris } from "@/lib/logic/penjualan";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { Invoice, JasaBelumDitagih, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
+import type { HasilTertunda, Invoice, JasaBelumDitagih, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
 
 type Props = {
   pesanan: Pesanan[];
@@ -28,6 +28,7 @@ type Props = {
   jasa: JasaBelumDitagih[];
   detailP: DetailPesanan | null;
   detailI: DetailInvoice | null;
+  tertunda: HasilTertunda[];
   bolehBuat: boolean;
   bolehKirim: boolean;
   bolehInvoice: boolean;
@@ -42,8 +43,28 @@ const kgInput = (n: number | null | undefined) => (n === null || n === undefined
 /* ------------------------------------------------------ form pesanan */
 type BarisForm = { id?: string; unit_id: string; kg: string; harga: string };
 
-function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, onSelesai }: {
-  unit: UnitJual[]; pembeli: Pembeli[]; siklus: Opsi[]; hariIni: string; awal: DetailPesanan | null; onSelesai: (id: string) => void;
+const SEBAB_TERTUNDA: Record<HasilTertunda["sebab"], string> = {
+  belum_stok: "sudah disetujui, tapi belum dimasukkan ke stok. Masukkan dulu di menu Stok lewat tombol Hasil produksi masuk.",
+  tunggu_qc: "masih menunggu pemeriksaan QC.",
+  tunggu_owner: "masih menunggu persetujuan Owner.",
+};
+
+/** Daftar hasil produksi yang belum bisa dipilih beserta langkah yang kurang, supaya tidak dikira hilang. */
+function HasilBelumSiap({ tertunda }: { tertunda: HasilTertunda[] }) {
+  if (tertunda.length === 0) return null;
+  return (
+    <div className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }} data-testid="hasil-belum-siap">
+      <p className="font-medium">Hasil produksi yang belum bisa dipilih:</p>
+      <ul className="mt-1 space-y-0.5">
+        {tertunda.map((t) => <li key={t.kode + t.sebab}>{t.kode} ({kgTeks(t.kg)}) {SEBAB_TERTUNDA[t.sebab]}</li>)}
+      </ul>
+      {tertunda.some((t) => t.sebab === "belum_stok") && <a href="/stok" className="mt-1 inline-flex min-h-[32px] items-center font-medium underline">Buka menu Stok</a>}
+    </div>
+  );
+}
+
+function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, tertunda = [], onSelesai }: {
+  unit: UnitJual[]; pembeli: Pembeli[]; siklus: Opsi[]; hariIni: string; awal: DetailPesanan | null; tertunda?: HasilTertunda[]; onSelesai: (id: string) => void;
 }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(simpanPesanan, undefined);
   const [baris, setBaris] = useState<BarisForm[]>(() =>
@@ -70,6 +91,8 @@ function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, onSelesai }: {
       </Field>
       <div className="space-y-2">
         <p className="text-[12px] font-medium" style={{ color: MUTED }}>Barang yang dijual</p>
+        <HasilBelumSiap tertunda={tertunda} />
+        {unit.length === 0 && <p className="text-[12.5px]" style={{ color: MUTED }}>Belum ada stok yang bisa dijual.</p>}
         {baris.map((b, i) => {
           const u = unit.find((x) => x.id === b.unit_id);
           return (
@@ -78,9 +101,10 @@ function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, onSelesai }: {
                 <option value="" disabled>Pilih stok</option>
                 {unit.map((x) => <option key={x.id} value={x.id}>{x.label} · tersedia {kgTeks(x.tersediaKg)}</option>)}
               </select>
-              <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
-                <input aria-label={`Berat baris ${i + 1} (kg)`} inputMode="decimal" placeholder="kg" className="h-10 rounded-xl border border-[#E2E4EA] px-3 text-right text-[14px]" value={b.kg} onChange={(e) => ubah(i, "kg", e.target.value)} />
-                <input aria-label={`Harga per kg baris ${i + 1}`} inputMode="decimal" placeholder="Rp/kg" className="h-10 rounded-xl border border-[#E2E4EA] px-3 text-right text-[14px]" value={b.harga} onChange={(e) => ubah(i, "harga", e.target.value)} />
+              {/* minmax(0, 1fr) + w-full: kolom boleh menyempit di layar kecil, jadi isian Rp/kg tidak keluar dari form. */}
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2">
+                <input aria-label={`Berat baris ${i + 1} (kg)`} inputMode="decimal" placeholder="kg" className="h-10 w-full min-w-0 rounded-xl border border-[#E2E4EA] px-3 text-right text-[14px]" value={b.kg} onChange={(e) => ubah(i, "kg", e.target.value)} />
+                <input aria-label={`Harga per kg baris ${i + 1}`} inputMode="decimal" placeholder="Rp/kg" className="h-10 w-full min-w-0 rounded-xl border border-[#E2E4EA] px-3 text-right text-[14px]" value={b.harga} onChange={(e) => ubah(i, "harga", e.target.value)} />
                 <Btn size="sm" v="ghost" onClick={() => setBaris((x) => (x.length > 1 ? x.filter((_, j) => j !== i) : x))} disabled={baris.length <= 1}>Buang</Btn>
               </div>
               {u && <p className="text-[11.5px]" style={{ color: u.tersediaKg < Number(b.kg.replace(",", ".")) ? "#A8322B" : MUTED }}>Tersedia {kgTeks(u.tersediaKg)} dari sisa {kgTeks(u.sisaKg)}</p>}
@@ -343,7 +367,7 @@ function InvoiceJasa({ jasa }: { jasa: JasaBelumDitagih[] }) {
 }
 
 /* --------------------------------------------------------------- utama */
-export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, bolehBuat, bolehKirim, bolehInvoice, bolehBayar, bolehDokumen, hariIni }: Props) {
+export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda, bolehBuat, bolehKirim, bolehInvoice, bolehBayar, bolehDokumen, hariIni }: Props) {
   const router = useRouter();
   const [baru, setBaru] = useState(false);
   const piutang = invoice.reduce((a, i) => a + Math.round(i.sisa * 100), 0) / 100;
@@ -373,7 +397,7 @@ export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa,
 
       {baru && (
         <Modal title="Buat pesanan" onClose={() => setBaru(false)}>
-          <FormPesananJual unit={unit} pembeli={pembeli} siklus={siklus} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`/penjualan?p=${id}`); }} />
+          <FormPesananJual unit={unit} pembeli={pembeli} siklus={siklus} hariIni={hariIni} awal={null} tertunda={tertunda} onSelesai={(id) => { setBaru(false); router.push(`/penjualan?p=${id}`); }} />
         </Modal>
       )}
       {detailP && (
