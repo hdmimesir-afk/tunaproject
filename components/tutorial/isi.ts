@@ -46,7 +46,7 @@ export const ALUR_CONTOH: LangkahAlur[] = [
   { peran: "finance", menu: "Persetujuan", slug: "persetujuan", kerja: "Memeriksa nota dan harga, lalu menekan Sudah diperiksa." },
   { peran: "owner", menu: "Persetujuan", slug: "persetujuan", kerja: "Menekan Setujui. PO boleh dibayar." },
   { peran: "petugas", menu: "Mutu dan Penerimaan", slug: "mutu", kerja: "Ikan datang. Memilih PO dan menekan Catat penerimaan. Sistem membuat lot." },
-  { peran: "qc", menu: "Mutu dan Penerimaan", slug: "mutu", kerja: "Menekan Cek mutu, memilih Lulus dan kelas mutunya." },
+  { peran: "qc", menu: "Mutu dan Penerimaan", slug: "mutu", kerja: "Menekan Cek mutu, memilih Lulus dan grade beserta beratnya (satu lot bisa beberapa grade)." },
   { peran: "finance", menu: "Pembelian", slug: "pembelian", kerja: "Mencatat pembayaran ke pemasok dan melampirkan bukti transfer." },
   { peran: "petugas", menu: "Produksi", slug: "produksi", kerja: "Memulai produksi dari lot itu, mengisi berat loin per grade, mengisi komponen, lalu menekan Selesaikan produksi." },
   { peran: "qc", menu: "Produksi", slug: "produksi", kerja: "Mencocokkan timbangan, menjelaskan selisih, lalu menekan Tandai sudah diperiksa (QC)." },
@@ -249,10 +249,17 @@ export const BAB: Bab[] = [
       {
         judul: "Cek mutu",
         peran: ["owner", "qc"],
-        langkah: ["Pada lot berstatus Menunggu, tekan Cek mutu.", "Pilih Lulus atau Tahan.", "Bila lulus, pilih Kelas mutu.", "Isi Catatan, misalnya suhu, bau, atau alasan menahan.", "Tekan Simpan hasil."],
+        langkah: [
+          "Pada lot berstatus Menunggu, tekan Cek mutu.",
+          "Pilih Lulus atau Tahan.",
+          "Bila lulus, pilih grade. Beratnya sudah terisi berat lot penuh.",
+          "Kalau lotnya campur, tekan + Tambah grade, lalu isi berat tiap grade. Contoh: 500 kg B-SO dan 300 kg A-SO.",
+          "Isi Catatan, misalnya suhu, bau, atau alasan menahan.",
+          "Tekan Simpan hasil.",
+        ],
         gambar: "04-mutu-cek",
         keterangan: "Form Cek mutu.",
-        catatan: "Lot yang sudah dipakai produksi tidak bisa diubah mutunya.",
+        catatan: "Jumlah berat semua grade tidak boleh lebih dari berat lot. Kalau kurang, sisanya tercatat tanpa grade. Lot yang sudah dipakai produksi tidak bisa diubah mutunya.",
       },
       {
         judul: "Melampirkan nota nelayan",

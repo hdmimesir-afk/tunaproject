@@ -1,5 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { bisaDiedit, ringkasBatch, selisihHarga, sisaBayar } from "./pembelian";
+import { bisaDiedit, gradeLot, ringkasBatch, selisihHarga, sisaBayar, sisaBelumDibagi } from "./pembelian";
+
+describe("gradeLot", () => {
+  const a = { kode: "A-SO" }, b = { kode: "B-SO" };
+  it("beberapa grade, terberat dulu, yang nol dibuang", () => {
+    expect(gradeLot({ kg: 800, qc: "lulus", grade_id: "b", grades: { ...b, nama: "" }, lot_grades: [
+      { grade_id: "a", kg: 300, grades: a }, { grade_id: "b", kg: 500, grades: b }, { grade_id: "c", kg: 0, grades: { kode: "C-SO" } },
+    ] })).toEqual([{ grade_id: "b", kode: "B-SO", kg: 500 }, { grade_id: "a", kode: "A-SO", kg: 300 }]);
+  });
+  it("lot lama tanpa rincian memakai grade utama untuk seluruh berat", () => {
+    expect(gradeLot({ kg: 1200, qc: "lulus", grade_id: "a", grades: { ...a, nama: "" }, lot_grades: [] })).toEqual([{ grade_id: "a", kode: "A-SO", kg: 1200 }]);
+  });
+  it("lot ditahan atau menunggu tidak punya grade", () => {
+    expect(gradeLot({ kg: 100, qc: "ditahan", grade_id: null, grades: null, lot_grades: [{ grade_id: "a", kg: 0, grades: a }] })).toEqual([]);
+  });
+});
+
+describe("sisaBelumDibagi", () => {
+  it("dihitung dalam gram supaya tidak bergeser", () => {
+    expect(sisaBelumDibagi(600, [{ kg: 400.1 }, { kg: 149.2 }])).toBe(50.7);
+    expect(sisaBelumDibagi(0.3, [{ kg: 0.1 }, { kg: 0.2 }])).toBe(0);
+  });
+});
 
 describe("ringkasBatch", () => {
   it("menjumlah dalam sen tanpa selisih pecahan", () => {

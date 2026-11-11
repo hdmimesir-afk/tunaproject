@@ -5,7 +5,9 @@ import { Btn, Card, Field, Inner, Modal, Stat, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { cekMutuLot, terimaIkan } from "@/lib/actions/mutu";
+import { keGram } from "@/lib/logic/grid";
 import { formatKg } from "@/lib/logic/neraca";
+import { gradeLot } from "@/lib/logic/pembelian";
 import { DaftarLot, type LampiranLot } from "./DaftarLot";
 import type { LotBaris, Opsi, POSiapTerima } from "@/lib/types/pembelian";
 
@@ -88,6 +90,66 @@ function FormTerima({ poSiap, onSukses }: { poSiap: POSiapTerima[]; onSukses: (p
 }
 
 /* -------------------------------------------------------------- cek mutu */
+type BarisIsian = { k: number; gradeId: string; kg: string };
+const teksKg = (kg: number) => String(kg).replace(".", ",");
+
+/** Satu lot bisa berisi beberapa grade. Baris pertama terisi berat lot penuh, jadi lot satu grade cukup pilih grade-nya. */
+function IsianGrade({ lot, grade, error }: { lot: LotBaris; grade: Opsi[]; error?: string }) {
+  const [baris, setBaris] = useState<BarisIsian[]>(() => {
+    const ada = gradeLot(lot);
+    return ada.length > 0
+      ? ada.map((g, i) => ({ k: i, gradeId: g.grade_id, kg: teksKg(g.kg) }))
+      : [{ k: 0, gradeId: "", kg: teksKg(lot.kg) }];
+  });
+  const ubah = (k: number, isi: Partial<BarisIsian>) => setBaris((b) => b.map((x) => (x.k === k ? { ...x, ...isi } : x)));
+  const tambah = () => setBaris((b) => [...b, { k: Math.max(...b.map((x) => x.k)) + 1, gradeId: "", kg: "" }]);
+  const hapus = (k: number) => setBaris((b) => b.filter((x) => x.k !== k));
+
+  const gramLot = Math.round(lot.kg * 1000);
+  const gramIsi = baris.reduce((a, b) => a + (keGram(b.kg) ?? 0), 0);
+  const lebih = gramIsi > gramLot;
+  const sisa = gramLot - gramIsi;
+  const dipakai = new Set(baris.map((b) => b.gradeId).filter(Boolean));
+
+  return (
+    <div className="space-y-2" data-testid="isian-grade">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[13px] font-medium" style={{ color: INK }}>Grade dan beratnya</span>
+        <span className="text-[12px]" style={{ color: MUTED }}>Satu lot boleh beberapa grade</span>
+      </div>
+      <input type="hidden" name="baris" value={JSON.stringify(baris.map((b) => ({ grade_id: b.gradeId, kg: b.kg })))} />
+      <ul className="space-y-2">
+        {baris.map((b, i) => (
+          <li key={b.k} className="grid grid-cols-[minmax(0,1fr)_6.5rem_2.25rem] items-center gap-1.5 sm:grid-cols-[minmax(0,1fr)_7.5rem_2.25rem] sm:gap-2">
+            <select aria-label={`Grade baris ${i + 1}`} value={b.gradeId} onChange={(e) => ubah(b.k, { gradeId: e.target.value })} className={selectCls}>
+              <option value="" disabled>Pilih grade</option>
+              {grade.map((g) => <option key={g.id} value={g.id} disabled={g.id !== b.gradeId && dipakai.has(g.id)}>{g.label}</option>)}
+            </select>
+            <div className="relative min-w-0">
+              <input aria-label={`Berat grade baris ${i + 1} (kg)`} value={b.kg} onChange={(e) => ubah(b.k, { kg: e.target.value })} inputMode="decimal" placeholder="0"
+                className="h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white pl-3 pr-9 text-right text-[14px] tabular-nums outline-none focus:border-[#00171F]" />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px]" style={{ color: MUTED }}>kg</span>
+            </div>
+            {baris.length > 1
+              ? <button type="button" onClick={() => hapus(b.k)} aria-label={`Hapus baris ${i + 1}`} title="Hapus baris ini"
+                  className="flex h-11 w-9 items-center justify-center rounded-full text-[20px] leading-none hover:bg-white" style={{ color: MUTED }}>×</button>
+              : <span aria-hidden />}
+          </li>
+        ))}
+      </ul>
+      {baris.length < grade.length && (
+        <Btn type="button" size="sm" v="light" onClick={tambah}>+ Tambah grade</Btn>
+      )}
+      <p className="rounded-2xl px-3.5 py-2.5 text-[13px] tabular-nums" data-testid="jumlah-grade"
+        style={lebih ? { background: "#FBE5E3", color: "#A8322B" } : sisa > 0 ? { background: "#FBF0D5", color: "#8A5A00" } : { background: "#fff", color: INK }}>
+        Jumlah {formatKg(gramIsi / 1000)} kg dari {formatKg(lot.kg)} kg.{" "}
+        {lebih ? `Kelebihan ${formatKg(-sisa / 1000)} kg, kurangi beratnya.` : sisa > 0 ? `${formatKg(sisa / 1000)} kg belum dibagi ke grade (boleh, misalnya ikan yang disisihkan).` : "Semua berat sudah dibagi."}
+      </p>
+      {error && <p role="alert" className="text-[12.5px]" style={{ color: "#A8322B" }}>{error}</p>}
+    </div>
+  );
+}
+
 function CekMutu({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutup: () => void }) {
   const [hasil, setHasil] = useState<"lulus" | "ditahan">(lot.qc === "ditahan" ? "ditahan" : "lulus");
   const [state, action, pending] = useActionState<HasilForm, FormData>(cekMutuLot, undefined);
@@ -110,14 +172,7 @@ function CekMutu({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
             ? "Lulus: ikan layak diolah. Lot ini langsung bisa dipilih saat memulai produksi."
             : "Tahan: ikan belum boleh diolah, misalnya suhu atau baunya perlu dicek ulang. Lot tidak muncul di pilihan produksi sampai diubah jadi Lulus. Penerimaan dan pembayaran ke pemasok tidak terpengaruh."}
         </p>
-        {hasil === "lulus" && (
-          <Field label="Kelas mutu" error={state?.kolom?.gradeId?.[0]}>
-            <select name="gradeId" defaultValue={lot.grade_id ?? ""} className={selectCls} required>
-              <option value="" disabled>Pilih kelas</option>
-              {grade.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
-            </select>
-          </Field>
-        )}
+        {hasil === "lulus" && <IsianGrade lot={lot} grade={grade} error={state?.kolom?.baris?.[0]} />}
         <Field label="Catatan" hint="Misalnya suhu, bau, atau alasan menahan."><TextIn name="catatan" maxLength={300} defaultValue={lot.qc_catatan} /></Field>
         <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Simpan hasil"}</Btn>
       </form>

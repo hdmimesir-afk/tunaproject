@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
+import { keGram } from "@/lib/logic/grid";
 import { createClient } from "@/lib/supabase/server";
 import { pesanDb } from "./pesan";
 import type { HasilForm } from "./auth";
@@ -47,20 +48,39 @@ export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm>
 const FormMutu = z.object({
   lotId: z.uuid(),
   hasil: z.enum(["lulus", "ditahan"], "Pilih lulus atau ditahan"),
-  gradeId: z.string().trim().optional(),
+  baris: z.string().max(10_000).optional(),
   catatan: z.string().trim().max(300),
 });
 
+const BarisGrade = z.array(z.object({ grade_id: z.string(), kg: z.string().max(14) })).max(30);
+
+/** Cek mutu satu lot. Lulus: berat per grade (satu lot bisa beberapa grade), jumlahnya tidak boleh melebihi berat lot. */
 export async function cekMutuLot(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const tolak = await izin("mutu.write");
   if (tolak) return tolak;
   const p = FormMutu.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  const grade = p.data.hasil === "lulus" ? z.uuid("Pilih kelas mutu").safeParse(p.data.gradeId) : null;
-  if (grade && !grade.success) return { kolom: { gradeId: ["Pilih kelas mutu"] } };
+  const baris: { grade_id: string; kg: number }[] = [];
+  if (p.data.hasil === "lulus") {
+    let isian: z.infer<typeof BarisGrade>;
+    try {
+      isian = BarisGrade.parse(JSON.parse(p.data.baris ?? "[]"));
+    } catch {
+      return { error: "Data grade tidak valid. Muat ulang halaman lalu coba lagi." };
+    }
+    for (const b of isian) {
+      if (b.grade_id === "" && b.kg.trim() === "") continue;
+      if (!z.uuid().safeParse(b.grade_id).success) return { kolom: { baris: ["Pilih grade di setiap baris yang diisi beratnya."] } };
+      const g = keGram(b.kg);
+      if (g === null) return { kolom: { baris: ["Berat tiap grade harus lebih dari nol, paling banyak tiga angka di belakang koma."] } };
+      if (baris.some((x) => x.grade_id === b.grade_id)) return { kolom: { baris: ["Satu grade hanya boleh diisi sekali."] } };
+      baris.push({ grade_id: b.grade_id, kg: g / 1000 });
+    }
+    if (baris.length === 0) return { kolom: { baris: ["Isi berat untuk minimal satu grade."] } };
+  }
   const supabase = await createClient();
-  const { error } = await supabase.rpc("cek_mutu", {
-    p_lot: p.data.lotId, p_hasil: p.data.hasil, p_grade: grade?.success ? grade.data : null, p_catatan: p.data.catatan,
+  const { error } = await supabase.rpc("cek_mutu_grade", {
+    p_lot: p.data.lotId, p_hasil: p.data.hasil, p_baris: baris, p_catatan: p.data.catatan,
   });
   if (error) return { error: pesanDb(error) };
   refresh();

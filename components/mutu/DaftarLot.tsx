@@ -6,14 +6,14 @@ import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { LABEL_QC } from "@/lib/logic/pembelian";
+import { gradeLot, LABEL_QC, sisaBelumDibagi } from "@/lib/logic/pembelian";
 import { TombolLampiran } from "@/components/dokumen/Dokumen";
 import type { Dokumen, JenisDokumen, LotBaris } from "@/lib/types/pembelian";
 
 type Saring = "semua" | "menunggu" | "lulus" | "ditahan";
-const KOLOM = "md:grid md:grid-cols-[minmax(0,1.25fr)_150px_190px_minmax(0,1fr)_auto] md:gap-5";
+const KOLOM = "md:grid md:grid-cols-[minmax(0,1fr)_100px_130px_minmax(0,1.4fr)_auto] md:gap-4 lg:grid-cols-[minmax(0,1.1fr)_130px_180px_minmax(0,1.3fr)_auto] lg:gap-5";
 const AMBER = "#8A5A00";
-const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.suppliers?.nama ?? ""} ${l.grades?.kode ?? ""} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
+const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
 /** Lampiran lot (nota nelayan, foto timbangan). Null bila pengguna tidak boleh melihat berkas. */
 export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean };
@@ -23,7 +23,7 @@ const UNGGAH_LOT: { jenis: JenisDokumen; label: string }[] = [
   { jenis: "lainnya", label: "Lampirkan berkas lain" },
 ];
 
-/** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label satu baris. Tabel di desktop, kartu di HP. */
+/** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label (beberapa grade tampil dengan beratnya). Tabel di desktop, kartu di HP. */
 export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris[]; bolehMutu: boolean; onCek: (l: LotBaris) => void; lampiran: LampiranLot | null }) {
   const [saring, setSaring] = useState<Saring>("semua");
   const jumlah = useMemo(() => ({
@@ -80,6 +80,8 @@ function BarisLot({ l, aksi }: { l: LotBaris; aksi: React.ReactNode }) {
   const pct = l.kg > 0 ? Math.min(100, (dipakai / l.kg) * 100) : 0;
   const catatan = l.sebelum_disetujui ? "Bongkar malam" : l.qc_catatan || l.catatan || "";
   const menunggu = l.qc === "menunggu";
+  const grade = gradeLot(l);
+  const sisa = grade.length > 0 ? sisaBelumDibagi(l.kg, grade) : 0;
   return (
     <li className={`flex flex-col gap-3 border-t border-[#EEF0F4] px-4 py-4 first:border-t-0 md:items-center md:px-5 ${KOLOM} hover:bg-[#FAFBFD]`}
       style={menunggu ? { boxShadow: "inset 3px 0 0 #E2B24A" } : undefined}>
@@ -117,12 +119,17 @@ function BarisLot({ l, aksi }: { l: LotBaris; aksi: React.ReactNode }) {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-1.5">
           <Pill t={LABEL_QC[l.qc]} />
-          {l.grades?.kode && <span className="inline-flex items-center whitespace-nowrap rounded-full border border-[#D5D9E0] px-2.5 py-[3px] text-[11.5px] font-semibold leading-none" style={{ color: INK }}>{l.grades.kode}</span>}
+          {grade.map((g) => (
+            <span key={g.grade_id} className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[#D5D9E0] px-2.5 py-[3px] text-[11.5px] leading-none" style={{ color: INK }}>
+              <b className="font-semibold">{g.kode}</b>{grade.length > 1 && <span className="tabular-nums" style={{ color: MUTED }}>{formatKg(g.kg)} kg</span>}
+            </span>
+          ))}
         </div>
+        {sisa > 0 && <p className="mt-1 text-[12px] tabular-nums" style={{ color: AMBER }}>{formatKg(sisa)} kg tanpa grade</p>}
         {catatan && <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: MUTED }}>{catatan}</p>}
       </div>
 
-      <div className="flex flex-wrap gap-2 md:justify-end">{aksi}</div>
+      <div className="flex flex-wrap gap-2 md:flex-col md:items-end xl:flex-row xl:justify-end">{aksi}</div>
     </li>
   );
 }

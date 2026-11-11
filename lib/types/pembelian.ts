@@ -81,6 +81,8 @@ export type LotBaris = {
   grade_id: string | null;
   suppliers: { nama: string } | null;
   grades: { kode: string; nama: string } | null;
+  /** Berat per grade dari cek mutu. Baris ber-kg 0 = grade yang sudah dikeluarkan. */
+  lot_grades?: { grade_id: string; kg: number; grades: { kode: string } | null }[];
 };
 
 export type BayarBaris = {

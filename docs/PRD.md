@@ -75,6 +75,13 @@ Jawaban atas empat pertanyaan di halaman `/flowchart`. Bagian lain PRD ini tetap
 3. Loin tidak wajib ditimbang per potong; sehari-hari cukup berat total per grade. Yield dihitung per produksi. Penelusuran berhenti di kedatangan ikan (bongkaran) dan nelayan. **Sudah dikerjakan** (migrasi `20261106000100`).
 4. Nota nelayan, tanda terima titipan, tagihan penitipan, jasa olah, dan tagihan jasa olah masuk cakupan tetapi bukan prioritas dan tidak wajib di versi 1. Dokumennya dibuat admin; sistem cukup menyimpan lampiran. **Lampiran di lot dan titipan sudah dikerjakan**; jasa olah dan tagihannya menyusul.
 
+## Notulen masukan Mas Bisma (10 November 2026)
+
+- **Sudah dikerjakan:** tambah pemasok langsung dari form PO (poin 1), penjelasan Lulus dan Tahan (poin 4), hasil produksi yang belum masuk stok ditampilkan di form pesanan (poin 8), kolom Rp/kg di form pesanan (poin 9).
+- **Poin 6, satu lot beberapa grade. Sudah dikerjakan** (migrasi `20261111000100`). Cek mutu mencatat berat per grade di tabel `lot_grades`. Jumlahnya tidak boleh melebihi berat lot; bila kurang, sisanya tercatat tanpa grade dan masuk "Belum dinilai" di laporan harga beli. `lots.grade_id` tetap diisi grade terberat sebagai grade utama. Produksi tetap mengambil ikan per lot.
+- **Menunggu keputusan perusahaan:** nota susulan (poin 2), pemberi persetujuan PO (poin 3), lampiran dan foto timbang yang wajib (poin 5), arti "proyek" (poin 7).
+- **Setelah perbaikan stabil:** video panduan (poin 10).
+
 ## Alur utama
 
 Satu siklus berjalan dari beli ikan sampai laporan tanpa ketik ulang.
@@ -103,7 +110,7 @@ Setiap kebutuhan di bawah selesai bila kriteria terimanya lulus di lingkungan uj
 | F03 | Persetujuan | Alur draf → diajukan → perlu revisi → disetujui/ditolak; bukti tampil di sebelah tombol Setuju | Disetujui tetap "belum dibayar" sampai pembayaran dicatat; revisi kembali ke pengaju | 1 |
 | F04 | Persetujuan | Setuju massal | Layar konfirmasi menampilkan daftar, jumlah transaksi, dan total nilai sebelum disetujui | 1 |
 | F05 | Penerimaan | Terima ikan jadi lot, termasuk sebagian; bongkar malam diberi tanda | Lot baru berstatus "menunggu cek mutu"; bongkar malam muncul di antrean Owner pagi | 1 |
-| F06 | Mutu | Cek mutu per lot: lulus dengan kelas, atau ditahan | Hanya lot lulus dengan sisa berat > 0 yang bisa diproduksi | 1 |
+| F06 | Mutu | Cek mutu per lot: lulus dengan satu atau beberapa grade beserta beratnya, atau ditahan | Hanya lot lulus dengan sisa berat > 0 yang bisa diproduksi | 1 |
 | F07 | Produksi | Alokasi satu atau beberapa lot ke satu produksi | Satu lot ke dua produksi dan sebaliknya tertelusuri dua arah | 2 |
 | F08 | Produksi | Berat loin total per grade sebagai cara sehari-hari; grid loin per potong sesuai FRM-PRD-01 rev 01 (no. ekor opsional, no. loin, grade, berat 3 desimal) sebagai pilihan | Satu produksi memakai satu cara, tidak dicampur; grid: keyboard saja cukup, tambah baris cepat, total otomatis, draft tersimpan saat jaringan putus | 2 |
 | F09 | Produksi | Komponen hasil: hasil samping per jenis, limbah, susut tercatat | Neraca tampil dalam kg dan %; selisih belum jelas tidak pernah terisi sendiri | 2 |
@@ -181,7 +188,7 @@ Database Postgres di Supabase, aplikasi Next.js di Vercel, keduanya atas nama pe
 | Akses | `roles`, `role_permissions`, `profiles` | Peran dan izin per aksi, diatur Owner |
 | Master | `suppliers`, `buyers`, `products`, `grades`, `component_categories`, `expense_categories` | Daftar produk, grade, jenis hasil samping/limbah, 8 kategori biaya |
 | Siklus | `cycles` | Kode internal + no. PO pembeli + no. bongkar, status terbuka/ditutup |
-| Pembelian | `purchase_orders`, `lots`, `payments` | Status persetujuan terpisah dari status bayar; lot dengan status mutu dan kelas |
+| Pembelian | `purchase_orders`, `lots`, `lot_grades`, `payments` | Status persetujuan terpisah dari status bayar; lot dengan status mutu, berat per grade (satu lot bisa beberapa grade), dan grade utama |
 | Persetujuan | `approvals`, `approval_rules` | Diajukan, diperiksa, disetujui oleh siapa dan kapan; `batch_id` untuk setuju massal |
 | Produksi | `productions`, `lot_allocations`, `production_loin_totals`, `production_items`, `production_components` | Status draf/berjalan/selesai/diperiksa; loin total per grade, atau satu baris per potong loin (`kg numeric(12,3)`), tidak dicampur dalam satu produksi; komponen hasil per jenis |
 | Stok | `storage_units`, `storage_movements` | Pemilik, produk, grade, fresh/beku, lokasi, berat masuk/keluar/sisa |

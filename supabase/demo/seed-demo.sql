@@ -142,7 +142,9 @@ begin
   update public.lots set tanggal_terima = hari - 17 where id = lot1;
   update public.lots set tanggal_terima = hari - 16 where id = lot2;
   perform public.cek_mutu(lot1, 'lulus', g_a, 'Daging merah cerah, tekstur baik (contoh)');
-  perform public.cek_mutu(lot2, 'lulus', g_b, 'Sebagian warna agak pucat (contoh)');
+  -- Satu lot bisa berisi beberapa grade.
+  perform public.cek_mutu_grade(lot2, 'lulus', jsonb_build_array(
+    jsonb_build_object('grade_id', g_b, 'kg', 500), jsonb_build_object('grade_id', g_a, 'kg', 300)), 'Sebagian warna agak pucat (contoh)');
   update public.lots set qc_pada = ((tanggal_terima) + time '16:00') at time zone 'Asia/Jakarta' where id in (lot1, lot2);
 
   perform public.catat_bayar(po1, 30000000, hari - 16, 'Uang muka (contoh)');

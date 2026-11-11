@@ -1,8 +1,24 @@
-import type { StatusApv, StatusBayar, StatusPO, StatusTerima } from "@/lib/types/pembelian";
+import type { LotBaris, StatusApv, StatusBayar, StatusPO, StatusTerima } from "@/lib/types/pembelian";
 
 /* Rumus dan label murni untuk pembelian dan persetujuan. Hitungan uang dalam sen supaya tidak bergeser. */
 
 const sen = (n: number) => Math.round(n * 100);
+const gram = (kg: number) => Math.round(kg * 1000);
+
+export type GradeLot = { grade_id: string; kode: string; kg: number };
+
+/** Grade lot yang masih berisi, urut dari yang terberat. Lot lama tanpa rincian memakai grade utamanya untuk seluruh berat. */
+export function gradeLot(l: Pick<LotBaris, "kg" | "qc" | "grade_id" | "grades" | "lot_grades">): GradeLot[] {
+  if (l.qc !== "lulus") return [];
+  const isi = (l.lot_grades ?? []).filter((g) => g.kg > 0).map((g) => ({ grade_id: g.grade_id, kode: g.grades?.kode ?? "-", kg: g.kg }));
+  if (isi.length > 0) return isi.sort((a, b) => b.kg - a.kg || a.kode.localeCompare(b.kode));
+  return l.grade_id && l.grades ? [{ grade_id: l.grade_id, kode: l.grades.kode, kg: l.kg }] : [];
+}
+
+/** Berat lot yang belum dibagi ke grade mana pun (kg, dihitung dalam gram). */
+export function sisaBelumDibagi(kgLot: number, grade: { kg: number }[]): number {
+  return (gram(kgLot) - grade.reduce((a, g) => a + gram(g.kg), 0)) / 1000;
+}
 
 /** Jumlah dan total beberapa pengajuan, untuk layar konfirmasi setuju massal. */
 export function ringkasBatch(items: { jumlah: number }[]) {
