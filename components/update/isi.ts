@@ -23,32 +23,32 @@ export const PERJALANAN = [
   { tanggal: "27 Oktober", judul: "Tampilan saya rapikan", isi: "Menu samping saya buat baru, dengan logo dan pengelompokan. Tampilan HP saya bedakan dari laptop. Buku kas jadi per hari, daftar lot dan penjualan lebih jelas, di menu Akses sekarang bisa ganti email dan lepas jabatan, dan saya siapkan data contoh untuk latihan." },
   { tanggal: "31 Oktober", judul: "Gudang per ruangan dan stok penunjang", isi: "Gudang dingin sekarang dicatat per ruangan: ABF 1 sampai 3 dan Cold Storage 1. Ada stok barang penunjang kerja, kotak cari di semua daftar, dan Asisten bisa membuat laporan hari ini, minggu ini, dan bulan ini." },
   { tanggal: "4 November", judul: "Catatan rapat saya kerjakan", isi: "Berat ikan saat penerimaan sekarang diambil dari pesanan. Jam kerja absensi disesuaikan, urutan menu operasional diubah, unduhan laporan jadi Excel yang rapi, dan akun dibuat satu per jabatan lewat tautan undangan." },
-  { tanggal: "6 November", judul: "Jawaban tim Katalis", isi: "Berat loin sekarang cukup diisi total per grade; timbang per potong tetap ada sebagai pilihan. Nota nelayan, tanda terima titipan, dan tagihan yang dibuat admin di luar sistem tinggal dilampirkan fotonya." },
-  { tanggal: "10 November", judul: "Masukan Mas Bisma, bagian pertama", isi: "Pemasok bisa ditambah langsung dari form pembelian, arti Lulus dan Tahan dijelaskan di layar, hasil produksi yang belum masuk stok muncul di form pesanan, dan kolom harga per kilo di HP saya rapikan." },
-  { tanggal: "11 November", judul: "Masukan Mas Bisma, bagian kedua", isi: "Satu lot bisa berisi beberapa grade. Pembelian tidak lagi tertahan nota, yang menyetujui dan lampiran wajib diatur admin, dan Siklus sekarang disebut Proyek, lengkap dengan stok per proyek." },
+  { tanggal: "6 November", judul: "Jawaban tim Katalis masuk", isi: "Berat loin sekarang cukup diisi total per grade. Kalau mau timbang per potong, masih bisa. Nota nelayan, tanda terima titipan, sama tagihan yang dibuat admin di luar sistem tinggal difoto terus dilampirkan." },
+  { tanggal: "10 November", judul: "Masukan Mas Bisma, bagian pertama", isi: "Pemasok baru bisa ditambah langsung dari form pembelian. Arti Lulus dan Tahan sekarang ada keterangannya di layar. Hasil produksi yang belum masuk stok udah muncul di form pesanan, dan kolom harga per kilo di HP udah nggak kepotong lagi." },
+  { tanggal: "11 November", judul: "Masukan Mas Bisma, bagian kedua", isi: "Satu lot bisa diisi beberapa grade. Pembelian nggak nunggu nota lagi. Siapa yang menyetujui dan lampiran apa yang wajib, admin yang atur. Siklus juga saya ganti namanya jadi Proyek, dan stoknya ikut kecatat per proyek." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */
 /* Laporan terbaru: masukan Mas Bisma (notulen 10 November) dan jawaban perusahaan 11 November. */
 export const TERBARU: { judul: string; isi: string }[] = [
-  { judul: "Nota boleh menyusul", isi: "Kalau nota belum ada, misalnya bongkar malam, pembelian tetap bisa diajukan dengan tanda \"Nota menyusul\". Persetujuan, penerimaan ikan, dan produksi jalan terus. Notanya dilampirkan belakangan oleh jabatan yang dipilih admin." },
-  { judul: "Yang menyetujui dipilih admin", isi: "Di menu Akses ada bagian Tugas per peran. Admin memilih jabatan yang boleh menyetujui pembelian, memeriksanya, dan melampirkan nota susulan. Owner selalu bisa semuanya. Yang mengajukan tidak bisa menyetujui pengajuannya sendiri, dan nama yang bisa menyetujui tampil di layar." },
-  { judul: "Lampiran wajib diatur admin", isi: "Di Pengaturan ada tab Lampiran wajib. Bawaannya: nota pembelian, satu foto timbangan untuk setiap penerimaan (termasuk penerimaan bertahap), dan bukti transfer. Lampiran yang belum ada cuma ditandai \"Belum ada\", tidak menghentikan pencatatan." },
-  { judul: "Satu lot, beberapa grade", isi: "Saat cek mutu, QC bisa mencatat beberapa grade sekaligus beserta beratnya, misalnya 500 kg B-SO dan 300 kg A-SO. Jumlahnya tidak boleh melebihi berat lot. Laporan harga beli ikut terbagi per grade." },
-  { judul: "Siklus sekarang disebut Proyek", isi: "Satu proyek adalah satu batch atau satu bongkaran, dan boleh berisi beberapa pembelian. Pembelian, lot, produksi, stok, penjualan, tagihan, dan biaya bisa ditelusuri per proyek. Stok hasil produksi sekarang ikut tercatat per proyek, dan kode proyek tampil di daftar lot, stok, dan pilihan stok saat membuat pesanan." },
-  { judul: "Perbaikan kecil dari rapat", isi: "Pemasok baru bisa ditambah dari form pembelian, arti Lulus dan Tahan dijelaskan di layar, hasil produksi yang belum masuk stok tampil di form pesanan, dan kolom harga per kilo tidak lagi keluar layar di HP." },
+  { judul: "Nota boleh nyusul", isi: "Kalau notanya belum ada, misalnya pas bongkar malam, pembelian tetap bisa diajukan. Tinggal centang \"Nota menyusul\". Ikan tetap bisa diterima dan diproduksi, pembeliannya juga tetap bisa disetujui. Notanya dilampirkan belakangan sama orang yang dipilih admin." },
+  { judul: "Admin yang milih siapa yang menyetujui", isi: "Di menu Akses sekarang ada bagian Tugas per peran. Di situ admin tinggal pilih jabatan mana yang boleh menyetujui pembelian, memeriksa, dan nambahin nota susulan. Owner tetap bisa semuanya. Orang yang mengajukan nggak bisa menyetujui pengajuannya sendiri, dan nama yang berhak menyetujui kelihatan di layar." },
+  { judul: "Lampiran wajib juga diatur admin", isi: "Ada tab Lampiran wajib di Pengaturan. Awalnya saya set begini: nota pembelian, foto timbangan (satu tiap kali terima ikan, jadi kalau nimbangnya bertahap ya satu foto per tahap), sama bukti transfer. Kalau ada yang belum dilampirkan, cuma ditandai \"Belum ada\". Pencatatannya tetap jalan." },
+  { judul: "Satu lot bisa beberapa grade", isi: "Waktu cek mutu, QC bisa isi beberapa grade sekaligus sama beratnya, misalnya 500 kg B-SO dan 300 kg A-SO. Totalnya nggak boleh lebih dari berat lot. Laporan harga beli juga ikut dipecah per grade." },
+  { judul: "Siklus sekarang namanya Proyek", isi: "Satu proyek itu satu batch atau satu bongkaran, dan isinya boleh beberapa pembelian. Dari pembelian, lot, produksi, stok, penjualan, tagihan, sampai biaya, semuanya bisa ditelusuri per proyek. Stok hasil produksi sekarang ikut kecatat proyeknya, dan kode proyeknya muncul di daftar lot, daftar stok, sama pilihan stok pas bikin pesanan." },
+  { judul: "Perbaikan kecil dari rapat", isi: "Pemasok baru bisa ditambah langsung dari form pembelian. Lulus dan Tahan sekarang ada penjelasannya. Hasil produksi yang belum masuk stok udah kelihatan di form pesanan, dan kolom harga per kilo di HP nggak keluar layar lagi." },
 ];
 
 /* Status sepuluh poin notulen Mas Bisma per 11 November. */
 export const NOTULEN: { poin: string; status: "selesai" | "menunggu" }[] = [
   { poin: "1. Tambah pemasok dari form pembelian", status: "selesai" },
-  { poin: "2. Nota susulan tidak menahan pencatatan", status: "selesai" },
-  { poin: "3. Pemberi persetujuan pembelian jelas", status: "selesai" },
-  { poin: "4. Arti Lulus dan Tahan di cek mutu", status: "selesai" },
-  { poin: "5. Lampiran dan foto timbang wajib", status: "selesai" },
-  { poin: "6. Beberapa grade dalam satu lot", status: "selesai" },
+  { poin: "2. Nota boleh nyusul", status: "selesai" },
+  { poin: "3. Jelas siapa yang menyetujui pembelian", status: "selesai" },
+  { poin: "4. Penjelasan Lulus dan Tahan", status: "selesai" },
+  { poin: "5. Lampiran dan foto timbangan wajib", status: "selesai" },
+  { poin: "6. Satu lot beberapa grade", status: "selesai" },
   { poin: "7. Pencatatan per proyek", status: "selesai" },
-  { poin: "8. Hasil produksi di form pesanan", status: "selesai" },
+  { poin: "8. Hasil produksi muncul di form pesanan", status: "selesai" },
   { poin: "9. Kolom harga per kilo di HP", status: "selesai" },
   { poin: "10. Video panduan", status: "menunggu" },
 ];
@@ -235,7 +235,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di setiap aksi, dan di database. Nota dan foto absen disimpan di tempat tertutup, dan hanya bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi supaya kata sandi tidak bisa ditebak-tebak." },
   { judul: "Angka tidak bergeser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa pembulatan diam-diam. Saya uji dengan 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhan hasilnya sama persis." },
   { judul: "Satu putaran penuh sudah diuji", isi: "Saya jalankan pembelian sampai uang masuk lewat kelima jabatan, lalu mencocokkan angka di neraca, stok, tagihan, rincian siklus, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Diperiksa otomatis setiap ada perubahan", isi: "Setiap kali sistem saya ubah, pemeriksaan otomatis berjalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Untuk pembaruan 11 November, aturan database lulus 626 pemeriksaan dan logika lulus 108 pemeriksaan, tapi uji alur lengkapnya belum saya jalankan (lihat bagian yang masih tersisa)." },
+  { judul: "Diperiksa otomatis setiap ada perubahan", isi: "Setiap kali sistem saya ubah, pemeriksaan otomatis berjalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 11 November juga lulus semua: 626 pemeriksaan aturan database, 108 pemeriksaan logika, dan tes klik-klik." },
   { judul: "Cadangan harian", isi: "Database dicadangkan tiap malam dan dienkripsi. Empat pencadangan tercatat berhasil, tiga di antaranya otomatis terjadwal. Satu hal yang belum saya lakukan: mencoba memulihkan cadangan ke tempat kosong (lihat bagian yang masih tersisa)." },
 ] as const;
 
@@ -250,10 +250,10 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Uji lengkap pembaruan 11 November", isi: "Pemeriksaan kode, 108 pemeriksaan logika, dan 626 pemeriksaan aturan database di database uji sementara sudah lulus, dan perubahannya sudah saya coba di browser dengan data contoh. Uji alur dari awal sampai akhir belum saya jalankan, dan belum dicoba langsung di sistem yang sudah dipakai." },
-  { judul: "Video panduan", isi: "Poin terakhir dari masukan Mas Bisma. Saya rekam setelah perbaikan dari rapat sudah stabil, supaya videonya tidak cepat basi: alur pembelian, penerimaan dan cek mutu, produksi, sampai penjualan, dengan contoh isian." },
-  { judul: "Jawaban lanjutan tim Katalis", isi: "Saya masih menunggu jawaban soal pembayaran nelayan untuk ikan yang datang tanpa pesanan, serta aturan transit dan ikan yang menginap. Penerimaan tanpa pesanan dan aturan tarif gudang yang baru menunggu jawaban ini." },
-  { judul: "Gambar panduan diperbarui", isi: "Beberapa gambar di halaman panduan masih menampilkan tampilan lama, misalnya form cek mutu. Dua panduan baru (memilih yang menyetujui, mengatur lampiran wajib) juga belum ada gambarnya." },
+  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 11 November udah lulus semua pemeriksaan otomatis, termasuk 626 pemeriksaan aturan database dan tes klik-klik. Saya juga udah coba sendiri pakai data contoh. Yang belum: nyoba langsung di sistem yang udah dipakai." },
+  { judul: "Video panduan", isi: "Ini poin terakhir dari Mas Bisma. Sengaja saya rekam setelah perbaikan dari rapat udah stabil, biar videonya nggak cepat basi. Isinya alur pembelian, terima ikan dan cek mutu, produksi, sampai penjualan, lengkap dengan contoh isian." },
+  { judul: "Jawaban lanjutan tim Katalis", isi: "Masih nunggu jawaban soal bayar nelayan kalau ikannya datang tanpa pesanan, sama aturan transit dan ikan yang nginep. Fitur terima ikan tanpa pesanan dan tarif gudang yang baru nunggu jawaban ini." },
+  { judul: "Gambar panduan", isi: "Beberapa gambar di halaman panduan masih pakai tampilan lama, misalnya form cek mutu. Dua panduan baru (milih yang menyetujui, atur lampiran wajib) juga belum ada gambarnya." },
   { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps sudah terpasang di sistem. Masalah absen GPS baru bisa dibilang selesai setelah dicoba dari HP di kantor, karena pin di peta bisa sedikit berbeda dengan tempat orang berdiri saat absen." },
   { judul: "Urutan menu lengkap", isi: "Pembelian, Persetujuan, Mutu dan Penerimaan, lalu Produksi sudah saya susun. Urutan menu lainnya menunggu daftar lengkap dari tim pengguna." },
   { judul: "Konsekuensi satu akun per jabatan", isi: "Semua petugas lapangan memakai satu akun yang sama. Jadi absen masuk dan pulang cuma bisa tercatat satu kali per hari untuk semuanya, dan catatan perubahan cuma menunjukkan jabatannya, bukan orangnya." },

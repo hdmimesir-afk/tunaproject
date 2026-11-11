@@ -4,7 +4,7 @@
 
 test("laporan progres terbuka tanpa login dan memuat bingkai perangkat", async ({ page }) => {
   await page.goto("/update");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Masukan rapat sudah masuk ke sistem/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Masukan dari rapat udah masuk ke sistem/);
   await expect(page.getByRole("heading", { name: /Yang baru per/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Apa yang bisa dilakukan di tiap menu" })).toBeVisible();
   await expect(page.locator("iframe")).toHaveCount(8);

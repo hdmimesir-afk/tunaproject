@@ -28,8 +28,8 @@ export default function UpdatePage() {
           <div className="u-wadah u-hero-isi">
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
-              <h1 id="judul">Masukan rapat sudah masuk ke sistem.</h1>
-              <p className="u-lead">Sembilan dari sepuluh masukan Mas Bisma sudah saya kerjakan, termasuk yang tadinya menunggu keputusan perusahaan. Di halaman ini saya rangkum posisinya per {TANGGAL}, lengkap dengan tampilan aslinya di HP dan laptop.</p>
+              <h1 id="judul">Masukan dari rapat udah masuk ke sistem.</h1>
+              <p className="u-lead">Dari sepuluh masukan Mas Bisma, sembilan udah saya kerjain, termasuk yang kemarin masih nunggu keputusan perusahaan. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
               <div className="u-aksi">
                 <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasnya</a>
@@ -45,16 +45,16 @@ export default function UpdatePage() {
         <section className="u-bagian" id="terbaru" aria-labelledby="h-terbaru">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-terbaru">Yang baru per {TANGGAL}</h2>
-            <p className="u-pengantar">Ini hasil dari masukan Mas Bisma di rapat 10 November dan jawaban perusahaan 11 November. Intinya: pencatatan di lapangan tidak lagi tertahan nota atau persetujuan, dan aturan yang perlu keputusan perusahaan sekarang bisa diatur sendiri oleh admin.</p>
+            <p className="u-pengantar">Ini dari masukan Mas Bisma di rapat 10 November, ditambah jawaban perusahaan tanggal 11. Sekarang orang lapangan bisa terus nyatet walaupun nota atau persetujuannya belum ada. Aturan yang perlu keputusan perusahaan juga bisa diatur admin sendiri.</p>
             <div className="u-kartu-grid u-badan">
               {TERBARU.map((k) => <div key={k.judul}><h3>{k.judul}</h3><p>{k.isi}</p></div>)}
             </div>
-            <h3 className="u-sub" style={{ marginTop: "var(--space-xl, 48px)" }}>Status sepuluh masukan</h3>
+            <h3 className="u-sub" style={{ marginTop: "var(--space-xl, 48px)" }}>Sepuluh masukan Mas Bisma</h3>
             <ul className="u-notulen" style={{ marginTop: "var(--space-md)" }}>
               {NOTULEN.map((n) => (
                 <li key={n.poin}>
                   <span>{n.poin}</span>
-                  <span className={n.status === "selesai" ? "u-ya" : "u-tidak"}>{n.status === "selesai" ? "Selesai" : "Setelah stabil"}</span>
+                  <span className={n.status === "selesai" ? "u-ya" : "u-tidak"}>{n.status === "selesai" ? "Beres" : "Nanti"}</span>
                 </li>
               ))}
             </ul>
