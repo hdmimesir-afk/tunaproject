@@ -70,10 +70,10 @@ function Neraca({ p, batas }: { p: Detail["produksi"]; batas: BatasHasil }) {
       <div className="mt-1 border-t border-[#E2E4EA] pt-1">
         <Baris k={`Selisih belum jelas · ${formatPct(n.belumJelasPct)}%`} v={`${kgTeks(n.belumJelasKg)} kg`} tebal warna={n.belumJelasKg > 0 ? "#8A5A00" : "#0B6B4A"} />
       </div>
-      <p className="mt-1 text-[11.5px]" style={{ color: MUTED }}>Selisih adalah sisa hitungan: ikan masuk dikurangi semua yang ditimbang. Tidak diisi otomatis dan tidak dipindah ke susut.</p>
+      <p className="mt-1 text-[11.5px]" style={{ color: MUTED }}>Selisih itu sisa hitungan: ikan masuk dikurangi semua yang ditimbang. Nggak diisi otomatis dan nggak dipindah ke susut.</p>
       {n.perluDiperiksa && p.loin_kg > 0 && (
         <p className="mt-2 rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
-          Hasil {formatPct(n.hasilPct)}% di luar batas wajar {batas.minPct}–{batas.maxPct}%. Periksa timbangan dan nomor loin.
+          Hasil {formatPct(n.hasilPct)}% di luar batas wajar {batas.minPct} sampai {batas.maxPct}%. Cek lagi timbangan sama nomor loinnya.
         </p>
       )}
       {p.loin_kg > 0 && <p className="mt-1.5 text-[12px]" style={{ color: MUTED }}>Rencana hasil {batas.rencanaPct}%: {n.diAtasRencana ? "tercapai" : "belum tercapai"}.</p>}
@@ -106,7 +106,7 @@ function FormLoinTotal({ detail, grade }: { detail: Detail; grade: Opsi[] }) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-[13px] tabular-nums" style={{ color: gram === null ? "#A8322B" : INK }} data-testid="total-loin-isian">
-          {gram === null ? "Periksa angkanya (maksimal 3 desimal)." : `Total ${tampilKg(gram)} kg`}
+          {gram === null ? "Cek lagi angkanya, maksimal 3 angka di belakang koma." : `Total ${tampilKg(gram)} kg`}
         </span>
         <Btn type="submit" size="sm" disabled={pending || gram === null}>{pending ? "Menyimpan..." : "Simpan total loin"}</Btn>
       </div>
@@ -168,10 +168,10 @@ function FormKomponen({ detail, samping }: { detail: Detail; samping: Opsi[] }) 
             <TextIn inputMode="decimal" placeholder="belum ditimbang" value={nilai[s.id] ?? ""} onChange={(e) => setNilai((n) => ({ ...n, [s.id]: e.target.value }))} />
           </Field>
         ))}
-        <Field label="Limbah, total (kg)" error={state?.kolom?.limbah?.[0]} hint="Kosong = belum ditimbang">
+        <Field label="Limbah, total (kg)" error={state?.kolom?.limbah?.[0]} hint="Biarin kosong kalau belum ditimbang.">
           <TextIn name="limbah" inputMode="decimal" value={limbah} onChange={(e) => setLimbah(e.target.value)} />
         </Field>
-        <Field label="Susut, total (kg)" error={state?.kolom?.susut?.[0]} hint="Kosong = belum ditimbang">
+        <Field label="Susut, total (kg)" error={state?.kolom?.susut?.[0]} hint="Biarin kosong kalau belum ditimbang.">
           <TextIn name="susut" inputMode="decimal" value={susut} onChange={(e) => setSusut(e.target.value)} />
         </Field>
       </div>
@@ -188,7 +188,7 @@ function Selesaikan({ id }: { id: string }) {
       <input type="hidden" name="produksiId" value={id} />
       <Pesan state={state} />
       <KonfirmasiDua full label="Selesaikan produksi" labelYa="Ya, selesaikan" pending={pending}
-        pesan="Setelah selesai, loin dan komponen terkunci dan masuk pemeriksaan QC. Lanjutkan?" />
+        pesan="Habis diselesaikan, loin dan komponen dikunci terus masuk pemeriksaan QC. Lanjut?" />
     </form>
   );
 }
@@ -201,12 +201,12 @@ function PeriksaQc({ p }: { p: Detail["produksi"] }) {
       <input type="hidden" name="produksiId" value={p.id} />
       <Pesan state={state} />
       {adaSelisih && (
-        <Field label={`Penjelasan selisih ${kgTeks(p.belum_jelas_kg)} kg`} hint="Wajib diisi, atau teruskan ke Owner yang boleh menerima selisih apa adanya.">
+        <Field label={`Penjelasan selisih ${kgTeks(p.belum_jelas_kg)} kg`} hint="Wajib diisi. Atau terusin ke Owner, nanti Owner yang boleh nerima selisihnya apa adanya.">
           <TextIn name="penjelasan" maxLength={500} placeholder="Misalnya: tulang tengah dan darah belum ditimbang" />
         </Field>
       )}
       <KonfirmasiDua full label="Tandai sudah diperiksa (QC)" labelYa="Ya, sudah saya periksa" pending={pending}
-        pesan="Anda memastikan timbangan dan neraca sudah benar. Produksi lalu menunggu Owner." />
+        pesan="Timbangan dan neraca udah dicek dan benar. Habis ini produksi tinggal nunggu Owner." />
     </form>
   );
 }
@@ -225,7 +225,7 @@ function SetujuiOwner({ p }: { p: Detail["produksi"] }) {
         </label>
       )}
       <KonfirmasiDua full label="Setujui produksi (Owner)" labelYa="Ya, setujui" pending={pending}
-        pesan="Produksi dinyatakan diperiksa dan tidak bisa diubah lagi. Lanjutkan?" />
+        pesan="Produksi dianggap udah diperiksa dan nggak bisa diubah lagi. Lanjut?" />
     </form>
   );
 }
@@ -274,7 +274,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         <Pill t={LABEL_PRODUKSI[p.status]} />
         {p.siklus_kode && <Pill t={p.siklus_kode} />}
         <span className="ml-auto flex gap-2">
-          <Btn size="sm" v="light" onClick={() => { if (!cetakFormulir(detail, namaGrade, namaSamping)) alert("Jendela cetak diblokir browser. Izinkan pop-up lalu coba lagi."); }}>Cetak formulir</Btn>
+          <Btn size="sm" v="light" onClick={() => { if (!cetakFormulir(detail, namaGrade, namaSamping)) alert("Jendela cetak diblokir browser. Izinkan pop-up dulu, terus coba lagi."); }}>Cetak formulir</Btn>
         </span>
       </div>
 
@@ -293,7 +293,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
       {caraAktif === "total" ? (
         <Bagian judul="Loin total per grade" kanan={bolehEdit && !adaTotal && <Btn size="sm" v="ghost" onClick={() => setCara("potong")}>Timbang per potong</Btn>}>
           {bolehEdit ? <FormLoinTotal key={p.id} detail={detail} grade={grade} /> : <DaftarLoinTotal total={detail.total} namaGrade={namaGrade} />}
-          {bolehEdit && <p className="mt-2 text-[12px]" style={{ color: MUTED }}>Cukup isi berat total loin tiap grade. Kalau perlu menimbang satu per satu, pakai Timbang per potong sebelum mengisi total.</p>}
+          {bolehEdit && <p className="mt-2 text-[12px]" style={{ color: MUTED }}>Cukup isi berat total loin tiap grade. Kalau mau nimbang satu per satu, pakai Timbang per potong sebelum ngisi total.</p>}
         </Bagian>
       ) : (
         <Bagian judul="Loin per potong" kanan={bolehEdit && !adaPotong && <Btn size="sm" v="ghost" onClick={() => setCara("total")}>Isi total per grade</Btn>}>
@@ -332,7 +332,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
           </Inner>
           {p.status === "diperiksa" && (
             <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>
-              Produksi sudah disetujui. Supaya hasilnya bisa dipilih di pesanan, masukkan ke stok lewat menu <a href="/stok" className="font-medium underline">Stok</a>, tombol Hasil produksi masuk.
+              Produksi udah disetujui. Biar hasilnya bisa dipilih di pesanan, masukin ke stok lewat menu <a href="/stok" className="font-medium underline">Stok</a>, tombol Hasil produksi masuk.
             </p>
           )}
           {berjalan && bolehTulis && <Selesaikan id={p.id} />}

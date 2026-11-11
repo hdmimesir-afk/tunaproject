@@ -6,7 +6,7 @@ export function TanpaIzin() {
   return (
     <Card>
       <Inner>
-        <p className="text-[14px] leading-relaxed" style={{ color: INK }}>Peran Anda tidak punya izin untuk membuka halaman ini. Hubungi pengelola akses bila ini keliru.</p>
+        <p className="text-[14px] leading-relaxed" style={{ color: INK }}>Peran ini nggak punya izin buat buka halaman ini. Kalau ternyata keliru, hubungi pengelola akses.</p>
       </Inner>
     </Card>
   );

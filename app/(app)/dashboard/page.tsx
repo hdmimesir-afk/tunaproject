@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Dashboard" };
 export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Ringkasan dulu, rincian saat diketuk" judul="Dashboard" />
+      <Judul kicker="Ringkasannya dulu, rinciannya tinggal diketuk" judul="Dashboard" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <DashboardData />

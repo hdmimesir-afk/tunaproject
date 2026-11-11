@@ -44,9 +44,9 @@ const kgInput = (n: number | null | undefined) => (n === null || n === undefined
 type BarisForm = { id?: string; unit_id: string; kg: string; harga: string };
 
 const SEBAB_TERTUNDA: Record<HasilTertunda["sebab"], string> = {
-  belum_stok: "sudah disetujui, tapi belum dimasukkan ke stok. Masukkan dulu di menu Stok lewat tombol Hasil produksi masuk.",
-  tunggu_qc: "masih menunggu pemeriksaan QC.",
-  tunggu_owner: "masih menunggu persetujuan Owner.",
+  belum_stok: "udah disetujui, tapi belum masuk stok. Masukin dulu di menu Stok lewat tombol Hasil produksi masuk.",
+  tunggu_qc: "masih nunggu dicek QC.",
+  tunggu_owner: "masih nunggu persetujuan Owner.",
 };
 
 /** Daftar hasil produksi yang belum bisa dipilih beserta langkah yang kurang, supaya tidak dikira hilang. */
@@ -86,7 +86,7 @@ function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, tertunda = [], 
         </Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={awal?.pesanan.tanggal ?? hariIni} required /></Field>
       </div>
-      <Field label="Proyek" hint="Supaya masuk laba rugi proyek. Boleh kosong.">
+      <Field label="Proyek" hint="Biar masuk laba rugi proyek. Boleh dikosongin.">
         <select name="siklusId" className={pilihCls} defaultValue={awal?.pesanan.cycle_id ?? ""}><option value="">Tanpa proyek</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
       <div className="space-y-2">
@@ -113,7 +113,7 @@ function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, tertunda = [], 
         })}
         <Btn size="sm" v="light" onClick={() => setBaris((b) => [...b, { unit_id: "", kg: "", harga: "" }])}>+ Tambah baris</Btn>
       </div>
-      <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} defaultValue={awal?.pesanan.catatan ?? ""} /></Field>
+      <Field label="Catatan" hint="Boleh dikosongin."><TextIn name="catatan" maxLength={300} defaultValue={awal?.pesanan.catatan ?? ""} /></Field>
       <div className="flex justify-between text-[14px] font-semibold" style={{ color: INK }}><span>Perkiraan total</span><span>{rp(hitung)}</span></div>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : awal ? "Simpan perubahan" : "Simpan pesanan (draf)"}</Btn>
     </form>
@@ -130,7 +130,7 @@ function FormKirim({ d }: { d: DetailPesanan }) {
       <input type="hidden" name="pesananId" value={d.pesanan.id} />
       <input type="hidden" name="baris" value={JSON.stringify(nilai)} />
       <PesanForm state={state} />
-      <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat hasil timbang saat kirim. Berat diterima pembeli boleh menyusul.</p>
+      <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat hasil timbang pas kirim. Berat yang diterima pembeli boleh nyusul.</p>
       {d.baris.map((b, i) => (
         <div key={b.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-2xl bg-white p-2.5 text-[13px]">
           <span>{b.unit_kode} · {b.product_nama}{b.grade_kode ? ` ${b.grade_kode}` : ""}<span className="block text-[11.5px]" style={{ color: MUTED }}>dipesan {kgTeks(b.kg_pesan)}</span></span>
@@ -138,7 +138,7 @@ function FormKirim({ d }: { d: DetailPesanan }) {
           <input aria-label={`Berat diterima ${b.unit_kode}`} inputMode="decimal" placeholder="diterima" className="h-10 w-24 rounded-xl border border-[#E2E4EA] px-3 text-right" value={nilai[i].diterima} onChange={(e) => ubah(i, "diterima", e.target.value)} />
         </div>
       ))}
-      <KonfirmasiDua full label="Kirim pesanan" labelYa="Ya, kirim dan kurangi stok" pending={pending} pesan="Stok langsung berkurang sebesar berat kirim. Lanjutkan?" />
+      <KonfirmasiDua full label="Kirim pesanan" labelYa="Ya, kirim dan kurangi stok" pending={pending} pesan="Stok langsung berkurang sesuai berat kirim. Lanjut?" />
     </form>
   );
 }
@@ -151,7 +151,7 @@ function FormDiterima({ d }: { d: DetailPesanan }) {
       <input type="hidden" name="pesananId" value={d.pesanan.id} />
       <input type="hidden" name="baris" value={JSON.stringify(nilai)} />
       <PesanForm state={state} />
-      <p className="text-[12.5px]" style={{ color: MUTED }}>Tagihan memakai berat diterima pembeli bila diisi. Isi sebelum invoice terbit.</p>
+      <p className="text-[12.5px]" style={{ color: MUTED }}>Kalau berat diterima pembeli diisi, tagihannya pakai berat itu. Isinya sebelum invoice terbit.</p>
       {d.baris.map((b, i) => (
         <div key={b.id} className="flex items-center justify-between gap-2 rounded-2xl bg-white p-2.5 text-[13px]">
           <span>{b.unit_kode} · dikirim {kgTeks(b.kg_kirim ?? 0)}</span>
@@ -170,7 +170,7 @@ function TerbitInvoice({ id }: { id: string }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="pesananId" value={id} />
       <PesanForm state={state} />
-      <KonfirmasiDua full label="Terbitkan invoice" labelYa="Ya, terbitkan invoice" pending={pending} pesan="Invoice dibuat dari berat diterima (atau dikirim) dengan jatuh tempo sesuai tempo pembeli." />
+      <KonfirmasiDua full label="Terbitkan invoice" labelYa="Ya, terbitkan invoice" pending={pending} pesan="Invoice dibikin dari berat yang diterima (atau yang dikirim). Jatuh temponya ikut tempo pembeli." />
     </form>
   );
 }
@@ -184,7 +184,7 @@ function BatalPesanan({ id }: { id: string }) {
       <input type="hidden" name="pesananId" value={id} />
       <PesanForm state={state} />
       <Field label="Alasan membatalkan" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required /></Field>
-      <KonfirmasiDua full size="sm" label="Batalkan pesanan" labelYa="Ya, batalkan pesanan" pending={pending} pesan="Pesanan dibatalkan dan stok yang dipesan dilepas." />
+      <KonfirmasiDua full size="sm" label="Batalkan pesanan" labelYa="Ya, batalkan pesanan" pending={pending} pesan="Pesanan dibatalin, terus stok yang tadinya dipesan dilepas lagi." />
     </form>
   );
 }
@@ -262,7 +262,7 @@ function FormBayar({ inv, hariIni }: { inv: Invoice; hariIni: string }) {
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={hariIni} required /></Field>
       </div>
       <Field label="Catatan" hint="Misalnya DP atau pelunasan."><TextIn name="catatan" maxLength={300} /></Field>
-      <KonfirmasiDua size="sm" label="Catat pembayaran masuk" labelYa="Ya, catat pembayaran" pending={pending} pesan={`Catat uang masuk ${rp(Number(jumlah.replace(/\./g, "").replace(",", ".")) || 0)} untuk ${inv.kode}?`} />
+      <KonfirmasiDua size="sm" label="Catat pembayaran masuk" labelYa="Ya, catat pembayaran" pending={pending} pesan={`Catat uang masuk ${rp(Number(jumlah.replace(/\./g, "").replace(",", ".")) || 0)} buat ${inv.kode}?`} />
     </form>
   );
 }
@@ -276,7 +276,7 @@ function BatalInvoice({ id }: { id: string }) {
       <input type="hidden" name="invoiceId" value={id} />
       <PesanForm state={state} />
       <Field label="Alasan membatalkan" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required /></Field>
-      <KonfirmasiDua full size="sm" label="Batalkan invoice" labelYa="Ya, batalkan invoice" pending={pending} pesan="Invoice dibatalkan. Pesanan bisa ditagih ulang dengan invoice baru." />
+      <KonfirmasiDua full size="sm" label="Batalkan invoice" labelYa="Ya, batalkan invoice" pending={pending} pesan="Invoice dibatalin. Pesanannya nanti bisa ditagih lagi pakai invoice baru." />
     </form>
   );
 }
@@ -330,7 +330,7 @@ function InvoiceModal({ d, bolehInvoice, bolehBayar, bolehDokumen, hariIni, onTu
 
       <div className="flex flex-wrap items-center gap-2">
         {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 items-center rounded-full bg-white px-3.5 text-[12.5px] font-medium" style={{ color: INK, boxShadow: "0 1px 2px rgba(20,24,40,.08)" }}>Kirim pengingat (WhatsApp)</a>}
-        {inv.sisa > 0 && !wa && <span className="text-[12px]" style={{ color: MUTED }}>Nomor pembeli belum terbaca untuk WhatsApp. Lengkapi kontak di Pengaturan.</span>}
+        {inv.sisa > 0 && !wa && <span className="text-[12px]" style={{ color: MUTED }}>Nomor pembeli belum kebaca buat WhatsApp. Lengkapin kontaknya di Pengaturan.</span>}
         {bolehInvoice && inv.status_terbit === "terbit" && inv.dibayar === 0 && <BatalInvoice id={inv.id} />}
       </div>
     </Modal>
@@ -361,7 +361,7 @@ function InvoiceJasa({ jasa }: { jasa: JasaBelumDitagih[] }) {
           <span className="flex-1">{j.kode} · {j.jenis === "abf" ? "ABF" : "Simpan"} · {kgTeks(j.kg_dasar)}</span><b>{rp(j.jumlah)}</b>
         </label>
       ))}
-      {pilih.length > 0 && <KonfirmasiDua full size="sm" label={`Terbitkan invoice jasa · ${rp(total)}`} labelYa="Ya, terbitkan invoice jasa" pending={pending} pesan={`Invoice jasa gudang dingin sebesar ${rp(total)} akan dibuat dengan rincian hitungan.`} />}
+      {pilih.length > 0 && <KonfirmasiDua full size="sm" label={`Terbitkan invoice jasa · ${rp(total)}`} labelYa="Ya, terbitkan invoice jasa" pending={pending} pesan={`Invoice jasa gudang dingin sebesar ${rp(total)} bakal dibikin, lengkap sama rincian hitungannya.`} />}
     </form>
   );
 }
@@ -384,7 +384,7 @@ export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa,
 
       <Card title="Pesanan jual" right={bolehBuat && <Btn size="sm" onClick={() => setBaru(true)}>Buat pesanan</Btn>}>
         <DaftarPesanan rows={pesanan} onBuka={(id) => router.push(`/penjualan?p=${id}`)}
-          kosong={bolehBuat ? "Belum ada pesanan. Ketuk Buat pesanan dan pilih dari stok." : "Belum ada pesanan."} />
+          kosong={bolehBuat ? "Belum ada pesanan. Ketuk Buat pesanan, terus pilih dari stok." : "Belum ada pesanan."} />
       </Card>
 
       <Card title="Piutang dan invoice">

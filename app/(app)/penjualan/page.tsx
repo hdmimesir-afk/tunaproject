@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Penjualan" };
 export default function PenjualanPage(props: PageProps<"/penjualan">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Pesanan, kirim, tagihan, dan uang masuk" judul="Penjualan" />
+      <Judul kicker="Dari pesanan, kirim barang, nagih, sampai uang masuk" judul="Penjualan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <PenjualanData searchParams={props.searchParams} />

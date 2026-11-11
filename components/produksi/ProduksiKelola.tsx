@@ -50,7 +50,7 @@ function FormMulai({ lotSiap, hariIni, onSelesai }: { lotSiap: LotSiap[]; hariIn
       <input type="hidden" name="alokasi" value={JSON.stringify(alokasi)} />
       {state?.error && <div role="alert" className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{state.error}</div>}
       {lotSiap.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang lulus mutu dan masih bersisa. Cek mutu lot dulu di menu Mutu dan Penerimaan.</p>
+        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang lulus mutu dan masih ada sisanya. Cek mutu lotnya dulu di menu Mutu dan Penerimaan.</p>
       ) : (
         <div className="space-y-2">
           <p className="text-[12px] font-medium" style={{ color: MUTED }}>Pilih lot yang masuk produksi ini</p>
@@ -97,7 +97,7 @@ export function ProduksiKelola({ daftar, lotSiap, grade, samping, pengguna, deta
       <Card title="Daftar produksi" right={bolehTulis && <Btn size="sm" onClick={() => setMulai(true)}>Mulai produksi</Btn>}>
         <DataList
           rows={daftar}
-          empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai produksi dan pilih lot yang lulus mutu." : "Belum ada produksi."}
+          empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai produksi, terus pilih lot yang lulus mutu." : "Belum ada produksi."}
           cari={(p) => `${p.kode} ${p.siklus_kode ?? ""} ${p.status.replace("_", " ")} ${p.tanggal}`}
           cols={[
             { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.siklus_kode ? ` · ${p.siklus_kode}` : ""}</span></> },

@@ -33,7 +33,7 @@ export async function periksa(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const { error } = await supabase.rpc("periksa_persetujuan", { p_approval: id.data, p_catatan: catatan.success ? catatan.data : "" });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: "Diperiksa. Menunggu persetujuan Owner." };
+  return { pesan: "Udah diperiksa. Tinggal nunggu persetujuan Owner." };
 }
 
 /** Setujui satu atau banyak. Total yang tampil di layar konfirmasi dikirim lagi dan harus cocok dengan database. */
@@ -43,7 +43,7 @@ export async function setujui(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const ids = z.array(IdApv).min(1, "Pilih minimal satu persetujuan").max(100).safeParse(fd.getAll("id"));
   if (!ids.success) return { error: ids.error.issues[0].message };
   const total = z.coerce.number().min(0).safeParse(fd.get("total"));
-  if (!total.success) return { error: "Total konfirmasi tidak valid. Muat ulang halaman." };
+  if (!total.success) return { error: "Total konfirmasinya nggak valid. Muat ulang halaman." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("setujui_persetujuan", { p_ids: ids.data, p_total_konfirmasi: total.data });
   if (error) return { error: pesanDb(error) };
@@ -77,5 +77,5 @@ export async function mintaRevisi(_: HasilForm, fd: FormData): Promise<HasilForm
   const { error } = await supabase.rpc("minta_revisi", { p_approval: id.data, p_alasan: alasan.data });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: "Dikembalikan ke pengaju untuk direvisi." };
+  return { pesan: "Udah dibalikin ke yang ngajuin buat direvisi." };
 }

@@ -30,14 +30,14 @@ function FormTutup({ b, onTutup }: { b: BukuBulanan; onTutup: () => void }) {
         </div>
       </Inner>
       <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
-        Setelah ditutup, pembayaran, biaya, dan catatan kas bertanggal di bulan ini tidak bisa ditambah atau diubah. Hanya Owner yang bisa membukanya kembali, dengan alasan tercatat.
+        Kalau udah ditutup, pembayaran, biaya, sama catatan kas yang tanggalnya di bulan ini nggak bisa ditambah atau diubah lagi. Cuma Owner yang bisa buka lagi, dan alasannya dicatat.
       </p>
-      <Field label="Catatan penutupan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
+      <Field label="Catatan penutupan" hint="Boleh dikosongin."><TextIn name="catatan" maxLength={300} /></Field>
       <label className="flex items-start gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
         <input type="checkbox" name="akui" className="mt-0.5 h-4 w-4 accent-[#00171F]" />
-        <span>Tutup meskipun ada transaksi bulan ini yang belum punya nota atau bukti (bila ada, sistem akan memberi tahu jumlahnya).</span>
+        <span>Tetap tutup walaupun ada transaksi bulan ini yang belum ada nota atau buktinya (kalau ada, nanti sistem kasih tahu jumlahnya).</span>
       </label>
-      <KonfirmasiDua full label={`Tutup buku ${namaBulan(b.bulan)}`} labelYa="Ya, tutup dan kunci bulan ini" pending={pending} pesan={`Buku ${namaBulan(b.bulan)} dikunci dengan saldo akhir ${rp(b.saldo_akhir)}.`} />
+      <KonfirmasiDua full label={`Tutup buku ${namaBulan(b.bulan)}`} labelYa="Ya, tutup dan kunci bulan ini" pending={pending} pesan={`Buku ${namaBulan(b.bulan)} bakal dikunci, saldo akhirnya ${rp(b.saldo_akhir)}.`} />
     </form>
   );
 }
@@ -49,9 +49,9 @@ function FormBuka({ b, onTutup }: { b: BukuBulanan; onTutup: () => void }) {
     <form action={action} className="space-y-3">
       <input type="hidden" name="bulan" value={kode(b.bulan)} />
       <PesanForm state={state?.error ? state : undefined} />
-      <p className="text-[13px]" style={{ color: MUTED }}>Ditutup {waktu(b.ditutup_pada)}{b.catatan ? ` · "${b.catatan}"` : ""}. Sudah pernah dibuka kembali {b.dibuka_kali} kali.</p>
-      <Field label="Alasan membuka kembali" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required placeholder="Misalnya nota menyusul atau salah jumlah" /></Field>
-      <KonfirmasiDua full label="Buka kembali" labelYa="Ya, buka kembali bulan ini" pending={pending} pesan="Transaksi di bulan ini bisa ditambah atau diubah lagi. Alasan ini tercatat." />
+      <p className="text-[13px]" style={{ color: MUTED }}>Ditutup {waktu(b.ditutup_pada)}{b.catatan ? ` · "${b.catatan}"` : ""}. Udah pernah dibuka lagi {b.dibuka_kali} kali.</p>
+      <Field label="Alasan membuka kembali" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required placeholder="Misalnya nota nyusul atau salah jumlah" /></Field>
+      <KonfirmasiDua full label="Buka kembali" labelYa="Ya, buka kembali bulan ini" pending={pending} pesan="Transaksi di bulan ini jadi bisa ditambah atau diubah lagi. Alasannya ikut dicatat." />
     </form>
   );
 }
@@ -82,7 +82,7 @@ export function Periode({ buku, bolehTutup }: { buku: BukuBulanan[]; bolehTutup:
         }}
       />
       <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>
-        Ditutup berurutan dari bulan tertua. Biaya yang masih menunggu keputusan menahan penutupan. Bulan yang ditutup terkunci di database, termasuk dari impor dan jalur lain.
+        Tutupnya urut dari bulan paling lama. Kalau masih ada biaya yang nunggu keputusan, bulannya belum bisa ditutup. Bulan yang udah ditutup dikunci di database, jadi impor atau jalur lain juga nggak bisa ngubah.
       </p>
       {tutup && <Modal title={`Tutup buku ${namaBulan(tutup.bulan)}`} onClose={() => setTutup(null)}><FormTutup b={tutup} onTutup={() => setTutup(null)} /></Modal>}
       {buka && <Modal title={`Buka kembali ${namaBulan(buka.bulan)}`} onClose={() => setBuka(null)}><FormBuka b={buka} onTutup={() => setBuka(null)} /></Modal>}

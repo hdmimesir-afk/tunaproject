@@ -71,7 +71,7 @@ function Tindakan({ daftar }: { daftar: ItemTindakan[] }) {
       {daftar.length === 0 ? (
         <div className="flex items-center gap-3 rounded-2xl bg-[#DDF3E8] px-3.5 py-3.5">
           <Icon n="check" s={20} c="#0B6B4A" />
-          <div className="text-[13.5px]" style={{ color: "#0B6B4A" }}><b className="font-semibold">Semua beres.</b> Tidak ada yang menunggu keputusan atau pemeriksaan Anda.</div>
+          <div className="text-[13.5px]" style={{ color: "#0B6B4A" }}><b className="font-semibold">Semua beres.</b> Nggak ada yang lagi nunggu keputusan atau pemeriksaan.</div>
         </div>
       ) : (
         <>
@@ -166,8 +166,8 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
               {izin.keuangan && <Angka href="/keuangan" icon="cash" label="Kas bulan ini" nilai={rp(selisih)} tone={selisih < 0 ? "warn" : selisih > 0 ? "ok" : undefined}
                 catatan={`Masuk ${rp(d.kas_masuk_bulan_ini)} · keluar ${rp(d.kas_keluar_bulan_ini)}`} />}
               {izin.penjualan && <Angka href="/penjualan" icon="truck" label="Piutang" nilai={rp(d.piutang)} tone={d.invoice_terlambat > 0 ? "warn" : undefined}
-                catatan={d.invoice_terlambat > 0 ? `${d.invoice_terlambat} invoice terlambat (${rp(d.piutang_terlambat)})` : "Tidak ada yang terlambat"} />}
-              {izin.pembelian && <Angka href="/pembelian" icon="cart" label="Utang ke pemasok" nilai={rp(d.hutang_pemasok)} catatan="PO disetujui yang belum lunas" />}
+                catatan={d.invoice_terlambat > 0 ? `${d.invoice_terlambat} invoice terlambat (${rp(d.piutang_terlambat)})` : "Nggak ada yang telat"} />}
+              {izin.pembelian && <Angka href="/pembelian" icon="cart" label="Utang ke pemasok" nilai={rp(d.hutang_pemasok)} catatan="PO yang udah disetujui tapi belum lunas" />}
               {izin.stok && <Angka href="/stok" icon="box" label="Stok sendiri" nilai={kgT(d.stok_sendiri_kg)} catatan={`Titipan pelanggan ${kgT(d.stok_titipan_kg)}`} />}
             </div>
           )}
@@ -180,7 +180,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
 
           {izin.keuangan && (
             <Bagian judul="Arus kas 6 bulan terakhir" kanan={<Selengkapnya href="/keuangan" label="Buku kas" />}>
-              {adaKas ? <ArusKas buku={buku} /> : <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada transaksi kas. Pembayaran, biaya yang disetujui, dan impor akan muncul di sini.</p>}
+              {adaKas ? <ArusKas buku={buku} /> : <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada transaksi kas. Nanti pembayaran, biaya yang disetujui, sama data impor muncul di sini.</p>}
             </Bagian>
           )}
 
@@ -193,10 +193,10 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
                   <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="chart" label="Laba kotor" nilai={rp(siklus.laba_kotor)} tone={siklus.laba_kotor < 0 ? "warn" : siklus.pendapatan_total > 0 ? "ok" : undefined}
                     catatan={siklus.margin_pct !== null ? `Margin ${persen(Number(siklus.margin_pct))}` : undefined} />
                   <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="factory" label="Hasil olahan" nilai={(siklus.kg_diolah ?? siklus.kg_ikan) > 0 ? persen((siklus.loin_kg / (siklus.kg_diolah ?? siklus.kg_ikan)) * 100) : "-"}
-                    catatan={siklus.kg_diolah !== undefined ? `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_diolah)} yang sudah diolah` : `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_ikan)}`} />
+                    catatan={siklus.kg_diolah !== undefined ? `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_diolah)} yang udah diolah` : `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_ikan)}`} />
                 </div>
               ) : (
-                <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada proyek. Laba rugi tampil di sini setelah ada pembelian, produksi, dan penjualan.</p>
+                <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada proyek. Laba rugi baru muncul di sini kalau udah ada pembelian, produksi, sama penjualan.</p>
               )}
             </Bagian>
           )}
@@ -210,7 +210,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
                   <Icon n={d.dokumen_kurang > 0 ? "note" : "check"} s={17} c={d.dokumen_kurang > 0 ? "#8A5A00" : "#0B6B4A"} />
                 </span>
                 <div className="min-w-0 text-[13px] leading-snug" style={{ color: INK }}>
-                  {d.dokumen_kurang > 0 ? <><b className="text-[17px] font-semibold tabular-nums">{d.dokumen_kurang}</b> transaksi belum punya nota atau bukti</> : <>Semua transaksi punya nota atau bukti.</>}
+                  {d.dokumen_kurang > 0 ? <><b className="text-[17px] font-semibold tabular-nums">{d.dokumen_kurang}</b> transaksi belum punya nota atau bukti</> : <>Semua transaksi udah ada nota atau buktinya.</>}
                 </div>
               </div>
             </Bagian>

@@ -123,7 +123,7 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
     const isi = baris.filter((b) => !barisKosong(b));
     setDicoba(true);
     if (isi.length === 0) return setStatus({ jenis: "gagal", pesan: "Belum ada loin yang diisi." });
-    if (periksaBaris(isi).size > 0) return setStatus({ jenis: "gagal", pesan: "Ada baris yang belum benar. Lihat tanda merah." });
+    if (periksaBaris(isi).size > 0) return setStatus({ jenis: "gagal", pesan: "Ada baris yang masih salah. Cek yang ditandai merah." });
     setStatus({ jenis: "menyimpan" });
     mulai(async () => {
       try {
@@ -142,7 +142,7 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
       } catch {
         // Jaringan putus: isian tetap ada di layar dan di perangkat; dikirim otomatis saat sinyal kembali.
         void simpanDraf(produksiId, baris);
-        setStatus({ jenis: "gagal", pesan: "Tidak ada sinyal. Isian aman di perangkat dan akan dikirim saat sinyal kembali." });
+        setStatus({ jenis: "gagal", pesan: "Tidak ada sinyal. Isiannya aman di perangkat, nanti dikirim sendiri pas sinyal balik." });
       }
     });
   };
@@ -157,7 +157,7 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
 
   const pakaiDraf = () => { if (draf) { setBaris(draf); setKotor(true); setStatus({ jenis: "kotor" }); } setDraf(null); };
   const buangDraf = () => { void hapusDraf(produksiId); setDraf(null); };
-  const ambilServer = () => { setBaris(dariServer(loin)); setKonflik([]); setKotor(false); setDicoba(false); void hapusDraf(produksiId); setStatus({ jenis: "bersih", pesan: "Memakai data terbaru dari server." }); };
+  const ambilServer = () => { setBaris(dariServer(loin)); setKonflik([]); setKotor(false); setDicoba(false); void hapusDraf(produksiId); setStatus({ jenis: "bersih", pesan: "Sekarang pakai data terbaru dari server." }); };
 
   const unduhBerkas = () => {
     const isi = baris.filter((b) => !barisKosong(b) && keGram(b.kg) !== null)
@@ -173,7 +173,7 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
   };
 
   const warna = status.jenis === "gagal" ? "#A8322B" : status.jenis === "kotor" ? "#8A5A00" : status.jenis === "menyimpan" ? MUTED : "#0B6B4A";
-  const label = status.pesan ?? (status.jenis === "kotor" ? "Belum disimpan ke server. Draf tersimpan di perangkat." : status.jenis === "menyimpan" ? "Menyimpan..." : "Semua tersimpan di server.");
+  const label = status.pesan ?? (status.jenis === "kotor" ? "Belum disimpan ke server. Drafnya udah aman di perangkat." : status.jenis === "menyimpan" ? "Menyimpan..." : "Semua tersimpan di server.");
 
   return (
     <div ref={wadah} className="space-y-3">
@@ -304,7 +304,7 @@ function FormBatal({ baris, onTutup }: { baris: BarisLoin; onTutup: () => void }
   });
   return (
     <Modal title={`Batalkan loin nomor ${baris.noLoin}`} onClose={onTutup}>
-      <p className="text-[13px]" style={{ color: MUTED }}>Loin {baris.kg} kg ini tidak dihitung lagi, tetapi tetap tercatat di riwayat. Tulis alasannya.</p>
+      <p className="text-[13px]" style={{ color: MUTED }}>Loin {baris.kg} kg ini nggak dihitung lagi, tapi tetap kecatat di riwayat. Tulis alasannya.</p>
       {galat && <div role="alert" className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{galat}</div>}
       <input className="h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]" aria-label="Alasan" placeholder="Misalnya salah timbang" maxLength={300}
         value={alasan} onChange={(e) => setAlasan(e.target.value)} />

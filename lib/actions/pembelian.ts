@@ -41,10 +41,10 @@ export async function tambahPemasok(input: z.input<typeof PemasokBaru>): Promise
   const a = await izin("master.write");
   if (a.tolak) return a.tolak;
   const p = PemasokBaru.safeParse(input);
-  if (!p.success) return { error: p.error.issues[0]?.message ?? "Data pemasok tidak valid." };
+  if (!p.success) return { error: p.error.issues[0]?.message ?? "Data pemasoknya nggak valid." };
   const supabase = await createClient();
   const { data, error } = await supabase.from("suppliers").insert({ nama: p.data.nama, kontak: p.data.kontak }).select("id, nama").single();
-  if (error || !data) return { error: error?.code === "23505" ? "Nama pemasok ini sudah ada. Pilih dari daftar." : pesanDb(error ?? {}) };
+  if (error || !data) return { error: error?.code === "23505" ? "Nama pemasok ini udah ada. Pilih aja dari daftar." : pesanDb(error ?? {}) };
   refresh();
   return { id: data.id as string, label: data.nama as string };
 }
@@ -59,7 +59,7 @@ export async function simpanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
 
   let cycleId: string | null = null;
   if (p.data.siklusId === "baru") {
-    if (!boleh(a.sesi, "siklus.write")) return { error: "Peran Anda tidak boleh membuat proyek baru. Pilih proyek yang sudah ada." };
+    if (!boleh(a.sesi, "siklus.write")) return { error: "Peran ini nggak boleh bikin proyek baru. Pilih proyek yang udah ada." };
     const { data, error } = await supabase.from("cycles").insert({ tanggal_bongkar: p.data.tanggal }).select("id").single();
     if (error || !data) return { error: pesanDb(error ?? {}) };
     cycleId = data.id as string;
@@ -74,14 +74,14 @@ export async function simpanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
   if (typeof id === "string" && id) {
     const { data, error } = await supabase.from("purchase_orders").update(isi).eq("id", id).select("id");
     if (error) return { error: pesanDb(error) };
-    if (!data?.length) return { error: "PO ini sudah diajukan atau tidak ditemukan, jadi tidak bisa diubah." };
+    if (!data?.length) return { error: "PO ini udah diajukan atau nggak ketemu, jadi nggak bisa diubah." };
     refresh();
     return { id, pesan: "PO disimpan." };
   }
   const { data, error } = await supabase.from("purchase_orders").insert(isi).select("id").single();
   if (error || !data) return { error: pesanDb(error ?? {}) };
   refresh();
-  return { id: data.id as string, pesan: "PO dibuat sebagai draf. Lampirkan nota bila sudah ada, lalu ajukan." };
+  return { id: data.id as string, pesan: "PO udah dibuat sebagai draf. Lampirkan nota kalau udah ada, terus ajukan." };
 }
 
 export async function ajukanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
@@ -95,7 +95,7 @@ export async function ajukanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const { error } = await supabase.rpc("ajukan_po", { p_po: id.data, p_nota_menyusul: menyusul });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: menyusul ? "PO diajukan dengan tanda nota menyusul. Lampirkan notanya begitu ada." : "PO diajukan. Menunggu diperiksa dan disetujui." };
+  return { pesan: menyusul ? "PO diajukan dengan tanda nota menyusul. Notanya tinggal dilampirkan begitu udah ada." : "PO diajukan. Tinggal nunggu diperiksa dan disetujui." };
 }
 
 const FormBayar = z.object({
@@ -114,7 +114,7 @@ export async function catatBayar(_: HasilForm, fd: FormData): Promise<HasilForm>
   const { data, error } = await supabase.rpc("catat_bayar", { p_po: p.data.poId, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { id: data as string, pesan: "Pembayaran dicatat. Lampirkan bukti transfer bila ada." };
+  return { id: data as string, pesan: "Pembayaran udah dicatat. Lampirkan bukti transfer kalau ada." };
 }
 
 /* ------------------------------------------------------------- dokumen */
@@ -135,7 +135,7 @@ export async function catatDokumen(input: InputBerkas): Promise<HasilForm> {
   const a = await izin("dokumen.write");
   if (a.tolak) return a.tolak;
   const p = Berkas.safeParse(input);
-  if (!p.success) return { error: "Berkas tidak valid." };
+  if (!p.success) return { error: "Berkasnya nggak valid." };
   const supabase = await createClient();
   const { data, error } = await supabase.from("documents").insert({
     ref_tabel: p.data.refTabel, ref_id: p.data.refId, jenis: p.data.jenis, path: p.data.path,
@@ -151,11 +151,11 @@ export async function urlDokumen(id: string): Promise<{ url?: string; error?: st
   const a = await izin("dokumen.read");
   if (a.tolak) return { error: a.tolak.error };
   const uuid = z.uuid().safeParse(id);
-  if (!uuid.success) return { error: "Berkas tidak valid." };
+  if (!uuid.success) return { error: "Berkasnya nggak valid." };
   const supabase = await createClient();
   const { data: baris } = await supabase.from("documents").select("path").eq("id", uuid.data).maybeSingle();
-  if (!baris) return { error: "Berkas tidak ditemukan." };
+  if (!baris) return { error: "Berkasnya nggak ketemu." };
   const { data, error } = await supabase.storage.from("dokumen").createSignedUrl(baris.path as string, 60);
-  if (error || !data) return { error: "Berkas tidak bisa dibuka." };
+  if (error || !data) return { error: "Berkasnya nggak bisa dibuka." };
   return { url: data.signedUrl };
 }

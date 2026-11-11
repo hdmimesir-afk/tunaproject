@@ -43,7 +43,7 @@ export async function catatAbsen(input: unknown): Promise<HasilAbsen> {
   const tolak = await izin("absensi.absen");
   if (tolak) return tolak;
   const p = DataAbsen.safeParse(input);
-  if (!p.success) return { error: "Data absen tidak lengkap. Nyalakan GPS dan kamera lalu coba lagi." };
+  if (!p.success) return { error: "Data absennya belum lengkap. Nyalain GPS sama kamera, terus coba lagi." };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("catat_absen", { p_jenis: p.data.jenis, p_lat: p.data.lat, p_lng: p.data.lng, p_akurasi: p.data.akurasi, p_foto: p.data.foto });
   if (error) return { error: pesanDb(error) };
@@ -57,12 +57,12 @@ export async function urlFotoAbsen(id: string): Promise<{ url?: string; error?: 
   const tolak = await izin("absensi.absen");
   if (tolak) return tolak;
   const uuid = z.uuid().safeParse(id);
-  if (!uuid.success) return { error: "Absen tidak valid." };
+  if (!uuid.success) return { error: "Absennya nggak valid." };
   const supabase = await createClient();
   const { data: baris } = await supabase.from("attendance").select("foto_path").eq("id", uuid.data).maybeSingle();
-  if (!baris) return { error: "Foto tidak ditemukan." };
+  if (!baris) return { error: "Fotonya nggak ketemu." };
   const { data, error } = await supabase.storage.from("absensi").createSignedUrl(baris.foto_path as string, 60);
-  if (error || !data) return { error: "Foto tidak bisa dibuka." };
+  if (error || !data) return { error: "Fotonya nggak bisa dibuka." };
   return { url: data.signedUrl };
 }
 
@@ -73,7 +73,7 @@ const Desimal = (nama: string, batas: number) =>
     const t = s.replace(",", ".");
     const n = Number(t);
     if (!/^-?\d{1,3}(\.\d{1,8})?$/.test(t) || Math.abs(n) > batas) {
-      ctx.addIssue({ code: "custom", message: `${nama} tidak valid` });
+      ctx.addIssue({ code: "custom", message: `${nama} nggak valid` });
       return z.NEVER;
     }
     return n;
@@ -101,7 +101,7 @@ export async function simpanLokasiKerja(_: HasilForm, fd: FormData): Promise<Has
     p_id: p.data.id, p_nama: p.data.nama, p_lat: p.data.lat, p_lng: p.data.lng, p_radius: p.data.radius, p_akurasi_maks: p.data.akurasiMaks,
     p_jam_masuk: p.data.jamMasuk, p_toleransi: p.data.toleransi, p_aktif: p.data.aktif === "on",
     p_jam_pulang: p.data.jamPulang, p_jam_masuk_sabtu: p.data.jamMasukSabtu, p_jam_pulang_sabtu: p.data.jamPulangSabtu,
-  }, "Lokasi kerja disimpan.");
+  }, "Lokasi kerja udah disimpan.");
 }
 
 /* ------------------------------------------------------------------- izin */
@@ -115,17 +115,17 @@ const FormIzin = z.object({
 export async function ajukanIzin(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormIzin.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("absensi.absen", "ajukan_izin", { p_jenis: p.data.jenis, p_dari: p.data.dari, p_sampai: p.data.sampai, p_alasan: p.data.alasan }, "Pengajuan terkirim. Menunggu keputusan Owner.");
+  return panggil("absensi.absen", "ajukan_izin", { p_jenis: p.data.jenis, p_dari: p.data.dari, p_sampai: p.data.sampai, p_alasan: p.data.alasan }, "Pengajuan udah terkirim. Tinggal nunggu keputusan Owner.");
 }
 
 export async function putuskanIzin(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ id: z.uuid(), setuju: z.enum(["ya", "tidak"]), catatan: z.string().trim().max(300) }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data tidak valid." };
+  if (!p.success) return { error: "Datanya nggak valid." };
   return panggil("absensi.setuju", "putuskan_izin", { p_id: p.data.id, p_setuju: p.data.setuju === "ya", p_catatan: p.data.catatan }, p.data.setuju === "ya" ? "Pengajuan disetujui." : "Pengajuan ditolak.");
 }
 
 export async function batalkanIzin(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ id: z.uuid() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data tidak valid." };
-  return panggil("absensi.absen", "batalkan_izin", { p_id: p.data.id }, "Pengajuan dibatalkan.");
+  if (!p.success) return { error: "Datanya nggak valid." };
+  return panggil("absensi.absen", "batalkan_izin", { p_id: p.data.id }, "Pengajuan udah dibatalin.");
 }

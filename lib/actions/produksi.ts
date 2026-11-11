@@ -43,7 +43,7 @@ export async function mulaiProduksi(_: HasilForm, fd: FormData): Promise<HasilFo
   const alokasi: { lot_id: string; kg: number }[] = [];
   for (const a of p.data.alokasi) {
     const g = keGram(a.kg);
-    if (g === null) return { error: "Berat dari setiap lot harus lebih dari nol dengan paling banyak tiga desimal." };
+    if (g === null) return { error: "Berat dari tiap lot harus lebih dari nol, paling banyak tiga angka di belakang koma." };
     alokasi.push({ lot_id: a.lot_id, kg: kgDariGram(g) });
   }
   const supabase = await createClient();
@@ -71,12 +71,12 @@ export async function simpanLoin(input: z.input<typeof BatchSchema>): Promise<Ha
   const tolak = await izin("produksi.write");
   if (tolak) return tolak;
   const p = BatchSchema.safeParse(input);
-  if (!p.success) return { error: "Data loin tidak valid. Periksa nomor, grade, dan berat." };
+  if (!p.success) return { error: "Data loin nggak valid. Cek lagi nomor, grade, sama beratnya." };
   const rpcBaris = [];
   for (const b of p.data.baris) {
     const g = keGram(b.kg);
     const no = Number(b.noLoin);
-    if (g === null || !Number.isInteger(no) || no <= 0) return { error: `Loin nomor ${b.noLoin || "?"}: periksa nomor dan berat (maksimal 3 desimal).` };
+    if (g === null || !Number.isInteger(no) || no <= 0) return { error: `Loin nomor ${b.noLoin || "?"}: cek lagi nomor dan beratnya (maksimal 3 desimal).` };
     rpcBaris.push({ id: b.id, no_ekor: b.noEkor.trim() === "" ? null : Number(b.noEkor), no_loin: no, grade_id: b.gradeId, kg: kgDariGram(g), versi: b.versi ?? null });
   }
   const supabase = await createClient();
@@ -91,7 +91,7 @@ export async function batalkanLoin(itemId: string, alasan: string): Promise<{ er
   const tolak = await izin("produksi.write");
   if (tolak) return tolak;
   const p = z.object({ itemId: z.uuid(), alasan: z.string().trim().min(1, "Tulis alasan").max(300) }).safeParse({ itemId, alasan });
-  if (!p.success) return { error: "Tulis alasan membatalkan loin." };
+  if (!p.success) return { error: "Tulis alasan kenapa loin dibatalkan." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("batalkan_loin", { p_item: p.data.itemId, p_alasan: p.data.alasan });
   if (error) return { error: pesanDb(error) };
@@ -117,11 +117,11 @@ export async function simpanLoinTotal(_: HasilForm, fd: FormData): Promise<Hasil
   const tolak = await izin("produksi.write");
   if (tolak) return tolak;
   const p = FormLoinTotal.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data total loin tidak valid." };
+  if (!p.success) return { error: "Data total loin nggak valid." };
   const baris = [];
   for (const b of p.data.baris) {
     const g = gramBolehNol(b.kg);
-    if (g === "salah") return { error: "Berat loin per grade harus angka dengan paling banyak tiga desimal." };
+    if (g === "salah") return { error: "Berat loin per grade harus angka, paling banyak tiga angka di belakang koma." };
     baris.push({ grade_id: b.grade_id, kg: kgDariGram(g ?? 0) });
   }
   const supabase = await createClient();
@@ -148,13 +148,13 @@ export async function simpanEkor(_: HasilForm, fd: FormData): Promise<HasilForm>
   const tolak = await izin("produksi.write");
   if (tolak) return tolak;
   const p = FormEkor.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data ekor tidak valid." };
+  if (!p.success) return { error: "Data ekor nggak valid." };
   const baris = [];
   for (const e of p.data.ekor) {
     if (e.no.trim() === "" && e.kg.trim() === "") continue;
     const g = keGram(e.kg);
     const no = Number(e.no);
-    if (g === null || !Number.isInteger(no) || no <= 0) return { error: "Setiap ekor butuh nomor dan berat lebih dari nol (maksimal 3 desimal)." };
+    if (g === null || !Number.isInteger(no) || no <= 0) return { error: "Tiap ekor butuh nomor dan berat lebih dari nol (maksimal 3 desimal)." };
     baris.push({ no_ekor: no, berat_utuh_kg: kgDariGram(g) });
   }
   const supabase = await createClient();
@@ -190,11 +190,11 @@ export async function simpanKomponen(_: HasilForm, fd: FormData): Promise<HasilF
   const tolak = await izin("produksi.write");
   if (tolak) return tolak;
   const p = FormKomponen.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data komponen tidak valid." };
+  if (!p.success) return { error: "Data komponen nggak valid." };
   const samping = [];
   for (const s of p.data.samping) {
     const g = gramBolehNol(s.kg);
-    if (g === "salah") return { error: "Berat hasil samping harus angka dengan paling banyak tiga desimal." };
+    if (g === "salah") return { error: "Berat hasil samping harus angka, paling banyak tiga angka di belakang koma." };
     if (g !== null) samping.push({ category_id: s.category_id, kg: kgDariGram(g) });
   }
   const limbah = gramBolehNol(p.data.limbah);
@@ -225,19 +225,19 @@ const Id = z.object({ produksiId: z.uuid() });
 
 export async function selesaikanProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = Id.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Produksi tidak valid." };
-  return panggil("produksi.write", "selesaikan_produksi", { p_production: p.data.produksiId }, "Produksi diselesaikan. Menunggu pemeriksaan QC.");
+  if (!p.success) return { error: "Produksinya nggak valid." };
+  return panggil("produksi.write", "selesaikan_produksi", { p_production: p.data.produksiId }, "Produksi udah diselesaikan. Tinggal nunggu pemeriksaan QC.");
 }
 
 export async function periksaProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = Id.extend({ penjelasan: z.string().trim().max(500) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { error: "Penjelasan terlalu panjang." };
-  return panggil("produksi.periksa", "periksa_produksi", { p_production: p.data.produksiId, p_penjelasan: p.data.penjelasan }, "Pemeriksaan QC dicatat. Menunggu Owner.");
+  return panggil("produksi.periksa", "periksa_produksi", { p_production: p.data.produksiId, p_penjelasan: p.data.penjelasan }, "Pemeriksaan QC udah dicatat. Tinggal nunggu Owner.");
 }
 
 export async function setujuiProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = Id.extend({ terimaSelisih: z.string().optional() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Produksi tidak valid." };
+  if (!p.success) return { error: "Produksinya nggak valid." };
   return panggil("produksi.setuju", "setujui_produksi", { p_production: p.data.produksiId, p_terima_selisih: p.data.terimaSelisih === "on" }, "Produksi diperiksa dan disetujui.");
 }
 
@@ -245,5 +245,5 @@ export async function mintaPerbaikan(_: HasilForm, fd: FormData): Promise<HasilF
   const p = Id.extend({ alasan: z.string().trim().min(1, "Tulis apa yang perlu diperbaiki").max(500) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   const aksi = (await izin("produksi.periksa")) ? "produksi.setuju" : "produksi.periksa";
-  return panggil(aksi, "minta_perbaikan_produksi", { p_production: p.data.produksiId, p_alasan: p.data.alasan }, "Produksi dikembalikan untuk diperbaiki.");
+  return panggil(aksi, "minta_perbaikan_produksi", { p_production: p.data.produksiId, p_alasan: p.data.alasan }, "Produksi dibalikin buat diperbaiki.");
 }

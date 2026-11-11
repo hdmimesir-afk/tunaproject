@@ -13,8 +13,8 @@ export function LoginForm() {
   return (
     <form action={action} className="mt-5 space-y-4">
       <input type="hidden" name="next" value={params.get("next") ?? ""} />
-      {nonaktif && !state?.error && <Pesan>Akun belum aktif. Hubungi pengelola akses.</Pesan>}
-      {tautanMati && !state?.error && <Pesan>Tautan sudah tidak berlaku atau sudah dipakai. Minta tautan baru ke pengelola akses.</Pesan>}
+      {nonaktif && !state?.error && <Pesan>Akunnya belum aktif. Coba hubungi pengelola akses.</Pesan>}
+      {tautanMati && !state?.error && <Pesan>Tautan sudah tidak berlaku atau udah kepakai. Minta tautan baru aja ke pengelola akses.</Pesan>}
       {state?.error && <Pesan>{state.error}</Pesan>}
       <Field label="Email" error={state?.kolom?.email?.[0]}>
         <TextIn name="email" type="email" autoComplete="username" required />

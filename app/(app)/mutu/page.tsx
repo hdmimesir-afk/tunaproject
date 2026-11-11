@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Mutu dan Penerimaan" }
 export default function MutuPage() {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Ikan datang, ditimbang, dicek mutunya" judul="Mutu dan Penerimaan" />
+      <Judul kicker="Ikan datang ditimbang, terus dicek mutunya" judul="Mutu dan Penerimaan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <MutuData />

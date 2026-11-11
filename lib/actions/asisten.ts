@@ -40,7 +40,7 @@ Laporan langsung:
 
 async function sesiAsisten() {
   const sesi = await requireSesi();
-  if (!boleh(sesi, "asisten.use")) return { error: "Peran Anda tidak punya izin memakai Asisten." } as const;
+  if (!boleh(sesi, "asisten.use")) return { error: "Peran Anda nggak punya izin buat pakai Asisten." } as const;
   return { sesi } as const;
 }
 
@@ -51,7 +51,7 @@ export async function tanyaCepat(nama: string, periode?: string): Promise<Jawaba
   const s = await sesiAsisten();
   if ("error" in s) return { error: s.error };
   const alat = DAFTAR_ALAT.find((a) => a.nama === nama);
-  if (!alat || !bolehAlat(s.sesi, alat.izin)) return { error: "Alat tidak tersedia untuk peran Anda." };
+  if (!alat || !bolehAlat(s.sesi, alat.izin)) return { error: "Alat ini nggak tersedia buat peran Anda." };
   const sb = await createClient();
   const { data: id, error } = await sb.rpc("mulai_asisten", { p_mode: "cepat", p_pertanyaan: alat.label });
   if (error) return { error: pesanDb(error) };
@@ -61,12 +61,12 @@ export async function tanyaCepat(nama: string, periode?: string): Promise<Jawaba
     return { baris: h.ringkas, tabel: h.tabel, laporan: h.laporan, tautan: h.tautan };
   } catch {
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: [alat.nama], p_masuk: 0, p_keluar: 0, p_status: "gagal" });
-    return { error: "Data tidak bisa dibaca sekarang. Coba lagi sebentar." };
+    return { error: "Datanya lagi nggak bisa dibaca. Coba lagi sebentar." };
   }
 }
 
 const Tanya = z.object({
-  pertanyaan: z.string().trim().min(2, "Tulis pertanyaannya").max(500, "Pertanyaan terlalu panjang (maksimal 500 huruf)"),
+  pertanyaan: z.string().trim().min(2, "Tulis pertanyaannya").max(500, "Pertanyaannya kepanjangan (maksimal 500 huruf)"),
   riwayat: z.array(z.object({ peran: z.enum(["user", "assistant"]), teks: z.string().max(4000) })).max(8),
 });
 
@@ -112,9 +112,9 @@ async function panggilModel(pesan: PesanOr[], tools: unknown[]): Promise<Balasan
 export async function tanyaModel(input: z.input<typeof Tanya>): Promise<JawabanAsisten> {
   const s = await sesiAsisten();
   if ("error" in s) return { error: s.error };
-  if (!modelAktif()) return { error: "Pertanyaan bebas belum diaktifkan (kunci OpenRouter belum dipasang di server). Pakai pertanyaan cepat di bawah." };
+  if (!modelAktif()) return { error: "Pertanyaan bebas belum dinyalain (kunci OpenRouter belum dipasang di server). Pakai pertanyaan cepat di bawah aja." };
   const p = Tanya.safeParse(input);
-  if (!p.success) return { error: z.flattenError(p.error).fieldErrors.pertanyaan?.[0] ?? "Pertanyaan tidak valid." };
+  if (!p.success) return { error: z.flattenError(p.error).fieldErrors.pertanyaan?.[0] ?? "Pertanyaannya nggak valid." };
 
   const sb = await createClient();
   const { data: id, error: eMulai } = await sb.rpc("mulai_asisten", { p_mode: "model", p_pertanyaan: p.data.pertanyaan });
@@ -162,12 +162,12 @@ export async function tanyaModel(input: z.input<typeof Tanya>): Promise<JawabanA
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: dipakai, p_masuk: masuk, p_keluar: keluar, p_status: "selesai" });
     const { data: jatah } = await sb.rpc("jatah_asisten");
     refresh();
-    return { jawaban: jawaban || "Maaf, belum ada jawaban. Coba tanyakan dengan cara lain.", laporan, tautan: [...tautan.values()].slice(0, 8), sisa: (jatah as { sisa: number } | null)?.sisa };
+    return { jawaban: jawaban || "Maaf, belum ada jawaban. Coba tanya pakai kalimat lain.", laporan, tautan: [...tautan.values()].slice(0, 8), sisa: (jatah as { sisa: number } | null)?.sisa };
   } catch (e) {
     await sb.rpc("selesai_asisten", { p_id: id as string, p_alat: dipakai, p_masuk: masuk, p_keluar: keluar, p_status: "gagal" });
-    if (e instanceof GalatModel && (e.status === 401 || e.status === 403)) return { error: "Kunci OpenRouter di server tidak valid. Hubungi pengelola sistem." };
+    if (e instanceof GalatModel && (e.status === 401 || e.status === 403)) return { error: "Kunci OpenRouter di server nggak valid. Hubungi pengelola sistem." };
     if (e instanceof GalatModel && e.status === 402) return { error: "Saldo OpenRouter habis. Hubungi pengelola sistem." };
-    if (e instanceof GalatModel && e.status === 429) return { error: "Asisten sedang ramai. Coba lagi sebentar." };
-    return { error: "Asisten sedang tidak bisa menjawab. Coba pertanyaan cepat atau ulangi sebentar lagi." };
+    if (e instanceof GalatModel && e.status === 429) return { error: "Asisten lagi ramai. Coba lagi sebentar." };
+    return { error: "Asisten lagi nggak bisa jawab. Coba pertanyaan cepat, atau ulangi sebentar lagi." };
   }
 }

@@ -89,7 +89,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
           </button>
         </div>
 
-        {offline && !ringkas && <div className="mx-3 mb-3 rounded-2xl px-3 py-2 text-[11.5px] text-[#E8C27A]" style={{ background: "#1B1D21" }}>Database belum disambungkan: semua menu ditampilkan.</div>}
+        {offline && !ringkas && <div className="mx-3 mb-3 rounded-2xl px-3 py-2 text-[11.5px] text-[#E8C27A]" style={{ background: "#1B1D21" }}>Database belum nyambung, jadi semua menu ditampilkan.</div>}
 
         <nav className="erp-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-3" aria-label="Modul">
           {grup.map((g, i) => (

@@ -68,12 +68,12 @@ function Ajukan({ poId, adaNota, notaWajib, penyetuju }: { poId: string; adaNota
       {perluTanda && (
         <label className="flex items-start gap-2.5 rounded-2xl bg-white px-3.5 py-3 text-[13px]" style={{ color: INK }}>
           <input type="checkbox" name="notaMenyusul" checked={menyusul} onChange={(e) => setMenyusul(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#00171F]" />
-          <span><b className="font-medium">Nota menyusul.</b> Notanya belum ada (misalnya bongkar malam). PO tetap diajukan dan ikan tetap bisa diterima; notanya dilampirkan nanti.</span>
+          <span><b className="font-medium">Nota menyusul.</b> Notanya belum ada, misalnya pas bongkar malam. PO tetap bisa diajukan dan ikannya tetap bisa diterima. Notanya dilampirkan belakangan.</span>
         </label>
       )}
       <KonfirmasiDua full label="Ajukan untuk disetujui" labelYa="Ya, ajukan sekarang" pending={pending} disabled={!siap}
-        pesan={`Setelah diajukan, PO tidak bisa diubah sampai diputuskan.${menyusul && perluTanda ? " PO ditandai nota menyusul." : ""} Lanjutkan?`} />
-      {!siap && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lampirkan nota dulu, atau centang Nota menyusul bila notanya belum ada.</p>}
+        pesan={`Kalau udah diajukan, PO nggak bisa diubah sampai ada keputusan.${menyusul && perluTanda ? " PO-nya ditandai nota menyusul." : ""} Lanjut?`} />
+      {!siap && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lampirkan nota dulu, atau centang Nota menyusul kalau notanya belum ada.</p>}
       {penyetuju && <p className="text-[12px]" style={{ color: MUTED }}>Yang bisa menyetujui: {penyetuju}.</p>}
     </form>
   );
@@ -96,7 +96,7 @@ function FormBayar({ poId, sisa, hariIni }: { poId: string; sisa: number; hariIn
       </div>
       <Field label="Catatan" hint="Misalnya DP atau pelunasan."><TextIn name="catatan" maxLength={300} /></Field>
       <KonfirmasiDua size="sm" label="Catat pembayaran" labelYa="Ya, catat pembayaran" pending={pending}
-        pesan={`Catat pembayaran ${rp(Number(jumlah) || 0)} untuk PO ini? Pastikan nominal sudah benar.`} />
+        pesan={`Catat pembayaran ${rp(Number(jumlah) || 0)} buat PO ini? Cek dulu nominalnya udah benar.`} />
     </form>
   );
 }
@@ -148,12 +148,12 @@ export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, boleh
       <Bagian judul={`Nota dan berkas${notaWajib ? " · nota wajib" : ""}`} kanan={bolehNota && <Unggah refTabel="purchase_orders" refId={po.id} jenis="nota" label={bisaDiedit(po.status_persetujuan) ? "Lampirkan nota" : "Lampirkan nota susulan"} />}>
         <DaftarDokumen dokumen={dokPO} kosong={po.nota_menyusul ? "Nota menyusul, belum dilampirkan." : "Belum ada nota."} />
         {po.nota_menyusul && !adaNota && !bolehNota && bolehDokumen && (
-          <p className="mt-2 text-[12px]" style={{ color: MUTED }}>Nota susulan dilampirkan oleh {namaPemegang(kelengkapan.pemegang, "nota.susulan") || "pemegang tugas yang dipilih admin"}.</p>
+          <p className="mt-2 text-[12px]" style={{ color: MUTED }}>Nota susulan nanti dilampirkan sama {namaPemegang(kelengkapan.pemegang, "nota.susulan") || "pemegang tugas yang dipilih admin"}.</p>
         )}
       </Bagian>
 
       {bisaUbah && <Ajukan poId={po.id} adaNota={adaNota} notaWajib={notaWajib} penyetuju={penyetuju} />}
-      {po.status_persetujuan === "diajukan" && penyetuju && <p className="text-[12.5px]" style={{ color: MUTED }}>Menunggu keputusan dari: {penyetuju}.</p>}
+      {po.status_persetujuan === "diajukan" && penyetuju && <p className="text-[12.5px]" style={{ color: MUTED }}>Lagi nunggu keputusan dari: {penyetuju}.</p>}
 
       {pengajuan.length > 0 && (
         <Bagian judul="Riwayat persetujuan">
@@ -179,7 +179,7 @@ export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, boleh
 
       <Bagian judul={`Penerimaan ikan · ${formatKg(po.kg_diterima)} dari ${formatKg(po.kg)} kg`}>
         {lot.length === 0 ? (
-          <p className="text-[13px]" style={{ color: MUTED }}>Belum ada ikan diterima. Penerimaan dicatat di menu Mutu dan Penerimaan.</p>
+          <p className="text-[13px]" style={{ color: MUTED }}>Belum ada ikan yang diterima. Penerimaannya dicatat di menu Mutu dan Penerimaan.</p>
         ) : (
           <ul className="space-y-1.5">
             {lot.map((l) => (
@@ -202,13 +202,13 @@ export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, boleh
                   <b style={{ color: INK }}>{rp(b.jumlah)}</b>
                 </div>
                 <div className="mt-2 space-y-2">
-                  <DaftarDokumen dokumen={dokumen.filter((d) => d.ref_tabel === "payments" && d.ref_id === b.id)} kosong={buktiWajib ? "Bukti transfer belum ada (wajib)." : "Belum ada bukti transfer."} />
+                  <DaftarDokumen dokumen={dokumen.filter((d) => d.ref_tabel === "payments" && d.ref_id === b.id)} kosong={buktiWajib ? "Bukti transfer belum ada, padahal wajib." : "Belum ada bukti transfer."} />
                   {bolehDokumen && <Unggah refTabel="payments" refId={b.id} jenis="bukti_transfer" label="Lampirkan bukti transfer" />}
                 </div>
               </div>
             ))}
             {bolehBayar && sisa > 0 && <FormBayar poId={po.id} sisa={sisa} hariIni={tanggalIni} />}
-            {bayar.length === 0 && !bolehBayar && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada pembayaran. Dicatat oleh Finance.</p>}
+            {bayar.length === 0 && !bolehBayar && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada pembayaran. Nanti dicatat sama Finance.</p>}
           </div>
         </Bagian>
       )}

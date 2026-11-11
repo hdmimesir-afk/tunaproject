@@ -11,7 +11,7 @@ export function SandiBaruForm({ email, tokenHash, jenis }: { email?: string; tok
   return (
     <form action={action} className="mt-5 space-y-4">
       <p className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
-        {email ? <>Buat kata sandi untuk <b>{email}</b>.</> : "Buat kata sandi untuk akun Anda."} Simpan baik-baik; pengelola akses tidak bisa melihatnya.
+        {email ? <>Bikin kata sandi buat <b>{email}</b>.</> : "Bikin kata sandi buat akun ini."} Simpan baik-baik, pengelola akses juga nggak bisa lihat.
       </p>
       {state?.error && <Pesan>{state.error}</Pesan>}
       {tokenHash && !state?.tokenTerpakai && (

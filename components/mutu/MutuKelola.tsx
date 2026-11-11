@@ -46,7 +46,7 @@ function FormTerima({ poSiap, onSukses }: { poSiap: POSiapTerima[]; onSukses: (p
       <form action={action} className="space-y-3 px-2.5 pb-2.5">
         <Pesan state={state?.error ? state : undefined} />
         {poSiap.length === 0 ? (
-          <p className="text-[13px]" style={{ color: MUTED }}>Tidak ada PO yang menunggu ikan. PO muncul di sini setelah diajukan.</p>
+          <p className="text-[13px]" style={{ color: MUTED }}>Nggak ada PO yang lagi nunggu ikan. PO bakal muncul di sini habis diajukan.</p>
         ) : (
           <>
             <Field label="PO" error={state?.kolom?.poId?.[0]}>
@@ -61,7 +61,7 @@ function FormTerima({ poSiap, onSukses }: { poSiap: POSiapTerima[]; onSukses: (p
             </Field>
             {po && (
               <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }} data-testid="berat-dari-po">
-                Berat dari PO: <b className="tabular-nums">{formatKg(po.kg - po.kg_diterima)} kg</b>. Tidak perlu ditimbang ulang di sini.
+                Berat dari PO: <b className="tabular-nums">{formatKg(po.kg - po.kg_diterima)} kg</b>. Nggak perlu ditimbang ulang di sini.
               </p>
             )}
             <label className="flex items-start gap-2.5 text-[13px]" style={{ color: INK }}>
@@ -79,7 +79,7 @@ function FormTerima({ poSiap, onSukses }: { poSiap: POSiapTerima[]; onSukses: (p
             {belumDisetujui && (
               <label className="flex items-start gap-2.5 rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
                 <input type="checkbox" name="sebelumDisetujui" className="mt-0.5 h-4 w-4 accent-[#8A5A00]" />
-                <span>PO ini belum disetujui. Centang bila ikan sudah datang dan harus dibongkar dulu (bongkar malam). Pembayaran tetap menunggu persetujuan Owner.</span>
+                <span>PO ini belum disetujui. Centang kalau ikannya udah datang dan harus dibongkar dulu (bongkar malam). Pembayaran tetap nunggu persetujuan Owner.</span>
               </label>
             )}
             <Btn type="submit" disabled={pending}>{pending ? "Menyimpan..." : "Catat penerimaan"}</Btn>
@@ -143,7 +143,7 @@ function IsianGrade({ lot, grade, error }: { lot: LotBaris; grade: Opsi[]; error
       <p className="rounded-2xl px-3.5 py-2.5 text-[13px] tabular-nums" data-testid="jumlah-grade"
         style={lebih ? { background: "#FBE5E3", color: "#A8322B" } : sisa > 0 ? { background: "#FBF0D5", color: "#8A5A00" } : { background: "#fff", color: INK }}>
         Jumlah {formatKg(gramIsi / 1000)} kg dari {formatKg(lot.kg)} kg.{" "}
-        {lebih ? `Kelebihan ${formatKg(-sisa / 1000)} kg, kurangi beratnya.` : sisa > 0 ? `${formatKg(sisa / 1000)} kg belum dibagi ke grade (boleh, misalnya ikan yang disisihkan).` : "Semua berat sudah dibagi."}
+        {lebih ? `Kelebihan ${formatKg(-sisa / 1000)} kg, kurangin beratnya.` : sisa > 0 ? `${formatKg(sisa / 1000)} kg belum dibagi ke grade (nggak apa-apa, misalnya ikan yang disisihkan).` : "Semua berat udah dibagi."}
       </p>
       {error && <p role="alert" className="text-[12.5px]" style={{ color: "#A8322B" }}>{error}</p>}
     </div>
@@ -169,8 +169,8 @@ function CekMutu({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
         <div className="flex gap-2">{pilihan("lulus", "Lulus")}{pilihan("ditahan", "Tahan")}</div>
         <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }} data-testid="arti-mutu">
           {hasil === "lulus"
-            ? "Lulus: ikan layak diolah. Lot ini langsung bisa dipilih saat memulai produksi."
-            : "Tahan: ikan belum boleh diolah, misalnya suhu atau baunya perlu dicek ulang. Lot tidak muncul di pilihan produksi sampai diubah jadi Lulus. Penerimaan dan pembayaran ke pemasok tidak terpengaruh."}
+            ? "Lulus: ikan layak diolah. Lot ini langsung bisa dipilih pas mulai produksi."
+            : "Tahan: ikan belum boleh diolah, misalnya suhu atau baunya perlu dicek lagi. Lot ini nggak muncul di pilihan produksi sampai diubah jadi Lulus. Penerimaan dan pembayaran ke pemasok nggak terpengaruh."}
         </p>
         {hasil === "lulus" && <IsianGrade lot={lot} grade={grade} error={state?.kolom?.baris?.[0]} />}
         <Field label="Catatan" hint="Misalnya suhu, bau, atau alasan menahan."><TextIn name="catatan" maxLength={300} defaultValue={lot.qc_catatan} /></Field>
@@ -199,7 +199,7 @@ export function MutuKelola({ lots, poSiap, grade, bolehTerima, bolehMutu, lampir
 
       <DaftarLot lots={lots} bolehMutu={bolehMutu} onCek={setCek} lampiran={lampiran} />
       {cek && <CekMutu key={cek.id} lot={cek} grade={grade} onTutup={() => setCek(null)} />}
-      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Lulus berarti lot boleh diolah dan muncul di pilihan produksi. Tahan berarti lot belum boleh diolah sampai diubah jadi Lulus. Mutu lot yang sudah dipakai produksi tidak bisa diubah lagi.</p></Inner>
+      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Lulus artinya lot boleh diolah dan muncul di pilihan produksi. Tahan artinya lot belum boleh diolah sampai diubah jadi Lulus. Kalau lot udah dipakai produksi, mutunya nggak bisa diubah lagi.</p></Inner>
     </div>
   );
 }

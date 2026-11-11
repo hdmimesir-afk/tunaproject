@@ -43,7 +43,7 @@ function TutupSiklus({ id, kode }: { id: string; kode: string }) {
       <input type="hidden" name="id" value={id} />
       <PesanForm state={state} />
       <KonfirmasiDua full label="Tutup proyek" labelYa={`Ya, tutup ${kode}`} pending={pending}
-        pesan="Setelah ditutup, PO, pesanan, dan biaya baru tidak bisa masuk ke proyek ini. Sistem menolak bila masih ada yang belum beres." />
+        pesan="Kalau udah ditutup, PO, pesanan, sama biaya baru nggak bisa masuk ke proyek ini lagi. Kalau masih ada yang belum beres, sistem bakal nolak." />
     </form>
   );
 }
@@ -54,7 +54,7 @@ function BukaSiklus({ id }: { id: string }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="id" value={id} />
       <PesanForm state={state?.error ? state : undefined} />
-      <Field label="Alasan membuka kembali" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required placeholder="Misalnya biaya kargo menyusul" /></Field>
+      <Field label="Alasan membuka kembali" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required placeholder="Misalnya biaya kargo nyusul" /></Field>
       <Btn type="submit" v="light" full disabled={pending}>{pending ? "Membuka..." : "Buka kembali proyek"}</Btn>
     </form>
   );
@@ -97,7 +97,7 @@ function Rantai({ d, onTutup, bolehTutup }: { d: RantaiSiklus; onTutup: () => vo
       <Tahap judul="7. Biaya lain" ringkas={`${d.biaya.length} biaya`} kosong={d.biaya.length === 0}>
         {d.biaya.map((b) => <Baris key={b.id} href={`/keuangan?b=${b.id}`} kiri={<>{b.kode} · {b.kategori_nama} · {b.status}</>} kanan={rp(b.jumlah)} />)}
       </Tahap>
-      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Semua baris di atas ditarik dari catatan yang sama, tanpa input ulang. Ketuk satu baris untuk membuka transaksinya beserta nota.</p></Inner>
+      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Semua baris di atas diambil dari catatan yang sama, jadi nggak perlu diketik ulang. Ketuk satu baris buat buka transaksinya, lengkap sama notanya.</p></Inner>
       {bolehTutup && (r.status === "terbuka" ? <TutupSiklus id={r.cycle_id} kode={r.kode} /> : <BukaSiklus id={r.cycle_id} />)}
     </Modal>
   );
@@ -110,7 +110,7 @@ export function SiklusKelola({ daftar, detail, bolehTutup }: { daftar: RingkasSi
       <Card title="Daftar proyek">
         <DataList
           rows={daftar}
-          empty="Belum ada proyek. Proyek dibuat otomatis saat PO memilih Proyek baru."
+          empty="Belum ada proyek. Proyek kebikin sendiri pas PO milih Proyek baru."
           cari={(s) => `${s.kode} ${s.ref_po_pembeli} ${s.no_bongkar} ${s.status}`}
           cols={[
             { h: "Proyek", r: (s: RingkasSiklus) => <><span className="font-medium">{s.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{s.ref_po_pembeli || "tanpa PO pembeli"}</span></> },

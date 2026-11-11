@@ -36,7 +36,7 @@ export function DaftarPesanan({ rows: semua, kosong, onBuka }: { rows: Pesanan[]
   return (
     <div className="space-y-2.5">
       {semua.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari pesanan, pembeli, atau invoice" tampil={rows.length} total={semua.length} />}
-    <Wadah judul="Pesanan jual" kosong={semua.length === 0 ? kosong : `Tidak ada pesanan yang cocok dengan “${q.trim()}”.`} ada={rows.length > 0} kolom={KOLOM_PESANAN} kepala={["Pesanan", "Berat", "Total", "Status", "Invoice", ""]}>
+    <Wadah judul="Pesanan jual" kosong={semua.length === 0 ? kosong : `Nggak ada pesanan yang cocok sama “${q.trim()}”.`} ada={rows.length > 0} kolom={KOLOM_PESANAN} kepala={["Pesanan", "Berat", "Total", "Status", "Invoice", ""]}>
       {rows.map((p) => {
         const final = p.status === "terkirim";
         const kg = final ? p.kg_final : p.kg_pesan;
@@ -85,7 +85,7 @@ export function DaftarInvoice({ rows: semua, kosong, onBuka }: { rows: Invoice[]
   return (
     <div className="space-y-2.5">
       {semua.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari invoice, pembeli, atau status" tampil={rows.length} total={semua.length} />}
-    <Wadah judul="Piutang dan invoice" kosong={semua.length === 0 ? kosong : `Tidak ada invoice yang cocok dengan “${q.trim()}”.`} ada={rows.length > 0} kolom={KOLOM_INVOICE} kepala={["Invoice", "Jenis", "Total", "Pembayaran", "Status", ""]}>
+    <Wadah judul="Piutang dan invoice" kosong={semua.length === 0 ? kosong : `Nggak ada invoice yang cocok sama “${q.trim()}”.`} ada={rows.length > 0} kolom={KOLOM_INVOICE} kepala={["Invoice", "Jenis", "Total", "Pembayaran", "Status", ""]}>
       {rows.map((i) => {
         const terlambat = i.status_tagihan === "terlambat";
         const lunas = i.status_tagihan === "lunas";
@@ -123,7 +123,7 @@ export function DaftarInvoice({ rows: semua, kosong, onBuka }: { rows: Invoice[]
               </div>
               {!batal && <div className="mt-2.5">{batang}</div>}
               <div className="mt-2.5 flex items-center justify-between text-[12px]" style={{ color: MUTED }}>
-                <span>{batal ? "Invoice dibatalkan" : `${rp(i.dibayar)} sudah dibayar`}</span>
+                <span>{batal ? "Invoice dibatalkan" : `${rp(i.dibayar)} udah dibayar`}</span>
                 <span className="flex items-center gap-1 text-[12.5px] font-medium" style={{ color: INK }}>Buka <Icon n="next" s={15} c={INK} /></span>
               </div>
             </div>

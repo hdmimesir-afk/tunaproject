@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Persetujuan" };
 export default function PersetujuanPage({ searchParams }: PageProps<"/persetujuan">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Diperiksa, lalu disetujui oleh yang dipilih admin" judul="Persetujuan" />
+      <Judul kicker="Dicek dulu, terus disetujui sama yang dipilih admin" judul="Persetujuan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <PersetujuanData searchParams={searchParams} />

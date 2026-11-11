@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Asisten AI" };
 export default function AsistenPage() {
   return (
     <div className="mx-auto max-w-[900px] space-y-4">
-      <Judul kicker="Tanya jawab dari data, hanya baca" judul="Asisten AI" />
+      <Judul kicker="Tanya apa aja soal data, Asisten cuma baca" judul="Asisten AI" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <AsistenData />

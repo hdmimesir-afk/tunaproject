@@ -78,7 +78,7 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
   if (boleh(sesi, "mutu.write")) {
     tambah(async () => {
       const { data } = await sb.from("lots").select("id, kode, po_kode, kg, sebelum_disetujui").eq("qc", "menunggu").order("kode").limit(BATAS);
-      for (const l of data ?? []) hasil.push({ id: `lot-${l.id}`, kelompok: "Mutu", icon: "flask", judul: `${l.kode} · ${l.po_kode}`, rincian: `${kg(Number(l.kg))} menunggu cek mutu${l.sebelum_disetujui ? " · bongkar malam" : ""}`, aksi: "Cek mutu", href: "/mutu", mendesak: Boolean(l.sebelum_disetujui) });
+      for (const l of data ?? []) hasil.push({ id: `lot-${l.id}`, kelompok: "Mutu", icon: "flask", judul: `${l.kode} · ${l.po_kode}`, rincian: `${kg(Number(l.kg))} nunggu cek mutu${l.sebelum_disetujui ? " · bongkar malam" : ""}`, aksi: "Cek mutu", href: "/mutu", mendesak: Boolean(l.sebelum_disetujui) });
     });
   }
 
@@ -94,7 +94,7 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
   if (boleh(sesi, "terima_bayar.write") || boleh(sesi, "invoice.write")) {
     tambah(async () => {
       const { data } = await sb.from("v_invoices").select("id, kode, buyer_nama, sisa, jatuh_tempo, hari_telat").eq("status_tagihan", "terlambat").order("hari_telat", { ascending: false }).limit(BATAS);
-      for (const i of data ?? []) hasil.push({ id: `inv-${i.id}`, kelompok: "Tagihan terlambat", icon: "cash", judul: `${i.kode} · ${i.buyer_nama}`, rincian: `Sisa ${rp(Number(i.sisa))} · terlambat ${i.hari_telat} hari (jatuh tempo ${tanggal(i.jatuh_tempo as string)})`, aksi: "Tagih", href: `/penjualan?inv=${i.id}`, mendesak: true });
+      for (const i of data ?? []) hasil.push({ id: `inv-${i.id}`, kelompok: "Tagihan terlambat", icon: "cash", judul: `${i.kode} · ${i.buyer_nama}`, rincian: `Sisa ${rp(Number(i.sisa))} · telat ${i.hari_telat} hari (jatuh tempo ${tanggal(i.jatuh_tempo as string)})`, aksi: "Tagih", href: `/penjualan?inv=${i.id}`, mendesak: true });
     });
   }
 
@@ -104,7 +104,7 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
       const { data } = await sb.from("v_rincian_siklus").select("cycle_id, kode, ref_po_pembeli, nilai_invoice, uang_masuk").eq("status", "terbuka").gt("nilai_invoice", 0).order("kode").limit(BATAS);
       for (const c of data ?? []) {
         if (Number(c.uang_masuk) < Number(c.nilai_invoice)) continue;
-        hasil.push({ id: `sik-${c.cycle_id}`, kelompok: "Tutup proyek", icon: "list", judul: `${c.kode}${c.ref_po_pembeli ? ` · ${c.ref_po_pembeli}` : ""} sudah lunas`, rincian: `Uang masuk ${rp(Number(c.uang_masuk))}. Tutup supaya tidak dipakai lagi untuk transaksi baru.`, aksi: "Tutup siklus", href: `/siklus?c=${c.cycle_id}`, mendesak: false });
+        hasil.push({ id: `sik-${c.cycle_id}`, kelompok: "Tutup proyek", icon: "list", judul: `${c.kode}${c.ref_po_pembeli ? ` · ${c.ref_po_pembeli}` : ""} sudah lunas`, rincian: `Uang masuk ${rp(Number(c.uang_masuk))}. Tutup aja biar nggak kepakai lagi buat transaksi baru.`, aksi: "Tutup siklus", href: `/siklus?c=${c.cycle_id}`, mendesak: false });
       }
     });
   }

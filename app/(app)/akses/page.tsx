@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Akses" };
 export default function AksesPage() {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Pengguna dan peran" judul="Akses" />
+      <Judul kicker="Atur pengguna sama perannya" judul="Akses" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <AksesData />

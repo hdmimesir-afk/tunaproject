@@ -40,7 +40,7 @@ function DialogAlasan({ apv, jenis, onTutup }: { apv: Pengajuan; jenis: "tolak" 
         <input type="hidden" name="id" value={apv.id} />
         <Galat state={state} />
         <p className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
-          {tolak ? "PO yang ditolak tidak bisa diajukan lagi; buat PO baru bila perlu." : "PO dikembalikan ke pengaju. Setelah diperbaiki, PO diajukan ulang dan riwayat ini tetap tersimpan."}
+          {tolak ? "PO yang ditolak nggak bisa diajukan lagi. Kalau perlu, bikin PO baru aja." : "PO dibalikin ke yang ngajuin. Habis diperbaiki, PO diajukan lagi, dan riwayat ini tetap kesimpan."}
         </p>
         <Field label={tolak ? "Alasan penolakan" : "Apa yang perlu diperbaiki?"} error={state?.kolom?.alasan?.[0]}>
           <textarea name="alasan" rows={3} maxLength={500} required className="w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-[#00171F]" />
@@ -77,7 +77,7 @@ function Konfirmasi({ items, onTutup }: { items: Pengajuan[]; onTutup: () => voi
           <div className="flex justify-between text-[13px]"><span style={{ color: MUTED }}>Jumlah pengajuan</span><b style={{ color: INK }}>{jumlah}</b></div>
           <div className="mt-1 flex justify-between text-[15px]"><span style={{ color: MUTED }}>Total nilai</span><b style={{ color: INK }}>{rp(total)}</b></div>
         </Inner>
-        <p className="text-[12.5px] leading-relaxed" style={{ color: MUTED }}>Disetujui bukan berarti dibayar. Pembayaran dicatat terpisah oleh Finance.</p>
+        <p className="text-[12.5px] leading-relaxed" style={{ color: MUTED }}>Udah disetujui belum tentu udah dibayar. Pembayarannya dicatat sendiri sama Finance.</p>
         <div className="flex gap-2.5">
           <Btn v="light" full onClick={onTutup}>Batal</Btn>
           <Btn type="submit" full disabled={pending}>{pending ? "Menyetujui..." : `Ya, setujui ${rp(total)}`}</Btn>
@@ -131,10 +131,10 @@ function Kartu({ a, props, nota, dipilih, onPilih, onSetuju, onAlasan }: {
         <div className="mb-1.5 text-[12px] font-medium" style={{ color: MUTED }}>Nota ({nota?.length ?? 0})</div>
         {a.nota_menyusul && (nota?.length ?? 0) === 0 ? (
           <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
-            Nota menyusul: diajukan sebelum nota ada. Boleh diputuskan sekarang; notanya dilampirkan nanti.
+            Nota menyusul: diajukan sebelum notanya ada. Boleh diputuskan sekarang, notanya dilampirkan belakangan.
           </p>
         ) : (
-          <DaftarDokumen dokumen={nota ?? []} kosong="Tidak ada nota terlampir." />
+          <DaftarDokumen dokumen={nota ?? []} kosong="Nggak ada nota yang dilampirkan." />
         )}
       </div>
 
@@ -183,18 +183,18 @@ export function Antrean(props: Props) {
       {penyetuju && (
         <p className="px-1 text-[12.5px] leading-relaxed" style={{ color: MUTED }} data-testid="pemegang-tugas">
           Yang menyetujui: <b className="font-medium" style={{ color: INK }}>{penyetuju}</b>.
-          {pemeriksa && <> Yang memeriksa: <b className="font-medium" style={{ color: INK }}>{pemeriksa}</b>.</>} Yang menyetujui boleh langsung memutuskan tanpa menunggu diperiksa. Diatur admin di menu Akses.
+          {pemeriksa && <> Yang memeriksa: <b className="font-medium" style={{ color: INK }}>{pemeriksa}</b>.</>} Yang menyetujui boleh langsung mutusin tanpa nunggu diperiksa. Ini diatur admin di menu Akses.
         </p>
       )}
       <Card title={`Perlu disetujui · ${diperiksa.length}`}>
         <div className="space-y-2.5">
-          {diperiksa.length === 0 ? <Inner><p className="text-[13px]" style={{ color: MUTED }}>Tidak ada pengajuan yang menunggu persetujuan.</p></Inner> : diperiksa.map(kartu)}
+          {diperiksa.length === 0 ? <Inner><p className="text-[13px]" style={{ color: MUTED }}>Nggak ada pengajuan yang nunggu persetujuan.</p></Inner> : diperiksa.map(kartu)}
         </div>
       </Card>
 
       <Card title={`Perlu diperiksa · ${diajukan.length}`}>
         <div className="space-y-2.5">
-          {diajukan.length === 0 ? <Inner><p className="text-[13px]" style={{ color: MUTED }}>Tidak ada pengajuan yang menunggu pemeriksaan.</p></Inner> : diajukan.map(kartu)}
+          {diajukan.length === 0 ? <Inner><p className="text-[13px]" style={{ color: MUTED }}>Nggak ada pengajuan yang nunggu diperiksa.</p></Inner> : diajukan.map(kartu)}
         </div>
       </Card>
 
@@ -204,7 +204,7 @@ export function Antrean(props: Props) {
             {data.bongkarMalam.map((l) => (
               <li key={l.id} className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }}>
                 {l.kode} · {formatKg(l.kg)} kg dari {l.po_kode} ({l.supplier_nama}) · diterima {tanggal(l.tanggal_terima)}
-                <span className="block text-[12px]" style={{ color: MUTED }}>Ikan sudah diterima, tapi PO belum disetujui. Pembayaran tetap menunggu persetujuan.</span>
+                <span className="block text-[12px]" style={{ color: MUTED }}>Ikannya udah diterima, tapi PO-nya belum disetujui. Pembayaran tetap nunggu persetujuan.</span>
               </li>
             ))}
           </ul>

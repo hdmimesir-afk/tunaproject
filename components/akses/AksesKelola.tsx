@@ -22,7 +22,7 @@ function KotakTautan({ state }: { state: HasilForm }) {
   const [disalin, setDisalin] = useState(false);
   if (!state?.tautan) return null;
   const tautan = state.tautan;
-  const pesanWa = `Akun KATALIS ERP Anda sudah dibuat${state.emailMasuk ? `, email masuk: ${state.emailMasuk}` : ""}. Buka tautan ini untuk membuat kata sandi (sekali pakai, berlaku 24 jam):\n${tautan}`;
+  const pesanWa = `Akun KATALIS ERP Anda udah jadi${state.emailMasuk ? `, email masuk: ${state.emailMasuk}` : ""}. Buka tautan ini buat bikin kata sandi (sekali pakai, berlaku 24 jam):\n${tautan}`;
   const salin = () => { void navigator.clipboard.writeText(tautan).then(() => setDisalin(true)).catch(() => setDisalin(false)); };
   return (
     <div role="status" className="space-y-2.5 rounded-2xl px-3.5 py-3 text-[12.5px]" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>
@@ -114,7 +114,7 @@ function TombolLepasPeran({ u, namaPeran }: { u: Pengguna; namaPeran: string }) 
     <form action={action} className="space-y-2">
       <input type="hidden" name="userId" value={u.user_id} />
       <KonfirmasiDua size="sm" v="danger" label="Lepas peran" labelYa="Ya, lepas peran dan nonaktifkan" pending={pending}
-        pesan={`Peran ${namaPeran} dilepas dari ${u.nama || u.email} dan akunnya dinonaktifkan, jadi tidak bisa masuk. Peran bisa diberikan lagi kapan saja.`} />
+        pesan={`Peran ${namaPeran} dilepas dari ${u.nama || u.email}, terus akunnya dinonaktifkan jadi nggak bisa masuk. Perannya bisa dikasih lagi kapan aja.`} />
       <Galat state={state} />
     </form>
   );
@@ -147,7 +147,7 @@ function Undang({ peran, bolehOwner, terisi }: { peran: Peran[]; bolehOwner: boo
   if (kosong.length === 0 && !state?.tautan) {
     return (
       <Card title="Buat akun pengguna">
-        <p className="px-2.5 pb-2.5 text-[13px]" style={{ color: MUTED }}>Semua peran sudah punya akun. Satu peran hanya untuk satu akun aktif; untuk mengganti pemegangnya, nonaktifkan akun lamanya dulu.</p>
+        <p className="px-2.5 pb-2.5 text-[13px]" style={{ color: MUTED }}>Semua peran udah ada akunnya. Satu peran cuma buat satu akun aktif. Kalau mau ganti orangnya, nonaktifkan dulu akun yang lama.</p>
       </Card>
     );
   }
@@ -166,7 +166,7 @@ function Undang({ peran, bolehOwner, terisi }: { peran: Peran[]; bolehOwner: boo
         <div className="space-y-2 md:col-span-4">
           <Galat state={state} />
           <KotakTautan state={state} />
-          <p className="text-[12px]" style={{ color: MUTED }}>Email hanya dipakai sebagai nama masuk; tidak ada email yang dikirim. Kirim tautan yang muncul ke orangnya, lalu ia membuat kata sandi sendiri. Satu peran hanya untuk satu akun aktif, jadi hanya peran yang masih kosong yang bisa dipilih.</p>
+          <p className="text-[12px]" style={{ color: MUTED }}>Email cuma dipakai buat nama masuk, nggak ada email yang dikirim. Kirim tautan yang muncul ke orangnya, nanti dia bikin kata sandi sendiri. Satu peran cuma buat satu akun aktif, jadi yang bisa dipilih cuma peran yang masih kosong.</p>
         </div>
       </form>
     </Card>
@@ -202,8 +202,8 @@ function TugasPeran({ tugas, roleTugas, peran, peranSaya, bolehOwner }: {
     <Card title="Tugas per peran">
       <div className="space-y-3 px-2.5 pb-2.5">
         <p className="text-[12.5px] leading-relaxed" style={{ color: MUTED }}>
-          Pilih peran yang boleh menyetujui PO, memeriksa PO, dan melampirkan nota susulan. Owner selalu bisa semuanya. Yang mengajukan PO tidak bisa menyetujui PO-nya sendiri.
-          {!bolehOwner && " Tugas untuk peran Anda sendiri hanya bisa diubah Owner."}
+          Pilih peran mana yang boleh menyetujui PO, memeriksa PO, sama melampirkan nota susulan. Owner selalu bisa semuanya. Orang yang mengajukan PO nggak bisa menyetujui PO-nya sendiri.
+          {!bolehOwner && " Tugas buat peran Anda sendiri cuma bisa diubah Owner."}
         </p>
         <div className="overflow-x-auto rounded-[20px] bg-white">
           <table className="w-full min-w-[640px] text-left text-[13px]" data-testid="tabel-tugas">
@@ -252,7 +252,7 @@ export function AksesKelola({ pengguna, peran, saya, peranSaya, bolehOwner, tuga
         <div className="space-y-2">
           {pengguna.length > 3 && <KotakCari q={q} onUbah={setQ} placeholder="Cari nama, email, atau peran" tampil={hasil.length} total={pengguna.length} />}
           {pengguna.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Belum ada pengguna.</p></Inner>}
-          {pengguna.length > 0 && hasil.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Tidak ada pengguna yang cocok dengan &ldquo;{q.trim()}&rdquo;.</p></Inner>}
+          {pengguna.length > 0 && hasil.length === 0 && <Inner><p className="text-[13px]" style={{ color: MUTED }}>Nggak ada pengguna yang cocok sama &ldquo;{q.trim()}&rdquo;.</p></Inner>}
           {hasil.map((u) => <BarisPengguna key={u.user_id} u={u} peran={peran} saya={saya} bolehOwner={bolehOwner} terisi={terisi} />)}
         </div>
       </Card>

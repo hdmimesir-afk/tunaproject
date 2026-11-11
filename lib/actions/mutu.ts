@@ -42,7 +42,7 @@ export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm>
   });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: "Ikan diterima. Lanjut cek mutu." };
+  return { pesan: "Ikan udah diterima. Lanjut cek mutu." };
 }
 
 const FormMutu = z.object({
@@ -66,17 +66,17 @@ export async function cekMutuLot(_: HasilForm, fd: FormData): Promise<HasilForm>
     try {
       isian = BarisGrade.parse(JSON.parse(p.data.baris ?? "[]"));
     } catch {
-      return { error: "Data grade tidak valid. Muat ulang halaman lalu coba lagi." };
+      return { error: "Data grade-nya nggak valid. Muat ulang halaman, terus coba lagi." };
     }
     for (const b of isian) {
       if (b.grade_id === "" && b.kg.trim() === "") continue;
-      if (!z.uuid().safeParse(b.grade_id).success) return { kolom: { baris: ["Pilih grade di setiap baris yang diisi beratnya."] } };
+      if (!z.uuid().safeParse(b.grade_id).success) return { kolom: { baris: ["Pilih grade di tiap baris yang diisi beratnya."] } };
       const g = keGram(b.kg);
       if (g === null) return { kolom: { baris: ["Berat tiap grade harus lebih dari nol, paling banyak tiga angka di belakang koma."] } };
-      if (baris.some((x) => x.grade_id === b.grade_id)) return { kolom: { baris: ["Satu grade hanya boleh diisi sekali."] } };
+      if (baris.some((x) => x.grade_id === b.grade_id)) return { kolom: { baris: ["Satu grade cuma boleh diisi sekali."] } };
       baris.push({ grade_id: b.grade_id, kg: g / 1000 });
     }
-    if (baris.length === 0) return { kolom: { baris: ["Isi berat untuk minimal satu grade."] } };
+    if (baris.length === 0) return { kolom: { baris: ["Isi berat minimal buat satu grade."] } };
   }
   const supabase = await createClient();
   const { error } = await supabase.rpc("cek_mutu_grade", {

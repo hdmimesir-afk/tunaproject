@@ -38,23 +38,23 @@ export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: {
   const pilih = (asli: File | undefined) => {
     if (!asli) return;
     setGalat(null);
-    if (asli.size > BATAS * 3) return setGalat("Berkas terlalu besar. Kecilkan dulu.");
+    if (asli.size > BATAS * 3) return setGalat("Berkasnya terlalu besar. Kecilin dulu.");
     mulai(async () => {
       let file = asli;
       if (adalahHeic(asli)) {
         try {
           file = await keJpeg(asli);
         } catch {
-          return setGalat("Foto HEIC tidak bisa dibaca. Coba foto ulang atau kirim sebagai JPEG.");
+          return setGalat("Foto HEIC-nya nggak bisa dibaca. Coba foto ulang, atau kirim sebagai JPEG.");
         }
       }
       const tipe = TIPE.find((t) => t === file.type);
       if (!tipe) return setGalat("Pilih foto (JPEG, PNG, WebP, HEIC) atau PDF.");
-      if (file.size > BATAS) return setGalat("Berkas lebih dari 10 MB. Kecilkan dulu.");
+      if (file.size > BATAS) return setGalat("Berkasnya lebih dari 10 MB. Kecilin dulu.");
       const supabase = createClient();
       const path = `${refTabel}/${refId}/${crypto.randomUUID()}-${namaAman(file.name)}`;
       const { error } = await supabase.storage.from("dokumen").upload(path, file, { contentType: file.type, upsert: false });
-      if (error) return setGalat("Unggah gagal. Periksa sinyal lalu coba lagi.");
+      if (error) return setGalat("Unggahnya gagal. Cek sinyal dulu, terus coba lagi.");
       const r = await catatDokumen({ refTabel, refId, jenis, path, namaAsli: file.name, ukuran: file.size, tipe });
       if (r?.error) setGalat(r.error);
       if (input.current) input.current.value = "";
@@ -106,7 +106,7 @@ export function DaftarDokumen({ dokumen, kosong = "Belum ada berkas." }: { dokum
       if (r.url && w) w.location.href = r.url;
       else {
         w?.close();
-        setGalat(r.error ?? "Berkas tidak bisa dibuka.");
+        setGalat(r.error ?? "Berkasnya nggak bisa dibuka.");
       }
     });
   };

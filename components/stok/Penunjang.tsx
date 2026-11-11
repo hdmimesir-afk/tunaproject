@@ -16,7 +16,7 @@ import type { Barang, GerakBarang, KategoriBarang, StatusBarang } from "@/lib/ty
 
 export const NAMA_KATEGORI: Record<KategoriBarang, string> = { kerja: "Penunjang kerja", pekerja: "Penunjang pekerja" };
 const KETERANGAN: Record<KategoriBarang, string> = {
-  kerja: "Kemasan, es, label, dan barang habis pakai untuk proses kerja.",
+  kerja: "Kemasan, es, label, dan barang habis pakai buat proses kerja.",
   pekerja: "Apron, masker, sarung tangan, dan perlengkapan pekerja.",
 };
 const WARNA: Record<StatusBarang, string> = { aman: "#0B6B4A", menipis: "#B8801A", habis: "#B4443C" };
@@ -42,7 +42,7 @@ function FormMasuk({ b, onTutup }: { b: Barang; onTutup: () => void }) {
       <p className="text-[13px]" style={{ color: MUTED }}>{b.nama} · stok sekarang {angka(b.stok)} {b.satuan}</p>
       <div className="grid grid-cols-2 gap-3">
         <Field label={`Jumlah masuk (${b.satuan})`} error={state?.kolom?.jumlah?.[0]}><TextIn name="jumlah" inputMode="decimal" placeholder="0" required /></Field>
-        <Field label="Tanggal" hint="Kosong = hari ini." error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" max={hariIni()} /></Field>
+        <Field label="Tanggal" hint="Kalau kosong, dianggap hari ini." error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" max={hariIni()} /></Field>
       </div>
       <Field label="Catatan" hint="Misalnya pemasok atau nomor nota."><TextIn name="catatan" maxLength={300} /></Field>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Catat barang masuk"}</Btn>
@@ -60,7 +60,7 @@ function FormKeluar({ b, onTutup }: { b: Barang; onTutup: () => void }) {
       <p className="text-[13px]" style={{ color: MUTED }}>{b.nama} · tersedia {angka(b.stok)} {b.satuan}</p>
       <div className="grid grid-cols-2 gap-3">
         <Field label={`Jumlah keluar (${b.satuan})`} error={state?.kolom?.jumlah?.[0]}><TextIn name="jumlah" inputMode="decimal" placeholder="0" required /></Field>
-        <Field label="Tanggal" hint="Kosong = hari ini." error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" max={hariIni()} /></Field>
+        <Field label="Tanggal" hint="Kalau kosong, dianggap hari ini." error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" max={hariIni()} /></Field>
       </div>
       <Field label="Dipakai oleh atau untuk" hint="Misalnya tim potong atau nama pekerja."><TextIn name="penerima" maxLength={100} /></Field>
       <Field label="Catatan"><TextIn name="catatan" maxLength={300} /></Field>
@@ -76,7 +76,7 @@ function FormKoreksi({ b, onTutup }: { b: Barang; onTutup: () => void }) {
     <form action={action} className="space-y-3">
       <input type="hidden" name="barangId" value={b.id} />
       <PesanForm state={state?.error ? state : undefined} />
-      <p className="text-[13px]" style={{ color: MUTED }}>{b.nama} · tercatat {angka(b.stok)} {b.satuan}. Pakai koreksi bila hitungan fisik berbeda dari catatan.</p>
+      <p className="text-[13px]" style={{ color: MUTED }}>{b.nama} · tercatat {angka(b.stok)} {b.satuan}. Pakai koreksi kalau hitungan fisiknya beda sama catatan.</p>
       <Field label={`Selisih jumlah (${b.satuan}), minus untuk mengurangi`} error={state?.kolom?.selisih?.[0]}><TextIn name="selisih" inputMode="text" placeholder="-2" required /></Field>
       <Field label="Alasan" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} placeholder="Misalnya hasil hitung fisik" required /></Field>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Catat koreksi"}</Btn>
@@ -99,7 +99,7 @@ function FormBarang({ kategori, awal, onTutup }: { kategori: KategoriBarang; awa
       <Field label="Nama barang" error={state?.kolom?.nama?.[0]}><TextIn name="nama" maxLength={100} defaultValue={awal?.nama} required /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Satuan" error={state?.kolom?.satuan?.[0]}><TextIn name="satuan" maxLength={20} defaultValue={awal?.satuan ?? "pcs"} required /></Field>
-        <Field label="Stok minimum" hint="Di bawah ini ditandai menipis." error={state?.kolom?.minimum?.[0]}><TextIn name="minimum" inputMode="decimal" defaultValue={awal ? angka(awal.stok_minimum) : ""} placeholder="0" /></Field>
+        <Field label="Stok minimum" hint="Kalau stok di bawah angka ini, ditandai menipis." error={state?.kolom?.minimum?.[0]}><TextIn name="minimum" inputMode="decimal" defaultValue={awal ? angka(awal.stok_minimum) : ""} placeholder="0" /></Field>
       </div>
       <Field label="Lokasi simpan" hint="Boleh kosong."><TextIn name="lokasi" maxLength={60} defaultValue={awal?.lokasi} /></Field>
       <Field label="Keterangan" hint="Boleh kosong."><TextIn name="keterangan" maxLength={300} defaultValue={awal?.keterangan} /></Field>
@@ -197,7 +197,7 @@ export function Penunjang({ kategori, barang, riwayat, bolehTulis }: { kategori:
       <Card title={NAMA_KATEGORI[kategori]} right={bolehTulis && <Btn size="sm" onClick={() => setModal({ jenis: "baru" })}><Icon n="plus" s={15} c="#fff" />Tambah barang</Btn>}>
         <div className="space-y-3">
           <p className="px-1 text-[12.5px]" style={{ color: MUTED }}>{KETERANGAN[kategori]}</p>
-          <p className="rounded-xl bg-[#FBF0D5] px-3 py-2 text-[12px] leading-relaxed" style={{ color: "#8A5A00" }}>Daftar dan jumlah di bawah masih contoh. Setelah daftar asli diterima, angkanya diganti lewat tombol Koreksi.</p>
+          <p className="rounded-xl bg-[#FBF0D5] px-3 py-2 text-[12px] leading-relaxed" style={{ color: "#8A5A00" }}>Daftar dan jumlah di bawah ini masih contoh. Kalau daftar aslinya udah diterima, angkanya diganti lewat tombol Koreksi.</p>
           <div className="flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between">
             <div role="group" aria-label="Filter stok" className="flex w-full gap-0.5 rounded-full bg-white p-1 md:w-auto md:gap-1">
               {pilihan.map((p) => (
@@ -214,7 +214,7 @@ export function Penunjang({ kategori, barang, riwayat, bolehTulis }: { kategori:
 
           {hasil.length === 0 ? (
             <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
-              {kelompok.length === 0 ? "Belum ada barang di kelompok ini." : q.trim() ? `Tidak ada barang yang cocok dengan “${q.trim()}”.` : "Tidak ada barang untuk filter ini."}
+              {kelompok.length === 0 ? "Belum ada barang di kelompok ini." : q.trim() ? `Nggak ada barang yang cocok sama “${q.trim()}”.` : "Nggak ada barang buat filter ini."}
             </div>
           ) : (
             <div className="overflow-hidden rounded-[20px] bg-white">

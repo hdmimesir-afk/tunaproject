@@ -56,34 +56,34 @@ export async function simpanBiaya(_: HasilForm, fd: FormData): Promise<HasilForm
   return panggil("keuangan.write", "simpan_biaya", {
     p_id: p.data.biayaId, p_category: p.data.kategoriId, p_uraian: p.data.uraian, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_cycle: p.data.siklusId,
     p_po: p.data.poId, p_production: p.data.produksiId,
-  }, "Biaya disimpan sebagai draf. Lampirkan nota lalu ajukan.");
+  }, "Biaya udah disimpan jadi draf. Lampirkan notanya, terus ajukan.");
 }
 
 export async function ajukanBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ biayaId: z.uuid() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Biaya tidak valid." };
-  return panggil("keuangan.write", "ajukan_biaya", { p_id: p.data.biayaId }, "Biaya diajukan. Menunggu keputusan Owner.");
+  if (!p.success) return { error: "Biayanya nggak valid." };
+  return panggil("keuangan.write", "ajukan_biaya", { p_id: p.data.biayaId }, "Biaya udah diajukan. Tinggal nunggu keputusan Owner.");
 }
 
 export async function putuskanBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ biayaId: z.uuid(), setuju: z.enum(["ya", "tidak"]), catatan: z.string().trim().max(300) }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data tidak valid." };
+  if (!p.success) return { error: "Datanya nggak valid." };
   return panggil("biaya.setuju", "putuskan_biaya", { p_id: p.data.biayaId, p_setuju: p.data.setuju === "ya", p_catatan: p.data.catatan },
-    p.data.setuju === "ya" ? "Biaya disetujui dan masuk buku kas." : "Biaya ditolak.");
+    p.data.setuju === "ya" ? "Biaya disetujui dan udah masuk buku kas." : "Biaya ditolak.");
 }
 
 /* ---------------------------------------------------------- tutup buku */
-const Bulan = z.string().regex(/^\d{4}-\d{2}$/, "Bulan tidak valid").transform((s) => `${s}-01`);
+const Bulan = z.string().regex(/^\d{4}-\d{2}$/, "Bulannya nggak valid").transform((s) => `${s}-01`);
 
 /** Menutup buku satu bulan: hanya Owner. Setelah ditutup, transaksi bertanggal di bulan itu terkunci di database. */
 export async function tutupPeriode(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ bulan: Bulan, catatan: z.string().trim().max(300), akui: z.string().optional() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Bulan tidak valid." };
-  return panggil("periode.tutup", "tutup_periode", { p_bulan: p.data.bulan, p_catatan: p.data.catatan, p_terima_dokumen_kurang: p.data.akui === "on" }, "Buku bulan itu ditutup dan transaksinya terkunci.");
+  if (!p.success) return { error: "Bulannya nggak valid." };
+  return panggil("periode.tutup", "tutup_periode", { p_bulan: p.data.bulan, p_catatan: p.data.catatan, p_terima_dokumen_kurang: p.data.akui === "on" }, "Buku bulan itu udah ditutup, transaksinya dikunci.");
 }
 
 export async function bukaKembaliPeriode(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ bulan: Bulan, alasan: z.string().trim().min(1, "Tulis alasan").max(300) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("periode.tutup", "buka_kembali_periode", { p_bulan: p.data.bulan, p_alasan: p.data.alasan }, "Buku bulan itu dibuka kembali.");
+  return panggil("periode.tutup", "buka_kembali_periode", { p_bulan: p.data.bulan, p_alasan: p.data.alasan }, "Buku bulan itu udah dibuka lagi.");
 }

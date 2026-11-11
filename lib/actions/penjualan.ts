@@ -85,18 +85,18 @@ export async function simpanPesanan(_: HasilForm, fd: FormData): Promise<HasilFo
   for (const [i, b] of p.data.baris.entries()) {
     const kg = Kg.safeParse(b.kg);
     const harga = Harga.safeParse(b.harga);
-    if (!kg.success || !harga.success) return { error: `Baris ${i + 1}: isi berat (maks. 3 desimal) dan harga per kg dengan benar.` };
+    if (!kg.success || !harga.success) return { error: `Baris ${i + 1}: cek lagi berat (maks. 3 desimal) sama harga per kg-nya.` };
     baris.push({ id: b.id ?? null, unit_id: b.unit_id, kg: kg.data, harga: harga.data });
   }
   return panggil("penjualan.write", "simpan_pesanan", {
     p_order: p.data.pesananId, p_buyer: p.data.buyerId, p_cycle: p.data.siklusId, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan, p_baris: baris,
-  }, "Pesanan disimpan.");
+  }, "Pesanan udah disimpan.");
 }
 
 export async function batalkanPesanan(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ pesananId: z.uuid(), alasan: z.string().trim().min(1, "Tulis alasan").max(300) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("penjualan.write", "batalkan_pesanan", { p_order: p.data.pesananId, p_alasan: p.data.alasan }, "Pesanan dibatalkan.");
+  return panggil("penjualan.write", "batalkan_pesanan", { p_order: p.data.pesananId, p_alasan: p.data.alasan }, "Pesanan udah dibatalin.");
 }
 
 const FormKirim = z.object({
@@ -108,15 +108,15 @@ export async function kirimPesanan(_: HasilForm, fd: FormData): Promise<HasilFor
   const tolak = await izin("pengiriman.write");
   if (tolak) return tolak;
   const p = FormKirim.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Isi berat kirim semua baris." };
+  if (!p.success) return { error: "Berat kirim di semua baris harus diisi." };
   const baris = [];
   for (const [i, b] of p.data.baris.entries()) {
     const kirim = Kg.safeParse(b.kirim);
     const diterima = KgOpsional.safeParse(b.diterima);
-    if (!kirim.success || !diterima.success) return { error: `Baris ${i + 1}: berat kirim wajib, berat diterima boleh kosong (maks. 3 desimal).` };
+    if (!kirim.success || !diterima.success) return { error: `Baris ${i + 1}: berat kirim wajib diisi, berat diterima boleh dikosongin (maks. 3 desimal).` };
     baris.push({ id: b.id, kg_kirim: kirim.data, kg_diterima: diterima.data });
   }
-  return panggil("pengiriman.write", "kirim_pesanan", { p_order: p.data.pesananId, p_baris: baris }, "Pesanan dikirim dan stok berkurang.");
+  return panggil("pengiriman.write", "kirim_pesanan", { p_order: p.data.pesananId, p_baris: baris }, "Pesanan udah dikirim, stoknya udah dikurangi.");
 }
 
 export async function catatBeratDiterima(_: HasilForm, fd: FormData): Promise<HasilForm> {
@@ -136,30 +136,30 @@ export async function catatBeratDiterima(_: HasilForm, fd: FormData): Promise<Ha
   const { error } = await supabase.rpc("catat_berat_diterima", { p_order: p.data.pesananId, p_baris: baris });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: "Berat diterima pembeli dicatat." };
+  return { pesan: "Berat yang diterima pembeli udah dicatat." };
 }
 
 /* ------------------------------------------------------------ invoice */
 export async function terbitkanInvoice(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ pesananId: z.uuid() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Pesanan tidak valid." };
-  return panggil("invoice.write", "terbitkan_invoice", { p_order: p.data.pesananId }, "Invoice terbit.");
+  if (!p.success) return { error: "Pesanannya nggak valid." };
+  return panggil("invoice.write", "terbitkan_invoice", { p_order: p.data.pesananId }, "Invoice udah terbit.");
 }
 
 export async function terbitkanInvoiceJasa(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ buyerId: z.uuid(), ids: dariJson(z.array(z.uuid()).min(1), "Pilih tagihan jasa") }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { error: "Pilih minimal satu tagihan jasa." };
-  return panggil("invoice.write", "terbitkan_invoice_jasa", { p_buyer: p.data.buyerId, p_charge_ids: p.data.ids, p_catatan: "" }, "Invoice jasa gudang terbit.");
+  return panggil("invoice.write", "terbitkan_invoice_jasa", { p_buyer: p.data.buyerId, p_charge_ids: p.data.ids, p_catatan: "" }, "Invoice jasa gudang udah terbit.");
 }
 
 export async function batalkanInvoice(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ invoiceId: z.uuid(), alasan: z.string().trim().min(1, "Tulis alasan").max(300) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("invoice.write", "batalkan_invoice", { p_invoice: p.data.invoiceId, p_alasan: p.data.alasan }, "Invoice dibatalkan.");
+  return panggil("invoice.write", "batalkan_invoice", { p_invoice: p.data.invoiceId, p_alasan: p.data.alasan }, "Invoice udah dibatalin.");
 }
 
 export async function terimaPembayaran(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ invoiceId: z.uuid(), jumlah: Harga, tanggal: z.iso.date("Isi tanggal"), catatan: z.string().trim().max(300) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("terima_bayar.write", "terima_pembayaran", { p_invoice: p.data.invoiceId, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan }, "Pembayaran dicatat. Lampirkan bukti transfer bila ada.");
+  return panggil("terima_bayar.write", "terima_pembayaran", { p_invoice: p.data.invoiceId, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan }, "Pembayaran udah dicatat. Kalau ada bukti transfer, lampirkan sekalian.");
 }

@@ -14,7 +14,7 @@ const PERAN = ["owner", "finance", "super_admin", "kepala_produksi", "petugas_la
 
 const Undang = z.object({
   nama: z.string().trim().min(1, "Nama wajib diisi").max(100),
-  email: z.email("Email tidak valid"),
+  email: z.email("Emailnya nggak valid"),
   roleId: z.enum(PERAN, "Pilih peran"),
 });
 
@@ -52,25 +52,25 @@ export async function undangPengguna(_: HasilForm, fd: FormData): Promise<HasilF
   if ("error" in a) return a;
   const p = Undang.safeParse({ nama: fd.get("nama"), email: fd.get("email"), roleId: fd.get("roleId") });
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  if (p.data.roleId === "owner" && !a.sesi.semuaIzin) return { error: "Hanya Owner yang boleh membuat akun Owner." };
+  if (p.data.roleId === "owner" && !a.sesi.semuaIzin) return { error: "Akun Owner cuma bisa dibikin sama Owner." };
 
   // Dicek sebelum akun dibuat supaya tidak tersisa akun tanpa peran. Database tetap menjadi penjaga terakhirnya.
   const supabase = await createClient();
   const { data: pemegang } = await supabase.from("profiles").select("nama, email").eq("role_id", p.data.roleId).eq("aktif", true).limit(1).maybeSingle();
-  if (pemegang) return { error: `Peran ini sudah dipakai akun ${pemegang.nama || pemegang.email}. Satu peran hanya untuk satu akun aktif; nonaktifkan akun itu dulu.` };
+  if (pemegang) return { error: `Peran ini udah dipakai akun ${pemegang.nama || pemegang.email}. Satu peran cuma buat satu akun aktif, jadi nonaktifkan dulu akun itu.` };
 
   const admin = klienAdmin();
   if ("error" in admin) return admin;
   const { data, error } = await admin.auth.admin.generateLink({ type: "invite", email: p.data.email, options: { data: { nama: p.data.nama } } });
-  if (error || !data.user) return { error: error?.message.toLowerCase().includes("already") ? "Email ini sudah terdaftar. Pakai tombol Tautan atur sandi di daftar pengguna." : "Akun gagal dibuat." };
+  if (error || !data.user) return { error: error?.message.toLowerCase().includes("already") ? "Email ini udah terdaftar. Pakai tombol Tautan atur sandi di daftar pengguna aja." : "Akunnya gagal dibikin." };
 
   const { error: e2 } = await supabase.from("profiles")
     .update({ nama: p.data.nama, role_id: p.data.roleId, aktif: true })
     .eq("user_id", data.user.id);
-  if (e2) return { error: `Akun dibuat, tapi peran belum tersimpan: ${pesanDb(e2)}` };
+  if (e2) return { error: `Akun udah dibikin, tapi perannya belum kesimpan: ${pesanDb(e2)}` };
   refresh();
   return {
-    pesan: `Akun ${p.data.email} dibuat. Kirim tautan ini ke ${p.data.nama}; tautan hanya bisa dipakai sekali dan berlaku 24 jam.`,
+    pesan: `Akun ${p.data.email} udah dibikin. Kirim tautan ini ke ${p.data.nama}. Tautannya cuma bisa dipakai sekali dan berlaku 24 jam.`,
     tautan: tautanAktivasi(await asalSitus(), data.properties.hashed_token, "invite"),
     emailMasuk: p.data.email,
   };
@@ -82,24 +82,24 @@ export async function tautanAturSandi(_: HasilForm, fd: FormData): Promise<Hasil
   const a = await izinAkses();
   if ("error" in a) return a;
   const id = z.uuid().safeParse(fd.get("userId"));
-  if (!id.success) return { error: "Pengguna tidak valid." };
+  if (!id.success) return { error: "Penggunanya nggak valid." };
   const supabase = await createClient();
   const { data: profil } = await supabase.from("profiles").select("email, nama, role_id").eq("user_id", id.data).maybeSingle();
-  if (!profil?.email) return { error: "Pengguna tidak ditemukan." };
-  if (profil.role_id === "owner" && !a.sesi.semuaIzin) return { error: "Tautan untuk akun Owner hanya bisa dibuat oleh Owner." };
+  if (!profil?.email) return { error: "Penggunanya nggak ketemu." };
+  if (profil.role_id === "owner" && !a.sesi.semuaIzin) return { error: "Tautan buat akun Owner cuma bisa dibikin sama Owner." };
 
   const admin = klienAdmin();
   if ("error" in admin) return admin;
   const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email: profil.email as string });
-  if (error) return { error: "Tautan gagal dibuat. Coba lagi." };
+  if (error) return { error: "Tautannya gagal dibikin. Coba lagi." };
   return {
-    pesan: `Kirim tautan ini ke ${profil.nama || profil.email}; tautan hanya bisa dipakai sekali dan berlaku 24 jam.`,
+    pesan: `Kirim tautan ini ke ${profil.nama || profil.email}. Tautannya cuma bisa dipakai sekali dan berlaku 24 jam.`,
     tautan: tautanAktivasi(await asalSitus(), data.properties.hashed_token, "recovery"),
     emailMasuk: profil.email as string,
   };
 }
 
-const UbahEmail = z.object({ userId: z.uuid(), email: z.email("Email tidak valid").transform((v) => v.trim().toLowerCase()) });
+const UbahEmail = z.object({ userId: z.uuid(), email: z.email("Emailnya nggak valid").transform((v) => v.trim().toLowerCase()) });
 
 /** Ganti email masuk pengguna. Email ada di Supabase Auth dan di salinan profil; trigger profil menolak perubahan email dari klien pengguna,
    jadi dua-duanya diubah lewat klien admin setelah izin, aturan Owner, dan duplikat diperiksa. Kata sandi tidak berubah. */
@@ -107,24 +107,24 @@ export async function ubahEmail(_: HasilForm, fd: FormData): Promise<HasilForm> 
   const a = await izinAkses();
   if ("error" in a) return a;
   const p = UbahEmail.safeParse({ userId: fd.get("userId"), email: fd.get("email") });
-  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors, error: "Email tidak valid." };
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors, error: "Emailnya nggak valid." };
 
   const supabase = await createClient();
   const { data: profil } = await supabase.from("profiles").select("email, nama, role_id, aktif").eq("user_id", p.data.userId).maybeSingle();
-  if (!profil) return { error: "Pengguna tidak ditemukan." };
-  if (profil.role_id === "owner" && !a.sesi.semuaIzin) return { error: "Email akun Owner hanya bisa diubah oleh Owner." };
-  if (String(profil.email).toLowerCase() === p.data.email) return { error: "Email baru sama dengan email sekarang." };
+  if (!profil) return { error: "Penggunanya nggak ketemu." };
+  if (profil.role_id === "owner" && !a.sesi.semuaIzin) return { error: "Email akun Owner cuma bisa diubah sama Owner." };
+  if (String(profil.email).toLowerCase() === p.data.email) return { error: "Email barunya sama kayak yang sekarang." };
   const { data: dipakai } = await supabase.from("profiles").select("user_id").eq("email", p.data.email).neq("user_id", p.data.userId).maybeSingle();
-  if (dipakai) return { error: "Email ini sudah dipakai pengguna lain." };
+  if (dipakai) return { error: "Email ini udah dipakai pengguna lain." };
 
   const admin = klienAdmin();
   if ("error" in admin) return admin;
   const { error } = await admin.auth.admin.updateUserById(p.data.userId, { email: p.data.email, email_confirm: true });
-  if (error) return { error: error.message.toLowerCase().includes("already") ? "Email ini sudah terdaftar di akun lain." : "Email gagal diubah. Coba lagi." };
+  if (error) return { error: error.message.toLowerCase().includes("already") ? "Email ini udah terdaftar di akun lain." : "Emailnya gagal diubah. Coba lagi." };
   const { error: e2 } = await admin.from("profiles").update({ email: p.data.email, diubah_oleh: a.sesi.userId }).eq("user_id", p.data.userId);
-  if (e2) return { error: `Email masuk sudah diganti, tapi salinan profil belum ikut berubah: ${pesanDb(e2)}` };
+  if (e2) return { error: `Email masuk udah diganti, tapi salinan di profil belum ikut berubah: ${pesanDb(e2)}` };
   refresh();
-  return { pesan: `Email ${profil.nama || ""} diganti menjadi ${p.data.email}. Kata sandinya tidak berubah; ia masuk dengan email baru.`.replace("  ", " ") };
+  return { pesan: `Email ${profil.nama || ""} udah diganti jadi ${p.data.email}. Kata sandinya tetap, tinggal masuk pakai email baru.`.replace("  ", " ") };
 }
 
 const Lepas = z.object({ userId: z.uuid() });
@@ -135,17 +135,17 @@ export async function lepasPeran(_: HasilForm, fd: FormData): Promise<HasilForm>
   const a = await izinAkses();
   if ("error" in a) return a;
   const p = Lepas.safeParse({ userId: fd.get("userId") });
-  if (!p.success) return { error: "Pengguna tidak valid." };
-  if (p.data.userId === a.sesi.userId) return { error: "Tidak bisa melepas peran akun sendiri." };
+  if (!p.success) return { error: "Penggunanya nggak valid." };
+  if (p.data.userId === a.sesi.userId) return { error: "Peran akun sendiri nggak bisa dilepas." };
   const supabase = await createClient();
   const { data, error } = await supabase.from("profiles")
     .update({ role_id: null, aktif: false })
     .eq("user_id", p.data.userId)
     .select("user_id");
   if (error) return { error: pesanDb(error) };
-  if (!data?.length) return { error: "Pengguna tidak ditemukan atau Anda tidak berhak mengubahnya." };
+  if (!data?.length) return { error: "Penggunanya nggak ketemu, atau Anda nggak berhak mengubahnya." };
   refresh();
-  return { pesan: "Peran dilepas dan akun dinonaktifkan." };
+  return { pesan: "Peran udah dilepas, akunnya juga udah dinonaktifkan." };
 }
 
 const Ubah = z.object({
@@ -163,14 +163,14 @@ export async function ubahPengguna(_: HasilForm, fd: FormData): Promise<HasilFor
     throw e;
   }
   const p = Ubah.safeParse({ userId: fd.get("userId"), roleId: fd.get("roleId"), aktif: fd.get("aktif") });
-  if (!p.success) return { error: "Isian tidak valid." };
+  if (!p.success) return { error: "Isiannya nggak valid." };
   const supabase = await createClient();
   const { data, error } = await supabase.from("profiles")
     .update({ role_id: p.data.roleId, aktif: p.data.aktif })
     .eq("user_id", p.data.userId)
     .select("user_id");
   if (error) return { error: pesanDb(error) };
-  if (!data?.length) return { error: "Pengguna tidak ditemukan atau Anda tidak berhak mengubahnya." };
+  if (!data?.length) return { error: "Penggunanya nggak ketemu, atau Anda nggak berhak mengubahnya." };
   refresh();
   return undefined;
 }
@@ -187,10 +187,10 @@ export async function aturTugas(_: HasilForm, fd: FormData): Promise<HasilForm> 
   const a = await izinAkses();
   if ("error" in a) return a;
   const p = Tugas.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Pilihan tugas tidak valid." };
+  if (!p.success) return { error: "Pilihan tugasnya nggak valid." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("atur_tugas", { p_role: p.data.roleId, p_aksi: p.data.aksi, p_aktif: p.data.aktif });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: p.data.aktif ? "Tugas diberikan." : "Tugas dicabut." };
+  return { pesan: p.data.aktif ? "Tugas udah dikasih." : "Tugas udah dicabut." };
 }

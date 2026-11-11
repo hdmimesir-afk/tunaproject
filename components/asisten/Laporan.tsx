@@ -64,7 +64,7 @@ export function KartuLaporan({ l, ringkas }: { l: Laporan; ringkas?: string[] })
             {b.tabel && <TabelHasil t={b.tabel} />}
           </section>
         ))}
-        <p className="border-t border-[#EEF0F4] pt-2 text-[11px]" style={{ color: MUTED }}>Angka diambil langsung dari sistem pada saat laporan dibuat.</p>
+        <p className="border-t border-[#EEF0F4] pt-2 text-[11px]" style={{ color: MUTED }}>Angkanya diambil langsung dari sistem pas laporan ini dibuat.</p>
       </div>
     </div>
   );

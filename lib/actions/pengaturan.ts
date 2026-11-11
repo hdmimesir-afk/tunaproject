@@ -23,7 +23,7 @@ export async function simpanMaster(_: HasilForm, fd: FormData): Promise<HasilFor
   const tolak = await izin("master.write");
   if (tolak) return tolak;
   const tabel = fd.get("tabel");
-  if (!isTabelMaster(tabel)) return { error: "Tabel tidak dikenal." };
+  if (!isTabelMaster(tabel)) return { error: "Tabelnya nggak dikenal." };
   const p = skemaMaster(tabel).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
 
@@ -53,7 +53,7 @@ export async function simpanPengaturan(_: HasilForm, fd: FormData): Promise<Hasi
   const tolak = await izin("pengaturan.write");
   if (tolak) return tolak;
   const kunci = fd.get("kunci");
-  if (!isKunciPengaturan(kunci)) return { error: "Pengaturan tidak dikenal." };
+  if (!isKunciPengaturan(kunci)) return { error: "Pengaturannya nggak dikenal." };
   const batas = PENGATURAN[kunci];
   const nilai = z.coerce.number().min(batas.min).max(batas.max).safeParse(fd.get("nilai"));
   if (!nilai.success) return { error: `${batas.label}: isi angka ${batas.min} sampai ${batas.max}.` };
@@ -75,11 +75,11 @@ export async function simpanAturanLampiran(_: HasilForm, fd: FormData): Promise<
   const tolak = await izin("pengaturan.write");
   if (tolak) return tolak;
   const p = AturanLampiranForm.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: p.error.issues[0]?.message ?? "Isian tidak valid." };
+  if (!p.success) return { error: p.error.issues[0]?.message ?? "Isiannya nggak valid." };
   const supabase = await createClient();
   const { data, error } = await supabase.from("document_rules").update({ wajib: p.data.wajib, keterangan: p.data.keterangan }).eq("id", p.data.id).select("id");
   if (error) return { error: pesanDb(error) };
-  if (!data?.length) return { error: "Aturan tidak ditemukan atau Anda tidak boleh mengubahnya." };
+  if (!data?.length) return { error: "Aturannya nggak ketemu, atau Anda nggak boleh mengubahnya." };
   refresh();
-  return { pesan: "Tersimpan." };
+  return { pesan: "Udah disimpan." };
 }

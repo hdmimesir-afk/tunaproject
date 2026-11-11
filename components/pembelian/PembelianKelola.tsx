@@ -50,7 +50,7 @@ export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, kel
       <Card title="Daftar PO" right={bolehTulis && <Btn size="sm" onClick={() => setBuat(true)}>Buat PO</Btn>}>
         <DataList
           rows={daftar}
-          empty={bolehTulis ? "Belum ada PO. Ketuk Buat PO untuk mulai." : "Belum ada PO."}
+          empty={bolehTulis ? "Belum ada PO. Mulai aja dari tombol Buat PO." : "Belum ada PO."}
           cari={(p) => `${p.kode} ${p.supplier_nama} ${p.siklus_kode ?? ""} ${LABEL_PO[p.status_persetujuan]} ${LABEL_TERIMA[p.status_terima]} ${LABEL_BAYAR[p.status_bayar]} ${notaMenyusul(p) ? "nota menyusul" : ""}`}
           cols={[
             { h: "PO", r: (p: POBaris) => <><span className="font-medium">{p.kode}</span>{notaMenyusul(p) && <span className="ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Nota menyusul</span>}<span className="block text-[12px]" style={{ color: MUTED }}>{p.supplier_nama} · {tanggal(p.tanggal)}{p.siklus_kode && ` · ${p.siklus_kode}`}</span></> },

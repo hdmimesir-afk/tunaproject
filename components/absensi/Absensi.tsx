@@ -51,12 +51,12 @@ function KartuHariIni({ p }: { p: Props }) {
             {h.pulang && h.pulang.pulang_awal_menit > 0 && <div className="text-[12px]" style={{ color: "#A8322B" }}>Pulang awal {h.pulang.pulang_awal_menit} menit</div>}
           </div>
         </div>
-        {!adaLokasi && <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Belum ada lokasi kerja. Minta Super Admin menambahkannya di bawah.</p>}
+        {!adaLokasi && <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Belum ada lokasi kerja. Minta Super Admin nambahin di bawah.</p>}
         <div className="flex flex-wrap gap-2.5">
           <Btn disabled={!adaLokasi || h.masuk !== null} onClick={() => setDialog("masuk")}>Absen masuk</Btn>
           <Btn v="light" disabled={!adaLokasi || h.masuk === null || h.pulang !== null} onClick={() => setDialog("pulang")}>Absen pulang</Btn>
         </div>
-        <p className="text-[12px]" style={{ color: MUTED }}>Butuh GPS dan kamera. Anda harus berada di dalam radius lokasi kerja, dan fotonya diambil langsung (bukan dari galeri). Waktu dicatat oleh server.</p>
+        <p className="text-[12px]" style={{ color: MUTED }}>Butuh GPS sama kamera. Harus ada di dalam radius lokasi kerja, dan fotonya diambil langsung, nggak bisa dari galeri. Jamnya dicatat server.</p>
       </Inner>
       {dialog && <DialogAbsen jenis={dialog} userId={p.userId} onTutup={() => setDialog(null)} />}
     </Card>
@@ -166,7 +166,7 @@ function TombolFoto({ id }: { id: string }) {
     mulai(async () => {
       const r = await urlFotoAbsen(id);
       if (r.url && w) w.location.href = r.url;
-      else { w?.close(); setGalat(r.error ?? "Foto tidak bisa dibuka."); }
+      else { w?.close(); setGalat(r.error ?? "Fotonya nggak bisa dibuka."); }
     });
   };
   return <><Btn size="sm" v="light" disabled={sibuk} onClick={buka}>Foto</Btn>{galat && <span role="alert" className="ml-2 text-[12px]" style={{ color: "#A8322B" }}>{galat}</span>}</>;
@@ -183,7 +183,7 @@ function KartuRekap({ p }: { p: Props }) {
         </form>
         <DataList
           rows={p.rekap ?? []}
-          empty="Tidak ada data bulan ini."
+          empty="Nggak ada data bulan ini."
           cols={[
             { h: "Nama", r: (r) => `${r.nama} · ${r.role_nama}` },
             { h: "Hari kerja", r: (r) => r.hari_kerja, right: true },
@@ -195,12 +195,12 @@ function KartuRekap({ p }: { p: Props }) {
             { h: "Tidak hadir", r: (r) => r.tidak_hadir > 0 ? <Tanda ok={false}>{r.tidak_hadir}</Tanda> : 0, right: true },
           ]}
         />
-        <p className="px-2 pt-2 text-[12px]" style={{ color: MUTED }}>Hari kerja Senin sampai Sabtu. Hari ini belum dihitung tidak hadir.</p>
+        <p className="px-2 pt-2 text-[12px]" style={{ color: MUTED }}>Hari kerja Senin sampai Sabtu. Hari ini belum ikut dihitung nggak hadir.</p>
       </Card>
       <Card title={`Absen pada ${tanggal(p.tanggalHarian)}`}>
         <DataList
           rows={p.harian ?? []}
-          empty="Belum ada absen pada tanggal ini."
+          empty="Belum ada yang absen di tanggal ini."
           cols={[
             { h: "Nama", r: (a) => a.nama },
             { h: "Jenis", r: (a) => a.jenis === "masuk" ? "Masuk" : "Pulang" },
@@ -223,10 +223,10 @@ function FormLokasi({ lokasi, onTutup }: { lokasi: LokasiKerja | null; onTutup: 
   const [info, setInfo] = useState<string | null>(null);
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
   const pakaiLokasiSaya = () => {
-    setInfo("Mencari lokasi...");
+    setInfo("Lagi nyari lokasi...");
     navigator.geolocation.getCurrentPosition(
-      (x) => { setLat(x.coords.latitude.toFixed(6)); setLng(x.coords.longitude.toFixed(6)); setInfo(`Lokasi terisi, akurasi ±${Math.round(x.coords.accuracy)} m. Berdirilah di titik tengah tempat kerja saat menekan tombol ini.`); },
-      () => setInfo("Lokasi tidak terbaca. Izinkan lokasi, atau isi garis lintang dan bujur sendiri."),
+      (x) => { setLat(x.coords.latitude.toFixed(6)); setLng(x.coords.longitude.toFixed(6)); setInfo(`Lokasi terisi, akurasi ±${Math.round(x.coords.accuracy)} m. Pas nekan tombol ini, berdiri di titik tengah tempat kerja.`); },
+      () => setInfo("Lokasinya nggak kebaca. Izinkan akses lokasi, atau isi garis lintang sama bujur sendiri."),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
   };
@@ -244,7 +244,7 @@ function FormLokasi({ lokasi, onTutup }: { lokasi: LokasiKerja | null; onTutup: 
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Radius (meter)" hint="Jarak terjauh dari titik." error={state?.kolom?.radius?.[0]}><TextIn name="radius" type="number" inputMode="numeric" defaultValue={lokasi?.radius_m ?? 50} required /></Field>
-          <Field label="Batas akurasi GPS (m)" hint="Lebih buruk dari ini ditolak." error={state?.kolom?.akurasiMaks?.[0]}><TextIn name="akurasiMaks" type="number" inputMode="numeric" defaultValue={lokasi?.akurasi_maks_m ?? 30} required /></Field>
+          <Field label="Batas akurasi GPS (m)" hint="Kalau lebih jelek dari ini, ditolak." error={state?.kolom?.akurasiMaks?.[0]}><TextIn name="akurasiMaks" type="number" inputMode="numeric" defaultValue={lokasi?.akurasi_maks_m ?? 30} required /></Field>
           <Field label="Senin-Jumat masuk" error={state?.kolom?.jamMasuk?.[0]}><TextIn name="jamMasuk" type="time" defaultValue={lokasi ? lokasi.jam_masuk.slice(0, 5) : "08:00"} required /></Field>
           <Field label="Senin-Jumat pulang" error={state?.kolom?.jamPulang?.[0]}><TextIn name="jamPulang" type="time" defaultValue={lokasi ? lokasi.jam_pulang.slice(0, 5) : "17:00"} required /></Field>
           <Field label="Sabtu masuk" error={state?.kolom?.jamMasukSabtu?.[0]}><TextIn name="jamMasukSabtu" type="time" defaultValue={lokasi ? lokasi.jam_masuk_sabtu.slice(0, 5) : "08:00"} required /></Field>
@@ -264,7 +264,7 @@ function KartuLokasi({ lokasi }: { lokasi: LokasiKerja[] }) {
     <Card title="Lokasi kerja" right={<Btn size="sm" v="light" onClick={() => setEdit("baru")}>Tambah</Btn>}>
       <DataList
         rows={lokasi}
-        empty="Belum ada lokasi kerja. Tambahkan dari tempat kerja, lalu tekan Pakai lokasi saya sekarang."
+        empty="Belum ada lokasi kerja. Tambahin pas lagi di tempat kerja, terus tekan Pakai lokasi saya sekarang."
         cols={[
           { h: "Nama", r: (l) => l.nama },
           { h: "Titik", r: (l) => `${l.lat}, ${l.lng}` },

@@ -86,7 +86,7 @@ export function BukuKas({ kas, hariIni }: { kas: BarisKas[]; hariIni: string }) 
 
         {perHari.length === 0 ? (
           <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
-            {kas.length === 0 ? "Belum ada transaksi kas. Pembayaran pemasok, pembayaran pembeli, dan biaya yang disetujui masuk otomatis." : q.trim() ? `Tidak ada transaksi yang cocok dengan “${q.trim()}”.` : "Tidak ada transaksi untuk filter ini."}
+            {kas.length === 0 ? "Belum ada transaksi kas. Nanti pembayaran ke pemasok, pembayaran dari pembeli, sama biaya yang disetujui masuk sendiri ke sini." : q.trim() ? `Nggak ada transaksi yang cocok sama “${q.trim()}”.` : "Nggak ada transaksi buat filter ini."}
           </div>
         ) : (
           <div className="overflow-hidden rounded-[20px] bg-white">

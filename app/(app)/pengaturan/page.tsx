@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Pengaturan" };
 export default function PengaturanPage() {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Data master dan target" judul="Pengaturan" />
+      <Judul kicker="Atur data master sama target" judul="Pengaturan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <PengaturanData />

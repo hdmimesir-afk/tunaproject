@@ -49,21 +49,21 @@ function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai }: { ka
           <option value="" disabled>Pilih kategori</option>{kategori.map((x) => <option key={x.id} value={x.id}>{x.nama}</option>)}
         </select>
       </Field>
-      {k && <p className="text-[12px]" style={{ color: k.nota_wajib ? "#8A5A00" : MUTED }}>{k.nota_wajib ? "Kategori ini wajib melampirkan nota sebelum diajukan." : "Kategori ini tidak mewajibkan nota."}</p>}
+      {k && <p className="text-[12px]" style={{ color: k.nota_wajib ? "#8A5A00" : MUTED }}>{k.nota_wajib ? "Kategori ini wajib ada notanya sebelum diajukan." : "Kategori ini nggak wajib pakai nota."}</p>}
       <Field label="Uraian" error={state?.kolom?.uraian?.[0]}><TextIn name="uraian" maxLength={200} defaultValue={awal?.uraian} placeholder="Misalnya ongkos kargo 29 Okt" required /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Jumlah (Rp)" error={state?.kolom?.jumlah?.[0]}><TextIn name="jumlah" inputMode="decimal" defaultValue={awal ? String(awal.jumlah).replace(".", ",") : ""} required /></Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={awal?.tanggal ?? hariIni} required /></Field>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="PO terkait" hint="Boleh kosong.">
+        <Field label="PO terkait" hint="Boleh dikosongin.">
           <select name="poId" className={pilihCls} defaultValue={awal?.po_id ?? ""}><option value="">Tanpa PO</option>{rujukan.po.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
         </Field>
-        <Field label="Produksi terkait" hint="Boleh kosong.">
+        <Field label="Produksi terkait" hint="Boleh dikosongin.">
           <select name="produksiId" className={pilihCls} defaultValue={awal?.production_id ?? ""}><option value="">Tanpa produksi</option>{rujukan.produksi.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
         </Field>
       </div>
-      <Field label="Proyek" hint="Supaya masuk laba rugi proyek itu. Kosong = ikut proyek PO atau produksinya.">
+      <Field label="Proyek" hint="Biar masuk laba rugi proyek itu. Kalau dikosongin, ikut proyek PO atau produksinya.">
         <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Ikut PO/produksi, atau tanpa proyek</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : awal ? "Simpan perubahan" : "Simpan draf biaya"}</Btn>
@@ -78,7 +78,7 @@ function Ajukan({ b }: { b: Biaya }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="biayaId" value={b.id} />
       <PesanForm state={state} />
-      <KonfirmasiDua full label="Ajukan ke Owner" labelYa="Ya, ajukan biaya" pending={pending} disabled={!siap} pesan={`Biaya ${rp(b.jumlah)} diajukan untuk disetujui Owner dan tidak bisa diubah lagi.`} />
+      <KonfirmasiDua full label="Ajukan ke Owner" labelYa="Ya, ajukan biaya" pending={pending} disabled={!siap} pesan={`Biaya ${rp(b.jumlah)} diajukan ke Owner buat disetujui. Habis ini udah nggak bisa diubah lagi.`} />
       {!siap && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lampirkan nota dulu supaya bisa diajukan.</p>}
     </form>
   );
@@ -94,7 +94,7 @@ function Putusan({ b }: { b: Biaya }) {
       {!tolak ? (
         <>
           <input type="hidden" name="setuju" value="ya" /><input type="hidden" name="catatan" value="" />
-          <KonfirmasiDua full label="Setujui biaya" labelYa="Ya, setujui dan catat ke buku kas" pending={pending} pesan={`Biaya ${rp(b.jumlah)} dicatat sebagai uang keluar di buku kas.`} />
+          <KonfirmasiDua full label="Setujui biaya" labelYa="Ya, setujui dan catat ke buku kas" pending={pending} pesan={`Biaya ${rp(b.jumlah)} bakal dicatat jadi uang keluar di buku kas.`} />
           <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={() => setTolak(true)}>Tolak biaya...</Btn></div>
         </>
       ) : (
@@ -130,14 +130,14 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
       <Card title="Biaya" right={bolehTulis && <Btn size="sm" onClick={() => setBaru(true)}>Catat biaya</Btn>}>
         <DataList
           rows={biaya}
-          empty={bolehTulis ? "Belum ada biaya. Ketuk Catat biaya, lampirkan nota, lalu ajukan." : "Belum ada biaya."}
+          empty={bolehTulis ? "Belum ada biaya. Ketuk Catat biaya, lampirkan notanya, terus ajukan." : "Belum ada biaya."}
           cari={(b) => `${b.kode} ${b.uraian} ${b.kategori_nama} ${rujukanTeks(b)} ${LABEL[b.status]}`}
           cols={[
             { h: "Biaya", r: (b: Biaya) => <><span className="font-medium">{b.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{b.uraian}</span></> },
             { h: "Kategori", r: (b) => b.kategori_nama },
             { h: "Rujukan", r: (b) => rujukanTeks(b) },
             { h: "Jumlah", r: (b) => rp(b.jumlah), right: true },
-            { h: "Nota", r: (b) => (b.jml_nota > 0 ? `${b.jml_nota} berkas` : b.nota_wajib ? "belum ada" : "tidak wajib") },
+            { h: "Nota", r: (b) => (b.jml_nota > 0 ? `${b.jml_nota} berkas` : b.nota_wajib ? "belum ada" : "nggak wajib") },
             { h: "Status", r: (b) => <Pill t={LABEL[b.status]} /> },
           ]}
           actions={(b) => <Btn size="sm" v="light" onClick={() => router.push(`/keuangan?b=${b.id}`)}>Buka</Btn>}

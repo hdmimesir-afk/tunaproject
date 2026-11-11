@@ -41,7 +41,7 @@ function FormHasil({ produksi, produk, grade, ruangan, onTutup }: { produksi: Pr
     <form action={action} className="space-y-3">
       <PesanForm state={state?.error ? state : undefined} />
       {produksi.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada produksi yang disetujui Owner dengan hasil yang belum masuk stok.</p>
+        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada produksi yang udah disetujui Owner dan hasilnya belum masuk stok.</p>
       ) : (
         <>
           <Field label="Produksi" error={state?.kolom?.produksiId?.[0]}>
@@ -75,7 +75,7 @@ function FormHasil({ produksi, produk, grade, ruangan, onTutup }: { produksi: Pr
           {kondisi === "fresh" && (
             <label className="flex items-start gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
               <input type="checkbox" name="langsungKirim" className="mt-0.5 h-4 w-4 accent-[#00171F]" checked={langsung} onChange={(e) => setLangsung(e.target.checked)} />
-              <span>Fresh langsung kirim, tidak masuk gudang.</span>
+              <span>Fresh langsung kirim, nggak masuk gudang.</span>
             </label>
           )}
           <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
@@ -97,8 +97,8 @@ function FormAmbil({ unit, onTutup }: { unit: UnitStok; onTutup: () => void }) {
       <p className="text-[13px]" style={{ color: MUTED }}>{unit.pemilik_nama} · {unit.product_nama}{unit.grade_kode ? ` ${unit.grade_kode}` : ""} · sisa {kgTeks(unit.sisa_kg)}</p>
       <Field label="Berat keluar, hasil timbang ulang (kg)" error={state?.kolom?.kg?.[0]}><TextIn name="kg" inputMode="decimal" placeholder="0,000" required /></Field>
       <Field label="Keterangan" hint="Misalnya tujuan kirim."><TextIn name="alasan" maxLength={300} /></Field>
-      {unit.buyer_id && <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Titipan pelanggan: tagihan jasa dibuat otomatis saat diambil.</p>}
-      <KonfirmasiDua full label="Catat pengambilan" labelYa="Ya, ambil dari gudang" pending={pending} pesan="Stok berkurang sesuai berat yang ditimbang. Lanjutkan?" />
+      {unit.buyer_id && <p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Ini titipan pelanggan. Tagihan jasanya dibuat otomatis pas diambil.</p>}
+      <KonfirmasiDua full label="Catat pengambilan" labelYa="Ya, ambil dari gudang" pending={pending} pesan="Stok bakal berkurang sesuai berat yang ditimbang. Lanjut?" />
     </form>
   );
 }
@@ -132,7 +132,7 @@ function FormKoreksi({ unit, onTutup }: { unit: UnitStok; onTutup: () => void })
     <form action={action} className="space-y-3">
       <input type="hidden" name="unitId" value={unit.id} />
       <PesanForm state={state?.error ? state : undefined} />
-      <p className="text-[13px]" style={{ color: MUTED }}>Sisa tercatat {kgTeks(unit.sisa_kg)}. Koreksi baru berlaku setelah disetujui Owner.</p>
+      <p className="text-[13px]" style={{ color: MUTED }}>Sisa tercatat {kgTeks(unit.sisa_kg)}. Koreksinya baru berlaku kalau udah disetujui Owner.</p>
       <Field label="Selisih berat (kg), minus untuk mengurangi" error={state?.kolom?.selisih?.[0]}><TextIn name="selisih" inputMode="text" placeholder="-1,500" required /></Field>
       <Field label="Alasan" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required /></Field>
       <Btn type="submit" full disabled={pending}>{pending ? "Mengajukan..." : "Ajukan koreksi"}</Btn>
@@ -156,7 +156,7 @@ function PutusanKoreksi({ k }: { k: Koreksi }) {
         {!tolak ? (
           <>
             <input type="hidden" name="setuju" value="ya" /><input type="hidden" name="catatan" value="" />
-            <KonfirmasiDua full size="sm" label="Setujui koreksi" labelYa="Ya, setujui koreksi" pending={pending} pesan="Stok langsung berubah sesuai selisih ini. Lanjutkan?" />
+            <KonfirmasiDua full size="sm" label="Setujui koreksi" labelYa="Ya, setujui koreksi" pending={pending} pesan="Stok langsung berubah sesuai selisih ini. Lanjut?" />
             <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={() => setTolak(true)}>Tolak koreksi...</Btn></div>
           </>
         ) : (

@@ -14,18 +14,18 @@ import { createClient } from "@/lib/supabase/client";
 type Posisi = { lat: number; lng: number; akurasi: number };
 
 const PESAN_LOKASI: Record<number, string> = {
-  1: "Izin lokasi ditolak. Izinkan lokasi untuk situs ini di pengaturan browser, lalu buka lagi.",
-  2: "Lokasi tidak tersedia. Nyalakan GPS lalu coba lagi.",
-  3: "Lokasi terlalu lama didapat. Pindah ke tempat terbuka lalu coba lagi.",
+  1: "Izin lokasinya ditolak. Izinkan lokasi buat situs ini di pengaturan browser, terus buka lagi.",
+  2: "Lokasinya nggak ketemu. Nyalain GPS, terus coba lagi.",
+  3: "Lokasinya kelamaan dicari. Pindah ke tempat terbuka, terus coba lagi.",
 };
 
 export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pulang"; userId: string; onTutup: () => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const [posisi, setPosisi] = useState<Posisi | null>(null);
   // Dialog hanya dirender setelah klik, jadi `navigator` selalu ada; dukungan perangkat dicek sekali di awal, bukan di dalam efek.
-  const [galatLokasi, setGalatLokasi] = useState<string | null>(() => ("geolocation" in navigator ? null : "Perangkat ini tidak mendukung lokasi."));
+  const [galatLokasi, setGalatLokasi] = useState<string | null>(() => ("geolocation" in navigator ? null : "HP atau perangkat ini nggak bisa baca lokasi."));
   const [kameraSiap, setKameraSiap] = useState(false);
-  const [galatKamera, setGalatKamera] = useState<string | null>(() => (typeof navigator.mediaDevices?.getUserMedia === "function" ? null : "Perangkat ini tidak mendukung kamera."));
+  const [galatKamera, setGalatKamera] = useState<string | null>(() => (typeof navigator.mediaDevices?.getUserMedia === "function" ? null : "HP atau perangkat ini nggak bisa pakai kamera."));
   const [hasil, setHasil] = useState<HasilAbsen | null>(null);
   const [sibuk, mulai] = useTransition();
 
@@ -33,7 +33,7 @@ export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pula
     if (!("geolocation" in navigator)) return;
     const id = navigator.geolocation.watchPosition(
       (p) => { setGalatLokasi(null); setPosisi({ lat: p.coords.latitude, lng: p.coords.longitude, akurasi: p.coords.accuracy }); },
-      (e) => setGalatLokasi(PESAN_LOKASI[e.code] ?? "Lokasi tidak terbaca."),
+      (e) => setGalatLokasi(PESAN_LOKASI[e.code] ?? "Lokasinya nggak kebaca."),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
     );
     return () => navigator.geolocation.clearWatch(id);
@@ -50,7 +50,7 @@ export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pula
         if (video.current) { video.current.srcObject = s; void video.current.play().catch(() => undefined); }
         setKameraSiap(true);
       })
-      .catch(() => setGalatKamera("Kamera tidak bisa dibuka. Izinkan kamera untuk situs ini, lalu buka lagi."));
+      .catch(() => setGalatKamera("Kameranya nggak bisa dibuka. Izinkan kamera buat situs ini, terus buka lagi."));
     return () => { batal = true; aliran?.getTracks().forEach((t) => t.stop()); };
   }, []);
 
@@ -64,10 +64,10 @@ export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pula
       kanvas.height = tinggi;
       kanvas.getContext("2d")?.drawImage(v, 0, 0, lebar, tinggi);
       const blob = await new Promise<Blob | null>((ok) => kanvas.toBlob(ok, "image/jpeg", 0.72));
-      if (!blob) return setHasil({ error: "Foto gagal diambil. Coba lagi." });
+      if (!blob) return setHasil({ error: "Fotonya gagal diambil. Coba lagi ya." });
       const path = `${userId}/${hariIni()}-${jenis}-${crypto.randomUUID()}.jpg`;
       const { error } = await createClient().storage.from("absensi").upload(path, blob, { contentType: "image/jpeg", upsert: false });
-      if (error) return setHasil({ error: "Foto gagal diunggah. Periksa sinyal lalu coba lagi." });
+      if (error) return setHasil({ error: "Fotonya gagal diunggah. Cek sinyal dulu, terus coba lagi." });
       setHasil(await catatAbsen({ jenis, lat: posisi.lat, lng: posisi.lng, akurasi: posisi.akurasi, foto: path }));
     });
   };
@@ -93,7 +93,7 @@ export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pula
           {galatKamera && <p role="alert" className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{galatKamera}</p>}
           {galatLokasi && <p role="alert" className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{galatLokasi}</p>}
           <p className="text-[12.5px]" style={{ color: MUTED }} data-testid="status-gps">
-            {posisi ? <>Lokasi didapat, akurasi <b style={{ color: INK }}>±{Math.round(posisi.akurasi)} m</b>. Foto harus diambil sekarang, bukan dari galeri.</> : "Mencari lokasi..."}
+            {posisi ? <>Lokasi didapat, akurasi <b style={{ color: INK }}>±{Math.round(posisi.akurasi)} m</b>. Fotonya harus diambil sekarang, nggak bisa dari galeri.</> : "Lagi nyari lokasi..."}
           </p>
           {hasil && !berhasil && (
             <p role="alert" className="rounded-xl px-3 py-2 text-[13px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{hasil.error ?? hasil.alasan}</p>

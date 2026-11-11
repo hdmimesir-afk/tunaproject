@@ -7,7 +7,7 @@ export function Belum() {
     <Card>
       <Inner>
         <p className="text-[14px] leading-relaxed" style={{ color: INK }}>
-          Database belum disambungkan. Halaman ini butuh Supabase: jalankan <code>supabase start</code> (perlu Docker) atau isi proyek Supabase di <code>.env.local</code>.
+          Database belum nyambung. Halaman ini butuh Supabase. Jalankan <code>supabase start</code> (perlu Docker) atau isi proyek Supabase di <code>.env.local</code>.
         </p>
       </Inner>
     </Card>

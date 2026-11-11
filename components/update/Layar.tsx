@@ -23,7 +23,7 @@ export function LayarDashboard() {
 
 export function LayarPersetujuan() {
   return (
-    <Kerangka aktif="persetujuan" kicker="Diperiksa, lalu disetujui oleh yang dipilih admin" judul="Persetujuan">
+    <Kerangka aktif="persetujuan" kicker="Dicek dulu, terus disetujui sama yang dipilih admin" judul="Persetujuan">
       <Mati><Antrean data={c.persetujuan} pengguna={c.penggunaPersetujuan} bolehPeriksa bolehSetuju sorot={c.IDSOROT} /></Mati>
     </Kerangka>
   );

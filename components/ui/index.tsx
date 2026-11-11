@@ -138,7 +138,7 @@ export function DataList<T>({ cols, rows, actions, empty = "Belum ada data.", ca
   const [first, ...rest] = cols;
   const kotak = cari ? <KotakCari q={q} onUbah={setQ} tampil={rows.length} total={semua.length} className="mb-2.5" /> : null;
   if (rows.length === 0) {
-    return <>{kotak}<Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Tidak ada yang cocok dengan &ldquo;{q.trim()}&rdquo;.</div></Inner></>;
+    return <>{kotak}<Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Nggak ada yang cocok sama &ldquo;{q.trim()}&rdquo;.</div></Inner></>;
   }
   return (
     <>

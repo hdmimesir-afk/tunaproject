@@ -19,7 +19,7 @@ export const JENIS_RUANGAN = { abf: "ABF", cs: "CS" } as const;
 /** Pilihan ruangan beserta sisa muatnya, dipakai di form titipan dan hasil produksi. Kosong = belum ditempatkan (bisa dipindah nanti). */
 export function PilihRuangan({ ruangan, nama = "ruanganId", dipilih = "" }: { ruangan: Ruangan[]; nama?: string; dipilih?: string }) {
   return (
-    <Field label="Ruangan" hint="Boleh dikosongkan, bisa dipindah nanti.">
+    <Field label="Ruangan" hint="Boleh dikosongin, nanti bisa dipindah.">
       <select name={nama} className={pilihCls} defaultValue={dipilih}>
         <option value="">Belum ditempatkan</option>
         {ruangan.map((r) => <option key={r.id} value={r.id}>{r.nama} · muat {kg(Math.max(0, r.kapasitas_kg - r.isi_kg))} lagi</option>)}
@@ -73,7 +73,7 @@ export function RuanganPanel({ ruangan, belumDitempatkanKg = 0, ringkas = false,
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-1 text-[12px] tabular-nums" style={{ color: MUTED }}>
         <span>Seluruh ruangan: <b className="font-semibold" style={{ color: INK }}>{kg(totalIsi)}</b> dari {kg(totalKap)} ({formatKg(persen(totalIsi, totalKap), 1)}%)</span>
         {belumDitempatkanKg > 0.0005 && <span style={{ color: "#8A5A00" }}>{kg(belumDitempatkanKg)} belum ditentukan ruangannya</span>}
-        {!ringkas && ruangan.some((r) => !r.dikonfirmasi) && <span className="basis-full" style={{ color: "#8A5A00" }}>Kapasitas tiap ruangan masih perkiraan. Tekan Atur untuk memastikan angkanya.</span>}
+        {!ringkas && ruangan.some((r) => !r.dikonfirmasi) && <span className="basis-full" style={{ color: "#8A5A00" }}>Kapasitas tiap ruangan masih perkiraan. Tekan Atur buat mastiin angkanya.</span>}
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export default function LoginPage() {
         </Suspense>
       ) : (
         <p className="mt-3 text-[14px] leading-relaxed" style={{ color: MUTED }}>
-          Database belum disambungkan. Isi <code>.env.local</code> sesuai <code>.env.example</code> untuk mencoba masuk.
+          Database belum nyambung. Isi <code>.env.local</code> sesuai <code>.env.example</code> dulu kalau mau coba masuk.
         </p>
       )}
     </AuthCard>

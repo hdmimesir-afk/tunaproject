@@ -133,7 +133,7 @@ function AturanLampiranKelola({ aturan, bolehAtur }: { aturan: AturanLampiran[];
     <Card title="Lampiran wajib">
       <div className="space-y-4 px-1 pb-1">
         <p className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
-          Tentukan berkas yang wajib dan yang opsional. Lampiran wajib yang belum ada tidak menghentikan pencatatan; catatannya ditandai &ldquo;belum ada&rdquo; supaya bisa dilengkapi. Khusus nota PO: bila wajib, PO tanpa nota diajukan dengan tanda &ldquo;nota menyusul&rdquo;.
+          Atur berkas mana yang wajib dan mana yang opsional. Kalau lampiran wajib belum ada, pencatatan tetap jalan. Catatannya cuma ditandai &ldquo;belum ada&rdquo; biar nanti bisa dilengkapi. Khusus nota PO, kalau wajib, PO tanpa nota diajukan dengan tanda &ldquo;nota menyusul&rdquo;.
         </p>
         {(Object.keys(NAMA_CATATAN) as AturanLampiran["ref_tabel"][]).map((r) => (
           <section key={r} className="space-y-2">
@@ -162,7 +162,7 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
       {aktif === "target" ? (
         <Card title="Target hasil olahan">
           <Inner className="space-y-3">
-            <p className="text-[13px]" style={{ color: MUTED }}>Dipakai untuk menandai produksi yang hasilnya di bawah rencana atau di luar batas wajar.</p>
+            <p className="text-[13px]" style={{ color: MUTED }}>Dipakai buat nandain produksi yang hasilnya di bawah rencana atau di luar batas wajar.</p>
             {(Object.keys(PENGATURAN) as KunciPengaturan[]).map((k) => (
               <FormPengaturan key={k} kunci={k} nilai={pengaturan.find((x) => x.kunci === k)?.nilai} bolehAtur={bolehAtur} />
             ))}

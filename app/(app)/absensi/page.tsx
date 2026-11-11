@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Absensi" };
 export default function AbsensiPage(props: PageProps<"/absensi">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Lokasi dan foto langsung, waktu dari server" judul="Absensi" />
+      <Judul kicker="Absen pakai lokasi sama foto langsung, jamnya dari server" judul="Absensi" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <AbsensiData searchParams={props.searchParams} />

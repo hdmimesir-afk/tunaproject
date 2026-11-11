@@ -28,7 +28,7 @@ function KartuTugas({ t, babPeran }: { t: Tugas; babPeran: PeranId[] }) {
   const narasi = (
     <div className="t-narasi">
       <h3>{t.judul}</h3>
-      {khusus && <p className="t-untuk">Untuk {t.peran!.map(namaPeran).join(", ")}</p>}
+      {khusus && <p className="t-untuk">Khusus buat {t.peran!.map(namaPeran).join(", ")}</p>}
       {t.pengantar && <p>{t.pengantar}</p>}
       {t.langkah && <ol className="t-langkah">{t.langkah.map((l, i) => <li key={i}>{l}</li>)}</ol>}
       {t.catatan && <p className="t-catatan">{t.catatan}</p>}
@@ -100,7 +100,7 @@ export function Panduan() {
               <section id="alur" className="t-bab" aria-labelledby="judul-alur">
                 <header>
                   <h2 id="judul-alur">Contoh satu putaran kerja</h2>
-                  <p>Dari membeli ikan sampai uang masuk, begini tugas berpindah antarjabatan.{peran !== "semua" && ` Giliran ${namaPeran(peran)} ditandai.`}</p>
+                  <p>Dari beli ikan sampai uang masuk, begini giliran kerja tiap jabatan.{peran !== "semua" && ` Giliran ${namaPeran(peran)} ditandai.`}</p>
                 </header>
                 <ol className="t-putaran">
                   {ALUR_CONTOH.map((l, i) => (
@@ -118,7 +118,7 @@ export function Panduan() {
               </section>
             </>
           )}
-          {tampil.length === 0 && <p className="t-kosong">Tidak ada yang cocok. Coba kata lain atau pilih Semua jabatan.</p>}
+          {tampil.length === 0 && <p className="t-kosong">Nggak ada yang cocok. Coba kata lain, atau pilih Semua jabatan.</p>}
           {tampil.map((b) => (
             <section key={b.slug} id={b.slug} className="t-bab" aria-labelledby={`judul-${b.slug}`}>
               <header>

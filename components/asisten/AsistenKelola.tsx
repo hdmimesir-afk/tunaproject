@@ -51,19 +51,19 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
     <div className="space-y-4">
       <Card title="Pertanyaan cepat">
         <div className="flex flex-wrap gap-2 px-2.5 pb-2.5">
-          {alat.length === 0 && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada data yang bisa dibaca Asisten untuk peran Anda.</p>}
+          {alat.length === 0 && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada data yang bisa dibaca Asisten buat peran Anda.</p>}
           {alat.map((a) => a.nama === "laporan_periode"
             ? PERIODE_LAPORAN.map((p) => <Btn key={p.id} size="sm" v="dark" disabled={sibuk} onClick={() => cepat(a.nama, p.label, p.id)}>{p.label}</Btn>)
             : <Btn key={a.nama} size="sm" v="light" disabled={sibuk} onClick={() => cepat(a.nama, a.label)}>{a.label}</Btn>)}
         </div>
-        <p className="px-2.5 pb-2 text-[12px]" style={{ color: MUTED }}>Menampilkan data apa adanya dari sistem, tanpa menebak. Tidak memakai jatah harian.</p>
+        <p className="px-2.5 pb-2 text-[12px]" style={{ color: MUTED }}>Datanya ditampilkan apa adanya dari sistem, nggak ditebak-tebak. Nggak motong jatah harian.</p>
       </Card>
 
       <Card title="Percakapan">
         <div className="space-y-3 px-2.5 pb-2.5" aria-live="polite">
           {pesan.length === 0 && (
             <Inner className="!p-3.5">
-              <p className="text-[13px]" style={{ color: MUTED }}>{modelAktif ? "Tanyakan dengan kalimat biasa, misalnya:" : "Pertanyaan bebas belum diaktifkan di server ini. Contoh yang bisa dijawab setelah diaktifkan:"}</p>
+              <p className="text-[13px]" style={{ color: MUTED }}>{modelAktif ? "Tanya aja pakai kalimat biasa, misalnya:" : "Pertanyaan bebas belum dinyalain di server ini. Contoh pertanyaan yang bisa dijawab kalau udah nyala:"}</p>
               <ul className="mt-1.5 space-y-1 text-[13px]" style={{ color: INK }}>
                 {CONTOH.map((c) => <li key={c}>{modelAktif ? <button type="button" className="underline decoration-dotted underline-offset-4" onClick={() => kirim(c)}>{c}</button> : c}</li>)}
               </ul>
@@ -81,7 +81,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
               </div>
             </div>
           ))}
-          {sibuk && <p className="text-[12.5px]" style={{ color: MUTED }}>Asisten sedang membaca data...</p>}
+          {sibuk && <p className="text-[12.5px]" style={{ color: MUTED }}>Asisten lagi baca data...</p>}
           <div ref={ujung} />
         </div>
 
@@ -90,7 +90,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); kirim(teks); } }}
             placeholder={modelAktif ? "Tulis pertanyaan..." : "Pertanyaan bebas belum aktif"} className="w-full resize-none rounded-2xl border border-[#E2E4EA] bg-white px-3.5 py-2.5 text-[14px] outline-none focus:border-[#00171F] disabled:opacity-50" />
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[12px]" style={{ color: sisa <= 0 ? "#A8322B" : MUTED }}>{modelAktif ? `Sisa ${sisa} dari ${jatah.batas} pertanyaan hari ini` : "Asisten hanya membaca; tidak bisa mengubah data."}</span>
+            <span className="text-[12px]" style={{ color: sisa <= 0 ? "#A8322B" : MUTED }}>{modelAktif ? `Sisa ${sisa} dari ${jatah.batas} pertanyaan hari ini` : "Asisten cuma baca data, nggak bisa ngubah apa-apa."}</span>
             <Btn type="submit" size="sm" disabled={!modelAktif || sibuk || sisa <= 0 || teks.trim().length < 2}>{sibuk ? "Membaca..." : "Tanya"}</Btn>
           </div>
         </form>

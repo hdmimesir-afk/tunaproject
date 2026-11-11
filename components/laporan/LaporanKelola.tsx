@@ -86,10 +86,10 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
       </div>
 
       {!data || !r ? (
-        <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{tren.length === 0 ? "Belum ada proyek." : "Pilih proyek untuk melihat laba rugi."}</p></Inner>
+        <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{tren.length === 0 ? "Belum ada proyek." : "Pilih proyek dulu buat lihat laba ruginya."}</p></Inner>
       ) : (
         <>
-          {!r.cukupData && <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Proyek ini belum lengkap: belum ada penjualan terkirim atau belum ada biaya. Angka akan terisi sendiri saat datanya masuk.</p>}
+          {!r.cukupData && <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Proyek ini belum lengkap. Penjualan yang terkirim atau biayanya belum ada. Angkanya keisi sendiri nanti pas datanya masuk.</p>}
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             <Stat value={rp(r.totalPendapatan)} label="Pendapatan" />
             <Stat value={rp(r.totalBiaya)} label="Total biaya langsung" />
@@ -116,7 +116,7 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
                 </tbody>
               </table>
             </div>
-            <p className="px-2.5 pb-2 pt-2.5 text-[12px]" style={{ color: MUTED }}>Ketuk nama baris bergaris putus-putus untuk melihat transaksi di baliknya. Laba bersih: belum bisa dihitung sampai biaya bulanan, penyusutan, dan pajak diisi.</p>
+            <p className="px-2.5 pb-2 pt-2.5 text-[12px]" style={{ color: MUTED }}>Ketuk nama baris yang bergaris putus-putus buat lihat transaksinya. Laba bersih belum bisa dihitung sebelum biaya bulanan, penyusutan, sama pajak diisi.</p>
           </Card>
 
           <Card title="2. Ke mana berat ikan pergi">
@@ -175,14 +175,14 @@ function TrenTab({ tren }: { tren: BarisLabaSiklus[] }) {
           { h: "Margin", r: (b) => (b.marginPct === null ? "-" : persen(b.marginPct)), right: true },
         ]}
       />
-      <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Baris baru terisi otomatis dari penjualan dan biaya yang sudah tercatat di tiap proyek.</p>
+      <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Baris baru keisi sendiri dari penjualan dan biaya yang udah dicatat di tiap proyek.</p>
     </Card>
   );
 }
 
 /* ------------------------------------------------------------ harga beli */
 function GrafikHarga({ titik }: { titik: { periode: string; harga: number }[] }) {
-  if (titik.length < 2) return <p className="px-2.5 pb-2 text-[12.5px]" style={{ color: MUTED }}>Grafik muncul setelah ada minimal dua periode.</p>;
+  if (titik.length < 2) return <p className="px-2.5 pb-2 text-[12.5px]" style={{ color: MUTED }}>Grafiknya baru muncul kalau udah ada minimal dua periode.</p>;
   const w = 640, h = 180, px = 44, py = 18;
   const nilai = titik.map((t) => t.harga);
   const min = Math.min(...nilai), max = Math.max(...nilai);
@@ -243,7 +243,7 @@ function HargaTab({ harga }: { harga: BarisHargaBeli[] }) {
       <GrafikHarga titik={baris.map((b) => ({ periode: b.periode, harga: b.harga }))} />
       <DataList
         rows={[...baris].reverse()}
-        empty="Belum ada ikan diterima."
+        empty="Belum ada ikan yang diterima."
         cols={[
           { h: "Periode", r: (b: (typeof baris)[number]) => <span className="font-medium">{tanggal(b.periode)}</span> },
           { h: "Berat", r: (b) => `${kgT(b.kg)} kg`, right: true },
@@ -252,7 +252,7 @@ function HargaTab({ harga }: { harga: BarisHargaBeli[] }) {
           { h: "Lot", r: (b) => String(b.lot), right: true },
         ]}
       />
-      <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Harga dihitung dari nilai ÷ berat semua lot (bukan rata-rata dari rata-rata). Harga baru tidak mengubah harga PO lama.</p>
+      <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Harganya dihitung dari nilai ÷ berat semua lot (bukan rata-rata dari rata-rata). Harga baru nggak ngubah harga PO lama.</p>
     </Card>
   );
 }

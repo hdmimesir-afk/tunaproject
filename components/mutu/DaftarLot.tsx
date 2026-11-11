@@ -53,7 +53,7 @@ export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris
 
         {tampil.length === 0 ? (
           <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
-            {lots.length === 0 ? "Belum ada ikan diterima." : q.trim() ? `Tidak ada lot yang cocok dengan “${q.trim()}”.` : "Tidak ada lot untuk filter ini."}
+            {lots.length === 0 ? "Belum ada ikan yang diterima." : q.trim() ? `Nggak ada lot yang cocok sama “${q.trim()}”.` : "Nggak ada lot buat filter ini."}
           </div>
         ) : (
           <div className="overflow-hidden rounded-[20px] bg-white">

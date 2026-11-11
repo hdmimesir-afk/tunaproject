@@ -53,7 +53,7 @@ function FormRuangan({ r, onTutup }: { r: Ruangan; onTutup: () => void }) {
     <form action={action} className="space-y-3">
       <input type="hidden" name="ruanganId" value={r.id} />
       <PesanForm state={state?.error ? state : undefined} />
-      <p className="text-[12.5px]" style={{ color: MUTED }}>{r.nama} saat ini berisi {kgTeks(r.isi_kg)}. Kapasitas tidak boleh di bawah isi, dan ruangan yang masih berisi tidak bisa dinonaktifkan.</p>
+      <p className="text-[12.5px]" style={{ color: MUTED }}>{r.nama} sekarang isinya {kgTeks(r.isi_kg)}. Kapasitas nggak boleh di bawah isi, dan ruangan yang masih ada isinya nggak bisa dinonaktifkan.</p>
       <Field label="Kapasitas (kg)" error={state?.kolom?.kapasitas?.[0]}><TextIn name="kapasitas" inputMode="decimal" defaultValue={formatKg(r.kapasitas_kg)} required /></Field>
       <label className="flex items-center gap-2.5 text-[13px]"><input type="checkbox" name="dikonfirmasi" className="h-4 w-4 accent-[#00171F]" defaultChecked={r.dikonfirmasi} />Kapasitas ini sudah dikonfirmasi owner</label>
       <label className="flex items-center gap-2.5 text-[13px]"><input type="checkbox" name="aktif" className="h-4 w-4 accent-[#00171F]" defaultChecked={r.aktif} />Ruangan aktif dipakai</label>
@@ -70,7 +70,7 @@ function FormTitipan({ pelanggan, produk, grade, ruangan, onTutup }: { pelanggan
   return (
     <form action={action} className="space-y-3">
       <PesanForm state={state?.error ? state : undefined} />
-      {pelanggan.length === 0 ? <p className="text-[13px]" style={{ color: MUTED }}>Belum ada pelanggan. Tambahkan dulu di Pengaturan.</p> : (
+      {pelanggan.length === 0 ? <p className="text-[13px]" style={{ color: MUTED }}>Belum ada pelanggan. Tambahin dulu di Pengaturan.</p> : (
         <>
           <Field label="Pelanggan pemilik titipan" error={state?.kolom?.buyerId?.[0]}>
             <select name="buyerId" className={pilihCls} defaultValue="" required><option value="" disabled>Pilih pelanggan</option>{pelanggan.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
@@ -102,7 +102,7 @@ function FormTitipan({ pelanggan, produk, grade, ruangan, onTutup }: { pelanggan
 function RincianTagihan({ t, onTutup }: { t: Tagihan; onTutup: () => void }) {
   const r = t.rincian;
   const baris = t.jenis === "abf"
-    ? [`${tampilKg(Math.round(t.kg_dasar * 1000))} kg × ${rp(t.tarif_per_kg)} = ${rp(t.jumlah)}`, "ABF ditagih sekali per kg dan terpisah dari biaya simpan."]
+    ? [`${tampilKg(Math.round(t.kg_dasar * 1000))} kg × ${rp(t.tarif_per_kg)} = ${rp(t.jumlah)}`, "ABF ditagih sekali per kg, terpisah dari biaya simpan."]
     : uraikanBiaya({
         transit: !!r.transit, detik: r.detik ?? 0, hariBulat: r.hari_bulat ?? 0, hariDitagih: t.hari_ditagih, tarifPerKg: t.tarif_per_kg,
         kgDasar: t.kg_dasar, jumlah: t.jumlah, minimumHari: r.minimum_hari ?? 10, masaTransitJam: r.masa_transit_jam ?? 3,
@@ -131,7 +131,7 @@ function FormTarif({ aturan, onTutup, hariIni }: { aturan: AturanTarif; onTutup:
     <form action={action} className="space-y-3">
       <input type="hidden" name="jenis" value={aturan.jenis} />
       <PesanForm state={state?.error ? state : undefined} />
-      <p className="text-[12.5px]" style={{ color: MUTED }}>Tarif baru berlaku mulai tanggal yang dipilih. Tagihan lama tetap memakai tarif saat ikan masuk.</p>
+      <p className="text-[12.5px]" style={{ color: MUTED }}>Tarif baru berlaku mulai tanggal yang dipilih. Tagihan lama tetap pakai tarif pas ikannya masuk.</p>
       <div className="grid grid-cols-2 gap-3">
         <Field label={aturan.jenis === "simpan" ? "Tarif simpan (Rp/kg/hari)" : "Tarif (Rp/kg)"} error={state?.kolom?.tarif?.[0]}><TextIn name="tarif" type="number" step="0.01" min="0" defaultValue={aturan.tarif_per_kg} required /></Field>
         <Field label="Berlaku mulai" error={state?.kolom?.berlakuDari?.[0]}><TextIn name="berlakuDari" type="date" defaultValue={hariIni} required /></Field>
@@ -171,13 +171,13 @@ function FormBooking({ booking, mitra, onTutup }: { booking: Booking[]; mitra: O
       <PesanForm state={state?.error ? state : undefined} />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Jenis"><select name="jenis" className={pilihCls} defaultValue="abf"><option value="abf">ABF</option><option value="produksi">Produksi</option></select></Field>
-        <Field label="Mitra" hint="Kosong = milik sendiri."><select name="partnerId" className={pilihCls} defaultValue=""><option value="">Milik sendiri</option>{mitra.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select></Field>
+        <Field label="Mitra" hint="Kalau kosong, berarti milik sendiri."><select name="partnerId" className={pilihCls} defaultValue=""><option value="">Milik sendiri</option>{mitra.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select></Field>
         <Field label="Mulai (WIB)" error={state?.kolom?.mulai?.[0]}><TextIn name="mulai" type="datetime-local" value={mulai} onChange={(e) => setMulai(e.target.value)} required /></Field>
         <Field label="Selesai (WIB)" error={state?.kolom?.selesai?.[0]}><TextIn name="selesai" type="datetime-local" value={selesai} onChange={(e) => setSelesai(e.target.value)} required /></Field>
       </div>
       {bentrokan.length > 0 && (
         <div role="alert" className="space-y-2 rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>
-          <p>Bentrok dengan: {bentrokan.map((b) => `${b.label} (${jamWib(b.mulai)}–${jamWib(b.selesai)})`).join(", ")}.</p>
+          <p>Bentrok dengan: {bentrokan.map((b) => `${b.label} (${jamWib(b.mulai)} sampai ${jamWib(b.selesai)})`).join(", ")}.</p>
           <Btn size="sm" v="light" onClick={pakaiKosong}>Pakai jam kosong pertama</Btn>
         </div>
       )}
@@ -199,7 +199,7 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
   const kosong = slotKosong(booking.map((x) => ({ id: x.id, mulai: new Date(x.mulai), selesai: new Date(x.selesai) })), durasi, new Date(b.mulai), b.id);
   return (
     <div className="space-y-4">
-      <p className="text-[13px]" style={{ color: MUTED }}>{b.label} · {jamWib(b.mulai)}–{jamWib(b.selesai)}</p>
+      <p className="text-[13px]" style={{ color: MUTED }}>{b.label} · {jamWib(b.mulai)} sampai {jamWib(b.selesai)}</p>
       <form action={aksiPindah} className="space-y-2.5">
         <input type="hidden" name="bookingId" value={b.id} />
         <PesanForm state={statePindah} />
@@ -212,7 +212,7 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
         <input type="hidden" name="bookingId" value={b.id} />
         <PesanForm state={batal} />
         <Field label="Alasan membatalkan" error={batal?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required /></Field>
-        <KonfirmasiDua full label="Batalkan jadwal" labelYa="Ya, batalkan jadwal" pending={sedangBatal} pesan="Jam ini dilepas dan bisa dipakai jadwal lain." />
+        <KonfirmasiDua full label="Batalkan jadwal" labelYa="Ya, batalkan jadwal" pending={sedangBatal} pesan="Jam ini dilepas, jadi bisa dipakai jadwal lain." />
       </form>
     </div>
   );
@@ -253,7 +253,7 @@ export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, p
       <Card title="Titipan pelanggan" right={bolehTulis && <Btn size="sm" onClick={() => setTerima(true)}>Terima titipan</Btn>}>
         <DataList
           rows={aktif}
-          empty="Tidak ada titipan di gudang."
+          empty="Nggak ada titipan di gudang."
           cari={(u) => `${u.pemilik_nama} ${u.kode} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
           cols={[
             { h: "Pelanggan", r: (u: UnitStok) => <><span className="font-medium">{u.pemilik_nama}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.kode} · masuk {tanggal(u.masuk_pada)}</span></> },
@@ -267,7 +267,7 @@ export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, p
               dokumen={lampiran.dokumen.filter((d) => d.ref_id === u.id)} unggah={UNGGAH_TITIPAN} bolehTulis={lampiran.bolehTulis} />
           ) : undefined}
         />
-        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Titipan diambil dari menu Stok. Tagihan jasa dibuat otomatis saat diambil.</p>
+        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Titipan diambilnya dari menu Stok. Tagihan jasanya dibuat otomatis pas diambil.</p>
       </Card>
 
       <Card title="Tagihan jasa gudang">
@@ -287,7 +287,7 @@ export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, p
       </Card>
 
       <Card title="Tarif">
-        {belumKonfirmasi && <div className="px-2.5 pb-2"><p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Sebagian angka tarif belum dikonfirmasi owner. Tagihan tetap dihitung dengan angka ini dan ditandai di rincian.</p></div>}
+        {belumKonfirmasi && <div className="px-2.5 pb-2"><p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Sebagian angka tarif belum dikonfirmasi owner. Tagihan tetap dihitung pakai angka ini, terus ditandai di rincian.</p></div>}
         <DataList
           rows={tarif}
           empty="Belum ada tarif."

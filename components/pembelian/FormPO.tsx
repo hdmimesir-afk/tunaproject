@@ -72,12 +72,12 @@ export function FormPO({ po, pemasok, siklus, bolehSiklusBaru, bolehPemasokBaru 
           <TextIn name="hargaPerKg" type="number" inputMode="decimal" step="0.01" min="0" defaultValue={po?.harga_per_kg ?? ""} required />
         </Field>
       </div>
-      {po && <p className="-mt-2 text-[12px]" style={{ color: MUTED }}>Total sekarang {rp(po.total)}. Dihitung ulang saat disimpan.</p>}
+      {po && <p className="-mt-2 text-[12px]" style={{ color: MUTED }}>Total sekarang {rp(po.total)}. Nanti dihitung ulang pas disimpan.</p>}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}>
           <TextIn name="tanggal" type="date" defaultValue={po?.tanggal ?? hariIni} required />
         </Field>
-        <Field label="Proyek (batch atau bongkaran)" hint="Satu proyek boleh berisi beberapa PO." error={state?.kolom?.siklusId?.[0]}>
+        <Field label="Proyek (batch atau bongkaran)" hint="Satu proyek boleh isinya beberapa PO." error={state?.kolom?.siklusId?.[0]}>
           <select name="siklusId" defaultValue={po?.cycle_id ?? ""} className={selectCls}>
             <option value="">Tanpa proyek</option>
             {bolehSiklusBaru && <option value="baru">Proyek baru (otomatis)</option>}

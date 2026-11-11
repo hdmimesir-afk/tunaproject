@@ -64,7 +64,7 @@ export async function masukkanHasil(_: HasilForm, fd: FormData): Promise<HasilFo
     p_production: p.data.produksiId, p_product: p.data.productId, p_grade: p.data.gradeId, p_kondisi: p.data.kondisi, p_kg: p.data.kg,
     p_lokasi: p.data.lokasi, p_langsung_kirim: p.data.langsungKirim === "on", p_catatan: p.data.catatan,
     ...(p.data.ruanganId ? { p_room: p.data.ruanganId } : {}),
-  }, p.data.langsungKirim === "on" ? "Tercatat langsung kirim (tidak masuk gudang)." : "Hasil produksi masuk stok.");
+  }, p.data.langsungKirim === "on" ? "Tercatat langsung kirim (nggak masuk gudang)." : "Hasil produksi masuk stok.");
 }
 
 /* ------------------------------------------------------- ambil stok */
@@ -102,14 +102,14 @@ const FormKoreksi = z.object({
 export async function ajukanKoreksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormKoreksi.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("stok.write", "ajukan_koreksi_stok", { p_unit: p.data.unitId, p_selisih_kg: p.data.selisih, p_alasan: p.data.alasan }, "Koreksi diajukan. Berlaku setelah disetujui Owner.");
+  return panggil("stok.write", "ajukan_koreksi_stok", { p_unit: p.data.unitId, p_selisih_kg: p.data.selisih, p_alasan: p.data.alasan }, "Koreksi udah diajukan. Berlakunya nanti kalau udah disetujui Owner.");
 }
 
 export async function putuskanKoreksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ gerakId: z.uuid(), setuju: z.enum(["ya", "tidak"]), catatan: z.string().trim().max(300) }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data tidak valid." };
+  if (!p.success) return { error: "Datanya nggak valid." };
   return panggil("stok.setuju", "putuskan_koreksi_stok", { p_movement: p.data.gerakId, p_setuju: p.data.setuju === "ya", p_catatan: p.data.catatan },
-    p.data.setuju === "ya" ? "Koreksi disetujui dan stok diperbarui." : "Koreksi ditolak.");
+    p.data.setuju === "ya" ? "Koreksi disetujui, stoknya udah diperbarui." : "Koreksi ditolak.");
 }
 
 /* ----------------------------------------------------------- titipan */
@@ -192,7 +192,7 @@ const FormBarang = z.object({
     if (s === "") return 0;
     const g = keGram(s);
     if (g === null) {
-      ctx.addIssue({ code: "custom", message: "Isi angka lebih dari nol, maksimal 3 desimal (atau kosongkan)" });
+      ctx.addIssue({ code: "custom", message: "Isi angka lebih dari nol, maksimal 3 desimal (atau kosongin aja)" });
       return z.NEVER;
     }
     return kgDariGram(g);
@@ -262,7 +262,7 @@ export async function ubahTarif(_: HasilForm, fd: FormData): Promise<HasilForm> 
   return panggil("pengaturan.write", "ubah_tarif", {
     p_jenis: p.data.jenis, p_tarif: Math.round(p.data.tarif * 100) / 100, p_minimum_hari: p.data.minimumHari, p_masa_transit_jam: p.data.masaTransitJam,
     p_dasar_berat: p.data.dasarBerat, p_berlaku_dari: p.data.berlakuDari, p_dikonfirmasi: p.data.dikonfirmasi === "on", p_catatan: p.data.catatan,
-  }, "Tarif disimpan. Tagihan lama tetap memakai tarif saat ikan masuk.");
+  }, "Tarif disimpan. Tagihan lama tetap pakai tarif pas ikannya masuk.");
 }
 
 /* ------------------------------------------------------------ jadwal */
@@ -287,7 +287,7 @@ export async function buatBooking(_: HasilForm, fd: FormData): Promise<HasilForm
 
 export async function pindahBooking(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ bookingId: z.uuid(), mulai: z.string() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Data tidak valid." };
+  if (!p.success) return { error: "Datanya nggak valid." };
   const mulai = p.data.mulai === "" ? null : dariInputWib(p.data.mulai);
   if (p.data.mulai !== "" && !mulai) return { kolom: { mulai: ["Isi jam mulai baru"] } };
   return panggil("gudang.write", "pindah_booking", { p_id: p.data.bookingId, p_mulai: mulai }, mulai ? "Jadwal dipindah." : "Jadwal dipindah ke jam kosong pertama.");
