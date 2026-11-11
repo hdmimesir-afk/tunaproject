@@ -77,10 +77,10 @@ export function FormPO({ po, pemasok, siklus, bolehSiklusBaru, bolehPemasokBaru 
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}>
           <TextIn name="tanggal" type="date" defaultValue={po?.tanggal ?? hariIni} required />
         </Field>
-        <Field label="Siklus" error={state?.kolom?.siklusId?.[0]}>
+        <Field label="Proyek (batch atau bongkaran)" hint="Satu proyek boleh berisi beberapa PO." error={state?.kolom?.siklusId?.[0]}>
           <select name="siklusId" defaultValue={po?.cycle_id ?? ""} className={selectCls}>
-            <option value="">Tanpa siklus</option>
-            {bolehSiklusBaru && <option value="baru">Siklus baru (otomatis)</option>}
+            <option value="">Tanpa proyek</option>
+            {bolehSiklusBaru && <option value="baru">Proyek baru (otomatis)</option>}
             {siklus.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         </Field>

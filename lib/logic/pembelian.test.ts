@@ -1,5 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { bisaDiedit, gradeLot, ringkasBatch, selisihHarga, sisaBayar, sisaBelumDibagi } from "./pembelian";
+import { bisaDiedit, gradeLot, lampiranKurang, lampiranWajib, namaPemegang, ringkasBatch, selisihHarga, sisaBayar, sisaBelumDibagi } from "./pembelian";
+
+describe("lampiranKurang", () => {
+  const aturan = [
+    { ref_tabel: "lots" as const, jenis: "foto_timbangan" as const, wajib: true },
+    { ref_tabel: "lots" as const, jenis: "nota" as const, wajib: false },
+    { ref_tabel: "purchase_orders" as const, jenis: "nota" as const, wajib: true },
+  ];
+  it("hanya lampiran wajib yang belum ada untuk catatan itu", () => {
+    expect(lampiranKurang(aturan, "lots", "l1", [])).toEqual(["foto_timbangan"]);
+    expect(lampiranKurang(aturan, "lots", "l1", [{ ref_tabel: "lots", ref_id: "l2", jenis: "foto_timbangan" }])).toEqual(["foto_timbangan"]);
+    expect(lampiranKurang(aturan, "lots", "l1", [{ ref_tabel: "lots", ref_id: "l1", jenis: "foto_timbangan" }])).toEqual([]);
+  });
+  it("wajib atau opsional per jenis catatan", () => {
+    expect(lampiranWajib(aturan, "purchase_orders", "nota")).toBe(true);
+    expect(lampiranWajib(aturan, "lots", "nota")).toBe(false);
+  });
+});
+
+describe("namaPemegang", () => {
+  it("peran beserta nama akun, peran tanpa akun cukup namanya", () => {
+    expect(namaPemegang([
+      { aksi: "persetujuan.setuju", role_id: "owner", role_nama: "Owner", nama: "Budi" },
+      { aksi: "persetujuan.setuju", role_id: "finance", role_nama: "Finance", nama: "" },
+      { aksi: "nota.susulan", role_id: "finance", role_nama: "Finance", nama: "" },
+    ], "persetujuan.setuju")).toBe("Owner (Budi), Finance");
+  });
+});
 
 describe("gradeLot", () => {
   const a = { kode: "A-SO" }, b = { kode: "B-SO" };

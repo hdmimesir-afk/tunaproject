@@ -10,12 +10,12 @@ import { daftarRingkasSiklus, rantaiSiklus } from "@/lib/data/laporan";
 import { supabaseConfigured } from "@/lib/env";
 import { boleh } from "@/lib/izin";
 
-export const metadata: Metadata = { title: "KATALIS ERP | Rincian Siklus" };
+export const metadata: Metadata = { title: "KATALIS ERP | Rincian Proyek" };
 
 export default function SiklusPage(props: PageProps<"/siklus">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Satu siklus dari beli ikan sampai uang masuk" judul="Rincian Siklus" />
+      <Judul kicker="Satu proyek (batch atau bongkaran) dari beli ikan sampai uang masuk" judul="Rincian Proyek" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <SiklusData searchParams={props.searchParams} />

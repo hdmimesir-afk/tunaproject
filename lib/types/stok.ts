@@ -17,6 +17,9 @@ export type UnitStok = {
   room_id: string | null;
   production_id: string | null;
   production_kode: string | null;
+  cycle_id?: string | null;
+  /** Proyek (batch/bongkaran) dari produksinya. */
+  cycles?: { kode: string } | null;
   kg_masuk: number;
   sisa_kg: number;
   sisa_dasar_masuk: number;

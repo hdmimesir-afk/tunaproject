@@ -62,11 +62,11 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
       ["Pendapatan", "Total pendapatan", null, null, r.totalPendapatan, 100],
       ...r.biaya.map((b) => ["Biaya langsung", b.label, b.kg, b.hargaPerKg, b.jumlah, b.persen]),
       ["Biaya langsung", "Total biaya langsung", null, null, r.totalBiaya, null],
-      ["Hasil", "Laba kotor siklus", null, null, r.labaKotor, r.marginPct],
+      ["Hasil", "Laba kotor proyek", null, null, r.labaKotor, r.marginPct],
     ];
     const totalPendapatan = r.pendapatan.length;
     void unduhExcel(`laba-rugi-${data.siklus.kode}`, {
-      judul: `Laba rugi siklus ${data.siklus.kode}`,
+      judul: `Laba rugi proyek ${data.siklus.kode}`,
       bagian: [{
         kolom: [{ judul: "Bagian" }, { judul: "Uraian" }, { judul: "Berat (kg)", jenis: "kg" }, { judul: "Harga/kg", jenis: "rupiah" }, { judul: "Rupiah", jenis: "rupiah" }, { judul: "% pendapatan", jenis: "persen" }],
         baris,
@@ -78,22 +78,22 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <select aria-label="Pilih siklus" className="h-11 rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px]" value={siklusId ?? ""} onChange={(e) => router.push(`/laporan?c=${e.target.value}`)}>
-          <option value="" disabled>Pilih siklus</option>
+        <select aria-label="Pilih proyek" className="h-11 rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px]" value={siklusId ?? ""} onChange={(e) => router.push(`/laporan?c=${e.target.value}`)}>
+          <option value="" disabled>Pilih proyek</option>
           {tren.map((t) => <option key={t.cycle_id} value={t.cycle_id}>{t.kode}{t.ref_po_pembeli ? ` · ${t.ref_po_pembeli}` : ""}</option>)}
         </select>
         {r && <Btn size="sm" v="light" onClick={unduh}>Unduh Excel</Btn>}
       </div>
 
       {!data || !r ? (
-        <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{tren.length === 0 ? "Belum ada siklus." : "Pilih siklus untuk melihat laba rugi."}</p></Inner>
+        <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{tren.length === 0 ? "Belum ada proyek." : "Pilih proyek untuk melihat laba rugi."}</p></Inner>
       ) : (
         <>
-          {!r.cukupData && <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Siklus ini belum lengkap: belum ada penjualan terkirim atau belum ada biaya. Angka akan terisi sendiri saat datanya masuk.</p>}
+          {!r.cukupData && <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Proyek ini belum lengkap: belum ada penjualan terkirim atau belum ada biaya. Angka akan terisi sendiri saat datanya masuk.</p>}
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             <Stat value={rp(r.totalPendapatan)} label="Pendapatan" />
             <Stat value={rp(r.totalBiaya)} label="Total biaya langsung" />
-            <Stat value={rp(r.labaKotor)} label={`Laba kotor siklus · margin ${persen(r.marginPct)}`} tone={r.labaKotor < 0 ? "warn" : "ok"} />
+            <Stat value={rp(r.labaKotor)} label={`Laba kotor proyek · margin ${persen(r.marginPct)}`} tone={r.labaKotor < 0 ? "warn" : "ok"} />
             <Stat value={persen(r.hasilPct)} label={r.rencanaHasilPct !== null ? `Hasil olahan (loin) · rencana ${r.rencanaHasilPct}% · ${r.diAtasRencana ? "di atas rencana" : "di bawah rencana"}` : "Hasil olahan (loin)"} />
           </div>
 
@@ -108,11 +108,11 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
                   {r.pendapatan.filter((b) => b.label.startsWith("Limbah")).map((b, i) => <BarisKlik key={`l${i}`} label={`${b.label} · belum ada pembeli`} kg={b.kg} jumlah={0} persen={0} />)}
                   <BarisKlik label="Total pendapatan" jumlah={r.totalPendapatan} persen={100} tebal />
                 </tbody>
-                <thead><tr className="text-left text-[12px]" style={{ color: MUTED }}><th className="px-3 py-2.5 pt-5 font-medium">Biaya langsung siklus</th><th /><th className="px-3 py-2.5 pt-5 text-right font-medium">Rupiah</th><th className="px-3 py-2.5 pt-5 text-right font-medium">% pendapatan</th></tr></thead>
+                <thead><tr className="text-left text-[12px]" style={{ color: MUTED }}><th className="px-3 py-2.5 pt-5 font-medium">Biaya langsung proyek</th><th /><th className="px-3 py-2.5 pt-5 text-right font-medium">Rupiah</th><th className="px-3 py-2.5 pt-5 text-right font-medium">% pendapatan</th></tr></thead>
                 <tbody>
                   {r.biaya.map((b, i) => <BarisKlik key={i} label={b.label} kg={b.kg} harga={b.hargaPerKg} jumlah={b.jumlah} persen={b.persen} detail={detailB(b.label)} />)}
                   <BarisKlik label="Total biaya langsung" jumlah={r.totalBiaya} persen={r.totalPendapatan > 0 ? Math.round((r.totalBiaya / r.totalPendapatan) * 1000) / 10 : 0} tebal />
-                  <BarisKlik label="Laba kotor siklus" jumlah={r.labaKotor} persen={r.marginPct} tebal />
+                  <BarisKlik label="Laba kotor proyek" jumlah={r.labaKotor} persen={r.marginPct} tebal />
                 </tbody>
               </table>
             </div>
@@ -151,21 +151,21 @@ function LabaRugiTab({ data, tren, siklusId }: { data: DataLabaRugi | null; tren
 /* ----------------------------------------------------------------- tren */
 function TrenTab({ tren }: { tren: BarisLabaSiklus[] }) {
   const baris = ringkasTren(tren);
-  const unduh = () => unduhExcel("tren-antarsiklus", {
-    judul: "Tren antarsiklus",
+  const unduh = () => unduhExcel("tren-antarproyek", {
+    judul: "Tren antarproyek",
     bagian: [{
-      kolom: [{ judul: "Siklus" }, { judul: "Ikan (kg)", jenis: "kg" }, { judul: "Hasil olahan", jenis: "persen" }, { judul: "Harga ikan/kg", jenis: "rupiah" }, { judul: "Pendapatan", jenis: "rupiah" }, { judul: "Biaya", jenis: "rupiah" }, { judul: "Laba kotor", jenis: "rupiah" }, { judul: "Margin", jenis: "persen" }],
+      kolom: [{ judul: "Proyek" }, { judul: "Ikan (kg)", jenis: "kg" }, { judul: "Hasil olahan", jenis: "persen" }, { judul: "Harga ikan/kg", jenis: "rupiah" }, { judul: "Pendapatan", jenis: "rupiah" }, { judul: "Biaya", jenis: "rupiah" }, { judul: "Laba kotor", jenis: "rupiah" }, { judul: "Margin", jenis: "persen" }],
       baris: baris.map((b) => [b.kode, b.ikanKg, b.hasilPct, b.hargaIkanPerKg, b.pendapatan, b.biaya, b.laba, b.marginPct]),
     }],
   });
   return (
-    <Card title="Tren antarsiklus" right={<Btn size="sm" v="light" onClick={unduh} disabled={baris.length === 0}>Unduh Excel</Btn>}>
+    <Card title="Tren antarproyek" right={<Btn size="sm" v="light" onClick={unduh} disabled={baris.length === 0}>Unduh Excel</Btn>}>
       <DataList
         rows={baris}
-        empty="Belum ada siklus."
+        empty="Belum ada proyek."
         cari={(b) => b.kode}
         cols={[
-          { h: "Siklus", r: (b: (typeof baris)[number]) => <span className="font-medium">{b.kode}</span> },
+          { h: "Proyek", r: (b: (typeof baris)[number]) => <span className="font-medium">{b.kode}</span> },
           { h: "Ikan", r: (b) => `${kgT(b.ikanKg)} kg`, right: true },
           { h: "Hasil olahan", r: (b) => persen(b.hasilPct), right: true },
           { h: "Harga ikan/kg", r: (b) => rp(b.hargaIkanPerKg), right: true },
@@ -175,7 +175,7 @@ function TrenTab({ tren }: { tren: BarisLabaSiklus[] }) {
           { h: "Margin", r: (b) => (b.marginPct === null ? "-" : persen(b.marginPct)), right: true },
         ]}
       />
-      <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Baris baru terisi otomatis dari penjualan dan biaya yang sudah tercatat di tiap siklus.</p>
+      <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Baris baru terisi otomatis dari penjualan dan biaya yang sudah tercatat di tiap proyek.</p>
     </Card>
   );
 }
@@ -282,7 +282,7 @@ function SimulasiTab({ data }: { data: DataLabaRugi | null }) {
   }, [data]);
   const [s, setS] = useState<Skenario | null>(null);
   if (!data || !dasar) {
-    return <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Simulasi butuh siklus yang sudah punya ikan masuk, loin, penjualan, dan pembelian ikan. Pilih siklus di tab Laba rugi.</p></Inner>;
+    return <Inner><p className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Simulasi butuh proyek yang sudah punya ikan masuk, loin, penjualan, dan pembelian ikan. Pilih proyek di tab Laba rugi.</p></Inner>;
   }
   const aktif = s ?? skenarioDasar(dasar);
   const awal = hitungSimulasi(dasar, skenarioDasar(dasar));
@@ -292,7 +292,7 @@ function SimulasiTab({ data }: { data: DataLabaRugi | null }) {
   const bulat = (n: number) => Math.round(n);
   return (
     <div className="space-y-4">
-      <Card title={`Simulasi berdasarkan ${data.siklus.kode}`} right={<Btn size="sm" v="ghost" onClick={() => setS(null)}>Kembalikan ke angka siklus</Btn>}>
+      <Card title={`Simulasi berdasarkan ${data.siklus.kode}`} right={<Btn size="sm" v="ghost" onClick={() => setS(null)}>Kembalikan ke angka proyek</Btn>}>
         <div className="grid gap-4 px-2.5 pb-3 md:grid-cols-3">
           <Geser label="Harga ikan utuh per kg" nilai={bulat(aktif.hargaIkanPerKg)} min={Math.round(dasar.hargaIkanPerKg * 0.6)} max={Math.round(dasar.hargaIkanPerKg * 1.4)} langkah={500} onUbah={(n) => setS({ ...aktif, hargaIkanPerKg: n })} format={rp} />
           <Geser label="Hasil olahan (loin ÷ ikan)" nilai={Math.round(aktif.hasilPct * 10) / 10} min={40} max={80} langkah={0.1} onUbah={(n) => setS({ ...aktif, hasilPct: n })} format={persen} />
@@ -301,13 +301,13 @@ function SimulasiTab({ data }: { data: DataLabaRugi | null }) {
       </Card>
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
         <Stat value={rp(h.labaKotor)} label={`Laba kotor · margin ${persen(h.marginPct)}`} tone={h.labaKotor < 0 ? "warn" : "ok"} />
-        <Stat value={`${selisih >= 0 ? "+" : "−"}${rp(Math.abs(selisih))}`} label="Dibanding angka siklus" tone={selisih < 0 ? "warn" : undefined} />
+        <Stat value={`${selisih >= 0 ? "+" : "−"}${rp(Math.abs(selisih))}`} label="Dibanding angka proyek" tone={selisih < 0 ? "warn" : undefined} />
         <Stat value={`${kgT(h.loinKg)} kg`} label="Loin yang dihasilkan" />
         <Stat value={rp(h.hargaJualMinimal)} label="Harga jual loin minimal" />
         <Stat value={rp(h.labaPerKgLoin)} label="Laba per kg loin" tone={h.labaPerKgLoin < 0 ? "warn" : undefined} />
         <Stat value={rp(impas)} label="Harga ikan tertinggi agar tidak rugi" />
       </div>
-      <p className="text-[12px]" style={{ color: MUTED }}>Asumsi: berat ikan masuk tetap, hasil samping dan biaya selain ikan (kargo, penanganan, kemasan, jasa) tetap seperti siklus ini, dan harga jual loin rata-rata berlaku untuk semua loin. Ini perkiraan, bukan angka transaksi.</p>
+      <p className="text-[12px]" style={{ color: MUTED }}>Asumsi: berat ikan masuk tetap, hasil samping dan biaya selain ikan (kargo, penanganan, kemasan, jasa) tetap seperti proyek ini, dan harga jual loin rata-rata berlaku untuk semua loin. Ini perkiraan, bukan angka transaksi.</p>
     </div>
   );
 }
@@ -315,7 +315,7 @@ function SimulasiTab({ data }: { data: DataLabaRugi | null }) {
 /* ---------------------------------------------------------------- utama */
 export function LaporanKelola({ tren, data, siklusId, harga, bolehHarga }: Props) {
   const [tab, setTab] = useState<"laba" | "tren" | "simulasi" | "harga">("laba");
-  const tabs = [["laba", "Laba rugi siklus"], ["tren", "Tren antarsiklus"], ["simulasi", "Simulasi harga"], ...(bolehHarga ? [["harga", "Harga beli"]] : [])] as [typeof tab, string][];
+  const tabs = [["laba", "Laba rugi proyek"], ["tren", "Tren antarproyek"], ["simulasi", "Simulasi harga"], ...(bolehHarga ? [["harga", "Harga beli"]] : [])] as [typeof tab, string][];
   return (
     <div className="space-y-4">
       <div role="tablist" aria-label="Jenis laporan" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
@@ -323,7 +323,7 @@ export function LaporanKelola({ tren, data, siklusId, harga, bolehHarga }: Props
           <button key={k} role="tab" aria-selected={tab === k} type="button" onClick={() => setTab(k)}
             className="h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-[13px] font-medium md:h-9" style={tab === k ? { background: INK, color: "#fff" } : { background: "#fff", color: INK }}>{label}</button>
         ))}
-        <span className="hidden md:inline-flex"><Pill t={`${tren.length} siklus`} /></span>
+        <span className="hidden md:inline-flex"><Pill t={`${tren.length} proyek`} /></span>
       </div>
       {tab === "laba" && <LabaRugiTab data={data} tren={tren} siklusId={siklusId} />}
       {tab === "tren" && <TrenTab tren={tren} />}

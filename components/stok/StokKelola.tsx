@@ -232,9 +232,9 @@ function StokIkan({ units, isi, ruangan, koreksi, produksi, produk, grade, boleh
         <DataList
           rows={tampil}
           empty="Belum ada stok."
-          cari={(u) => `${u.kode} ${u.pemilik_nama} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.production_kode ?? ""} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
+          cari={(u) => `${u.kode} ${u.pemilik_nama} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.production_kode ?? ""} ${u.cycles?.kode ?? ""} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
           cols={[
-            { h: "Unit", r: (u: UnitStok) => <><span className="font-medium">{u.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.pemilik_nama}{u.production_kode ? ` · ${u.production_kode}` : ""}</span></> },
+            { h: "Unit", r: (u: UnitStok) => <><span className="font-medium">{u.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.pemilik_nama}{u.production_kode ? ` · ${u.production_kode}` : ""}{u.cycles?.kode ? ` · Proyek ${u.cycles.kode}` : ""}</span></> },
             { h: "Produk", r: (u) => `${u.product_nama}${u.grade_kode ? ` · ${u.grade_kode}` : ""}` },
             { h: "Kondisi", r: (u) => <Pill t={u.langsung_kirim ? "Langsung kirim" : u.kondisi === "beku" ? "Beku" : "Fresh"} /> },
             { h: "Ruangan", r: (u) => (u.langsung_kirim ? "-" : (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : "")) },

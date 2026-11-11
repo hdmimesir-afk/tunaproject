@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AksesKelola, type Pengguna } from "@/components/akses/AksesKelola";
+import { AksesKelola, type Pengguna, type TugasPilihan } from "@/components/akses/AksesKelola";
 import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { requireIzin } from "@/lib/data/auth";
@@ -27,16 +27,21 @@ export default function AksesPage() {
 async function AksesData() {
   const sesi = await requireIzin("akses.kelola");
   const supabase = await createClient();
-  const [{ data: pengguna }, { data: peran }] = await Promise.all([
+  const [{ data: pengguna }, { data: peran }, { data: tugas }, { data: roleTugas }] = await Promise.all([
     supabase.from("profiles").select("user_id, nama, email, role_id, aktif").order("dibuat_pada"),
     supabase.from("roles").select("id, nama").order("urutan"),
+    supabase.from("tugas_pilihan").select("aksi, nama, keterangan").order("urutan"),
+    supabase.from("role_tugas").select("role_id, aksi, aktif"),
   ]);
   return (
     <AksesKelola
       pengguna={(pengguna ?? []) as Pengguna[]}
       peran={(peran ?? []) as { id: string; nama: string }[]}
       saya={sesi.userId}
+      peranSaya={sesi.roleId}
       bolehOwner={sesi.semuaIzin}
+      tugas={(tugas ?? []) as TugasPilihan[]}
+      roleTugas={(roleTugas ?? []) as { role_id: string; aksi: string; aktif: boolean }[]}
     />
   );
 }

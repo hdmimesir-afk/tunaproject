@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { BayarBaris, Dokumen, LotBaris, Opsi, Pengajuan, Pengguna, POBaris } from "@/lib/types/pembelian";
+import type { AturanLampiran, BayarBaris, Dokumen, LotBaris, Opsi, PemegangTugas, Pengajuan, Pengguna, POBaris } from "@/lib/types/pembelian";
 
 /* Lapisan akses data pembelian. Memakai klien pengguna, jadi RLS dan izin database berlaku.
    Pemanggil sudah memeriksa izin halaman lewat requireSesi/boleh. */
@@ -26,7 +26,7 @@ export async function pemasokAktif(): Promise<Opsi[]> {
 export async function daftarSiklus(): Promise<Opsi[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("cycles").select("id, kode, ref_po_pembeli").eq("status", "terbuka").order("kode", { ascending: false }).limit(50);
-  if (error) gagal("daftar siklus");
+  if (error) gagal("daftar proyek");
   return (data ?? []).map((c) => ({ id: c.id as string, label: c.ref_po_pembeli ? `${c.kode} · ${c.ref_po_pembeli}` : (c.kode as string) }));
 }
 
@@ -40,6 +40,22 @@ export async function petaPengguna(): Promise<Record<string, Pengguna>> {
     peta[p.user_id] = { nama: p.nama || "(tanpa nama)", role: p.role_nama ?? "" };
   }
   return peta;
+}
+
+/** Aturan lampiran wajib/opsional dari admin (Pengaturan). Terbaca semua pengguna yang masuk. */
+export async function aturanLampiran(): Promise<AturanLampiran[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("document_rules").select("id, ref_tabel, jenis, wajib, keterangan, urutan").order("ref_tabel").order("urutan");
+  if (error) gagal("aturan lampiran");
+  return (data ?? []) as AturanLampiran[];
+}
+
+/** Siapa memegang tugas pilihan admin (menyetujui PO, memeriksa PO, nota susulan). */
+export async function pemegangTugas(): Promise<PemegangTugas[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.rpc("pemegang_tugas");
+  if (error) return [];
+  return (data ?? []) as PemegangTugas[];
 }
 
 export type DetailPO = {

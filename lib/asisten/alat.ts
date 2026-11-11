@@ -41,8 +41,8 @@ export const DAFTAR_ALAT: DefAlat[] = [
     skema: { type: "object", properties: { periode: { type: "string", description: "hari_ini, minggu_ini (Senin sampai hari ini), atau bulan_ini. Bila tidak disebut, pakai hari_ini." } } } },
   { nama: "isi_ruangan", label: "Isi tiap ruangan gudang", deskripsi: "Isi dan kapasitas tiap ruangan gudang dingin (ABF 1, 2, 3 dan Cold Storage 1), dipisah milik sendiri dan titipan, beserta yang belum ditempatkan di ruangan.", izin: ["gudang.read", "stok.read"], skema: { type: "object", properties: {} } },
   { nama: "barang_menipis", label: "Barang penunjang menipis", deskripsi: "Barang penunjang kerja dan penunjang pekerja (apron, masker, kemasan, dan sejenisnya) yang stoknya sudah di bawah minimum atau habis.", izin: ["stok.read"], skema: { type: "object", properties: {} } },
-  { nama: "biaya_siklus", label: "Biaya dan laba satu siklus", deskripsi: "Pendapatan, biaya (ikan dan biaya lain per kategori), dan laba kotor satu siklus. Tanpa kode siklus, dipakai siklus terbaru.", izin: ["keuangan.read", "laporan.read"],
-    skema: { type: "object", properties: { siklus: { type: "string", description: "Kode siklus, misalnya SIK-0001. Boleh dikosongkan." } } } },
+  { nama: "biaya_siklus", label: "Biaya dan laba satu proyek", deskripsi: "Pendapatan, biaya (ikan dan biaya lain per kategori), dan laba kotor satu proyek (batch atau bongkaran; di database disebut siklus). Tanpa kode proyek, dipakai proyek terbaru.", izin: ["keuangan.read", "laporan.read"],
+    skema: { type: "object", properties: { siklus: { type: "string", description: "Kode proyek, misalnya SIK-0001. Boleh dikosongkan." } } } },
 ];
 
 type Sb = Awaited<ReturnType<typeof createClient>>;
@@ -168,14 +168,14 @@ async function biayaSiklus(sb: Sb, input: { siklus?: string }): Promise<HasilAla
   const { data, error } = await (input.siklus ? q.eq("kode", input.siklus.toUpperCase()) : q);
   if (error) throw new Error("Gagal membaca laba rugi.");
   const s = data?.[0] as Record<string, number | string> | undefined;
-  if (!s) return { ringkas: ["Siklus tidak ditemukan."], data: null, tautan: [{ label: "Laporan", href: "/laporan" }] };
+  if (!s) return { ringkas: ["Proyek tidak ditemukan."], data: null, tautan: [{ label: "Laporan", href: "/laporan" }] };
   const { data: by } = await sb.from("v_expenses").select("kategori_nama, jumlah").eq("cycle_id", s.cycle_id as string).eq("status", "disetujui");
   const per = new Map<string, number>();
   for (const b of by ?? []) per.set(b.kategori_nama as string, (per.get(b.kategori_nama as string) ?? 0) + Math.round(Number(b.jumlah) * 100));
   return {
     ringkas: [`${s.kode}: laba kotor ${rp(Number(s.laba_kotor))}${s.margin_pct !== null ? ` (margin ${String(s.margin_pct).replace(".", ",")}%)` : ""} dari pendapatan ${rp(Number(s.pendapatan_total))} dan biaya ${rp(Number(s.biaya_total))}.`],
     tabel: { kepala: ["Komponen", "Rupiah"], kananDari: 1, baris: [["Pendapatan", rp(Number(s.pendapatan_total))], ["Biaya ikan (PO disetujui)", rp(Number(s.biaya_ikan))], ...[...per.entries()].map(([k, v]) => [`Biaya ${k}`, rp(v / 100)]), ["Laba kotor", rp(Number(s.laba_kotor))]] },
-    data: s, tautan: [{ label: `Laba rugi ${s.kode}`, href: `/laporan?c=${s.cycle_id}` }, { label: "Rincian siklus", href: `/siklus?c=${s.cycle_id}` }],
+    data: s, tautan: [{ label: `Laba rugi ${s.kode}`, href: `/laporan?c=${s.cycle_id}` }, { label: "Rincian proyek", href: `/siklus?c=${s.cycle_id}` }],
   };
 }
 

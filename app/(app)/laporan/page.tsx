@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Laporan" };
 export default function LaporanPage(props: PageProps<"/laporan">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Laba rugi per siklus, tren, dan harga beli" judul="Laporan" />
+      <Judul kicker="Laba rugi per proyek, tren, dan harga beli" judul="Laporan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <LaporanData searchParams={props.searchParams} />

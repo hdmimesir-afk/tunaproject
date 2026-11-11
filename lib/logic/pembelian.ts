@@ -1,4 +1,20 @@
-import type { LotBaris, StatusApv, StatusBayar, StatusPO, StatusTerima } from "@/lib/types/pembelian";
+import type { AturanLampiran, Dokumen, JenisDokumen, LotBaris, PemegangTugas, StatusApv, StatusBayar, StatusPO, StatusTerima } from "@/lib/types/pembelian";
+
+/** Jenis lampiran wajib yang belum ada untuk satu catatan. Hanya penanda "belum lengkap", tidak menghentikan pencatatan. */
+export function lampiranKurang(aturan: Pick<AturanLampiran, "ref_tabel" | "jenis" | "wajib">[], refTabel: AturanLampiran["ref_tabel"], refId: string, dokumen: Pick<Dokumen, "ref_tabel" | "ref_id" | "jenis">[]): JenisDokumen[] {
+  return aturan
+    .filter((a) => a.ref_tabel === refTabel && a.wajib)
+    .filter((a) => !dokumen.some((d) => d.ref_tabel === refTabel && d.ref_id === refId && d.jenis === a.jenis))
+    .map((a) => a.jenis);
+}
+
+export const lampiranWajib = (aturan: Pick<AturanLampiran, "ref_tabel" | "jenis" | "wajib">[], refTabel: AturanLampiran["ref_tabel"], jenis: JenisDokumen) =>
+  aturan.some((a) => a.ref_tabel === refTabel && a.jenis === jenis && a.wajib);
+
+/** "Owner (Budi), Finance (Sari)" untuk satu tugas; peran tanpa akun aktif ditulis namanya saja. */
+export function namaPemegang(pemegang: PemegangTugas[], aksi: string): string {
+  return pemegang.filter((p) => p.aksi === aksi).map((p) => (p.nama ? `${p.role_nama} (${p.nama})` : p.role_nama)).join(", ");
+}
 
 /* Rumus dan label murni untuk pembelian dan persetujuan. Hitungan uang dalam sen supaya tidak bergeser. */
 

@@ -79,7 +79,11 @@ Jawaban atas empat pertanyaan di halaman `/flowchart`. Bagian lain PRD ini tetap
 
 - **Sudah dikerjakan:** tambah pemasok langsung dari form PO (poin 1), penjelasan Lulus dan Tahan (poin 4), hasil produksi yang belum masuk stok ditampilkan di form pesanan (poin 8), kolom Rp/kg di form pesanan (poin 9).
 - **Poin 6, satu lot beberapa grade. Sudah dikerjakan** (migrasi `20261111000100`). Cek mutu mencatat berat per grade di tabel `lot_grades`. Jumlahnya tidak boleh melebihi berat lot; bila kurang, sisanya tercatat tanpa grade dan masuk "Belum dinilai" di laporan harga beli. `lots.grade_id` tetap diisi grade terberat sebagai grade utama. Produksi tetap mengambil ikan per lot.
-- **Menunggu keputusan perusahaan:** nota susulan (poin 2), pemberi persetujuan PO (poin 3), lampiran dan foto timbang yang wajib (poin 5), arti "proyek" (poin 7).
+- **Poin 2, 3, 5, 7. Sudah dikerjakan** (migrasi `20261111000200`), sesuai jawaban perusahaan 11 November 2026:
+  - **Nota susulan (poin 2):** PO tanpa nota diajukan dengan tanda "nota menyusul" (`purchase_orders.nota_menyusul`). Penerimaan, produksi, dan persetujuan tidak tertahan. Nota untuk PO yang sudah diajukan hanya bisa dilampirkan pemegang tugas "Melampirkan nota susulan".
+  - **Pemberi persetujuan (poin 3):** dipilih admin di menu Akses, bagian Tugas per peran (`role_tugas`, fungsi `atur_tugas`). Ada tiga tugas: menyetujui PO, memeriksa PO, dan melampirkan nota susulan. Owner selalu memegang semuanya. Bawaan: Finance memeriksa dan melampirkan nota susulan, Super Admin melampirkan nota susulan. Penyetuju boleh langsung memutuskan tanpa menunggu diperiksa. Yang mengajukan tidak boleh menyetujui pengajuannya sendiri, kecuali Owner. Selain Owner, admin tidak bisa mengatur tugas perannya sendiri.
+  - **Lampiran wajib (poin 5):** diatur admin di Pengaturan, tab Lampiran wajib (`document_rules`). Bawaan: nota PO wajib, foto timbangan wajib (satu foto per penerimaan, termasuk penerimaan bertahap), dan bukti transfer pembayaran wajib. Lampiran wajib yang belum ada hanya ditandai "Belum ada" dan tidak menghentikan pencatatan.
+  - **Proyek (poin 7):** satu proyek adalah satu batch atau satu bongkaran, dan boleh berisi beberapa PO. Proyek memakai tabel `cycles` yang sudah ada; di layar, istilah "Siklus" diganti "Proyek". Stok hasil produksi sekarang ikut tercatat per proyek (`storage_units.cycle_id`). Rincian Proyek menampilkan tujuh tahap, termasuk stok, dan pilihan stok di pesanan menampilkan kode proyek.
 - **Setelah perbaikan stabil:** video panduan (poin 10).
 
 ## Alur utama

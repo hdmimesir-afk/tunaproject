@@ -5,7 +5,7 @@ import { KotakCari, useCari } from "@/components/ui/Cari";
 import { Btn, Card, Field, Inner, Pill, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
-import { lepasPeran, tautanAturSandi, ubahEmail, ubahPengguna, undangPengguna } from "@/lib/actions/akses";
+import { aturTugas, lepasPeran, tautanAturSandi, ubahEmail, ubahPengguna, undangPengguna } from "@/lib/actions/akses";
 import type { HasilForm } from "@/lib/actions/auth";
 
 export type Pengguna = { user_id: string; nama: string; email: string; role_id: string | null; aktif: boolean };
@@ -173,7 +173,74 @@ function Undang({ peran, bolehOwner, terisi }: { peran: Peran[]; bolehOwner: boo
   );
 }
 
-export function AksesKelola({ pengguna, peran, saya, bolehOwner }: { pengguna: Pengguna[]; peran: Peran[]; saya: string; bolehOwner: boolean }) {
+export type TugasPilihan = { aksi: string; nama: string; keterangan: string };
+
+/** Satu sel tugas: tombol beri/cabut untuk satu peran. Owner selalu memegang semua tugas; peran sendiri hanya diatur Owner. */
+function SelTugas({ roleId, aksi, aktif, terkunci, label }: { roleId: string; aksi: string; aktif: boolean; terkunci: boolean; label: string }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(aturTugas, undefined);
+  return (
+    <form action={action} className="space-y-1">
+      <input type="hidden" name="roleId" value={roleId} />
+      <input type="hidden" name="aksi" value={aksi} />
+      <input type="hidden" name="aktif" value={String(!aktif)} />
+      <button type="submit" disabled={terkunci || pending} aria-pressed={aktif} aria-label={label}
+        className="inline-flex h-9 min-w-[84px] items-center justify-center rounded-full px-3 text-[12.5px] font-medium transition disabled:opacity-60"
+        style={aktif ? { background: INK, color: "#fff" } : { background: "#EEF0F5", color: MUTED }}>
+        {pending ? "..." : aktif ? "Ya" : "Tidak"}
+      </button>
+      <Galat state={state} />
+    </form>
+  );
+}
+
+/** Tugas yang dipilih admin per peran (jawaban perusahaan 11 November 2026): siapa menyetujui PO, memeriksa PO, dan melampirkan nota susulan. */
+function TugasPeran({ tugas, roleTugas, peran, peranSaya, bolehOwner }: {
+  tugas: TugasPilihan[]; roleTugas: { role_id: string; aksi: string; aktif: boolean }[]; peran: Peran[]; peranSaya: string | null; bolehOwner: boolean;
+}) {
+  const pegang = (r: string, a: string) => r === "owner" || roleTugas.some((x) => x.role_id === r && x.aksi === a && x.aktif);
+  return (
+    <Card title="Tugas per peran">
+      <div className="space-y-3 px-2.5 pb-2.5">
+        <p className="text-[12.5px] leading-relaxed" style={{ color: MUTED }}>
+          Pilih peran yang boleh menyetujui PO, memeriksa PO, dan melampirkan nota susulan. Owner selalu bisa semuanya. Yang mengajukan PO tidak bisa menyetujui PO-nya sendiri.
+          {!bolehOwner && " Tugas untuk peran Anda sendiri hanya bisa diubah Owner."}
+        </p>
+        <div className="overflow-x-auto rounded-[20px] bg-white">
+          <table className="w-full min-w-[640px] text-left text-[13px]" data-testid="tabel-tugas">
+            <thead>
+              <tr className="border-b border-[#EEF0F4] text-[12px]" style={{ color: MUTED }}>
+                <th className="px-4 py-3 font-medium">Tugas</th>
+                {peran.map((p) => <th key={p.id} className="px-2 py-3 text-center font-medium">{p.nama}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {tugas.map((t) => (
+                <tr key={t.aksi} className="border-t border-[#EEF0F4] first:border-t-0">
+                  <td className="px-4 py-3 align-top">
+                    <div className="font-medium" style={{ color: INK }}>{t.nama}</div>
+                    <div className="text-[12px]" style={{ color: MUTED }}>{t.keterangan}</div>
+                  </td>
+                  {peran.map((p) => (
+                    <td key={p.id} className="px-2 py-3 text-center align-top">
+                      {p.id === "owner"
+                        ? <span className="text-[12.5px]" style={{ color: MUTED }}>Selalu</span>
+                        : <SelTugas roleId={p.id} aksi={t.aksi} aktif={pegang(p.id, t.aksi)} terkunci={!bolehOwner && p.id === peranSaya} label={`${t.nama}: ${p.nama}`} />}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+export function AksesKelola({ pengguna, peran, saya, peranSaya, bolehOwner, tugas, roleTugas }: {
+  pengguna: Pengguna[]; peran: Peran[]; saya: string; peranSaya: string | null; bolehOwner: boolean;
+  tugas: TugasPilihan[]; roleTugas: { role_id: string; aksi: string; aktif: boolean }[];
+}) {
   const namaPeran = new Map(peran.map((p) => [p.id, p.nama]));
   const teks = useMemo(() => (u: Pengguna) => `${u.nama} ${u.email} ${u.role_id ? namaPeran.get(u.role_id) ?? "" : "tanpa peran"} ${u.aktif ? "aktif" : "nonaktif"}`, [peran]); // eslint-disable-line react-hooks/exhaustive-deps
   const { q, setQ, hasil } = useCari(pengguna, teks);
@@ -189,6 +256,7 @@ export function AksesKelola({ pengguna, peran, saya, bolehOwner }: { pengguna: P
           {hasil.map((u) => <BarisPengguna key={u.user_id} u={u} peran={peran} saya={saya} bolehOwner={bolehOwner} terisi={terisi} />)}
         </div>
       </Card>
+      {tugas.length > 0 && <TugasPeran tugas={tugas} roleTugas={roleTugas} peran={peran} peranSaya={peranSaya} bolehOwner={bolehOwner} />}
     </div>
   );
 }

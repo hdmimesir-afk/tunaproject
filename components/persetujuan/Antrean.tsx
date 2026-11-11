@@ -9,14 +9,16 @@ import { mintaRevisi, periksa, setujui, tolakPengajuan } from "@/lib/actions/per
 import type { DataPersetujuan } from "@/lib/data/persetujuan";
 import { rp, tanggal, waktu } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { LABEL_APV, ringkasBatch, selisihHarga } from "@/lib/logic/pembelian";
-import type { Pengajuan, Pengguna } from "@/lib/types/pembelian";
+import { LABEL_APV, namaPemegang, ringkasBatch, selisihHarga } from "@/lib/logic/pembelian";
+import type { PemegangTugas, Pengajuan, Pengguna } from "@/lib/types/pembelian";
 
 type Props = {
   data: DataPersetujuan;
   pengguna: Record<string, Pengguna>;
   bolehPeriksa: boolean;
   bolehSetuju: boolean;
+  /** Pemegang tugas menyetujui/memeriksa; kosong di halaman contoh. */
+  pemegang?: PemegangTugas[];
   /** Id pengajuan yang disorot (dari tautan dashboard): digulir ke layar dan diberi bingkai. */
   sorot?: string;
 };
@@ -127,7 +129,13 @@ function Kartu({ a, props, nota, dipilih, onPilih, onSetuju, onAlasan }: {
 
       <div>
         <div className="mb-1.5 text-[12px] font-medium" style={{ color: MUTED }}>Nota ({nota?.length ?? 0})</div>
-        <DaftarDokumen dokumen={nota ?? []} kosong="Tidak ada nota terlampir." />
+        {a.nota_menyusul && (nota?.length ?? 0) === 0 ? (
+          <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
+            Nota menyusul: diajukan sebelum nota ada. Boleh diputuskan sekarang; notanya dilampirkan nanti.
+          </p>
+        ) : (
+          <DaftarDokumen dokumen={nota ?? []} kosong="Tidak ada nota terlampir." />
+        )}
       </div>
 
       <Galat state={state} />
@@ -168,8 +176,16 @@ export function Antrean(props: Props) {
       onPilih={toggle} onSetuju={(x) => setKonfirmasi([x])} onAlasan={(x, j) => setAlasan({ a: x, j })} />
   );
 
+  const penyetuju = namaPemegang(props.pemegang ?? [], "persetujuan.setuju");
+  const pemeriksa = namaPemegang(props.pemegang ?? [], "persetujuan.periksa");
   return (
     <div className="space-y-4 pb-24">
+      {penyetuju && (
+        <p className="px-1 text-[12.5px] leading-relaxed" style={{ color: MUTED }} data-testid="pemegang-tugas">
+          Yang menyetujui: <b className="font-medium" style={{ color: INK }}>{penyetuju}</b>.
+          {pemeriksa && <> Yang memeriksa: <b className="font-medium" style={{ color: INK }}>{pemeriksa}</b>.</>} Yang menyetujui boleh langsung memutuskan tanpa menunggu diperiksa. Diatur admin di menu Akses.
+        </p>
+      )}
       <Card title={`Perlu disetujui · ${diperiksa.length}`}>
         <div className="space-y-2.5">
           {diperiksa.length === 0 ? <Inner><p className="text-[13px]" style={{ color: MUTED }}>Tidak ada pengajuan yang menunggu persetujuan.</p></Inner> : diperiksa.map(kartu)}

@@ -7,15 +7,16 @@ import type { HasilForm } from "@/lib/actions/auth";
 import { ajukanPO, catatBayar } from "@/lib/actions/pembelian";
 import type { DetailPO as Detail } from "@/lib/data/pembelian";
 import { hariIni as hariIniFn, rp, tanggal, waktu } from "@/lib/format";
-import { bisaDiedit, LABEL_APV, LABEL_BAYAR, LABEL_PO, LABEL_QC, LABEL_TERIMA, selisihHarga, sisaBayar } from "@/lib/logic/pembelian";
+import { bisaDiedit, LABEL_APV, LABEL_BAYAR, LABEL_PO, LABEL_QC, LABEL_TERIMA, lampiranWajib, namaPemegang, selisihHarga, sisaBayar } from "@/lib/logic/pembelian";
 import { formatKg } from "@/lib/logic/neraca";
-import type { Opsi, Pengguna } from "@/lib/types/pembelian";
+import type { AturanLampiran, Opsi, PemegangTugas, Pengguna } from "@/lib/types/pembelian";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
 import { FormPO } from "./FormPO";
 
 type Props = {
   detail: Detail;
+  kelengkapan: Kelengkapan;
   pengguna: Record<string, Pengguna>;
   pemasok: Opsi[];
   siklus: Opsi[];
@@ -51,15 +52,29 @@ function Pesan({ state }: { state: HasilForm }) {
   return null;
 }
 
-function Ajukan({ poId, siap }: { poId: string; siap: boolean }) {
+/** Data kelengkapan dari admin: aturan lampiran wajib, pemegang tugas, dan boleh-tidaknya melampirkan nota susulan. */
+export type Kelengkapan = { aturan: AturanLampiran[]; pemegang: PemegangTugas[]; bolehNotaSusulan: boolean };
+
+/** Nota wajib tapi belum ada: PO tetap bisa diajukan dengan tanda "nota menyusul" supaya penerimaan tidak tertahan. */
+function Ajukan({ poId, adaNota, notaWajib, penyetuju }: { poId: string; adaNota: boolean; notaWajib: boolean; penyetuju: string }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(ajukanPO, undefined);
+  const [menyusul, setMenyusul] = useState(false);
+  const perluTanda = notaWajib && !adaNota;
+  const siap = !perluTanda || menyusul;
   return (
     <form action={action} className="space-y-2">
       <input type="hidden" name="poId" value={poId} />
       <Pesan state={state} />
-      <KonfirmasiDua full label="Ajukan untuk diperiksa" labelYa="Ya, ajukan sekarang" pending={pending} disabled={!siap}
-        pesan="Setelah diajukan, PO tidak bisa diubah sampai diperiksa. Lanjutkan?" />
-      {!siap && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lampirkan nota dulu supaya bisa diajukan.</p>}
+      {perluTanda && (
+        <label className="flex items-start gap-2.5 rounded-2xl bg-white px-3.5 py-3 text-[13px]" style={{ color: INK }}>
+          <input type="checkbox" name="notaMenyusul" checked={menyusul} onChange={(e) => setMenyusul(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#00171F]" />
+          <span><b className="font-medium">Nota menyusul.</b> Notanya belum ada (misalnya bongkar malam). PO tetap diajukan dan ikan tetap bisa diterima; notanya dilampirkan nanti.</span>
+        </label>
+      )}
+      <KonfirmasiDua full label="Ajukan untuk disetujui" labelYa="Ya, ajukan sekarang" pending={pending} disabled={!siap}
+        pesan={`Setelah diajukan, PO tidak bisa diubah sampai diputuskan.${menyusul && perluTanda ? " PO ditandai nota menyusul." : ""} Lanjutkan?`} />
+      {!siap && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lampirkan nota dulu, atau centang Nota menyusul bila notanya belum ada.</p>}
+      {penyetuju && <p className="text-[12px]" style={{ color: MUTED }}>Yang bisa menyetujui: {penyetuju}.</p>}
     </form>
   );
 }
@@ -86,12 +101,17 @@ function FormBayar({ poId, sisa, hariIni }: { poId: string; sisa: number; hariIn
   );
 }
 
-export function DetailPO({ detail, pengguna, pemasok, siklus, bolehTulis, bolehBayar, bolehDokumen, bolehSiklusBaru, hariIni, onTutup }: Props) {
+export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, bolehTulis, bolehBayar, bolehDokumen, bolehSiklusBaru, hariIni, onTutup }: Props) {
   const { po, pengajuan, dokumen, lot, bayar } = detail;
   const [edit, setEdit] = useState(false);
   const dokPO = dokumen.filter((d) => d.ref_tabel === "purchase_orders");
   const adaNota = dokPO.some((d) => d.jenis === "nota");
   const bisaUbah = bolehTulis && bisaDiedit(po.status_persetujuan);
+  const notaWajib = lampiranWajib(kelengkapan.aturan, "purchase_orders", "nota");
+  const buktiWajib = lampiranWajib(kelengkapan.aturan, "payments", "bukti_transfer");
+  // Sebelum diajukan, siapa pun yang boleh melampirkan berkas boleh menambah nota; sesudahnya hanya pemegang tugas nota susulan.
+  const bolehNota = bolehDokumen && (bisaDiedit(po.status_persetujuan) || kelengkapan.bolehNotaSusulan);
+  const penyetuju = namaPemegang(kelengkapan.pemegang, "persetujuan.setuju");
   const banding = selisihHarga(po.harga_per_kg, po.harga_acuan);
   const sisa = sisaBayar(po.total, po.total_bayar);
   const tanggalIni = hariIni || hariIniFn();
@@ -102,6 +122,7 @@ export function DetailPO({ detail, pengguna, pemasok, siklus, bolehTulis, bolehB
         <Pill t={LABEL_PO[po.status_persetujuan]} />
         <Pill t={LABEL_TERIMA[po.status_terima]} />
         <Pill t={LABEL_BAYAR[po.status_bayar]} />
+        {po.nota_menyusul && !adaNota && <span className="rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Nota menyusul</span>}
       </div>
 
       {edit && bisaUbah ? (
@@ -113,7 +134,7 @@ export function DetailPO({ detail, pengguna, pemasok, siklus, bolehTulis, bolehB
             <Baris k="Berat" v={`${formatKg(po.kg)} kg`} />
             <Baris k="Harga per kg" v={rp(po.harga_per_kg)} />
             <Baris k="Total" v={rp(po.total)} />
-            <Baris k="Siklus" v={po.siklus_kode ?? "-"} />
+            <Baris k="Proyek" v={po.siklus_kode ?? "-"} />
             {po.catatan && <Baris k="Catatan" v={po.catatan} />}
           </Inner>
           {banding && banding.naik && (
@@ -124,11 +145,15 @@ export function DetailPO({ detail, pengguna, pemasok, siklus, bolehTulis, bolehB
         </Bagian>
       )}
 
-      <Bagian judul="Nota dan berkas" kanan={bolehDokumen && <Unggah refTabel="purchase_orders" refId={po.id} jenis="nota" label="Lampirkan nota" />}>
-        <DaftarDokumen dokumen={dokPO} kosong="Belum ada nota." />
+      <Bagian judul={`Nota dan berkas${notaWajib ? " · nota wajib" : ""}`} kanan={bolehNota && <Unggah refTabel="purchase_orders" refId={po.id} jenis="nota" label={bisaDiedit(po.status_persetujuan) ? "Lampirkan nota" : "Lampirkan nota susulan"} />}>
+        <DaftarDokumen dokumen={dokPO} kosong={po.nota_menyusul ? "Nota menyusul, belum dilampirkan." : "Belum ada nota."} />
+        {po.nota_menyusul && !adaNota && !bolehNota && bolehDokumen && (
+          <p className="mt-2 text-[12px]" style={{ color: MUTED }}>Nota susulan dilampirkan oleh {namaPemegang(kelengkapan.pemegang, "nota.susulan") || "pemegang tugas yang dipilih admin"}.</p>
+        )}
       </Bagian>
 
-      {bisaUbah && <Ajukan poId={po.id} siap={adaNota} />}
+      {bisaUbah && <Ajukan poId={po.id} adaNota={adaNota} notaWajib={notaWajib} penyetuju={penyetuju} />}
+      {po.status_persetujuan === "diajukan" && penyetuju && <p className="text-[12.5px]" style={{ color: MUTED }}>Menunggu keputusan dari: {penyetuju}.</p>}
 
       {pengajuan.length > 0 && (
         <Bagian judul="Riwayat persetujuan">
@@ -177,7 +202,7 @@ export function DetailPO({ detail, pengguna, pemasok, siklus, bolehTulis, bolehB
                   <b style={{ color: INK }}>{rp(b.jumlah)}</b>
                 </div>
                 <div className="mt-2 space-y-2">
-                  <DaftarDokumen dokumen={dokumen.filter((d) => d.ref_tabel === "payments" && d.ref_id === b.id)} kosong="Belum ada bukti transfer." />
+                  <DaftarDokumen dokumen={dokumen.filter((d) => d.ref_tabel === "payments" && d.ref_id === b.id)} kosong={buktiWajib ? "Bukti transfer belum ada (wajib)." : "Belum ada bukti transfer."} />
                   {bolehDokumen && <Unggah refTabel="payments" refId={b.id} jenis="bukti_transfer" label="Lampirkan bukti transfer" />}
                 </div>
               </div>

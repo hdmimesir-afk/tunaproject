@@ -8,7 +8,7 @@ function gagal(apa: string): never {
 
 export async function daftarLot(): Promise<LotBaris[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("lots").select("*, suppliers(nama), grades(kode, nama), lot_grades(grade_id, kg, grades(kode))").order("kode", { ascending: false }).limit(100);
+  const { data, error } = await sb.from("lots").select("*, suppliers(nama), grades(kode, nama), cycles(kode), lot_grades(grade_id, kg, grades(kode))").order("kode", { ascending: false }).limit(100);
   if (error) gagal("daftar lot");
   return (data ?? []) as unknown as LotBaris[];
 }

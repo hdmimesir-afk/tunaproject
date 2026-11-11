@@ -86,8 +86,8 @@ function FormPesananJual({ unit, pembeli, siklus, hariIni, awal, tertunda = [], 
         </Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={awal?.pesanan.tanggal ?? hariIni} required /></Field>
       </div>
-      <Field label="Siklus" hint="Supaya masuk laba rugi siklus. Boleh kosong.">
-        <select name="siklusId" className={pilihCls} defaultValue={awal?.pesanan.cycle_id ?? ""}><option value="">Tanpa siklus</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+      <Field label="Proyek" hint="Supaya masuk laba rugi proyek. Boleh kosong.">
+        <select name="siklusId" className={pilihCls} defaultValue={awal?.pesanan.cycle_id ?? ""}><option value="">Tanpa proyek</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
       <div className="space-y-2">
         <p className="text-[12px] font-medium" style={{ color: MUTED }}>Barang yang dijual</p>

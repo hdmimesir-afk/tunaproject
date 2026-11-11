@@ -185,7 +185,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
           )}
 
           {izin.laporan && (
-            <Bagian judul={siklus ? `Siklus terbaru · ${siklus.kode}` : "Siklus terbaru"} kanan={<Selengkapnya href={siklus ? `/laporan?c=${siklus.cycle_id}` : "/laporan"} label="Laporan" />}>
+            <Bagian judul={siklus ? `Proyek terbaru · ${siklus.kode}` : "Proyek terbaru"} kanan={<Selengkapnya href={siklus ? `/laporan?c=${siklus.cycle_id}` : "/laporan"} label="Laporan" />}>
               {siklus ? (
                 <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
                   <Angka href={`/laporan?c=${siklus.cycle_id}`} icon="chart" label="Pendapatan" nilai={rp(siklus.pendapatan_total)} />
@@ -196,7 +196,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
                     catatan={siklus.kg_diolah !== undefined ? `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_diolah)} yang sudah diolah` : `Loin ${kgT(siklus.loin_kg)} dari ${kgT(siklus.kg_ikan)}`} />
                 </div>
               ) : (
-                <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada siklus. Laba rugi tampil di sini setelah ada pembelian, produksi, dan penjualan.</p>
+                <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada proyek. Laba rugi tampil di sini setelah ada pembelian, produksi, dan penjualan.</p>
               )}
             </Bagian>
           )}

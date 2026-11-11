@@ -180,7 +180,7 @@ export const MATRIKS: { menu: string; ada: boolean[] }[] = [
   { menu: "Penjualan", ada: SEMUA },
   { menu: "Keuangan", ada: [true, true, true, false, false] },
   { menu: "Laporan", ada: [true, true, true, false, false] },
-  { menu: "Rincian Siklus", ada: SEMUA },
+  { menu: "Rincian Proyek", ada: SEMUA },
   { menu: "Asisten AI", ada: SEMUA },
   { menu: "Absensi", ada: SEMUA },
   { menu: "Akses", ada: [true, false, true, false, false] },

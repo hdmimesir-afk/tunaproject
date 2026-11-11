@@ -25,7 +25,15 @@ export type POBaris = {
   status_terima: StatusTerima;
   total_bayar: number;
   status_bayar: StatusBayar;
+  /** Diajukan tanpa nota dengan tanda "nota menyusul". */
+  nota_menyusul: boolean;
+  jml_nota: number;
 };
+
+/** Aturan lampiran dari admin: wajib atau opsional per jenis berkas untuk satu jenis catatan. */
+export type AturanLampiran = { id: string; ref_tabel: "purchase_orders" | "lots" | "payments"; jenis: JenisDokumen; wajib: boolean; keterangan: string; urutan: number };
+/** Pemegang satu tugas pilihan admin (misalnya menyetujui PO). */
+export type PemegangTugas = { aksi: string; role_id: string; role_nama: string; nama: string };
 
 export type Pengajuan = {
   id: string;
@@ -52,6 +60,7 @@ export type Pengajuan = {
   harga_acuan: number | null;
   supplier_nama: string;
   jml_nota: number;
+  nota_menyusul?: boolean;
 };
 
 export type Dokumen = {
@@ -81,6 +90,8 @@ export type LotBaris = {
   grade_id: string | null;
   suppliers: { nama: string } | null;
   grades: { kode: string; nama: string } | null;
+  /** Proyek (batch/bongkaran) dari PO-nya. */
+  cycles?: { kode: string } | null;
   /** Berat per grade dari cek mutu. Baris ber-kg 0 = grade yang sudah dikeluarkan. */
   lot_grades?: { grade_id: string; kg: number; grades: { kode: string } | null }[];
 };

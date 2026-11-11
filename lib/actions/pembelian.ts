@@ -59,13 +59,13 @@ export async function simpanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
 
   let cycleId: string | null = null;
   if (p.data.siklusId === "baru") {
-    if (!boleh(a.sesi, "siklus.write")) return { error: "Peran Anda tidak boleh membuat siklus baru. Pilih siklus yang sudah ada." };
+    if (!boleh(a.sesi, "siklus.write")) return { error: "Peran Anda tidak boleh membuat proyek baru. Pilih proyek yang sudah ada." };
     const { data, error } = await supabase.from("cycles").insert({ tanggal_bongkar: p.data.tanggal }).select("id").single();
     if (error || !data) return { error: pesanDb(error ?? {}) };
     cycleId = data.id as string;
   } else if (p.data.siklusId) {
     const id = z.uuid().safeParse(p.data.siklusId);
-    if (!id.success) return { kolom: { siklusId: ["Siklus tidak valid"] } };
+    if (!id.success) return { kolom: { siklusId: ["Proyek tidak valid"] } };
     cycleId = id.data;
   }
 
@@ -81,7 +81,7 @@ export async function simpanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const { data, error } = await supabase.from("purchase_orders").insert(isi).select("id").single();
   if (error || !data) return { error: pesanDb(error ?? {}) };
   refresh();
-  return { id: data.id as string, pesan: "PO dibuat sebagai draf. Lampirkan nota, lalu ajukan." };
+  return { id: data.id as string, pesan: "PO dibuat sebagai draf. Lampirkan nota bila sudah ada, lalu ajukan." };
 }
 
 export async function ajukanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
@@ -89,11 +89,13 @@ export async function ajukanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
   if (a.tolak) return a.tolak;
   const id = z.uuid().safeParse(fd.get("poId"));
   if (!id.success) return { error: "PO tidak valid." };
+  // Nota belum ada (misalnya bongkar malam): PO tetap diajukan dengan tanda, notanya dilampirkan menyusul.
+  const menyusul = fd.get("notaMenyusul") === "on";
   const supabase = await createClient();
-  const { error } = await supabase.rpc("ajukan_po", { p_po: id.data });
+  const { error } = await supabase.rpc("ajukan_po", { p_po: id.data, p_nota_menyusul: menyusul });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: "PO diajukan. Menunggu diperiksa Finance." };
+  return { pesan: menyusul ? "PO diajukan dengan tanda nota menyusul. Lampirkan notanya begitu ada." : "PO diajukan. Menunggu diperiksa dan disetujui." };
 }
 
 const FormBayar = z.object({

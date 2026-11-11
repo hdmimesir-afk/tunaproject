@@ -30,7 +30,7 @@ export function cetakFormulir(d: DetailProduksi, namaGrade: Map<string, string>,
 </style></head><body>
 <h1>FORMULIR PRODUKSI (FRM-PRD-01 rev 01)</h1>
 <table class="kepala"><tr><td>Kode produksi</td><td><b>${esc(p.kode)}</b></td><td>Tanggal</td><td>${esc(p.tanggal)}</td></tr>
-<tr><td>Siklus</td><td>${esc(p.siklus_kode ?? "-")}</td><td>Status</td><td>${esc(p.status.replace("_", " "))}</td></tr>
+<tr><td>Proyek</td><td>${esc(p.siklus_kode ?? "-")}</td><td>Status</td><td>${esc(p.status.replace("_", " "))}</td></tr>
 <tr><td>Lot</td><td colspan="3">${esc(d.alokasi.map((a) => `${a.lot_kode} (${kg(a.kg)} kg)`).join(", ") || "-")}</td></tr></table>
 ${tabelLoin}
 <h2>Komponen hasil</h2>

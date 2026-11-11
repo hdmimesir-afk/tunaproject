@@ -6,7 +6,7 @@ import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
-import { daftarPO, daftarSiklus, detailPO, pemasokAktif, petaPengguna } from "@/lib/data/pembelian";
+import { aturanLampiran, daftarPO, daftarSiklus, detailPO, pemasokAktif, pemegangTugas, petaPengguna } from "@/lib/data/pembelian";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh } from "@/lib/izin";
@@ -33,16 +33,19 @@ async function PembelianData({ searchParams }: { searchParams: PageProps<"/pembe
   if (!boleh(sesi, "pembelian.read")) return <TanpaIzin />;
   const sp = await searchParams;
   const po = z.uuid().safeParse(typeof sp.po === "string" ? sp.po : "");
-  const [daftar, pemasok, siklus, pengguna, detail] = await Promise.all([
+  const [daftar, pemasok, siklus, pengguna, detail, aturan, pemegang] = await Promise.all([
     daftarPO(),
     pemasokAktif(),
     daftarSiklus(),
     petaPengguna(),
     po.success ? detailPO(po.data) : Promise.resolve(null),
+    aturanLampiran(),
+    pemegangTugas(),
   ]);
   return (
     <PembelianKelola
       daftar={daftar} pemasok={pemasok} siklus={siklus} pengguna={pengguna} detail={detail}
+      kelengkapan={{ aturan, pemegang, bolehNotaSusulan: boleh(sesi, "nota.susulan") }}
       bolehTulis={boleh(sesi, "pembelian.write")} bolehBayar={boleh(sesi, "pembayaran.write")}
       bolehDokumen={boleh(sesi, "dokumen.write")} bolehSiklusBaru={boleh(sesi, "siklus.write")} bolehPemasokBaru={boleh(sesi, "master.write")} hariIni={hariIni()}
     />

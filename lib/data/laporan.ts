@@ -11,7 +11,7 @@ function gagal(apa: string): never {
 export async function trenSiklus(): Promise<BarisLabaSiklus[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("v_laba_rugi_siklus").select("*").order("kode");
-  if (error) gagal("laba rugi siklus");
+  if (error) gagal("laba rugi proyek");
   return (data ?? []) as BarisLabaSiklus[];
 }
 
@@ -123,7 +123,7 @@ export async function rencanaHasil(): Promise<number> {
 export async function daftarRingkasSiklus(): Promise<RingkasSiklus[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("v_rincian_siklus").select("*").order("kode", { ascending: false });
-  if (error) gagal("daftar siklus");
+  if (error) gagal("daftar proyek");
   return (data ?? []) as RingkasSiklus[];
 }
 
@@ -135,12 +135,14 @@ export type RantaiSiklus = {
   pesanan: { id: string; kode: string; buyer_nama: string; status: string; total_final: number; total_pesan: number; invoice_kode: string | null; invoice_id: string | null }[];
   invoice: { id: string; kode: string; total: number; sisa: number; status_tagihan: string }[];
   biaya: { id: string; kode: string; kategori_nama: string; jumlah: number; status: string }[];
+  /** Stok hasil produksi proyek ini. Kosong bila peran tidak boleh melihat stok. */
+  stok?: { id: string; kode: string; product_nama: string; grade_kode: string | null; kondisi: string; kg_masuk: number; sisa_kg: number; status: string }[];
 };
 
-/** Satu siklus dari beli sampai uang masuk: semua transaksi yang berkaitan, tanpa input ulang. */
+/** Satu proyek (siklus) dari beli sampai uang masuk: semua transaksi yang berkaitan, tanpa input ulang. */
 export async function rantaiSiklus(id: string): Promise<RantaiSiklus | null> {
   const sb = await createClient();
-  const [r, po, lot, pr, ps, inv, by] = await Promise.all([
+  const [r, po, lot, pr, ps, inv, by, st] = await Promise.all([
     sb.from("v_rincian_siklus").select("*").eq("cycle_id", id).maybeSingle(),
     sb.from("v_purchase_orders").select("id, kode, supplier_nama, kg, total, status_persetujuan, total_bayar").eq("cycle_id", id).order("kode"),
     sb.from("lots").select("id, kode, po_kode, kg, qc").eq("cycle_id", id).order("kode"),
@@ -148,8 +150,9 @@ export async function rantaiSiklus(id: string): Promise<RantaiSiklus | null> {
     sb.from("v_sales_orders").select("id, kode, buyer_nama, status, total_final, total_pesan, invoice_kode, invoice_id").eq("cycle_id", id).order("kode"),
     sb.from("v_invoices").select("id, kode, total, sisa, status_tagihan").eq("cycle_id", id).neq("status_terbit", "dibatalkan").order("kode"),
     sb.from("v_expenses").select("id, kode, kategori_nama, jumlah, status").eq("cycle_id", id).order("kode"),
+    sb.from("storage_units").select("id, kode, product_nama, grade_kode, kondisi, kg_masuk, sisa_kg, status").eq("cycle_id", id).order("kode"),
   ]);
-  if (r.error) gagal("siklus");
+  if (r.error) gagal("proyek");
   if (!r.data) return null;
   return {
     ringkas: r.data as RingkasSiklus,
@@ -159,5 +162,6 @@ export async function rantaiSiklus(id: string): Promise<RantaiSiklus | null> {
     pesanan: (ps.data ?? []) as RantaiSiklus["pesanan"],
     invoice: (inv.data ?? []) as RantaiSiklus["invoice"],
     biaya: (by.data ?? []) as RantaiSiklus["biaya"],
+    stok: (st.data ?? []) as RantaiSiklus["stok"],
   };
 }

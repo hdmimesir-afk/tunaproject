@@ -30,7 +30,7 @@ test("biaya: draf, nota wajib, lalu diajukan dengan konfirmasi kedua", async ({ 
 
 test("halaman laporan, siklus, dan dashboard terbuka tanpa galat", async ({ page }) => {
   await masuk(page, ADMIN);
-  for (const [url, judul] of [["/laporan", "Laporan"], ["/siklus", "Rincian Siklus"], ["/dashboard", "Dashboard"]] as const) {
+  for (const [url, judul] of [["/laporan", "Laporan"], ["/siklus", "Rincian Proyek"], ["/dashboard", "Dashboard"]] as const) {
     await page.goto(url);
     await expect(page.getByRole("heading", { name: judul, level: 1 })).toBeVisible();
     await expect(page.getByText(/Terjadi gangguan|Gagal memuat/)).toHaveCount(0);

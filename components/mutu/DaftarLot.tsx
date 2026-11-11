@@ -6,17 +6,17 @@ import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { gradeLot, LABEL_QC, sisaBelumDibagi } from "@/lib/logic/pembelian";
-import { TombolLampiran } from "@/components/dokumen/Dokumen";
-import type { Dokumen, JenisDokumen, LotBaris } from "@/lib/types/pembelian";
+import { gradeLot, LABEL_QC, lampiranKurang, lampiranWajib, sisaBelumDibagi } from "@/lib/logic/pembelian";
+import { LABEL_JENIS, TombolLampiran } from "@/components/dokumen/Dokumen";
+import type { AturanLampiran, Dokumen, JenisDokumen, LotBaris } from "@/lib/types/pembelian";
 
 type Saring = "semua" | "menunggu" | "lulus" | "ditahan";
 const KOLOM = "md:grid md:grid-cols-[minmax(0,1fr)_100px_130px_minmax(0,1.4fr)_auto] md:gap-4 lg:grid-cols-[minmax(0,1.1fr)_130px_180px_minmax(0,1.3fr)_auto] lg:gap-5";
 const AMBER = "#8A5A00";
-const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
+const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.cycles?.kode ?? ""} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
-/** Lampiran lot (nota nelayan, foto timbangan). Null bila pengguna tidak boleh melihat berkas. */
-export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean };
+/** Lampiran lot (nota nelayan, foto timbangan) beserta aturan wajibnya dari admin. Null bila pengguna tidak boleh melihat berkas. */
+export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean; aturan: AturanLampiran[] };
 const UNGGAH_LOT: { jenis: JenisDokumen; label: string }[] = [
   { jenis: "nota", label: "Lampirkan nota nelayan" },
   { jenis: "foto_timbangan", label: "Lampirkan foto timbangan" },
@@ -62,9 +62,10 @@ export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris
             </div>
             <ul>
               {tampil.map((l) => (
-                <BarisLot key={l.id} l={l} aksi={<>
+                <BarisLot key={l.id} l={l} kurang={lampiran ? lampiranKurang(lampiran.aturan, "lots", l.id, lampiran.dokumen) : []} aksi={<>
                   {bolehMutu && l.sisa_kg === l.kg && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onCek(l)}>{l.qc === "menunggu" ? "Cek mutu" : "Ubah"}</Btn>}
-                  {lampiran && <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} unggah={UNGGAH_LOT} bolehTulis={lampiran.bolehTulis} />}
+                  {lampiran && <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} bolehTulis={lampiran.bolehTulis}
+                    unggah={UNGGAH_LOT.map((u) => (lampiranWajib(lampiran.aturan, "lots", u.jenis) ? { ...u, label: `${u.label} (wajib)` } : u))} />}
                 </>} />
               ))}
             </ul>
@@ -75,7 +76,7 @@ export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris
   );
 }
 
-function BarisLot({ l, aksi }: { l: LotBaris; aksi: React.ReactNode }) {
+function BarisLot({ l, aksi, kurang }: { l: LotBaris; aksi: React.ReactNode; kurang: JenisDokumen[] }) {
   const dipakai = Math.max(0, l.kg - l.sisa_kg);
   const pct = l.kg > 0 ? Math.min(100, (dipakai / l.kg) * 100) : 0;
   const catatan = l.sebelum_disetujui ? "Bongkar malam" : l.qc_catatan || l.catatan || "";
@@ -90,9 +91,11 @@ function BarisLot({ l, aksi }: { l: LotBaris; aksi: React.ReactNode }) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-[15px] font-semibold" style={{ color: INK }}>{l.kode}</span>
           <span className="rounded-md bg-[#EEF0F5] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: "#4A5560" }}>{l.po_kode}</span>
+          {l.cycles?.kode && <span className="rounded-md bg-[#E4ECF7] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: "#2B4A70" }} title="Proyek">{l.cycles.kode}</span>}
           {l.sebelum_disetujui && <span className="rounded-md bg-[#FBF0D5] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: AMBER }}>Sebelum disetujui</span>}
         </div>
         <div className="mt-0.5 truncate text-[12.5px]" style={{ color: MUTED }}>{l.suppliers?.nama ?? "-"}</div>
+        {kurang.length > 0 && <p className="mt-1 text-[12px]" style={{ color: AMBER }} data-testid="lampiran-kurang">Belum ada: {kurang.map((j) => LABEL_JENIS[j].toLowerCase()).join(", ")}</p>}
       </div>
 
       {/* Diterima */}

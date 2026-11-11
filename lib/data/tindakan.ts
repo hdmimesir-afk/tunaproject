@@ -104,7 +104,7 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
       const { data } = await sb.from("v_rincian_siklus").select("cycle_id, kode, ref_po_pembeli, nilai_invoice, uang_masuk").eq("status", "terbuka").gt("nilai_invoice", 0).order("kode").limit(BATAS);
       for (const c of data ?? []) {
         if (Number(c.uang_masuk) < Number(c.nilai_invoice)) continue;
-        hasil.push({ id: `sik-${c.cycle_id}`, kelompok: "Tutup siklus", icon: "list", judul: `${c.kode}${c.ref_po_pembeli ? ` · ${c.ref_po_pembeli}` : ""} sudah lunas`, rincian: `Uang masuk ${rp(Number(c.uang_masuk))}. Tutup supaya tidak dipakai lagi untuk transaksi baru.`, aksi: "Tutup siklus", href: `/siklus?c=${c.cycle_id}`, mendesak: false });
+        hasil.push({ id: `sik-${c.cycle_id}`, kelompok: "Tutup proyek", icon: "list", judul: `${c.kode}${c.ref_po_pembeli ? ` · ${c.ref_po_pembeli}` : ""} sudah lunas`, rincian: `Uang masuk ${rp(Number(c.uang_masuk))}. Tutup supaya tidak dipakai lagi untuk transaksi baru.`, aksi: "Tutup siklus", href: `/siklus?c=${c.cycle_id}`, mendesak: false });
       }
     });
   }

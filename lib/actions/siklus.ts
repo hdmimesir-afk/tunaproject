@@ -24,12 +24,12 @@ async function panggil(fn: string, args: Record<string, unknown>, pesan: string)
 /** Menutup siklus: hanya Owner, dan hanya bila PO, produksi, pesanan, tagihan, dan biayanya sudah beres (dicek database). */
 export async function tutupSiklus(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ id: z.uuid(), catatan: z.string().trim().max(300).optional() }).safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { error: "Siklus tidak valid." };
-  return panggil("tutup_siklus", { p_cycle: p.data.id, p_catatan: p.data.catatan ?? "" }, "Siklus ditutup. PO, pesanan, dan biaya baru tidak bisa masuk lagi.");
+  if (!p.success) return { error: "Proyek tidak valid." };
+  return panggil("tutup_siklus", { p_cycle: p.data.id, p_catatan: p.data.catatan ?? "" }, "Proyek ditutup. PO, pesanan, dan biaya baru tidak bisa masuk lagi.");
 }
 
 export async function bukaKembaliSiklus(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ id: z.uuid(), alasan: z.string().trim().min(1, "Tulis alasan").max(300) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("buka_kembali_siklus", { p_cycle: p.data.id, p_alasan: p.data.alasan }, "Siklus dibuka kembali.");
+  return panggil("buka_kembali_siklus", { p_cycle: p.data.id, p_alasan: p.data.alasan }, "Proyek dibuka kembali.");
 }

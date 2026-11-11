@@ -19,5 +19,5 @@ test("laporan: tab Simulasi terbuka dengan penjelasan asumsi", async ({ page }) 
   await page.goto("/laporan");
   await page.getByRole("tab", { name: "Simulasi harga" }).click();
   await expect(page.getByRole("tab", { name: "Simulasi harga" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByText(/Simulasi butuh siklus|Asumsi: berat ikan masuk tetap/)).toBeVisible();
+  await expect(page.getByText(/Simulasi butuh proyek|Asumsi: berat ikan masuk tetap/)).toBeVisible();
 });

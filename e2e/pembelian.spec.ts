@@ -28,16 +28,17 @@ test("buat PO, lampirkan nota, lalu ajukan dengan konfirmasi kedua", async ({ pa
   await page.getByLabel("Harga per kg (Rp)").fill("45000");
   await page.getByRole("button", { name: "Buat PO (draf)" }).click();
 
-  // PO baru terbuka sebagai detail; tanpa nota tombol ajukan mati.
+  // PO baru terbuka sebagai detail; tanpa nota dan tanpa tanda "Nota menyusul" tombol ajukan mati.
   await expect(page).toHaveURL(/po=/);
   await expect(page.getByText("Lampirkan nota dulu")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Ajukan untuk diperiksa" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Ajukan untuk disetujui" })).toBeDisabled();
 
+  await expect(page.getByLabel("Nota menyusul", { exact: false })).not.toBeChecked();
   await page.getByLabel("Lampirkan nota").setInputFiles({ name: "nota.png", mimeType: "image/png", buffer: PNG });
   await expect(page.getByText("Nota · nota.png")).toBeVisible();
 
   // Klik pertama hanya membuka konfirmasi; belum ada yang diajukan.
-  await page.getByRole("button", { name: "Ajukan untuk diperiksa" }).click();
+  await page.getByRole("button", { name: "Ajukan untuk disetujui" }).click();
   const dialog = page.getByRole("alertdialog");
   await expect(dialog).toBeVisible();
   await expect(page.getByText("Diajukan", { exact: true })).toHaveCount(0);
@@ -47,7 +48,7 @@ test("buat PO, lampirkan nota, lalu ajukan dengan konfirmasi kedua", async ({ pa
   await expect(dialog).toBeHidden();
 
   // Klik kedua yang menjalankan.
-  await page.getByRole("button", { name: "Ajukan untuk diperiksa" }).click();
+  await page.getByRole("button", { name: "Ajukan untuk disetujui" }).click();
   await page.getByRole("button", { name: "Ya, ajukan sekarang" }).click();
   await expect(page.getByText("Diajukan", { exact: true }).first()).toBeVisible();
 });

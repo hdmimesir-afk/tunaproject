@@ -63,8 +63,8 @@ function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai }: { ka
           <select name="produksiId" className={pilihCls} defaultValue={awal?.production_id ?? ""}><option value="">Tanpa produksi</option>{rujukan.produksi.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
         </Field>
       </div>
-      <Field label="Siklus" hint="Supaya masuk laba rugi siklus itu. Kosong = ikut siklus PO atau produksinya.">
-        <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Ikut PO/produksi, atau tanpa siklus</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+      <Field label="Proyek" hint="Supaya masuk laba rugi proyek itu. Kosong = ikut proyek PO atau produksinya.">
+        <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Ikut PO/produksi, atau tanpa proyek</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : awal ? "Simpan perubahan" : "Simpan draf biaya"}</Btn>
     </form>

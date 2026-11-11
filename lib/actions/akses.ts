@@ -174,3 +174,23 @@ export async function ubahPengguna(_: HasilForm, fd: FormData): Promise<HasilFor
   refresh();
   return undefined;
 }
+
+const Tugas = z.object({
+  roleId: z.enum(PERAN),
+  aksi: z.enum(["persetujuan.setuju", "persetujuan.periksa", "nota.susulan"]),
+  aktif: z.enum(["true", "false"]).transform((v) => v === "true"),
+});
+
+/** Beri atau cabut satu tugas pilihan (menyetujui PO, memeriksa PO, nota susulan) untuk satu peran.
+    Database menolak tugas untuk Owner dan tugas untuk peran sendiri (kecuali Owner). */
+export async function aturTugas(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izinAkses();
+  if ("error" in a) return a;
+  const p = Tugas.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { error: "Pilihan tugas tidak valid." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("atur_tugas", { p_role: p.data.roleId, p_aksi: p.data.aksi, p_aktif: p.data.aktif });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: p.data.aktif ? "Tugas diberikan." : "Tugas dicabut." };
+}

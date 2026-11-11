@@ -42,8 +42,8 @@ function TutupSiklus({ id, kode }: { id: string; kode: string }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="id" value={id} />
       <PesanForm state={state} />
-      <KonfirmasiDua full label="Tutup siklus" labelYa={`Ya, tutup ${kode}`} pending={pending}
-        pesan="Setelah ditutup, PO, pesanan, dan biaya baru tidak bisa masuk ke siklus ini. Sistem menolak bila masih ada yang belum beres." />
+      <KonfirmasiDua full label="Tutup proyek" labelYa={`Ya, tutup ${kode}`} pending={pending}
+        pesan="Setelah ditutup, PO, pesanan, dan biaya baru tidak bisa masuk ke proyek ini. Sistem menolak bila masih ada yang belum beres." />
     </form>
   );
 }
@@ -55,13 +55,14 @@ function BukaSiklus({ id }: { id: string }) {
       <input type="hidden" name="id" value={id} />
       <PesanForm state={state?.error ? state : undefined} />
       <Field label="Alasan membuka kembali" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={300} required placeholder="Misalnya biaya kargo menyusul" /></Field>
-      <Btn type="submit" v="light" full disabled={pending}>{pending ? "Membuka..." : "Buka kembali siklus"}</Btn>
+      <Btn type="submit" v="light" full disabled={pending}>{pending ? "Membuka..." : "Buka kembali proyek"}</Btn>
     </form>
   );
 }
 
 function Rantai({ d, onTutup, bolehTutup }: { d: RantaiSiklus; onTutup: () => void; bolehTutup: boolean }) {
   const r = d.ringkas;
+  const stok = d.stok ?? [];
   return (
     <Modal title={`${r.kode}${r.ref_po_pembeli ? ` · ${r.ref_po_pembeli}` : ""}`} onClose={onTutup} lebar>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -84,13 +85,16 @@ function Rantai({ d, onTutup, bolehTutup }: { d: RantaiSiklus; onTutup: () => vo
       <Tahap judul="3. Produksi" ringkas={`${d.produksi.length} produksi`} kosong={d.produksi.length === 0}>
         {d.produksi.map((p) => <Baris key={p.id} href={`/produksi?p=${p.id}`} kiri={<>{p.kode} · {p.status.replace("_", " ")}</>} kanan={<>masuk {kgT(p.masuk_kg)} → loin {kgT(p.loin_kg)}</>} />)}
       </Tahap>
-      <Tahap judul="4. Jual dan kirim" ringkas={`${d.pesanan.length} pesanan`} kosong={d.pesanan.length === 0}>
+      <Tahap judul="4. Stok" ringkas={`${stok.length} unit · sisa ${kgT(stok.reduce((a, s) => a + Math.round(s.sisa_kg * 1000), 0) / 1000)}`} kosong={stok.length === 0}>
+        {stok.map((s) => <Baris key={s.id} href="/stok" kiri={<>{s.kode} · {s.product_nama}{s.grade_kode && ` ${s.grade_kode}`} · {s.kondisi}</>} kanan={<>masuk {kgT(s.kg_masuk)} · sisa {kgT(s.sisa_kg)}</>} />)}
+      </Tahap>
+      <Tahap judul="5. Jual dan kirim" ringkas={`${d.pesanan.length} pesanan`} kosong={d.pesanan.length === 0}>
         {d.pesanan.map((p) => <Baris key={p.id} href={`/penjualan?p=${p.id}`} kiri={<>{p.kode} · {p.buyer_nama} · {p.status}</>} kanan={rp(p.status === "terkirim" ? p.total_final : p.total_pesan)} />)}
       </Tahap>
-      <Tahap judul="5. Tagihan dan uang masuk" ringkas={`${d.invoice.length} invoice`} kosong={d.invoice.length === 0}>
+      <Tahap judul="6. Tagihan dan uang masuk" ringkas={`${d.invoice.length} invoice`} kosong={d.invoice.length === 0}>
         {d.invoice.map((i) => <Baris key={i.id} href={`/penjualan?inv=${i.id}`} kiri={<>{i.kode} · {LABEL_TAGIHAN[i.status_tagihan as StatusTagihan] ?? i.status_tagihan}</>} kanan={<>{rp(i.total)} · sisa {rp(i.sisa)}</>} />)}
       </Tahap>
-      <Tahap judul="6. Biaya lain" ringkas={`${d.biaya.length} biaya`} kosong={d.biaya.length === 0}>
+      <Tahap judul="7. Biaya lain" ringkas={`${d.biaya.length} biaya`} kosong={d.biaya.length === 0}>
         {d.biaya.map((b) => <Baris key={b.id} href={`/keuangan?b=${b.id}`} kiri={<>{b.kode} · {b.kategori_nama} · {b.status}</>} kanan={rp(b.jumlah)} />)}
       </Tahap>
       <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Semua baris di atas ditarik dari catatan yang sama, tanpa input ulang. Ketuk satu baris untuk membuka transaksinya beserta nota.</p></Inner>
@@ -103,13 +107,13 @@ export function SiklusKelola({ daftar, detail, bolehTutup }: { daftar: RingkasSi
   const router = useRouter();
   return (
     <div className="space-y-4">
-      <Card title="Daftar siklus">
+      <Card title="Daftar proyek">
         <DataList
           rows={daftar}
-          empty="Belum ada siklus. Siklus dibuat otomatis saat PO memilih Siklus baru."
+          empty="Belum ada proyek. Proyek dibuat otomatis saat PO memilih Proyek baru."
           cari={(s) => `${s.kode} ${s.ref_po_pembeli} ${s.no_bongkar} ${s.status}`}
           cols={[
-            { h: "Siklus", r: (s: RingkasSiklus) => <><span className="font-medium">{s.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{s.ref_po_pembeli || "tanpa PO pembeli"}</span></> },
+            { h: "Proyek", r: (s: RingkasSiklus) => <><span className="font-medium">{s.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{s.ref_po_pembeli || "tanpa PO pembeli"}</span></> },
             { h: "Beli ikan", r: (s) => rp(s.nilai_beli), right: true },
             { h: "Loin", r: (s) => kgT(s.loin_kg), right: true },
             { h: "Ditagihkan", r: (s) => rp(s.nilai_invoice), right: true },

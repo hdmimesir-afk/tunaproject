@@ -63,3 +63,23 @@ export async function simpanPengaturan(_: HasilForm, fd: FormData): Promise<Hasi
   refresh();
   return undefined;
 }
+
+const AturanLampiranForm = z.object({
+  id: z.uuid(),
+  wajib: z.enum(["true", "false"]).transform((v) => v === "true"),
+  keterangan: z.string().trim().max(300, "Keterangan paling banyak 300 huruf"),
+});
+
+/** Admin menandai lampiran wajib atau opsional. Lampiran wajib yang belum ada hanya ditandai, tidak menghentikan pencatatan. */
+export async function simpanAturanLampiran(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("pengaturan.write");
+  if (tolak) return tolak;
+  const p = AturanLampiranForm.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { error: p.error.issues[0]?.message ?? "Isian tidak valid." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("document_rules").update({ wajib: p.data.wajib, keterangan: p.data.keterangan }).eq("id", p.data.id).select("id");
+  if (error) return { error: pesanDb(error) };
+  if (!data?.length) return { error: "Aturan tidak ditemukan atau Anda tidak boleh mengubahnya." };
+  refresh();
+  return { pesan: "Tersimpan." };
+}
