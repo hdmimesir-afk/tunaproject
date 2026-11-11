@@ -81,6 +81,10 @@ html:has(.tutorial) { scroll-padding-top: 138px; scroll-behavior: smooth; }
 .t-tabel thead th { font-weight: 600; }
 .t-tabel td { color: var(--t-muted); }
 .t-tabel td.t-ya { color: #17634a; font-weight: 500; }
+.tutorial .t-video { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px 24px; margin-top: 16px; padding: 0; list-style: none; }
+.t-video video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; background: #00171F; }
+.t-video h3 { margin-top: 10px; font-size: 1rem; font-weight: 600; }
+.t-video p { margin-top: 4px; color: var(--t-ink-2); font-size: 0.9375rem; }
 .tutorial .t-istilah { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px 32px; margin-top: 16px; }
 .t-istilah dt { font-weight: 600; }
 .t-istilah dd { color: var(--t-ink-2); font-size: 0.9375rem; }

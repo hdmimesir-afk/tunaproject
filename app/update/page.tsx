@@ -29,7 +29,7 @@ export default function UpdatePage() {
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
               <h1 id="judul">Masukan dari rapat udah masuk ke sistem.</h1>
-              <p className="u-lead">Dari sepuluh masukan Mas Bisma, sembilan udah saya kerjain, termasuk yang kemarin masih nunggu keputusan perusahaan. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
+              <p className="u-lead">Sepuluh masukan Mas Bisma udah saya kerjain semua, termasuk yang kemarin masih nunggu keputusan perusahaan dan video panduannya. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
               <div className="u-aksi">
                 <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasannya</a>

@@ -36,6 +36,7 @@ export const TERBARU: { judul: string; isi: string }[] = [
   { judul: "Lampiran wajib juga diatur admin", isi: "Ada tab Lampiran wajib di Pengaturan. Awalnya saya set begini: nota pembelian, foto timbangan (satu tiap kali terima ikan, jadi kalau nimbangnya bertahap ya satu foto per tahap), sama bukti transfer. Kalau ada yang belum dilampirkan, cuma ditandai \"Belum ada\". Pencatatannya tetap jalan." },
   { judul: "Satu lot bisa beberapa grade", isi: "Waktu cek mutu, QC bisa isi beberapa grade sekaligus sama beratnya, misalnya 500 kg B-SO dan 300 kg A-SO. Totalnya nggak boleh lebih dari berat lot. Laporan harga beli juga ikut dipecah per grade." },
   { judul: "Siklus sekarang namanya Proyek", isi: "Satu proyek itu satu batch atau satu bongkaran, dan isinya boleh beberapa pembelian. Dari pembelian, lot, produksi, stok, penjualan, tagihan, sampai biaya, semuanya bisa ditelusuri per proyek. Stok hasil produksi sekarang ikut kecatat proyeknya, dan kode proyeknya muncul di daftar lot, daftar stok, sama pilihan stok pas bikin pesanan." },
+  { judul: "Video panduan", isi: "Ada enam video pendek di halaman Panduan, masing-masing 1 sampai 2 menit: bikin PO, menyetujui, terima ikan dan cek mutu, produksi, periksa dan masuk stok, sampai jual dan tagih. Direkam dari aplikasinya langsung pakai data contoh, penjelasannya berupa tulisan di layar. Kalau nanti tampilannya berubah, videonya bisa saya rekam ulang dengan cepat." },
   { judul: "Perbaikan kecil dari rapat", isi: "Pemasok baru bisa ditambah langsung dari form pembelian. Lulus dan Tahan sekarang ada penjelasannya. Hasil produksi yang belum masuk stok udah kelihatan di form pesanan, dan kolom harga per kilo di HP nggak keluar layar lagi." },
 ];
 
@@ -50,7 +51,7 @@ export const NOTULEN: { poin: string; status: "selesai" | "menunggu" }[] = [
   { poin: "7. Pencatatan per proyek", status: "selesai" },
   { poin: "8. Hasil produksi muncul di form pesanan", status: "selesai" },
   { poin: "9. Kolom harga per kilo di HP", status: "selesai" },
-  { poin: "10. Video panduan", status: "menunggu" },
+  { poin: "10. Video panduan", status: "selesai" },
 ];
 
 /* ------------------------------------------------------------------ modul */
@@ -251,7 +252,6 @@ export const LIVE = [
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
   { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 11 November udah lulus semua pemeriksaan otomatis, termasuk 626 pemeriksaan aturan database dan tes klik-klik. Saya juga udah coba sendiri pakai data contoh. Yang belum: nyoba langsung di sistem yang udah dipakai." },
-  { judul: "Video panduan", isi: "Ini poin terakhir dari Mas Bisma. Sengaja saya rekam setelah perbaikan dari rapat udah stabil, biar videonya nggak cepat basi. Isinya alur pembelian, terima ikan dan cek mutu, produksi, sampai penjualan, lengkap dengan contoh isian." },
   { judul: "Jawaban lanjutan tim Katalis", isi: "Masih nunggu jawaban soal bayar nelayan kalau ikannya datang tanpa pesanan, sama aturan transit dan ikan yang nginep. Fitur terima ikan tanpa pesanan dan tarif gudang yang baru nunggu jawaban ini." },
   { judul: "Gambar panduan", isi: "Beberapa gambar di halaman panduan masih pakai tampilan lama, misalnya form cek mutu. Dua panduan baru (milih yang menyetujui, atur lampiran wajib) juga belum ada gambarnya." },
   { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps udah kepasang di sistem. Tapi baru bisa dibilang beres kalau udah dicoba dari HP di kantor, soalnya pin di peta bisa agak beda sama tempat orang berdiri pas absen." },

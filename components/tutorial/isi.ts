@@ -701,3 +701,14 @@ export const BAB: Bab[] = [
     ],
   },
 ];
+
+/* Video panduan (masukan Mas Bisma poin 10). Direkam dari aplikasi asli dengan data contoh lewat scripts/video/rekam.mjs;
+   berkasnya di public/tutorial/video/. Kalau tampilan berubah, rekam ulang pakai skrip yang sama. */
+export const VIDEO: { berkas: string; judul: string; ringkas: string; slug: string }[] = [
+  { berkas: "01-pembelian", judul: "1. Bikin PO pembelian ikan", ringkas: "Pilih pemasok, isi berat dan harga, terus ajukan. Termasuk kalau notanya nyusul.", slug: "pembelian" },
+  { berkas: "02-persetujuan", judul: "2. Menyetujui PO", ringkas: "Cek kartu PO, terus setujui. Ada konfirmasi total dulu.", slug: "persetujuan" },
+  { berkas: "03-terima-dan-cek-mutu", judul: "3. Terima ikan dan cek mutu", ringkas: "Petugas nyatet ikan datang, QC isi grade dan beratnya.", slug: "mutu" },
+  { berkas: "04-produksi", judul: "4. Produksi loin", ringkas: "Mulai dari lot, isi loin per grade, hasil samping, limbah, susut, terus selesaikan.", slug: "produksi" },
+  { berkas: "05-periksa-dan-stok", judul: "5. Periksa produksi dan masuk stok", ringkas: "QC meriksa, Owner menyetujui, hasilnya masuk stok.", slug: "stok" },
+  { berkas: "06-penjualan", judul: "6. Jual, kirim, dan tagih", ringkas: "Bikin pesanan dari stok, kirim, terus terbitkan invoice.", slug: "penjualan" },
+];

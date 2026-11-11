@@ -84,7 +84,7 @@ Jawaban atas empat pertanyaan di halaman `/flowchart`. Bagian lain PRD ini tetap
   - **Pemberi persetujuan (poin 3):** dipilih admin di menu Akses, bagian Tugas per peran (`role_tugas`, fungsi `atur_tugas`). Ada tiga tugas: menyetujui PO, memeriksa PO, dan melampirkan nota susulan. Owner selalu memegang semuanya. Bawaan: Finance memeriksa dan melampirkan nota susulan, Super Admin melampirkan nota susulan. Penyetuju boleh langsung memutuskan tanpa menunggu diperiksa. Yang mengajukan tidak boleh menyetujui pengajuannya sendiri, kecuali Owner. Selain Owner, admin tidak bisa mengatur tugas perannya sendiri.
   - **Lampiran wajib (poin 5):** diatur admin di Pengaturan, tab Lampiran wajib (`document_rules`). Bawaan: nota PO wajib, foto timbangan wajib (satu foto per penerimaan, termasuk penerimaan bertahap), dan bukti transfer pembayaran wajib. Lampiran wajib yang belum ada hanya ditandai "Belum ada" dan tidak menghentikan pencatatan.
   - **Proyek (poin 7):** satu proyek adalah satu batch atau satu bongkaran, dan boleh berisi beberapa PO. Proyek memakai tabel `cycles` yang sudah ada; di layar, istilah "Siklus" diganti "Proyek". Stok hasil produksi sekarang ikut tercatat per proyek (`storage_units.cycle_id`). Rincian Proyek menampilkan tujuh tahap, termasuk stok, dan pilihan stok di pesanan menampilkan kode proyek.
-- **Setelah perbaikan stabil:** video panduan (poin 10).
+- **Poin 10, video panduan. Sudah dikerjakan:** enam video pendek (1 sampai 2 menit) di /tutorial, direkam otomatis dari aplikasi asli dengan data contoh lewat `scripts/video/rekam.mjs`, penjelasan berupa tulisan di layar. Rekam ulang: reset database lokal, jalankan `node scripts/video/rekam.mjs`, lalu `node scripts/video/jadi-mp4.mjs`.
 
 ## Alur utama
 

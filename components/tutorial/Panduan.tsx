@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { GAMBAR, type NamaGambar } from "./gambar";
-import { ALUR_CONTOH, BAB, DAFTAR_PERAN, ISTILAH, type PeranId, type Tugas } from "./isi";
+import { ALUR_CONTOH, BAB, DAFTAR_PERAN, ISTILAH, VIDEO, type PeranId, type Tugas } from "./isi";
 
 const namaPeran = (id: PeranId) => DAFTAR_PERAN.find((p) => p.id === id)?.label ?? id;
 
@@ -69,6 +69,7 @@ export function Panduan() {
     <div key={k}>
       <p className="t-toc-kelompok">{k}</p>
       <ul>
+        {k === "Mulai" && !q && <li><a href="#video">Video panduan</a></li>}
         {k === "Mulai" && !q && <li><a href="#alur">Contoh satu putaran kerja</a></li>}
         {k === "Mulai" && !q && <li><a href="#istilah">Arti istilah</a></li>}
         {tampil.filter((b) => b.kelompok === k).map((b) => <li key={b.slug}><a href={`#${b.slug}`}>{b.judul}</a></li>)}
@@ -97,6 +98,23 @@ export function Panduan() {
         <div className="t-isi">
           {!q && (
             <>
+              <section id="video" className="t-bab" aria-labelledby="judul-video">
+                <header>
+                  <h2 id="judul-video">Video panduan</h2>
+                  <p>Enam video pendek, urut dari beli ikan sampai tagihan. Direkam dari aplikasinya langsung, pakai data contoh.</p>
+                </header>
+                <ul className="t-video">
+                  {VIDEO.map((v) => (
+                    <li key={v.berkas}>
+                      <video controls preload="none" playsInline poster={`/tutorial/video/${v.berkas}.webp`} aria-label={v.judul}>
+                        <source src={`/tutorial/video/${v.berkas}.mp4`} type="video/mp4" />
+                      </video>
+                      <h3>{v.judul}</h3>
+                      <p>{v.ringkas} <a href={`#${v.slug}`}>Baca langkahnya</a></p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
               <section id="alur" className="t-bab" aria-labelledby="judul-alur">
                 <header>
                   <h2 id="judul-alur">Contoh satu putaran kerja</h2>

@@ -230,7 +230,8 @@ export async function selesaikanProduksi(_: HasilForm, fd: FormData): Promise<Ha
 }
 
 export async function periksaProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const p = Id.extend({ penjelasan: z.string().trim().max(500) }).safeParse(Object.fromEntries(fd.entries()));
+  // Kolom penjelasan cuma muncul kalau ada selisih; neraca yang pas berarti kolomnya nggak dikirim sama sekali.
+  const p = Id.extend({ penjelasan: z.string().trim().max(500).default("") }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { error: "Penjelasan terlalu panjang." };
   return panggil("produksi.periksa", "periksa_produksi", { p_production: p.data.produksiId, p_penjelasan: p.data.penjelasan }, "Pemeriksaan QC udah dicatat. Tinggal nunggu Owner.");
 }
