@@ -23,7 +23,7 @@ export function LayarDashboard() {
 
 export function LayarPersetujuan() {
   return (
-    <Kerangka aktif="persetujuan" kicker="Diperiksa Finance, disetujui Owner" judul="Persetujuan">
+    <Kerangka aktif="persetujuan" kicker="Diperiksa, lalu disetujui oleh yang dipilih admin" judul="Persetujuan">
       <Mati><Antrean data={c.persetujuan} pengguna={c.penggunaPersetujuan} bolehPeriksa bolehSetuju sorot={c.IDSOROT} /></Mati>
     </Kerangka>
   );
@@ -55,7 +55,7 @@ export function LayarAbsensi() {
 
 export function LayarSiklus() {
   return (
-    <Kerangka aktif="siklus" kicker="Satu siklus dari beli ikan sampai uang masuk" judul="Rincian Siklus">
+    <Kerangka aktif="siklus" kicker="Satu proyek (batch atau bongkaran) dari beli ikan sampai uang masuk" judul="Rincian Proyek">
       <Mati><SiklusKelola daftar={c.daftarSiklus} detail={c.rantai} bolehTutup /></Mati>
     </Kerangka>
   );

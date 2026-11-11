@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { Perangkat } from "@/components/update/Perangkat";
-import { ANGKA, BELUM, BERIKUTNYA, KUALITAS, LIVE, MATRIKS, MODUL, PERAN, PERIKSA_LENGKAP, PERJALANAN, TANGGAL, TUGAS_PERAN } from "@/components/update/isi";
+import { ANGKA, BELUM, BERIKUTNYA, KUALITAS, LIVE, MATRIKS, MODUL, NOTULEN, PERAN, PERIKSA_LENGKAP, PERJALANAN, TANGGAL, TERBARU, TUGAS_PERAN } from "@/components/update/isi";
 import "./update.css";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#00171F" };
 
-const BAGIAN = [["ringkasan", "Ringkasnya"], ["perjalanan", "Perjalanan"], ["tampilan", "Tampilan"], ["modul", "Isi menu"], ["peran", "Siapa melihat apa"], ["kualitas", "Keamanan"], ["belum", "Yang tersisa"]] as const;
+const BAGIAN = [["terbaru", "Terbaru"], ["ringkasan", "Ringkasnya"], ["perjalanan", "Perjalanan"], ["tampilan", "Tampilan"], ["modul", "Isi menu"], ["peran", "Siapa melihat apa"], ["kualitas", "Keamanan"], ["belum", "Yang tersisa"]] as const;
 
 export default function UpdatePage() {
   return (
@@ -28,10 +28,10 @@ export default function UpdatePage() {
           <div className="u-wadah u-hero-isi">
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
-              <h1 id="judul">Sistem selesai dibangun, siap dicoba.</h1>
-              <p className="u-lead">Kabar baiknya, semua fitur yang kita sepakati sudah jadi. Di halaman ini saya rangkum posisinya per {TANGGAL}, lengkap dengan tampilan aslinya di HP dan laptop.</p>
+              <h1 id="judul">Masukan rapat sudah masuk ke sistem.</h1>
+              <p className="u-lead">Sembilan dari sepuluh masukan Mas Bisma sudah saya kerjakan, termasuk yang tadinya menunggu keputusan perusahaan. Di halaman ini saya rangkum posisinya per {TANGGAL}, lengkap dengan tampilan aslinya di HP dan laptop.</p>
               <div className="u-aksi">
-                <a className="u-tombol" href="#tampilan">Lihat tampilannya</a>
+                <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasnya</a>
               </div>
             </div>
@@ -42,7 +42,26 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian" id="ringkasan" aria-labelledby="h-ringkasan">
+        <section className="u-bagian" id="terbaru" aria-labelledby="h-terbaru">
+          <div className="u-wadah">
+            <h2 className="u-judul" id="h-terbaru">Yang baru per {TANGGAL}</h2>
+            <p className="u-pengantar">Ini hasil dari masukan Mas Bisma di rapat 10 November dan jawaban perusahaan 11 November. Intinya: pencatatan di lapangan tidak lagi tertahan nota atau persetujuan, dan aturan yang perlu keputusan perusahaan sekarang bisa diatur sendiri oleh admin.</p>
+            <div className="u-kartu-grid u-badan">
+              {TERBARU.map((k) => <div key={k.judul}><h3>{k.judul}</h3><p>{k.isi}</p></div>)}
+            </div>
+            <h3 className="u-sub" style={{ marginTop: "var(--space-xl, 48px)" }}>Status sepuluh masukan</h3>
+            <ul className="u-notulen" style={{ marginTop: "var(--space-md)" }}>
+              {NOTULEN.map((n) => (
+                <li key={n.poin}>
+                  <span>{n.poin}</span>
+                  <span className={n.status === "selesai" ? "u-ya" : "u-tidak"}>{n.status === "selesai" ? "Selesai" : "Setelah stabil"}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="u-bagian u-bagian-alt" id="ringkasan" aria-labelledby="h-ringkasan">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-ringkasan">Singkatnya: sistemnya sudah jadi</h2>
             <p className="u-pengantar">Fitur yang kita sepakati sudah selesai. Yang saya kerjakan sekarang penyesuaian dari catatan rapat. Sisanya tinggal mencobanya di lapangan, dan beberapa hal yang memang cuma bisa diputuskan owner.</p>
@@ -64,7 +83,7 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian u-bagian-alt" id="perjalanan" aria-labelledby="h-perjalanan">
+        <section className="u-bagian" id="perjalanan" aria-labelledby="h-perjalanan">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-perjalanan">Dari awal sampai sekarang</h2>
             <p className="u-pengantar">Ini jalannya pekerjaan dari awal, supaya owner tahu apa saja yang sudah lewat.</p>
@@ -74,7 +93,7 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian" id="tampilan" aria-labelledby="h-tampilan">
+        <section className="u-bagian u-bagian-alt" id="tampilan" aria-labelledby="h-tampilan">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-tampilan">Ini tampilannya di laptop dan HP</h2>
             <p className="u-pengantar">Semua layar di bawah ini halaman sistem yang sebenarnya, saya tampilkan di ukuran layar perangkatnya.</p>
@@ -87,20 +106,20 @@ export default function UpdatePage() {
                   <ul>
                     <li>Yang merah paling mendesak, misalnya tagihan yang sudah telat.</li>
                     <li>Di contoh ini ada tujuh urusan. Enam langsung kelihatan, sisanya saya lipat di tombol &ldquo;Lihat lainnya&rdquo;.</li>
-                    <li>Di bawahnya ada kas, piutang, stok, arus kas enam bulan, dan laba rugi siklus terbaru.</li>
+                    <li>Di bawahnya ada kas, piutang, stok, arus kas enam bulan, dan laba rugi proyek terbaru.</li>
                   </ul>
                 </div>
               </div>
 
               <div className="u-gelar-laptop u-balik">
-                <Perangkat jenis="laptop" layar="/update/layar/siklus" judul="Rincian Siklus di laptop" />
+                <Perangkat jenis="laptop" layar="/update/layar/siklus" judul="Rincian Proyek di laptop" />
                 <div className="u-catatan">
-                  <h3>Rincian siklus</h3>
-                  <p>Satu putaran dari beli ikan sampai uang masuk saya rapikan jadi enam tahap, tanpa perlu mengetik ulang.</p>
+                  <h3>Rincian proyek</h3>
+                  <p>Satu proyek, yaitu satu batch atau bongkaran, dari beli ikan sampai uang masuk saya rapikan jadi tujuh tahap, tanpa perlu mengetik ulang.</p>
                   <ul>
-                    <li>Pembelian, mutu ikan, produksi, penjualan, tagihan, dan biaya ada di satu layar.</li>
+                    <li>Pembelian, mutu ikan, produksi, stok, penjualan, tagihan, dan biaya ada di satu layar.</li>
                     <li>Ketuk satu baris untuk melihat transaksinya beserta nota.</li>
-                    <li>Siklus yang sudah lunas dan beres bisa ditutup owner dari sini.</li>
+                    <li>Proyek yang sudah lunas dan beres bisa ditutup owner dari sini.</li>
                   </ul>
                 </div>
               </div>
@@ -110,7 +129,7 @@ export default function UpdatePage() {
                   <Perangkat jenis="hp" layar="/update/layar/persetujuan" judul="Persetujuan di HP" />
                   <figcaption className="u-catatan">
                     <h3>Persetujuan</h3>
-                    <p>Pembelian yang dibuka dari dashboard langsung saya sorot. Nota ada di kartunya, dan kalau harga naik ada peringatannya.</p>
+                    <p>Pembelian yang dibuka dari dashboard langsung saya sorot. Nota ada di kartunya, kalau notanya menyusul ada tandanya, dan kalau harga naik ada peringatannya.</p>
                   </figcaption>
                 </figure>
                 <figure style={{ margin: 0 }}>
@@ -140,7 +159,7 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian u-bagian-alt" id="modul" aria-labelledby="h-modul">
+        <section className="u-bagian" id="modul" aria-labelledby="h-modul">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-modul">Apa yang bisa dilakukan di tiap menu</h2>
             <p className="u-pengantar">Ada lima belas menu. Saya jelaskan satu per satu sesuai cara kerjanya sekarang.</p>
@@ -155,7 +174,7 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian" id="peran" aria-labelledby="h-peran">
+        <section className="u-bagian u-bagian-alt" id="peran" aria-labelledby="h-peran">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-peran">Lima jabatan, dan menu yang dilihat masing-masing</h2>
             <p className="u-pengantar">Bisa melihat sebuah menu bukan berarti boleh mengubah isinya. Tombol ubah cuma muncul untuk jabatan yang memang berwenang.</p>
@@ -176,7 +195,7 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian u-bagian-alt" id="kualitas" aria-labelledby="h-kualitas">
+        <section className="u-bagian" id="kualitas" aria-labelledby="h-kualitas">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-kualitas">Seberapa aman dan rapi datanya</h2>
             <p className="u-pengantar">Ini hal-hal yang dijaga sistem sendiri, jadi keamanannya tidak bergantung pada kehati-hatian orang.</p>
@@ -186,7 +205,7 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian" id="belum" aria-labelledby="h-belum">
+        <section className="u-bagian u-bagian-alt" id="belum" aria-labelledby="h-belum">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-belum">Yang masih tersisa</h2>
             <p className="u-pengantar">Tidak ada fitur yang tertinggal. Yang tersisa: uji lengkap pembaruan terakhir, mencobanya di lapangan, serta bahan dan keputusan dari tim dan owner.</p>
@@ -196,10 +215,10 @@ export default function UpdatePage() {
           </div>
         </section>
 
-        <section className="u-bagian u-bagian-alt" id="berikutnya" aria-labelledby="h-berikutnya">
+        <section className="u-bagian" id="berikutnya" aria-labelledby="h-berikutnya">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-berikutnya">Langkah berikutnya</h2>
-            <p className="u-pengantar">Saya usulkan serah terimanya dua tahap, supaya sistem sudah bisa dipakai tanpa menunggu satu siklus asli selesai.</p>
+            <p className="u-pengantar">Saya usulkan serah terimanya dua tahap, supaya sistem sudah bisa dipakai tanpa menunggu satu proyek asli selesai.</p>
             <ul className="u-tahap u-badan">
               {BERIKUTNYA.map((t) => <li key={t.tahap}><span className="u-label">{t.tahap}</span><h3>{t.judul}</h3><p>{t.isi}</p></li>)}
             </ul>
