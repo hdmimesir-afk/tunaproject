@@ -48,7 +48,7 @@ begin
   select count(*), string_agg(x, ', ') into n, contoh from (
     select kode as x from public.purchase_orders where dibuat_pada > w + interval '1 minute' and (cycle_id = any(cyc) or supplier_id = any(sup))
     union all select kode from public.lots where dibuat_pada > w + interval '1 minute' and po_id = any(po)
-    union all select 'cek mutu ' || l.kode from public.lot_grades lg join public.lots l on l.id = lg.lot_id where lg.dibuat_pada > w + interval '1 minute' and lg.lot_id = any(lot)
+    union all select 'cek mutu ' || l.kode from public.lot_grades lg join public.lots l on l.id = lg.lot_id where lg.dibuat_pada > w + interval '1 minute' and lg.dibuat_oleh is not null and lg.lot_id = any(lot)
     union all select kode from public.productions where dibuat_pada > w + interval '1 minute' and cycle_id = any(cyc)
     union all select p.kode || ' pakai lot contoh' from public.lot_allocations la join public.productions p on p.id = la.production_id where la.dibuat_pada > w + interval '1 minute' and la.lot_id = any(lot)
     union all select distinct 'timbangan ' || p.kode from public.production_items i join public.productions p on p.id = i.production_id where i.dibuat_pada > w + interval '1 minute' and i.production_id = any(prd)

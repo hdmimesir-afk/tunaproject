@@ -32,7 +32,7 @@ nyangkut as (
     from public.lots, t where dibuat_pada > t.w + interval '1 minute' and po_id in (select id from po)
   union all select 'Cek mutu asli di lot contoh', l.kode, g.kode || ' ' || lg.kg::text || ' kg'
     from public.lot_grades lg join public.lots l on l.id = lg.lot_id join public.grades g on g.id = lg.grade_id, t
-    where lg.dibuat_pada > t.w + interval '1 minute' and lg.lot_id in (select id from lot)
+    where lg.dibuat_pada > t.w + interval '1 minute' and lg.dibuat_oleh is not null and lg.lot_id in (select id from lot)
   union all select 'Produksi asli di proyek contoh', kode, to_char(tanggal, 'DD-MM-YYYY')
     from public.productions, t where dibuat_pada > t.w + interval '1 minute' and cycle_id in (select id from cyc)
   union all select 'Produksi asli memakai lot contoh', p.kode, l.kode || ' · ' || la.kg::text || ' kg'
