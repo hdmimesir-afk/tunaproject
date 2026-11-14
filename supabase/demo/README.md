@@ -5,9 +5,17 @@ Dua skrip SQL yang dijalankan sendiri di **Supabase Dashboard > SQL Editor** (bu
 | Berkas | Fungsi |
 |---|---|
 | `seed-demo.sql` | Membuat data contoh: 2 siklus, 5 PO, produksi, stok, titipan gudang dingin, penjualan, invoice, biaya, dan buku kas. |
-| `hapus-demo.sql` | Menghapus semua data contoh, dan hanya itu. Data asli tidak tersentuh. |
+| `cek-demo.sql` | Cuma membaca. Nampilin jumlah data contoh yang bakal dihapus, dan data asli yang nyangkut ke data contoh. |
+| `hapus-demo.sql` | Menghapus semua data contoh, dan hanya itu. Kalau ada data asli yang nyangkut, skrip batal dan tidak menghapus apa pun. |
 
-Keduanya atomik: bila ada galat, tidak ada yang tersimpan.
+Semuanya atomik: bila ada galat, tidak ada yang tersimpan.
+
+## Menghapus data contoh
+1. Jalankan `cek-demo.sql`. Kalau ada baris **DATA ASLI NYANGKUT** (misalnya produksi asli memakai lot contoh, atau PO asli dimasukkan ke proyek contoh), jangan lanjut: data itu perlu dipindah dulu.
+2. Kalau tidak ada, jalankan `hapus-demo.sql`. Tabel hasil di akhir harus semuanya 0.
+
+Data contoh dikenali dari waktu pembuatannya: `seed-demo.sql` membuat semuanya dalam satu transaksi (sama dengan `dibuat_pada` siklus `[DEMO]`; timbangan contoh sengaja dimundurkan).
+Baris yang dibuat lebih dari 1 menit setelahnya dianggap data asli dan tidak pernah dihapus.
 
 ## Prasyarat
 - Ada minimal satu akun **Owner aktif** (skrip bertindak sebagai Owner itu).
