@@ -48,16 +48,19 @@ begin
   end if;
   b := w + interval '1 minute';
 
+  -- Transaksi contoh dikenali dari waktunya saja (satu transaksi seed), bukan dari nama pemasok/pembeli,
+  -- karena tim bisa saja sudah mengganti nama pemasok/pembeli contoh lalu memakainya untuk data asli.
+  -- Pemasok/pembeli contoh hanya dihapus kalau namanya masih berakhiran "(Demo)" dan tidak dipakai data yang tetap ada.
   select coalesce(array_agg(id), '{}') into cyc from public.cycles where catatan like '[DEMO]%';
-  select coalesce(array_agg(id), '{}') into sup from public.suppliers where nama like '%(Demo)' and dibuat_pada <= b;
-  select coalesce(array_agg(id), '{}') into buy from public.buyers where nama like '%(Demo)' and dibuat_pada <= b;
-  select coalesce(array_agg(id), '{}') into po from public.purchase_orders where dibuat_pada <= b and (cycle_id = any(cyc) or supplier_id = any(sup));
-  select coalesce(array_agg(id), '{}') into lot from public.lots where dibuat_pada <= b and po_id = any(po);
-  select coalesce(array_agg(id), '{}') into prd from public.productions where dibuat_pada <= b and cycle_id = any(cyc);
-  select coalesce(array_agg(id), '{}') into un from public.storage_units where dibuat_pada <= b and (production_id = any(prd) or buyer_id = any(buy));
-  select coalesce(array_agg(id), '{}') into ord from public.sales_orders where dibuat_pada <= b and (cycle_id = any(cyc) or buyer_id = any(buy));
-  select coalesce(array_agg(id), '{}') into inv from public.invoices where dibuat_pada <= b and (buyer_id = any(buy) or cycle_id = any(cyc) or order_id = any(ord));
-  select coalesce(array_agg(id), '{}') into ex from public.expenses where dibuat_pada <= b and (uraian like '%(Demo)' or cycle_id = any(cyc));
+  select coalesce(array_agg(id), '{}') into sup from public.suppliers where nama like '%(Demo)' and dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into buy from public.buyers where nama like '%(Demo)' and dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into po from public.purchase_orders where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into lot from public.lots where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into prd from public.productions where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into un from public.storage_units where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into ord from public.sales_orders where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into inv from public.invoices where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into ex from public.expenses where dibuat_pada between w and b;
 
   -- Yang wajib dipertahankan (kolom wajib di data tim menunjuk ke situ).
   select coalesce(array_agg(distinct x), '{}') into un_k from (
@@ -101,8 +104,8 @@ begin
   buy_d := array(select unnest(buy) except select unnest(buy_k));
 
   -- Pembayaran dan uang masuk contoh: uangnya bohongan, jadi dihapus walau PO/invoice-nya dipertahankan.
-  select coalesce(array_agg(id), '{}') into pay from public.payments where dibuat_pada <= b and po_id = any(po);
-  select coalesce(array_agg(id), '{}') into cpay from public.customer_payments where dibuat_pada <= b and invoice_id = any(inv_d);
+  select coalesce(array_agg(id), '{}') into pay from public.payments where dibuat_pada between w and b;
+  select coalesce(array_agg(id), '{}') into cpay from public.customer_payments where dibuat_pada between w and b and invoice_id = any(inv_d);
 
   -- ------------------------------------------------------------ rencana
   insert into rencana
@@ -115,8 +118,20 @@ begin
   union all select 1, 'Dipertahankan', 'Stok', kode, 'dipakai penjualan atau gerak stok tim' from public.storage_units where id = any(un_k)
   union all select 1, 'Dipertahankan', 'Pesanan', kode, 'berisi baris dari tim' from public.sales_orders where id = any(ord_k)
   union all select 1, 'Dipertahankan', 'Invoice', kode, 'ada uang masuk dari tim' from public.invoices where id = any(inv_k)
-  union all select 1, 'Dipertahankan', 'Pemasok', nama, 'dipakai PO atau lot yang dipertahankan' from public.suppliers where id = any(sup_k)
-  union all select 1, 'Dipertahankan', 'Pembeli', nama, 'dipakai pesanan, invoice, atau stok tim' from public.buyers where id = any(buy_k);
+  union all select 1, 'Dipertahankan', 'Pemasok', s.nama, 'dipakai: ' || coalesce((select string_agg(x, ', ') from (
+      select kode x from public.purchase_orders where supplier_id = s.id and not (id = any(po_d))
+      union select kode from public.lots where supplier_id = s.id and not (id = any(lot_d))) r), '-')
+    from public.suppliers s where s.id = any(sup_k)
+  union all select 1, 'Dipertahankan', 'Pembeli', y.nama, 'dipakai: ' || coalesce((select string_agg(x, ', ') from (
+      select kode x from public.sales_orders where buyer_id = y.id and not (id = any(ord_d))
+      union select kode from public.invoices where buyer_id = y.id and not (id = any(inv_d))
+      union select kode from public.storage_units where buyer_id = y.id and not (id = any(un_d))) r), '-')
+    from public.buyers y where y.id = any(buy_k)
+  -- Pemasok/pembeli dari skrip contoh yang namanya sudah diganti tim: dianggap data tim, tidak disentuh.
+  union all select 1, 'Dibiarkan', 'Pemasok', nama, 'dibuat skrip contoh, tapi namanya udah diganti tim' from public.suppliers
+    where dibuat_pada between w and b and nama not like '%(Demo)'
+  union all select 1, 'Dibiarkan', 'Pembeli', nama, 'dibuat skrip contoh, tapi namanya udah diganti tim' from public.buyers
+    where dibuat_pada between w and b and nama not like '%(Demo)';
 
   insert into rencana
   select 2, 'Dilepas', 'PO', p.kode, 'proyek ' || c.kode || ' dilepas' from public.purchase_orders p join public.cycles c on c.id = p.cycle_id where p.cycle_id = any(cyc) and not (p.id = any(po_d))
@@ -197,7 +212,7 @@ begin
   delete from public.lot_grades where lot_id = any(lot_d);
   delete from public.lots where id = any(lot_d);
   delete from public.purchase_orders where id = any(po_d);
-  delete from public.bookings where label like '%(Demo)' and dibuat_pada <= b;
+  delete from public.bookings where label like '%(Demo)' and dibuat_pada between w and b;
   delete from public.cycles where id = any(cyc);
   delete from public.suppliers where id = any(sup_d);
   delete from public.buyers where id = any(buy_d);
