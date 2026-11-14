@@ -1,5 +1,5 @@
 -- RINCIAN DATA ASLI YANG NYANGKUT KE DATA CONTOH. Hanya membaca, tidak mengubah apa pun.
--- Dipakai kalau hapus-demo.sql batal karena ada data asli yang terhubung ke data contoh.
+-- Dipakai buat ngecek data tim yang dibangun di atas data contoh, sebelum atau sesudah hapus-demo.sql.
 -- Cara pakai: Supabase Dashboard > SQL Editor > tempel seluruh berkas ini > Run, lalu kirim hasilnya ke developer.
 -- "Asli" = dibuat lebih dari 1 menit setelah data contoh. Grade lot hasil migrasi (dibuat_oleh kosong) tidak dihitung.
 

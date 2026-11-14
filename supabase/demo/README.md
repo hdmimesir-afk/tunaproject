@@ -5,17 +5,18 @@ Dua skrip SQL yang dijalankan sendiri di **Supabase Dashboard > SQL Editor** (bu
 | Berkas | Fungsi |
 |---|---|
 | `seed-demo.sql` | Membuat data contoh: 2 siklus, 5 PO, produksi, stok, titipan gudang dingin, penjualan, invoice, biaya, dan buku kas. |
-| `cek-demo.sql` | Cuma membaca. Nampilin jumlah data contoh yang bakal dihapus, dan data asli yang nyangkut ke data contoh. |
-| `hapus-demo.sql` | Menghapus semua data contoh, dan hanya itu. Kalau ada data asli yang nyangkut, skrip batal dan tidak menghapus apa pun. |
+| `hapus-demo.sql` | Menghapus data contoh. Data yang diisi tim tidak pernah dihapus. Ada mode coba (cuma nampilin rencana) dan mode hapus. |
+| `rincian-nyangkut.sql` | Cuma membaca. Nampilin data tim yang dibangun di atas data contoh (produksi, lot, stok, penjualan) beserta siapa yang input. |
 
 Semuanya atomik: bila ada galat, tidak ada yang tersimpan.
 
 ## Menghapus data contoh
-1. Jalankan `cek-demo.sql`. Kalau ada baris **DATA ASLI NYANGKUT** (misalnya produksi asli memakai lot contoh, atau PO asli dimasukkan ke proyek contoh), jangan lanjut: data itu perlu dipindah dulu.
-2. Kalau tidak ada, jalankan `hapus-demo.sql`. Tabel hasil di akhir harus semuanya 0.
+1. Tempel `hapus-demo.sql` di SQL Editor > Run. Mode awalnya **coba**: tidak ada yang berubah, cuma tampil rencananya.
+2. Cek rencananya: **Dihapus** (data contoh), **Dipertahankan** (data contoh yang wajib ada karena dipakai data tim, misalnya PO dari lot yang diterima tim), dan **Dilepas** (sambungan data tim ke proyek atau produksi contoh yang dihapus).
+3. Kalau udah benar, ganti `'coba'` jadi `'hapus'` di baris `set_config` > Run lagi.
 
 Data contoh dikenali dari waktu pembuatannya: `seed-demo.sql` membuat semuanya dalam satu transaksi (sama dengan `dibuat_pada` siklus `[DEMO]`; timbangan contoh sengaja dimundurkan).
-Baris yang dibuat lebih dari 1 menit setelahnya dianggap data asli dan tidak pernah dihapus.
+Baris yang dibuat lebih dari 1 menit setelahnya dianggap data tim dan tidak pernah dihapus. Grade lot hasil migrasi (tanpa pengisi) bukan data tim.
 
 ## Prasyarat
 - Ada minimal satu akun **Owner aktif** (skrip bertindak sebagai Owner itu).
