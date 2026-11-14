@@ -3,7 +3,7 @@
    jangan kaku). Jumlah tes dan catatan kas yang diimpor diambil dari pemeriksaan lengkap per 26 Oktober 2026 (PERIKSA_LENGKAP), jumlah menu
    dan jabatan dihitung ulang per 11 November 2026. Tidak ada angka perkiraan. Pembaruan sesudah 26 Oktober dicatat di PERJALANAN dan TERBARU. */
 
-export const TANGGAL = "11 November 2026";
+export const TANGGAL = "14 November 2026";
 export const PERIKSA_LENGKAP = "26 Oktober 2026";
 
 /* ---------------------------------------------------------------- angka */
@@ -26,11 +26,15 @@ export const PERJALANAN = [
   { tanggal: "6 November", judul: "Jawaban tim Katalis masuk", isi: "Berat loin sekarang cukup diisi total per grade. Kalau mau timbang per potong, masih bisa. Nota nelayan, tanda terima titipan, sama tagihan yang dibuat admin di luar sistem tinggal difoto terus dilampirkan." },
   { tanggal: "10 November", judul: "Masukan Mas Bisma, bagian pertama", isi: "Pemasok baru bisa ditambah langsung dari form pembelian. Arti Lulus dan Tahan sekarang ada keterangannya di layar. Hasil produksi yang belum masuk stok udah muncul di form pesanan, dan kolom harga per kilo di HP udah nggak kepotong lagi." },
   { tanggal: "11 November", judul: "Masukan Mas Bisma, bagian kedua", isi: "Satu lot bisa diisi beberapa grade. Pembelian nggak nunggu nota lagi. Siapa yang menyetujui dan lampiran apa yang wajib, admin yang atur. Siklus juga saya ganti namanya jadi Proyek, dan stoknya ikut kecatat per proyek." },
+  { tanggal: "14 November", judul: "Beres-beres sebelum dipakai", isi: "Data contoh saya hapus atas permintaan tim, pesan di layar saya bikin lebih santai, dan gambar panduan saya perbarui. Buat dua pertanyaan yang belum kejawab, saya tulis usulan supaya tim tinggal milih." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */
-/* Laporan terbaru: masukan Mas Bisma (notulen 10 November) dan jawaban perusahaan 11 November. */
+/* Laporan terbaru: beres-beres 14 November, lalu masukan Mas Bisma (notulen 10 November) dan jawaban perusahaan 11 November. */
 export const TERBARU: { judul: string; isi: string }[] = [
+  { judul: "Data contoh udah dihapus", isi: "Data latihan yang saya isi buat presentasi udah saya hapus dari sistem. Yang diinput tim nggak ada yang ilang. Beberapa data contoh terpaksa disisain karena udah dipakai data tim, misalnya LOT-003 dan LOT-004 yang dipakai produksi. Nama pemasok dan pembelinya udah saya ganti, jadi nggak ada lagi tulisan \"(Demo)\"." },
+  { judul: "Pesan di layar lebih santai", isi: "Pesan yang muncul kalau ada yang ditolak sekarang pakai kata Proyek, nggak Siklus lagi, dan nggak pakai \"Anda\". Misalnya \"Peran ini nggak punya izin buat langkah ini\". Pesan absen juga, jadi \"Udah absen masuk hari ini jam 08.03\"." },
+  { judul: "Gambar panduan diperbarui", isi: "Gambar form cek mutu di Panduan udah pakai tampilan yang baru (bisa beberapa grade). Panduan milih yang menyetujui PO sama atur lampiran wajib sekarang juga ada gambarnya." },
   { judul: "Nota boleh nyusul", isi: "Kalau notanya belum ada, misalnya pas bongkar malam, pembelian tetap bisa diajukan. Tinggal centang \"Nota menyusul\". Ikan tetap bisa diterima dan diproduksi, pembeliannya juga tetap bisa disetujui. Notanya dilampirkan belakangan sama orang yang dipilih admin." },
   { judul: "Admin yang milih siapa yang menyetujui", isi: "Di menu Akses sekarang ada bagian Tugas per peran. Di situ admin tinggal pilih jabatan mana yang boleh menyetujui pembelian, memeriksa, dan nambahin nota susulan. Owner tetap bisa semuanya. Orang yang mengajukan nggak bisa menyetujui pengajuannya sendiri, dan nama yang berhak menyetujui kelihatan di layar." },
   { judul: "Lampiran wajib juga diatur admin", isi: "Ada tab Lampiran wajib di Pengaturan. Awalnya saya set begini: nota pembelian, foto timbangan (satu tiap kali terima ikan, jadi kalau nimbangnya bertahap ya satu foto per tahap), sama bukti transfer. Kalau ada yang belum dilampirkan, cuma ditandai \"Belum ada\". Pencatatannya tetap jalan." },
@@ -38,6 +42,44 @@ export const TERBARU: { judul: string; isi: string }[] = [
   { judul: "Siklus sekarang namanya Proyek", isi: "Satu proyek itu satu batch atau satu bongkaran, dan isinya boleh beberapa pembelian. Dari pembelian, lot, produksi, stok, penjualan, tagihan, sampai biaya, semuanya bisa ditelusuri per proyek. Stok hasil produksi sekarang ikut kecatat proyeknya, dan kode proyeknya muncul di daftar lot, daftar stok, sama pilihan stok pas bikin pesanan." },
   { judul: "Video panduan", isi: "Ada enam video pendek di halaman Panduan, masing-masing 1 sampai 2 menit: bikin PO, menyetujui, terima ikan dan cek mutu, produksi, periksa dan masuk stok, sampai jual dan tagih. Direkam dari aplikasinya langsung pakai data contoh, penjelasannya berupa tulisan di layar. Kalau nanti tampilannya berubah, videonya bisa saya rekam ulang dengan cepat." },
   { judul: "Perbaikan kecil dari rapat", isi: "Pemasok baru bisa ditambah langsung dari form pembelian. Lulus dan Tahan sekarang ada penjelasannya. Hasil produksi yang belum masuk stok udah kelihatan di form pesanan, dan kolom harga per kilo di HP nggak keluar layar lagi." },
+];
+
+/* ----------------------------------------------------------------- usulan */
+/* Dua pertanyaan lanjutan yang belum dijawab tim Katalis. Ini usulan developer, belum dikerjakan sampai dikonfirmasi. */
+export const USULAN: { judul: string; masalah: string; usulan: string[]; tanya: string[] }[] = [
+  {
+    judul: "Ikan datang tanpa pesanan, nelayannya dibayar gimana",
+    masalah: "Kemarin udah disepakati ikan yang datang nggak boleh nunggu pesanan atau persetujuan. Yang belum jelas: harganya siapa yang ngisi, dan nelayannya boleh dibayar kapan.",
+    usulan: [
+      "Petugas langsung nyatet kedatangan: nama nelayan atau pemasok, berat timbang, foto timbangan, sama foto nota kalau ada. Ikannya langsung jadi lot, bisa dicek mutu dan diolah.",
+      "Dari situ sistem bikin catatan pembeliannya sendiri, ditandai \"dari kedatangan\". Jadi nggak ada yang ngetik dua kali.",
+      "Harga per kilo diisi belakangan dari nota nelayan. Kalau harganya beda per grade, diisi setelah QC selesai.",
+      "Harganya tetap masuk antrean persetujuan kayak biasa. Bedanya, ikannya nggak ketahan selama nunggu.",
+      "Nelayan dibayar setelah harganya disetujui. Kalau di lapangan biasanya dibayar tunai saat itu juga, bisa saya kasih batas. Misalnya di bawah Rp5 juta boleh dibayar dulu pakai nota, persetujuannya nyusul.",
+    ],
+    tanya: [
+      "Yang ngisi harga nelayan siapa: Finance, admin, atau dua-duanya?",
+      "Harga nelayan per kilo rata, atau beda per grade?",
+      "Boleh bayar tunai sebelum disetujui? Kalau boleh, batasnya berapa?",
+    ],
+  },
+  {
+    judul: "Transit dan ikan yang nginep di gudang",
+    masalah: "Tarif simpan udah jelas: dihitung dari jam masuk sampai jam keluar, dibulatin ke atas per 24 jam, minimal 10 hari per titipan. Yang belum: kapan titipan dihitung transit, dan gimana kalau cuma nginep semalam.",
+    usulan: [
+      "Pas terima titipan, petugas bisa milih \"Transit\" kalau barangnya cuma numpang lewat.",
+      "Titipan transit yang keluar sebelum 24 jam cuma kena tarif transit, nggak kena minimum 10 hari. Tarifnya diisi pas bikin tagihan, sesuai jawaban kemarin.",
+      "Kalau lewat 24 jam, otomatis jadi titipan simpan biasa, dihitung dari jam masuk. Jadi transit nggak bisa dipakai buat nyimpan lama.",
+      "Ikan yang nginep semalam terus diambil besoknya ikut aturan yang sama: ditandai transit, keluar sebelum 24 jam, cukup bayar transit.",
+      "Biaya pembekuan Rp3.500 per kilo cuma ditagih kalau barangnya masuk ABF. Barang yang datang udah beku dan langsung masuk cold storage nggak kena.",
+      "Kalau sebagian barang keluar sebelum hari ke-10 dan sisanya lewat, saya hitung dari total kg-hari satu titipan. Kalau totalnya udah lebih dari minimum, nggak ada tambahan.",
+    ],
+    tanya: [
+      "Batas transit 24 jam udah pas, atau maunya beda?",
+      "Tarif transit dihitung sekali per titipan atau per hari?",
+      "Barang yang datang udah beku tetap kena biaya pembekuan atau nggak?",
+    ],
+  },
 ];
 
 /* Status sepuluh poin notulen Mas Bisma per 11 November. */
@@ -236,7 +278,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di tiap tombol, dan di database. Nota dan foto absen disimpan di tempat tertutup, cuma bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi, jadi kata sandi nggak bisa ditebak-tebak." },
   { judul: "Angkanya nggak geser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa dibulatin diam-diam. Saya udah uji pakai 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhannya hasilnya sama persis." },
   { judul: "Satu putaran penuh udah diuji", isi: "Saya jalanin pembelian sampai uang masuk pakai kelima jabatan, terus nyocokin angka di neraca, stok, tagihan, rincian proyek, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 11 November juga lulus semua: 626 pemeriksaan aturan database, 108 pemeriksaan logika, dan tes klik-klik." },
+  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 14 November juga lulus semua: 632 pemeriksaan aturan database dan 108 pemeriksaan logika." },
   { judul: "Cadangan tiap hari", isi: "Database dicadangin tiap malam dan dienkripsi. Udah empat kali berhasil, tiga di antaranya otomatis terjadwal. Yang belum saya lakuin: nyoba mulihin cadangan ke tempat kosong (ada di bagian yang masih tersisa)." },
 ] as const;
 
@@ -251,9 +293,8 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 11 November udah lulus semua pemeriksaan otomatis, termasuk 626 pemeriksaan aturan database dan tes klik-klik. Saya juga udah coba sendiri pakai data contoh. Yang belum: nyoba langsung di sistem yang udah dipakai." },
-  { judul: "Jawaban lanjutan tim Katalis", isi: "Masih nunggu jawaban soal bayar nelayan kalau ikannya datang tanpa pesanan, sama aturan transit dan ikan yang nginep. Fitur terima ikan tanpa pesanan dan tarif gudang yang baru nunggu jawaban ini." },
-  { judul: "Gambar panduan", isi: "Beberapa gambar di halaman panduan masih pakai tampilan lama, misalnya form cek mutu. Dua panduan baru (milih yang menyetujui, atur lampiran wajib) juga belum ada gambarnya." },
+  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 14 November udah lulus pemeriksaan otomatis, termasuk 632 pemeriksaan aturan database. Saya juga udah coba sendiri pakai data contoh. Yang belum: nyoba langsung di sistem yang udah dipakai." },
+  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal bayar nelayan kalau ikannya datang tanpa pesanan, sama aturan transit dan ikan yang nginep, udah saya tulisin usulannya di bagian atas. Tim tinggal jawab pertanyaannya. Fitur terima ikan tanpa pesanan dan tarif gudang yang baru saya kerjain setelah ada jawaban." },
   { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps udah kepasang di sistem. Tapi baru bisa dibilang beres kalau udah dicoba dari HP di kantor, soalnya pin di peta bisa agak beda sama tempat orang berdiri pas absen." },
   { judul: "Urutan menu lengkap", isi: "Pembelian, Persetujuan, Mutu dan Penerimaan, terus Produksi udah saya urutin. Menu lainnya nunggu daftar lengkap dari tim pengguna." },
   { judul: "Efek satu akun per jabatan", isi: "Semua petugas lapangan pakai satu akun yang sama. Jadi absen masuk dan pulang cuma kecatat sekali sehari buat semuanya, dan catatan perubahan cuma nunjukin jabatannya, orangnya nggak kelihatan." },
@@ -264,7 +305,6 @@ export const BELUM = [
   { judul: "Uji mulihin cadangan", isi: "Cadangannya udah ada, tapi belum saya buktiin bisa dipulihin. Buat nyobanya saya butuh satu database kosong." },
   { judul: "Ngamanin akun pas serah terima", isi: "Bikin akun semua jabatan dan ganti kata sandi awal kita beresin bareng owner." },
   { judul: "Batas paket gratis", isi: "Hosting dan database pakai paket gratis, sesuai keputusan owner. Hosting gratis aturannya buat pemakaian non-komersial, dan database yang sepi tujuh hari bisa dijeda. Risikonya udah diterima owner dan udah dicatat." },
-  { judul: "Data contoh", isi: "Kalau masih ada, data contoh bertanda \"(Demo)\" yang saya bikin buat latihan presentasi perlu dihapus dulu sebelum sistemnya dipakai buat pembukuan beneran. Skrip buat ngehapusnya udah saya siapin." },
 ] as const;
 
 export const BERIKUTNYA = [

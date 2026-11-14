@@ -92,7 +92,7 @@ export const saya: Absen[] = [
   absen("a2", "2026-10-24", "pulang", "16:35", "berhasil"),
   absen("a3", "2026-10-24", "masuk", "08:41", "berhasil", 41),
   absen("a4", "2026-10-23", "pulang", "16:31", "berhasil"),
-  absen("a5", "2026-10-23", "masuk", "08:03", "gagal", 0, "Anda 214 m dari Pabrik pengolahan Bitung, di luar radius 100 m.", 214),
+  absen("a5", "2026-10-23", "masuk", "08:03", "gagal", 0, "Posisinya 214 m dari Pabrik pengolahan Bitung, di luar radius 100 m.", 214),
   absen("a6", "2026-10-23", "masuk", "08:05", "berhasil"),
 ];
 export const lokasi: LokasiKerja[] = [{ id: "lk-1", nama: "Pabrik pengolahan Bitung", lat: 0, lng: 0, radius_m: 100, akurasi_maks_m: 30, jam_masuk: "08:00:00", jam_pulang: "17:00:00", jam_masuk_sabtu: "08:00:00", jam_pulang_sabtu: "12:00:00", toleransi_menit: 15, aktif: true }];

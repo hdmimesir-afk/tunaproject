@@ -38,8 +38,8 @@ select is(
   (public.catat_absen('masuk', -0.94893, 100.3543, 10, '00000000-0000-0000-0000-0000000000b3/masuk-2.jpg') ->> 'ok'),
   'false', 'absen masuk kedua di hari yang sama ditolak');
 select ok(
-  (public.catat_absen('masuk', -0.94893, 100.3543, 10, '00000000-0000-0000-0000-0000000000b3/masuk-3.jpg') ->> 'alasan') like '%sudah absen masuk%',
-  'alasan penolakan menyebut sudah absen');
+  (public.catat_absen('masuk', -0.94893, 100.3543, 10, '00000000-0000-0000-0000-0000000000b3/masuk-3.jpg') ->> 'alasan') like '%dah absen masuk%',
+  'alasan penolakan menyebut udah absen');
 
 -- Sekitar 111 m dari titik (0,001 derajat): di luar radius 50 m. Percobaannya tetap tersimpan.
 select is(

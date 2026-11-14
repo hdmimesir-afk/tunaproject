@@ -80,6 +80,7 @@ html:has(.update) { scroll-padding-top: 72px; scroll-behavior: smooth; scrollbar
 .u-daftar-titik > li::before { content: ""; position: absolute; left: 0; top: 1.15em; width: 10px; height: 2px; background: var(--color-success); }
 .u-dua { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-xl) var(--gap-columns); }
 .u-sub { font-size: var(--text-xl); line-height: 1.2; }
+.u-usulan-label { margin-top: var(--space-lg, 32px); margin-bottom: var(--space-sm, 12px); font-size: var(--text-sm, 14px); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-ink-2); }
 
 /* perjalanan */
 .u-jejak { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap-columns); counter-reset: jejak; }

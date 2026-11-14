@@ -51,7 +51,7 @@ export function AsistenKelola({ alat, modelAktif, jatah }: Props) {
     <div className="space-y-4">
       <Card title="Pertanyaan cepat">
         <div className="flex flex-wrap gap-2 px-2.5 pb-2.5">
-          {alat.length === 0 && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada data yang bisa dibaca Asisten buat peran Anda.</p>}
+          {alat.length === 0 && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada data yang bisa dibaca Asisten buat peran ini.</p>}
           {alat.map((a) => a.nama === "laporan_periode"
             ? PERIODE_LAPORAN.map((p) => <Btn key={p.id} size="sm" v="dark" disabled={sibuk} onClick={() => cepat(a.nama, p.label, p.id)}>{p.label}</Btn>)
             : <Btn key={a.nama} size="sm" v="light" disabled={sibuk} onClick={() => cepat(a.nama, a.label)}>{a.label}</Btn>)}

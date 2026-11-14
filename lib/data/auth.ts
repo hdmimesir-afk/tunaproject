@@ -28,8 +28,11 @@ export async function requireSesi(): Promise<Sesi> {
 }
 
 export class TidakBerizin extends Error {
+  /** Kunci izin yang kurang, buat catatan server; nggak ditampilkan ke pengguna. */
+  readonly aksi: string;
   constructor(aksi: string) {
-    super(`Peran Anda tidak punya izin untuk ${aksi}.`);
+    super("Peran ini nggak punya izin buat langkah ini. Minta Super Admin kalau memang perlu.");
+    this.aksi = aksi;
   }
 }
 

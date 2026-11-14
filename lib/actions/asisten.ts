@@ -40,7 +40,7 @@ Laporan langsung:
 
 async function sesiAsisten() {
   const sesi = await requireSesi();
-  if (!boleh(sesi, "asisten.use")) return { error: "Peran Anda nggak punya izin buat pakai Asisten." } as const;
+  if (!boleh(sesi, "asisten.use")) return { error: "Peran ini nggak punya izin buat pakai Asisten." } as const;
   return { sesi } as const;
 }
 
@@ -51,7 +51,7 @@ export async function tanyaCepat(nama: string, periode?: string): Promise<Jawaba
   const s = await sesiAsisten();
   if ("error" in s) return { error: s.error };
   const alat = DAFTAR_ALAT.find((a) => a.nama === nama);
-  if (!alat || !bolehAlat(s.sesi, alat.izin)) return { error: "Alat ini nggak tersedia buat peran Anda." };
+  if (!alat || !bolehAlat(s.sesi, alat.izin)) return { error: "Alat ini nggak tersedia buat peran ini." };
   const sb = await createClient();
   const { data: id, error } = await sb.rpc("mulai_asisten", { p_mode: "cepat", p_pertanyaan: alat.label });
   if (error) return { error: pesanDb(error) };

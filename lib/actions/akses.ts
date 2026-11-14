@@ -143,7 +143,7 @@ export async function lepasPeran(_: HasilForm, fd: FormData): Promise<HasilForm>
     .eq("user_id", p.data.userId)
     .select("user_id");
   if (error) return { error: pesanDb(error) };
-  if (!data?.length) return { error: "Penggunanya nggak ketemu, atau Anda nggak berhak mengubahnya." };
+  if (!data?.length) return { error: "Penggunanya nggak ketemu, atau peran ini nggak berhak ngubahnya." };
   refresh();
   return { pesan: "Peran udah dilepas, akunnya juga udah dinonaktifkan." };
 }
@@ -170,7 +170,7 @@ export async function ubahPengguna(_: HasilForm, fd: FormData): Promise<HasilFor
     .eq("user_id", p.data.userId)
     .select("user_id");
   if (error) return { error: pesanDb(error) };
-  if (!data?.length) return { error: "Penggunanya nggak ketemu, atau Anda nggak berhak mengubahnya." };
+  if (!data?.length) return { error: "Penggunanya nggak ketemu, atau peran ini nggak berhak ngubahnya." };
   refresh();
   return undefined;
 }

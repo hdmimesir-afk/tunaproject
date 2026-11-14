@@ -79,7 +79,7 @@ export async function simpanAturanLampiran(_: HasilForm, fd: FormData): Promise<
   const supabase = await createClient();
   const { data, error } = await supabase.from("document_rules").update({ wajib: p.data.wajib, keterangan: p.data.keterangan }).eq("id", p.data.id).select("id");
   if (error) return { error: pesanDb(error) };
-  if (!data?.length) return { error: "Aturannya nggak ketemu, atau Anda nggak boleh mengubahnya." };
+  if (!data?.length) return { error: "Aturannya nggak ketemu, atau peran ini nggak boleh ngubahnya." };
   refresh();
   return { pesan: "Udah disimpan." };
 }

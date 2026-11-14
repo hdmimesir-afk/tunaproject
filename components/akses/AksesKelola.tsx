@@ -203,7 +203,7 @@ function TugasPeran({ tugas, roleTugas, peran, peranSaya, bolehOwner }: {
       <div className="space-y-3 px-2.5 pb-2.5">
         <p className="text-[12.5px] leading-relaxed" style={{ color: MUTED }}>
           Pilih peran mana yang boleh menyetujui PO, memeriksa PO, sama melampirkan nota susulan. Owner selalu bisa semuanya. Orang yang mengajukan PO nggak bisa menyetujui PO-nya sendiri.
-          {!bolehOwner && " Tugas buat peran Anda sendiri cuma bisa diubah Owner."}
+          {!bolehOwner && " Tugas buat peran sendiri cuma bisa diubah Owner."}
         </p>
         <div className="overflow-x-auto rounded-[20px] bg-white">
           <table className="w-full min-w-[640px] text-left text-[13px]" data-testid="tabel-tugas">

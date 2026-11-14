@@ -6,7 +6,7 @@ export function pesanDb(e: { code?: string; message?: string }) {
   if (e.code === "23505") return "Data dengan nama atau kode yang sama sudah ada.";
   if (e.code === "42501") {
     const m = e.message ?? "";
-    return m.includes("row-level security") || m.startsWith("permission denied") ? "Anda tidak punya izin untuk perubahan ini." : m;
+    return m.includes("row-level security") || m.startsWith("permission denied") ? "Peran ini nggak punya izin buat perubahan ini." : m;
   }
   if (e.code === "23514") return "Isian di luar batas yang diizinkan.";
   return "Perubahan gagal disimpan. Coba lagi.";
