@@ -7,6 +7,7 @@ Dua skrip SQL yang dijalankan sendiri di **Supabase Dashboard > SQL Editor** (bu
 | `seed-demo.sql` | Membuat data contoh: 2 siklus, 5 PO, produksi, stok, titipan gudang dingin, penjualan, invoice, biaya, dan buku kas. |
 | `hapus-demo.sql` | Menghapus data contoh. Data yang diisi tim tidak pernah dihapus. Ada mode coba (cuma nampilin rencana) dan mode hapus. |
 | `samakan-nama-demo.sql` | Setelah nama pemasok/pembeli "(Demo)" diganti di Pengaturan, nyamain nama lama yang masih kesimpen di pesanan, invoice, stok titipan, dan tagihan jasa. |
+| `reset-transaksi.sql` | Ngehapus SEMUA transaksi (termasuk buku kas impor Monitor Dana, absen, dan gerakan barang penunjang) sebelum sistem dipakai beneran. Data master, akun, dan pengaturan tetap. Kode mulai lagi dari 0001. Ada mode coba. |
 | `rincian-nyangkut.sql` | Cuma membaca. Nampilin data tim yang dibangun di atas data contoh (produksi, lot, stok, penjualan) beserta siapa yang input. |
 
 Semuanya atomik: bila ada galat, tidak ada yang tersimpan.
