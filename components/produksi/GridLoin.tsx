@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Btn, Inner, Modal } from "@/components/ui";
+import { PilihGrade } from "@/components/ui/PilihGrade";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { batalkanLoin, simpanLoin } from "@/lib/actions/produksi";
 import { unduhExcel } from "@/lib/excel";
@@ -35,7 +36,7 @@ function useOnline() {
 
 type Status = { jenis: "bersih" | "kotor" | "menyimpan" | "gagal"; pesan?: string };
 
-export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { produksiId: string; kode: string; loin: ItemLoin[]; grade: Opsi[]; ekor: Ekor[]; bolehEdit: boolean }) {
+export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit, masukKg }: { produksiId: string; kode: string; loin: ItemLoin[]; grade: Opsi[]; ekor: Ekor[]; bolehEdit: boolean; masukKg?: number }) {
   const [baris, setBaris] = useState<BarisLoin[]>(() => {
     const awal = dariServer(loin);
     return awal.length > 0 || !bolehEdit ? awal : [barisBaru([], grade[0]?.id ?? "")];
@@ -208,8 +209,8 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
             <tr className="text-left text-[12px]" style={{ color: MUTED }}>
               <th className="w-12 px-1 py-2.5 font-medium md:w-20 md:px-3">Ekor</th>
               <th className="w-12 px-1 py-2.5 font-medium md:w-24 md:px-3">Loin</th>
-              <th className="w-[88px] px-1 py-2.5 font-medium md:w-36 md:px-3">Grade</th>
-              <th className="px-1 py-2.5 font-medium md:px-3">Berat (kg)</th>
+              <th className="w-[88px] px-1 py-2.5 font-medium md:w-auto md:px-3">Grade</th>
+              <th className="px-1 py-2.5 font-medium md:w-32 md:px-3">Berat (kg)</th>
               <th className="w-14 px-1 py-2.5 text-right font-medium md:w-28 md:px-3">Aksi</th>
             </tr>
           </thead>
@@ -230,11 +231,16 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
                     {g?.noLoin && <span className="block text-[11px]" style={{ color: "#A8322B" }}>{g.noLoin}</span>}
                   </td>
                   <td className="px-1 py-1.5 md:px-3">
-                    <select data-sel={`${r}-2`} className={sel} style={{ borderColor: batas(g?.gradeId) }} aria-label={`Grade baris ${r + 1}`} disabled={!bolehEdit}
+                    <select data-sel={`${r}-2`} className={`${sel} md:hidden`} style={{ borderColor: batas(g?.gradeId) }} aria-label={`Grade baris ${r + 1}`} disabled={!bolehEdit}
                       value={b.gradeId} onChange={(e) => ubah(b.id, "gradeId", e.target.value)} onKeyDown={(e) => geser(e, r, 2)}>
                       <option value="" disabled>Pilih</option>
                       {grade.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
                     </select>
+                    {/* Layar lebar: grade tinggal di-tap, kayak desain Mas Bisma. */}
+                    <div className="hidden md:block">
+                      <PilihGrade label={`Pilih grade baris ${r + 1}`} grade={grade} nilai={b.gradeId} onPilih={(id) => ubah(b.id, "gradeId", id)} disabled={!bolehEdit} kecil />
+                    </div>
+                    {g?.gradeId && <span className="block text-[11px]" style={{ color: "#A8322B" }}>{g.gradeId}</span>}
                   </td>
                   <td className="px-1 py-1.5 md:px-3">
                     <input data-sel={`${r}-3`} className={`${sel} text-right tabular-nums`} style={{ borderColor: batas(g?.kg) }} inputMode="decimal" placeholder="0,000" aria-label={`Berat baris ${r + 1}`} disabled={!bolehEdit}
@@ -252,7 +258,14 @@ export function GridLoin({ produksiId, kode, loin, grade, ekor, bolehEdit }: { p
           </tbody>
           <tfoot>
             <tr className="border-t border-[#EEF0F4] font-medium" style={{ color: INK }}>
-              <td colSpan={3} className="px-3 py-3">Total {total.jumlah} potong</td>
+              <td colSpan={3} className="px-3 py-3">
+                Total {total.jumlah} potong
+                {!!masukKg && masukKg > 0 && total.gram > 0 && (
+                  <span className="ml-2 rounded-full px-2 py-0.5 text-[12px] tabular-nums" style={{ background: "#DDF3E8", color: "#0B6B4A" }} data-testid="yield-loin">
+                    Yield {(total.gram / (masukKg * 10)).toLocaleString("id-ID", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                  </span>
+                )}
+              </td>
               <td className="px-3 py-3 text-right tabular-nums" data-testid="total-loin">{tampilKg(total.gram)} kg</td>
               <td />
             </tr>

@@ -316,7 +316,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         </Bagian>
       ) : (
         <Bagian judul="Loin per potong" kanan={bolehEdit && !adaPotong && <Btn size="sm" v="ghost" onClick={() => setCara("total")}>Isi total per grade</Btn>}>
-          <GridLoin key={p.id + ":" + p.status}produksiId={p.id} kode={p.kode} loin={loin} grade={grade} ekor={ekor} bolehEdit={bolehEdit} />
+          <GridLoin key={p.id + ":" + p.status} produksiId={p.id} kode={p.kode} loin={loin} grade={grade} ekor={ekor} bolehEdit={bolehEdit} masukKg={p.masuk_kg} />
         </Bagian>
       )}
 

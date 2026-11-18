@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { Btn, Card, Field, Inner, Modal, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
+import { PilihGrade } from "@/components/ui/PilihGrade";
 import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { PemasokBaru } from "@/components/pembelian/PemasokBaru";
@@ -128,11 +129,8 @@ function IsianGrade({ lot, grade, error }: { lot: LotBaris; grade: Opsi[]; error
       <input type="hidden" name="baris" value={JSON.stringify(baris.map((b) => ({ grade_id: b.gradeId, kg: b.kg })))} />
       <ul className="space-y-2">
         {baris.map((b, i) => (
-          <li key={b.k} className="grid grid-cols-[minmax(0,1fr)_6.5rem_2.25rem] items-center gap-1.5 sm:grid-cols-[minmax(0,1fr)_7.5rem_2.25rem] sm:gap-2">
-            <select aria-label={`Grade baris ${i + 1}`} value={b.gradeId} onChange={(e) => ubah(b.k, { gradeId: e.target.value })} className={selectCls}>
-              <option value="" disabled>Pilih grade</option>
-              {grade.map((g) => <option key={g.id} value={g.id} disabled={g.id !== b.gradeId && dipakai.has(g.id)}>{g.label}</option>)}
-            </select>
+          <li key={b.k} className="grid grid-cols-[minmax(0,1fr)_6.5rem_2.25rem] items-start gap-1.5 sm:grid-cols-[minmax(0,1fr)_7.5rem_2.25rem] sm:gap-2">
+            <PilihGrade label={`Grade baris ${i + 1}`} grade={grade} nilai={b.gradeId} onPilih={(id) => ubah(b.k, { gradeId: id })} nonaktif={dipakai} kecil />
             <div className="relative min-w-0">
               <input aria-label={`Berat grade baris ${i + 1} (kg)`} value={b.kg} onChange={(e) => ubah(b.k, { kg: e.target.value })} inputMode="decimal" placeholder="0"
                 className="h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white pl-3 pr-9 text-right text-[14px] tabular-nums outline-none focus:border-[#00171F]" />
@@ -315,8 +313,9 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
                   <span className="text-right">{b.jumlah === null ? "-" : rp(b.jumlah)}</span>
                 </div>
               ))}
-              <div className="flex justify-between border-t border-[#EEF0F4] px-3.5 py-2.5 text-[13.5px] font-semibold tabular-nums" style={{ color: INK }}>
-                <span>Total {formatKg(r.kg)} kg</span><span data-testid="total-ajukan">{rp(r.total)}</span>
+              <div className="flex items-end justify-between gap-2 border-t border-[#EEF0F4] px-3.5 py-3 tabular-nums" style={{ color: INK }}>
+                <span className="text-[12.5px]" style={{ color: MUTED }}>{dipilih.length} lot · {formatKg(r.kg)} kg · {r.baris.map((b) => `${b.kode} ${formatKg(b.kg)}`).join(", ")}</span>
+                <span className="shrink-0 text-[22px] font-semibold leading-none" data-testid="total-ajukan">{rp(r.total)}</span>
               </div>
             </div>
           )}
@@ -333,6 +332,49 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
         </form>
       )}
     </Modal>
+  );
+}
+
+/* ------------------------------------------------------ penerimaan hari ini */
+/** Ringkasan ikan yang masuk hari ini per nelayan, biar petugas nggak perlu scroll daftar lot. */
+function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string }) {
+  const hariIniSaja = lots.filter((l) => l.tanggal_terima === hariIni);
+  const perPemasok = [...hariIniSaja.reduce((m, l) => {
+    const k = l.supplier_id;
+    const a = m.get(k) ?? { nama: l.suppliers?.nama ?? "-", lot: [] as string[], gram: 0, belum: 0 };
+    a.lot.push(l.kode);
+    a.gram += Math.round(l.kg * 1000);
+    if (l.qc === "menunggu") a.belum += 1;
+    m.set(k, a);
+    return m;
+  }, new Map<string, { nama: string; lot: string[]; gram: number; belum: number }>()).values()];
+  const totalGram = perPemasok.reduce((a, p) => a + p.gram, 0);
+  return (
+    <Card title="Penerimaan hari ini" right={<span className="text-[12px]" style={{ color: MUTED }}>{hariIniSaja.length} lot</span>}>
+      <div className="px-2.5 pb-2.5" data-testid="terima-hari-ini">
+        {perPemasok.length === 0 ? (
+          <p className="text-[13px]" style={{ color: MUTED }}>Belum ada ikan masuk hari ini.</p>
+        ) : (
+          <ul className="divide-y divide-[#EEF0F4] overflow-hidden rounded-2xl bg-white">
+            {perPemasok.map((p) => (
+              <li key={p.nama + p.lot[0]} className="px-3.5 py-2.5">
+                <div className="flex items-baseline justify-between gap-2 text-[13.5px] font-medium" style={{ color: INK }}>
+                  <span className="truncate">{p.nama}</span>
+                  <span className="shrink-0 tabular-nums">{formatKg(p.gram / 1000)} kg</span>
+                </div>
+                <div className="flex justify-between gap-2 text-[12px]" style={{ color: MUTED }}>
+                  <span className="truncate">{p.lot.join(", ")}</span>
+                  {p.belum > 0 && <span className="shrink-0" style={{ color: "#8A5A00" }}>{p.belum} belum digrading</span>}
+                </div>
+              </li>
+            ))}
+            <li className="flex justify-between px-3.5 py-2.5 text-[13px] font-semibold tabular-nums" style={{ color: INK }}>
+              <span>Total</span><span>{formatKg(totalGram / 1000)} kg</span>
+            </li>
+          </ul>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -355,7 +397,10 @@ export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, ha
         <Stat value={String(ditahan)} label="Ditahan (gugur/bau)" tone={ditahan > 0 ? "warn" : undefined} />
       </div>
 
-      {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} />}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} />}
+        <TerimaHariIni lots={lots} hariIni={hariIni} />
+      </div>
 
       <DaftarLot lots={lots} bolehMutu={bolehMutu} bolehKoreksi={bolehTerima} onGrading={setGrading} onKoreksi={setKoreksiLot} lampiran={lampiran}
         kanan={bolehAjukan && <Btn size="sm" onClick={() => setAjukan(true)}>Ajukan pembelian{siapAjukan > 0 ? ` (${siapAjukan})` : ""}</Btn>} />
