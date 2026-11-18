@@ -29,7 +29,25 @@ export type ProduksiBaris = {
   owner_oleh: string | null;
   owner_pada: string | null;
   dibuat_pada: string;
+  /** Berat ikan dari PT (jasa produksi). Null kalau ikannya dari lot pembelian. */
+  kg_masuk_pt?: number | null;
+  proyek_nama?: string | null;
+  lini_bisnis?: LiniBisnis;
+  pt_id?: string | null;
+  pt_nama?: string | null;
+  /** Hasilnya udah masuk stok: berat masuk nggak bisa dikoreksi lagi. */
+  sudah_stok?: boolean;
 };
+
+/** Lini bisnis proyek: jual (ikan kita), jasa (ikan dari PT, kita olah), titip (cuma disimpan). */
+export type LiniBisnis = "jual" | "jasa" | "titip";
+export const LABEL_LINI: Record<LiniBisnis, string> = {
+  jual: "Jasa produksi ikan (jual)",
+  jasa: "Jasa produksi (ikan dari PT)",
+  titip: "Titip saja",
+};
+/** Proyek buat pilihan di form produksi dan titipan. */
+export type ProyekOpsi = { id: string; label: string; lini_bisnis: LiniBisnis; pt_id: string | null };
 
 export type AlokasiLot = { id: string; lot_id: string; lot_kode: string; kg: number };
 export type ItemLoin = {

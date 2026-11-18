@@ -3,7 +3,6 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
-import { boleh } from "@/lib/izin";
 import { createClient } from "@/lib/supabase/server";
 import { pesanDb } from "./pesan";
 import type { HasilForm } from "./auth";
@@ -21,15 +20,6 @@ async function izin(aksi: string) {
 }
 
 const bulatkan = (n: number, d: number) => Math.round(n * 10 ** d) / 10 ** d;
-
-const FormPO = z.object({
-  supplierId: z.uuid("Pilih pemasok"),
-  siklusId: z.string().trim().optional(),
-  tanggal: z.iso.date("Isi tanggal"),
-  kg: z.coerce.number("Isi berat").positive("Berat harus lebih dari nol").max(10_000_000, "Berat terlalu besar").transform((n) => bulatkan(n, 3)),
-  hargaPerKg: z.coerce.number("Isi harga").positive("Harga harus lebih dari nol").max(100_000_000, "Harga terlalu besar").transform((n) => bulatkan(n, 2)),
-  catatan: z.string().trim().max(500, "Catatan terlalu panjang"),
-});
 
 const PemasokBaru = z.object({
   nama: z.string().trim().min(1, "Isi nama pemasok").max(120, "Nama terlalu panjang"),
@@ -49,53 +39,56 @@ export async function tambahPemasok(input: z.input<typeof PemasokBaru>): Promise
   return { id: data.id as string, label: data.nama as string };
 }
 
-/** Buat PO baru (tanpa id) atau ubah PO yang masih draf atau perlu revisi (dengan id). */
-export async function simpanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
+/* PO sekarang lahir dari penerimaan (Mutu dan Penerimaan > Ajukan pembelian). Di sini cuma koreksi dan bayar. */
+
+const FormKoreksiPO = z.object({
+  poId: z.uuid(),
+  supplierId: z.uuid("Pilih pemasok"),
+  siklusId: z.union([z.literal(""), z.uuid("Proyeknya nggak valid")]),
+  harga: z.string().max(5_000),
+  catatan: z.string().trim().max(500, "Catatannya kepanjangan"),
+  alasan: z.string().trim().min(1, "Tulis alasan koreksinya").max(500, "Alasannya kepanjangan"),
+});
+const HargaGrade = z.array(z.object({ grade_id: z.uuid(), harga_per_kg: z.coerce.number().positive("Harga harus lebih dari nol").max(100_000_000) })).max(30);
+
+/** Koreksi pembelian: harga per grade, pemasok, proyek, catatan. Kalau total PO yang udah disetujui berubah, balik ke persetujuan. */
+export async function koreksiPembelian(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const a = await izin("pembelian.write");
   if (a.tolak) return a.tolak;
-  const p = FormPO.safeParse(Object.fromEntries(fd.entries()));
+  const p = FormKoreksiPO.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  const supabase = await createClient();
-
-  let cycleId: string | null = null;
-  if (p.data.siklusId === "baru") {
-    if (!boleh(a.sesi, "siklus.write")) return { error: "Peran ini nggak boleh bikin proyek baru. Pilih proyek yang udah ada." };
-    const { data, error } = await supabase.from("cycles").insert({ tanggal_bongkar: p.data.tanggal }).select("id").single();
-    if (error || !data) return { error: pesanDb(error ?? {}) };
-    cycleId = data.id as string;
-  } else if (p.data.siklusId) {
-    const id = z.uuid().safeParse(p.data.siklusId);
-    if (!id.success) return { kolom: { siklusId: ["Proyek tidak valid"] } };
-    cycleId = id.data;
+  let harga: z.infer<typeof HargaGrade>;
+  try {
+    harga = HargaGrade.parse(JSON.parse(p.data.harga || "[]"));
+  } catch {
+    return { kolom: { harga: ["Isi harga per kg yang valid buat tiap grade."] } };
   }
-
-  const isi = { supplier_id: p.data.supplierId, cycle_id: cycleId, tanggal: p.data.tanggal, kg: p.data.kg, harga_per_kg: p.data.hargaPerKg, catatan: p.data.catatan };
-  const id = fd.get("id");
-  if (typeof id === "string" && id) {
-    const { data, error } = await supabase.from("purchase_orders").update(isi).eq("id", id).select("id");
-    if (error) return { error: pesanDb(error) };
-    if (!data?.length) return { error: "PO ini udah diajukan atau nggak ketemu, jadi nggak bisa diubah." };
-    refresh();
-    return { id, pesan: "PO disimpan." };
-  }
-  const { data, error } = await supabase.from("purchase_orders").insert(isi).select("id").single();
-  if (error || !data) return { error: pesanDb(error ?? {}) };
-  refresh();
-  return { id: data.id as string, pesan: "PO udah dibuat sebagai draf. Lampirkan nota kalau udah ada, terus ajukan." };
-}
-
-export async function ajukanPO(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const a = await izin("pembelian.write");
-  if (a.tolak) return a.tolak;
-  const id = z.uuid().safeParse(fd.get("poId"));
-  if (!id.success) return { error: "PO tidak valid." };
-  // Nota belum ada (misalnya bongkar malam): PO tetap diajukan dengan tanda, notanya dilampirkan menyusul.
-  const menyusul = fd.get("notaMenyusul") === "on";
   const supabase = await createClient();
-  const { error } = await supabase.rpc("ajukan_po", { p_po: id.data, p_nota_menyusul: menyusul });
+  const { error } = await supabase.rpc("koreksi_pembelian", {
+    p_po: p.data.poId, p_harga: harga.map((h) => ({ grade_id: h.grade_id, harga_per_kg: bulatkan(h.harga_per_kg, 2) })),
+    p_supplier: p.data.supplierId, p_cycle: p.data.siklusId || null, p_catatan: p.data.catatan, p_alasan: p.data.alasan,
+  });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: menyusul ? "PO diajukan dengan tanda nota menyusul. Notanya tinggal dilampirkan begitu udah ada." : "PO diajukan. Tinggal nunggu diperiksa dan disetujui." };
+  return { pesan: "Koreksi udah disimpan. Kalau totalnya berubah, pembelian ini balik nunggu persetujuan." };
+}
+
+const FormBatalBayar = z.object({
+  bayarId: z.uuid(),
+  alasan: z.string().trim().min(1, "Tulis alasan pembatalannya").max(500, "Alasannya kepanjangan"),
+});
+
+/** Batalkan pembayaran yang salah. Buku kas dapat baris pembalik; pembayaran yang benar dicatat ulang. */
+export async function batalkanBayar(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izin("pembayaran.write");
+  if (a.tolak) return a.tolak;
+  const p = FormBatalBayar.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("batalkan_pembayaran", { p_payment: p.data.bayarId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Pembayaran dibatalkan. Kalau nominalnya salah, catat lagi yang benar." };
 }
 
 const FormBayar = z.object({

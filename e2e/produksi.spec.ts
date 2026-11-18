@@ -14,7 +14,9 @@ async function mulaiProduksi(page: Page) {
   await masuk(page, PETUGAS);
   await page.goto("/produksi");
   await page.getByRole("button", { name: "Mulai produksi" }).click();
-  await page.getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
+  // Form baru: lini bisnis (bawaan jual), proyek baru pakai nama, terus pilih lot 2.000 kg yang masih utuh.
+  await page.getByLabel("Nama proyek").fill(`E2E produksi ${Date.now()}`);
+  await page.locator("div.rounded-2xl", { hasText: /sisa 2\.000/ }).getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
   await page.getByRole("button", { name: "Mulai produksi" }).last().click();
   await expect(page).toHaveURL(/p=/);
   // Cara bawaan sekarang total per grade; tes ini menguji grid per potong.

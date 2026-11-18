@@ -62,4 +62,33 @@ export const LABEL_APV: Record<StatusApv, string> = {
 };
 export const LABEL_TERIMA: Record<StatusTerima, string> = { belum: "Belum diterima", sebagian: "Sebagian", selesai: "Selesai" };
 export const LABEL_BAYAR: Record<StatusBayar, string> = { belum: "Belum dibayar", sebagian: "Sebagian", lunas: "Lunas" };
-export const LABEL_QC = { menunggu: "Menunggu", lulus: "Lulus", ditahan: "Ditahan" } as const;
+/** Di database "lulus" artinya udah digrading; di layar cuma Menunggu (belum digrading) dan Ditahan (gugur/bau) yang tampil sebagai status. */
+export const LABEL_QC = { menunggu: "Menunggu", lulus: "Udah digrading", ditahan: "Ditahan" } as const;
+
+/** Kode PO buat tampilan. PO dari penerimaan baru punya kode setelah disetujui. */
+export const kodePO = (kode: string | null | undefined) => kode || "Belum terbit";
+
+export type HargaGrade = { grade_id: string; kode: string; kg: number; harga: number | null };
+
+/** Rincian pengajuan pembelian: kg per grade dari beberapa lot, harga per kg, jumlah, dan total (dihitung dalam gram dan sen). */
+export function rincianAjukan(lot: Pick<LotBaris, "kg" | "qc" | "grade_id" | "grades" | "lot_grades">[], harga: Record<string, number | null>) {
+  const per = new Map<string, { kode: string; gram: number }>();
+  for (const l of lot) {
+    for (const g of gradeLot(l)) {
+      const x = per.get(g.grade_id) ?? { kode: g.kode, gram: 0 };
+      x.gram += gram(g.kg);
+      per.set(g.grade_id, x);
+    }
+  }
+  const baris = [...per.entries()]
+    .map(([grade_id, x]) => {
+      const h = harga[grade_id] ?? null;
+      const jumlahSen = h === null ? null : Math.round((x.gram * sen(h)) / 1000);
+      return { grade_id, kode: x.kode, kg: x.gram / 1000, harga: h, jumlah: jumlahSen === null ? null : jumlahSen / 100 };
+    })
+    .sort((a, b) => a.kode.localeCompare(b.kode));
+  const lengkap = baris.length > 0 && baris.every((b) => b.harga !== null && b.harga > 0);
+  const totalSen = baris.reduce((a, b) => a + (b.jumlah === null ? 0 : sen(b.jumlah)), 0);
+  const totalGram = baris.reduce((a, b) => a + gram(b.kg), 0);
+  return { baris, lengkap, total: totalSen / 100, kg: totalGram / 1000 };
+}

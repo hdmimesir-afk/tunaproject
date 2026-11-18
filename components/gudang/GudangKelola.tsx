@@ -15,6 +15,7 @@ import { uraikanBiaya } from "@/lib/logic/tarif";
 import { TombolLampiran } from "@/components/dokumen/Dokumen";
 import type { Dokumen, JenisDokumen, Opsi } from "@/lib/types/pembelian";
 import type { AturanTarif, Booking, IsiGudang, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
+import type { ProyekOpsi } from "@/lib/types/produksi";
 import { jamWib, keInputWib, sekarangInputWib } from "@/lib/waktu";
 import { PilihRuangan, RuanganPanel } from "./Ruangan";
 
@@ -32,6 +33,10 @@ type Props = {
   bolehTulis: boolean;
   bolehTarif: boolean;
   hariIni: string;
+  /** Proyek lini "Titip saja" yang masih terbuka. */
+  proyekTitip: ProyekOpsi[];
+  /** Proyek titip yang baru dibikin dari form produksi: form Terima titipan langsung kebuka. */
+  titipAwal: string | null;
   /** Lampiran titipan (tanda terima, tagihan dari admin). Null bila pengguna tidak boleh melihat berkas. */
   lampiran: { dokumen: Dokumen[]; bolehTulis: boolean } | null;
 };
@@ -63,17 +68,34 @@ function FormRuangan({ r, onTutup }: { r: Ruangan; onTutup: () => void }) {
   );
 }
 
-function FormTitipan({ pelanggan, produk, grade, ruangan, onTutup }: { pelanggan: Opsi[]; produk: Opsi[]; grade: Opsi[]; ruangan: Ruangan[]; onTutup: () => void }) {
+function FormTitipan({ pelanggan, produk, grade, ruangan, proyekTitip, proyekAwal, onTutup }: {
+  pelanggan: Opsi[]; produk: Opsi[]; grade: Opsi[]; ruangan: Ruangan[]; proyekTitip: ProyekOpsi[]; proyekAwal: string | null; onTutup: () => void;
+}) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(terimaTitipan, undefined);
   const [kondisi, setKondisi] = useState("fresh");
+  const [proyek, setProyek] = useState(proyekAwal ?? "");
+  const [buyer, setBuyer] = useState(() => proyekTitip.find((x) => x.id === proyekAwal)?.pt_id ?? "");
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
+  const pilihProyek = (id: string) => {
+    setProyek(id);
+    const pt = proyekTitip.find((x) => x.id === id)?.pt_id;
+    if (pt) setBuyer(pt);
+  };
   return (
     <form action={action} className="space-y-3">
       <PesanForm state={state?.error ? state : undefined} />
       {pelanggan.length === 0 ? <p className="text-[13px]" style={{ color: MUTED }}>Belum ada pelanggan. Tambahin dulu di Pengaturan.</p> : (
         <>
+          {proyekTitip.length > 0 && (
+            <Field label="Proyek" hint="Proyek Titip saja. Boleh kosong." error={state?.kolom?.siklusId?.[0]}>
+              <select name="siklusId" className={pilihCls} value={proyek} onChange={(e) => pilihProyek(e.target.value)}>
+                <option value="">Tanpa proyek</option>
+                {proyekTitip.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+              </select>
+            </Field>
+          )}
           <Field label="Pelanggan pemilik titipan" error={state?.kolom?.buyerId?.[0]}>
-            <select name="buyerId" className={pilihCls} defaultValue="" required><option value="" disabled>Pilih pelanggan</option>{pelanggan.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
+            <select name="buyerId" className={pilihCls} value={buyer} onChange={(e) => setBuyer(e.target.value)} required><option value="" disabled>Pilih pelanggan</option>{pelanggan.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Produk" error={state?.kolom?.productId?.[0]}>
@@ -219,8 +241,8 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
 }
 
 /* --------------------------------------------------------------- utama */
-export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehTarif, hariIni, lampiran }: Props) {
-  const [terima, setTerima] = useState(false);
+export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal }: Props) {
+  const [terima, setTerima] = useState(!!titipAwal && bolehTulis);
   const [aturRuangan, setAturRuangan] = useState<Ruangan | null>(null);
   const namaRuangan = new Map(ruangan.map((r) => [r.id, r.nama]));
   const isiRuangan = ruangan.reduce((a, r) => a + Math.round(r.isi_kg * 1000), 0) / 1000;
@@ -315,7 +337,7 @@ export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, p
         />
       </Card>
 
-      {terima && <Modal title="Terima titipan" onClose={() => setTerima(false)}><FormTitipan pelanggan={pelanggan} produk={produk} grade={grade} ruangan={ruangan} onTutup={() => setTerima(false)} /></Modal>}
+      {terima && <Modal title="Terima titipan" onClose={() => setTerima(false)}><FormTitipan pelanggan={pelanggan} produk={produk} grade={grade} ruangan={ruangan} proyekTitip={proyekTitip} proyekAwal={titipAwal} onTutup={() => setTerima(false)} /></Modal>}
       {aturRuangan && <Modal title={`Atur ${aturRuangan.nama}`} onClose={() => setAturRuangan(null)}><FormRuangan r={aturRuangan} onTutup={() => setAturRuangan(null)} /></Modal>}
       {rincian && <RincianTagihan t={rincian} onTutup={() => setRincian(null)} />}
       {ubah && <Modal title={`Ubah tarif ${LABEL_JASA[ubah.jenis]}`} onClose={() => setUbah(null)}><FormTarif aturan={ubah} hariIni={hariIni} onTutup={() => setUbah(null)} /></Modal>}

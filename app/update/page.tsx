@@ -29,7 +29,7 @@ export default function UpdatePage() {
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
               <h1 id="judul">Masukan dari rapat udah masuk ke sistem.</h1>
-              <p className="u-lead">Sepuluh masukan Mas Bisma udah saya kerjain semua, data contoh juga udah saya hapus. Sekarang tinggal dua hal yang nunggu jawaban tim, usulannya udah saya tulis. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
+              <p className="u-lead">Masukan dari training udah masuk: ikan diterima dulu tanpa PO, grading buat harga nelayan, tombol koreksi, dan form produksi yang baru. Sekarang tinggal dua hal yang nunggu jawaban tim, usulannya udah saya tulis. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
               <div className="u-aksi">
                 <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasannya</a>
@@ -45,7 +45,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="terbaru" aria-labelledby="h-terbaru">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-terbaru">Yang baru per {TANGGAL}</h2>
-            <p className="u-pengantar">Tiga yang paling atas itu beres-beres tanggal 14. Sisanya dari masukan Mas Bisma di rapat 10 November, ditambah jawaban perusahaan tanggal 11. Sekarang orang lapangan bisa terus nyatet walaupun nota atau persetujuannya belum ada, dan aturan yang perlu keputusan perusahaan bisa diatur admin sendiri.</p>
+            <p className="u-pengantar">Empat yang paling atas itu masukan habis training tanggal 17. Tiga berikutnya beres-beres tanggal 14, sisanya dari rapat 10 November dan jawaban perusahaan tanggal 11. Sekarang orang lapangan bisa langsung nyatet ikan datang tanpa nunggu PO, dan semua data bisa dikoreksi pakai alasan.</p>
             <div className="u-kartu-grid u-badan">
               {TERBARU.map((k) => <div key={k.judul}><h3>{k.judul}</h3><p>{k.isi}</p></div>)}
             </div>

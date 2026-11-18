@@ -1,24 +1,19 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { LotBaris, Opsi, POSiapTerima } from "@/lib/types/pembelian";
+import type { LotBaris, Opsi } from "@/lib/types/pembelian";
 
 function gagal(apa: string): never {
   throw new Error(`Gagal memuat ${apa}. Coba muat ulang halaman.`);
 }
 
+/** Lot ikan terbaru. Kode dan status PO cuma kebaca sama yang boleh lihat pembelian (RLS), selain itu kosong. */
 export async function daftarLot(): Promise<LotBaris[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("lots").select("*, suppliers(nama), grades(kode, nama), cycles(kode), lot_grades(grade_id, kg, grades(kode))").order("kode", { ascending: false }).limit(100);
+  const { data, error } = await sb.from("lots")
+    .select("*, suppliers(nama), grades(kode, nama), cycles(kode, nama), lot_grades(grade_id, kg, grades(kode)), purchase_orders(kode, status_persetujuan)")
+    .order("kode", { ascending: false }).limit(100);
   if (error) gagal("daftar lot");
   return (data ?? []) as unknown as LotBaris[];
-}
-
-/** PO yang masih menunggu ikan, tanpa harga. Hanya untuk yang boleh menerima ikan. */
-export async function poSiapTerima(): Promise<POSiapTerima[]> {
-  const sb = await createClient();
-  const { data, error } = await sb.rpc("po_siap_terima");
-  if (error) gagal("daftar PO yang siap diterima");
-  return (data ?? []) as POSiapTerima[];
 }
 
 export async function gradeAktif(): Promise<Opsi[]> {

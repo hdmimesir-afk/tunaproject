@@ -9,7 +9,8 @@ export type RefDokumen = "purchase_orders" | "payments" | "lots" | "sales_orders
 
 export type POBaris = {
   id: string;
-  kode: string;
+  /** Kosong sampai disetujui: PO dari penerimaan baru dapat kode waktu disetujui. */
+  kode: string | null;
   tanggal: string;
   supplier_id: string;
   supplier_nama: string;
@@ -28,7 +29,13 @@ export type POBaris = {
   /** Diajukan tanpa nota dengan tanda "nota menyusul". */
   nota_menyusul: boolean;
   jml_nota: number;
+  /** Kode lot yang masuk PO ini. */
+  lot_kode?: string;
+  proyek_nama?: string | null;
 };
+
+/** Harga per grade di satu PO (grading tuna utuh = dasar harga ke nelayan). kg 0 = grade yang udah nggak dipakai. */
+export type BarisPO = { id: string; grade_id: string; kg: number; harga_per_kg: number; jumlah: number; grades: { kode: string } | null };
 
 /** Aturan lampiran dari admin: wajib atau opsional per jenis berkas untuk satu jenis catatan. */
 export type AturanLampiran = { id: string; ref_tabel: "purchase_orders" | "lots" | "payments"; jenis: JenisDokumen; wajib: boolean; keterangan: string; urutan: number };
@@ -61,6 +68,14 @@ export type Pengajuan = {
   supplier_nama: string;
   jml_nota: number;
   nota_menyusul?: boolean;
+  /** Rincian pengajuan dari database: baris per grade, lot asal, dan tanda koreksi. */
+  payload?: {
+    baris?: { grade: string; kg: number; harga_per_kg: number; jumlah: number }[];
+    lot?: string;
+    koreksi?: boolean;
+    alasan?: string;
+    total_lama?: number;
+  } | null;
 };
 
 export type Dokumen = {
@@ -78,8 +93,12 @@ export type Dokumen = {
 export type LotBaris = {
   id: string;
   kode: string;
-  po_id: string;
-  po_kode: string;
+  /** Kosong selama lot belum diajukan pembeliannya. */
+  po_id: string | null;
+  /** Kosong sampai PO-nya disetujui (kode PO terbit waktu disetujui). */
+  po_kode: string | null;
+  supplier_id: string;
+  cycle_id: string | null;
   tanggal_terima: string;
   kg: number;
   sisa_kg: number;
@@ -90,8 +109,10 @@ export type LotBaris = {
   grade_id: string | null;
   suppliers: { nama: string } | null;
   grades: { kode: string; nama: string } | null;
-  /** Proyek (batch/bongkaran) dari PO-nya. */
-  cycles?: { kode: string } | null;
+  /** Proyek (batch/bongkaran). */
+  cycles?: { kode: string; nama?: string } | null;
+  /** PO-nya, cuma kebaca sama yang boleh lihat pembelian. */
+  purchase_orders?: { kode: string | null; status_persetujuan: StatusPO } | null;
   /** Berat per grade dari cek mutu. Baris ber-kg 0 = grade yang sudah dikeluarkan. */
   lot_grades?: { grade_id: string; kg: number; grades: { kode: string } | null }[];
 };
@@ -104,6 +125,8 @@ export type BayarBaris = {
   tanggal: string;
   catatan: string;
   dibuat_oleh: string | null;
+  batal?: boolean;
+  alasan_batal?: string;
 };
 
 export type POSiapTerima = {

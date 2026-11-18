@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Pembelian" };
 export default function PembelianPage(props: PageProps<"/pembelian">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Dari beli ikan sampai bayar ke pemasok" judul="Pembelian" />
+      <Judul kicker="PO yang udah diajukan dan terbit, bayar ke pemasok, sama notanya" judul="Pembelian" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <PembelianData searchParams={props.searchParams} />
@@ -47,7 +47,7 @@ async function PembelianData({ searchParams }: { searchParams: PageProps<"/pembe
       daftar={daftar} pemasok={pemasok} siklus={siklus} pengguna={pengguna} detail={detail}
       kelengkapan={{ aturan, pemegang, bolehNotaSusulan: boleh(sesi, "nota.susulan") }}
       bolehTulis={boleh(sesi, "pembelian.write")} bolehBayar={boleh(sesi, "pembayaran.write")}
-      bolehDokumen={boleh(sesi, "dokumen.write")} bolehSiklusBaru={boleh(sesi, "siklus.write")} bolehPemasokBaru={boleh(sesi, "master.write")} hariIni={hariIni()}
+      bolehDokumen={boleh(sesi, "dokumen.write")} hariIni={hariIni()}
     />
   );
 }

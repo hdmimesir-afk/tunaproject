@@ -9,7 +9,7 @@ import { mintaRevisi, periksa, setujui, tolakPengajuan } from "@/lib/actions/per
 import type { DataPersetujuan } from "@/lib/data/persetujuan";
 import { rp, tanggal, waktu } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { LABEL_APV, namaPemegang, ringkasBatch, selisihHarga } from "@/lib/logic/pembelian";
+import { kodePO, LABEL_APV, namaPemegang, ringkasBatch, selisihHarga } from "@/lib/logic/pembelian";
 import type { PemegangTugas, Pengajuan, Pengguna } from "@/lib/types/pembelian";
 
 type Props = {
@@ -68,7 +68,7 @@ function Konfirmasi({ items, onTutup }: { items: Pengajuan[]; onTutup: () => voi
         <ul className="space-y-1.5">
           {items.map((a) => (
             <li key={a.id} className="flex items-start justify-between gap-3 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
-              <span style={{ color: INK }}>{a.po_kode} · {a.supplier_nama}<span className="block text-[12px]" style={{ color: MUTED }}>{a.judul}</span></span>
+              <span style={{ color: INK }}>{kodePO(a.po_kode)} · {a.supplier_nama}<span className="block text-[12px]" style={{ color: MUTED }}>{a.judul}</span></span>
               <b className="shrink-0" style={{ color: INK }}>{rp(a.jumlah)}</b>
             </li>
           ))}
@@ -104,26 +104,43 @@ function Kartu({ a, props, nota, dipilih, onPilih, onSetuju, onAlasan }: {
     <Inner className="space-y-3 !p-4">
       <div className="flex items-start gap-3">
         {bisaSetuju && (
-          <input type="checkbox" checked={dipilih} onChange={() => onPilih(a.id)} aria-label={`Pilih ${a.po_kode}`} className="mt-1 h-5 w-5 shrink-0 accent-[#00171F]" />
+          <input type="checkbox" checked={dipilih} onChange={() => onPilih(a.id)} aria-label={`Pilih ${a.po_kode ?? a.kode}`} className="mt-1 h-5 w-5 shrink-0 accent-[#00171F]" />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-[15px] font-medium" style={{ color: INK }}>{a.judul}</div>
-            <Pill t={LABEL_APV[a.status]} />
+            <div className="flex gap-1.5">
+              {a.payload?.koreksi && <span className="rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Koreksi</span>}
+              <Pill t={LABEL_APV[a.status]} />
+            </div>
           </div>
-          <div className="text-[12.5px]" style={{ color: MUTED }}>{a.po_kode} · {a.supplier_nama} · {a.kode}</div>
+          <div className="text-[12.5px]" style={{ color: MUTED }}>{kodePO(a.po_kode)} · {a.supplier_nama} · {a.kode}{a.payload?.lot && ` · ${a.payload.lot}`}</div>
         </div>
       </div>
 
       <div className="text-[26px] font-normal tracking-tight" style={{ color: INK }}>{rp(a.jumlah)}</div>
+      {a.payload?.koreksi && (
+        <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
+          PO ini dikoreksi setelah disetujui{typeof a.payload.total_lama === "number" && `, total sebelumnya ${rp(a.payload.total_lama)}`}.{a.payload.alasan && ` Alasan: ${a.payload.alasan}`}
+        </p>
+      )}
+      {a.payload?.baris && a.payload.baris.length > 0 ? (
+        <ul className="space-y-1 rounded-2xl bg-white px-3.5 py-2.5 text-[12.5px] tabular-nums" style={{ color: INK }}>
+          {a.payload.baris.map((b) => (
+            <li key={b.grade} className="flex justify-between gap-3"><span><b>{b.grade}</b> · {formatKg(b.kg)} kg × {rp(b.harga_per_kg)}</span><span>{rp(b.jumlah)}</span></li>
+          ))}
+        </ul>
+      ) : (
+        a.po_kg !== null && <div className="text-[12.5px]" style={{ color: MUTED }}>{formatKg(a.po_kg)} kg × {rp(a.harga_per_kg ?? 0)}</div>
+      )}
       <div className="text-[12.5px]" style={{ color: MUTED }}>
-        {a.po_kg !== null && `${formatKg(a.po_kg)} kg × ${rp(a.harga_per_kg ?? 0)}`} · Diajukan {nama(props.pengguna, a.diajukan_oleh)}, {waktu(a.diajukan_pada)}
+        Diajukan {nama(props.pengguna, a.diajukan_oleh)}, {waktu(a.diajukan_pada)}
         {a.diperiksa_oleh && <> · Diperiksa {nama(props.pengguna, a.diperiksa_oleh)}{a.catatan_periksa && ` ("${a.catatan_periksa}")`}</>}
       </div>
 
       {banding?.naik && (
         <div className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
-          Harga naik {rp(banding.selisih)}/kg ({banding.persen.toFixed(1).replace(".", ",")}%) dari pembelian terakhir pemasok ini ({rp(a.harga_acuan ?? 0)}/kg).
+          Rata-rata harga naik {rp(banding.selisih)}/kg ({banding.persen.toFixed(1).replace(".", ",")}%) dari pembelian terakhir pemasok ini ({rp(a.harga_acuan ?? 0)}/kg).
         </div>
       )}
 
@@ -219,7 +236,7 @@ export function Antrean(props: Props) {
             {data.riwayat.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
                 <span style={{ color: INK }}>
-                  {a.po_kode} · {a.supplier_nama} · {rp(a.jumlah)}
+                  {kodePO(a.po_kode)} · {a.supplier_nama} · {rp(a.jumlah)}
                   <span className="block text-[12px]" style={{ color: MUTED }}>
                     {a.status === "disetujui" && `Disetujui ${nama(pengguna, a.disetujui_oleh)}, ${waktu(a.disetujui_pada)}`}
                     {a.status === "ditolak" && `Ditolak: ${a.alasan_tolak}`}

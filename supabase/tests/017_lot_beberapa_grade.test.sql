@@ -121,13 +121,12 @@ select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000171', 'ditahan', '[]'::jsonb)$$,
   '42501', null, 'tanpa izin mutu.write ditolak');
 
--- Lot yang sudah dipakai produksi tidak bisa dinilai ulang.
+-- Lot yang sudah dipakai produksi masih bisa digrading ulang (cuma ngaruh ke harga), tapi nggak bisa ditahan.
 select lives_ok($$select public.mulai_produksi('[{"lot_id": "c0000000-0000-0000-0000-000000000171", "kg": 50}]'::jsonb, current_date, 'uji17')$$, 'produksi memakai lot campuran');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000171", "role": "authenticated", "aal": "aal1"}';
 select throws_ok(
-  $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000171', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 500)))$$,
-  'KT001', null, 'lot yang sudah dipakai produksi tidak bisa dinilai ulang');
+  $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000171', 'ditahan', '[]'::jsonb, 'bau')$$,
+  'KT001', null, 'lot yang sudah dipakai produksi tidak bisa ditahan');
 select throws_ok($$delete from public.lot_grades$$, '42501', null, 'grade lot tidak bisa dihapus');
 reset role;
 

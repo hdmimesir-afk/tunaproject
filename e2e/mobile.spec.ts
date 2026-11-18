@@ -48,10 +48,10 @@ test.describe("tampilan HP", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("jendela isian (Buat PO) muat di layar dan bisa ditutup", async ({ page }) => {
+  test("jendela isian (Ajukan pembelian) muat di layar dan bisa ditutup", async ({ page }) => {
     await masuk(page, ADMIN);
-    await page.goto("/pembelian");
-    await page.getByRole("button", { name: "Buat PO" }).click();
+    await page.goto("/mutu");
+    await page.getByRole("button", { name: /^Ajukan pembelian/ }).click();
     const jendela = page.getByRole("dialog");
     await expect(jendela).toBeVisible();
     const kotak = await jendela.boundingBox();

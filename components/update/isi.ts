@@ -3,7 +3,7 @@
    jangan kaku). Jumlah tes dan catatan kas yang diimpor diambil dari pemeriksaan lengkap per 26 Oktober 2026 (PERIKSA_LENGKAP), jumlah menu
    dan jabatan dihitung ulang per 11 November 2026. Tidak ada angka perkiraan. Pembaruan sesudah 26 Oktober dicatat di PERJALANAN dan TERBARU. */
 
-export const TANGGAL = "14 November 2026";
+export const TANGGAL = "18 November 2026";
 export const PERIKSA_LENGKAP = "26 Oktober 2026";
 
 /* ---------------------------------------------------------------- angka */
@@ -27,11 +27,16 @@ export const PERJALANAN = [
   { tanggal: "10 November", judul: "Masukan Mas Bisma, bagian pertama", isi: "Pemasok baru bisa ditambah langsung dari form pembelian. Arti Lulus dan Tahan sekarang ada keterangannya di layar. Hasil produksi yang belum masuk stok udah muncul di form pesanan, dan kolom harga per kilo di HP udah nggak kepotong lagi." },
   { tanggal: "11 November", judul: "Masukan Mas Bisma, bagian kedua", isi: "Satu lot bisa diisi beberapa grade. Pembelian nggak nunggu nota lagi. Siapa yang menyetujui dan lampiran apa yang wajib, admin yang atur. Siklus juga saya ganti namanya jadi Proyek, dan stoknya ikut kecatat per proyek." },
   { tanggal: "14 November", judul: "Beres-beres sebelum dipakai", isi: "Data contoh saya hapus atas permintaan tim, pesan di layar saya bikin lebih santai, dan gambar panduan saya perbarui. Buat dua pertanyaan yang belum kejawab, saya tulis usulan supaya tim tinggal milih." },
+  { tanggal: "18 November", judul: "Masukan habis training", isi: "Alurnya saya balik: ikan diterima dulu tanpa PO, digrading, baru diajukan dan PO terbit waktu disetujui. Ada tombol Koreksi di penerimaan, pembelian, dan produksi. Status Lulus saya hapus. Form mulai produksi sekarang ada proyek, PT, dan lini bisnisnya." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */
-/* Laporan terbaru: beres-beres 14 November, lalu masukan Mas Bisma (notulen 10 November) dan jawaban perusahaan 11 November. */
+/* Laporan terbaru: masukan training 17 November, beres-beres 14 November, lalu masukan Mas Bisma (notulen 10 November). */
 export const TERBARU: { judul: string; isi: string }[] = [
+  { judul: "Ikan diterima dulu, PO belakangan", isi: "Urutan menu Operasi sekarang: Mutu dan Penerimaan, Persetujuan, Pembelian, terus Produksi. Petugas langsung nyatet ikan yang datang, nggak perlu nunggu PO. Habis digrading, admin ngajuin pembeliannya dengan harga per kg tiap grade. Kode PO baru keluar waktu disetujui, terus Finance bayar di menu Pembelian. Tombol Buat PO yang lama saya hapus." },
+  { judul: "Grading nentuin harga ke nelayan", isi: "Status Lulus udah nggak ada. Yang tersisa cuma Menunggu (belum digrading) sama Ditahan (ikan gugur atau bau). Hasil grading tuna utuh dipakai buat ngitung harga ke nelayan, jadi tiap grade punya harga sendiri. Lot yang belum digrading tetap boleh langsung diolah." },
+  { judul: "Tombol Koreksi di mana-mana", isi: "Penerimaan, pembelian, dan produksi sekarang punya tombol Koreksi. Isinya wajib pakai alasan, dan angka sebelum-sesudahnya kecatat di Riwayat koreksi. Kalau total PO yang udah disetujui berubah, PO-nya balik ke Persetujuan dengan tanda Koreksi. Pembayaran yang salah bisa dibatalin, buku kasnya dapat baris pembalik." },
+  { judul: "Form mulai produksi yang baru", isi: "Sekarang ada nama proyek, tanggal, PT pemilik ikan, dan lini bisnis: jasa produksi ikan (jual), jasa produksi (ikan dari PT), atau titip saja. Jasa produksi nggak pakai lot, cukup isi berat ikan dari PT, dan hasilnya masuk stok sebagai milik PT itu. Titip saja langsung diarahin ke Terima titipan di Gudang Dingin, proyeknya udah keisi." },
   { judul: "Data contoh udah dihapus", isi: "Data latihan yang saya isi buat presentasi udah saya hapus dari sistem. Yang diinput tim nggak ada yang ilang. Beberapa data contoh terpaksa disisain karena udah dipakai data tim, misalnya LOT-003 dan LOT-004 yang dipakai produksi. Nama pemasok dan pembelinya udah saya ganti, jadi nggak ada lagi tulisan \"(Demo)\"." },
   { judul: "Pesan di layar lebih santai", isi: "Pesan yang muncul kalau ada yang ditolak sekarang pakai kata Proyek, nggak Siklus lagi, dan nggak pakai \"Anda\". Misalnya \"Peran ini nggak punya izin buat langkah ini\". Pesan absen juga, jadi \"Udah absen masuk hari ini jam 08.03\"." },
   { judul: "Gambar panduan diperbarui", isi: "Gambar form cek mutu di Panduan udah pakai tampilan yang baru (bisa beberapa grade). Panduan milih yang menyetujui PO sama atur lampiran wajib sekarang juga ada gambarnya." },
@@ -45,22 +50,20 @@ export const TERBARU: { judul: string; isi: string }[] = [
 ];
 
 /* ----------------------------------------------------------------- usulan */
-/* Dua pertanyaan lanjutan yang belum dijawab tim Katalis. Ini usulan developer, belum dikerjakan sampai dikonfirmasi. */
+/* Dua pertanyaan lanjutan yang belum dijawab tim Katalis. Ini usulan developer, belum dikerjakan sampai dikonfirmasi.
+   (Kedatangan tanpa PO dan harga per grade udah dijawab lewat training 17 November dan udah dikerjain.) */
 export const USULAN: { judul: string; masalah: string; usulan: string[]; tanya: string[] }[] = [
   {
-    judul: "Ikan datang tanpa pesanan, nelayannya dibayar gimana",
-    masalah: "Kemarin udah disepakati ikan yang datang nggak boleh nunggu pesanan atau persetujuan. Yang belum jelas: harganya siapa yang ngisi, dan nelayannya boleh dibayar kapan.",
+    judul: "Bayar nelayan tunai sebelum disetujui",
+    masalah: "Alur terima dulu udah jalan: ikan diterima tanpa PO, digrading, diajukan dengan harga per grade, terus PO terbit waktu disetujui. Sekarang nelayan baru bisa dibayar setelah PO-nya disetujui. Yang belum jelas: di lapangan nelayan biasanya dibayar tunai saat itu juga atau nggak.",
     usulan: [
-      "Petugas langsung nyatet kedatangan: nama nelayan atau pemasok, berat timbang, foto timbangan, sama foto nota kalau ada. Ikannya langsung jadi lot, bisa dicek mutu dan diolah.",
-      "Dari situ sistem bikin catatan pembeliannya sendiri, ditandai \"dari kedatangan\". Jadi nggak ada yang ngetik dua kali.",
-      "Harga per kilo diisi belakangan dari nota nelayan. Kalau harganya beda per grade, diisi setelah QC selesai.",
-      "Harganya tetap masuk antrean persetujuan kayak biasa. Bedanya, ikannya nggak ketahan selama nunggu.",
-      "Nelayan dibayar setelah harganya disetujui. Kalau di lapangan biasanya dibayar tunai saat itu juga, bisa saya kasih batas. Misalnya di bawah Rp5 juta boleh dibayar dulu pakai nota, persetujuannya nyusul.",
+      "Kalau nelayan biasa nunggu, alurnya biarin kayak sekarang: bayar setelah disetujui.",
+      "Kalau biasa dibayar tunai di tempat, saya kasih batas. Misalnya di bawah Rp5 juta boleh dibayar dulu pakai nota, persetujuannya nyusul.",
+      "Pembayaran duluan itu tetap ditandai, biar kelihatan mana yang belum disetujui.",
     ],
     tanya: [
-      "Yang ngisi harga nelayan siapa: Finance, admin, atau dua-duanya?",
-      "Harga nelayan per kilo rata, atau beda per grade?",
-      "Boleh bayar tunai sebelum disetujui? Kalau boleh, batasnya berapa?",
+      "Nelayan biasa dibayar tunai saat itu juga, atau nunggu?",
+      "Kalau boleh bayar duluan, batasnya berapa, dan siapa yang boleh?",
     ],
   },
   {
@@ -109,40 +112,40 @@ export const MODUL: Modul[] = [
     ],
   },
   {
-    slug: "pembelian", nama: "Pembelian", ringkas: "Pesanan ke pemasok, notanya, dan pembayarannya.",
+    slug: "mutu", nama: "Mutu dan Penerimaan", ringkas: "Langkah pertama: ikan datang, ditimbang, digrading, terus diajukan pembeliannya.",
     poin: [
-      "Tiap pesanan isinya pemasok, berat, harga per kilo, nota, dan proyeknya. Pemasok baru bisa langsung ditambah dari form ini. Harganya dikunci pas diajukan, jadi kalau nanti harga naik, pesanan lama nggak ikut berubah.",
-      "Kalau nota belum ada, pesanan tetap bisa diajukan dengan tanda \"Nota menyusul\". Notanya dilampirkan belakangan sama jabatan yang dipilih admin.",
-      "Ada tiga status yang dicatat sendiri-sendiri: udah disetujui atau belum, ikannya udah diterima (belum, sebagian, lengkap), dan udah dibayar (belum, sebagian, lunas).",
-      "Finance bisa nyicil pembayaran. Sistem nolak kalau bayarnya lebih dari nilai pesanan, atau pesanannya belum disetujui.",
-      "Petugas lapangan nggak lihat harga. Mereka cuma lihat pesanan yang siap diterima, tanpa nilainya.",
+      "Ikan yang datang langsung dicatat jadi lot: nelayan atau pemasoknya, berat timbang, tanggal, dan proyeknya. Nggak perlu nunggu PO.",
+      "QC grading tuna utuh: satu atau beberapa grade plus beratnya. Hasilnya dipakai buat ngitung harga ke nelayan. Ikan gugur atau bau ditandai Ditahan, dan nggak bisa diolah.",
+      "Admin ngajuin pembelian dari lot yang udah digrading, harga per kg tiap grade. Jumlah dan totalnya kehitung sendiri. Satu pengajuan buat satu pemasok, boleh beberapa lot.",
+      "Foto timbangan wajib satu tiap kali terima ikan. Lot yang belum ada fotonya ditandai \"Belum ada\", tapi tetap bisa digrading dan diproduksi.",
+      "Tiap lot punya tombol Koreksi (pakai alasan), dan lot yang belum digrading tetap boleh langsung diolah.",
     ],
   },
   {
-    slug: "persetujuan", nama: "Persetujuan", ringkas: "Yang menyetujui dipilih admin, dan notanya ada di sebelah tombol.",
+    slug: "persetujuan", nama: "Persetujuan", ringkas: "Pembelian disetujui di sini, dan kode PO-nya terbit di sini juga.",
     poin: [
       "Alurnya: diajukan, diperiksa, terus disetujui. Siapa yang meriksa dan siapa yang menyetujui dipilih admin di menu Akses, dan namanya kelihatan di layar. Awalnya Finance yang meriksa dan owner yang menyetujui. Yang menyetujui boleh langsung mutusin tanpa nunggu diperiksa, tapi nggak boleh menyetujui pengajuannya sendiri.",
+      "Tiap kartu nampilin rincian per grade, lot asalnya, dan nota. Kalau rata-rata harganya naik dibanding pembelian terakhir dari pemasok yang sama, ada peringatannya.",
+      "Begitu disetujui, kode PO-nya keluar. PO yang dikoreksi setelah disetujui balik lagi ke sini dengan tanda Koreksi.",
       "Pengajuan bisa dibalikin buat diperbaiki atau ditolak. Dua-duanya wajib nulis alasan.",
-      "Tiap kartu nampilin nota dan harga per kilo. Kalau harganya naik dibanding pembelian terakhir dari pemasok yang sama, ada peringatannya.",
       "Mau setujuin banyak sekaligus? Pilih beberapa kartu. Sistem nampilin daftar, jumlah, dan total nilainya dulu sebelum disetujui.",
-      "Disetujui belum tentu udah dibayar. Pembayarannya dicatat terpisah sama Finance.",
-      "Ikan yang datang malam sebelum disetujui (bongkar malam) saya taruh di daftar sendiri, biar nggak kelewat.",
     ],
   },
   {
-    slug: "mutu", nama: "Mutu dan Penerimaan", ringkas: "Dari ikan datang sampai lulus cek mutu.",
+    slug: "pembelian", nama: "Pembelian", ringkas: "PO yang udah terbit, pembayaran ke pemasok, nota, dan koreksinya.",
     poin: [
-      "Ikan yang diterima dicatat jadi lot, dan boleh diterima bertahap. Lot dari bongkar malam dikasih tanda khusus.",
-      "Beratnya nggak perlu diketik ulang, otomatis pakai sisa berat di pesanan. Kalau kiriman aslinya beda, petugas tinggal centang terus isi berat aslinya. Timbangan berikutnya buat hasil olahan, di menu Produksi.",
-      "QC nilai tiap lot: lulus dengan satu atau beberapa grade plus beratnya, atau ditahan dengan catatan. Arti Lulus dan Tahan dijelasin langsung di layar.",
-      "Foto timbangan wajib satu tiap kali terima ikan. Lot yang belum ada fotonya ditandai \"Belum ada\", tapi tetap bisa dicek mutu dan diproduksi.",
-      "Cuma lot yang lulus dan masih ada sisanya yang bisa dipakai produksi.",
+      "Daftarnya nampilin semua pembelian. Yang masih nunggu persetujuan tulisannya Belum terbit.",
+      "Rincian PO nampilin harga per grade, lot asalnya, nota, riwayat persetujuan, dan pembayaran.",
+      "Finance bisa nyicil pembayaran. Sistem nolak kalau bayarnya lebih dari nilai PO, atau PO-nya belum disetujui. Pembayaran yang salah bisa dibatalin pakai alasan, buku kasnya dapat baris pembalik.",
+      "Tombol Koreksi buat benerin harga per grade, pemasok, proyek, atau catatan. Kalau totalnya berubah setelah disetujui, PO balik ke Persetujuan.",
+      "Kalau nota belum ada, pembelian tetap bisa diajukan dengan tanda \"Nota menyusul\". Notanya dilampirkan belakangan sama jabatan yang dipilih admin.",
     ],
   },
   {
     slug: "produksi", nama: "Produksi", ringkas: "Nimbang loin, dan selisihnya kelihatan apa adanya.",
     poin: [
-      "Produksi dimulai dari satu atau beberapa lot. Owner bisa nelusurin dua arah: dari lot ke produksinya, atau dari produksi balik ke lot asalnya.",
+      "Mulai produksi diisi proyek, tanggal, PT pemilik ikan, dan lini bisnis: jual (ikan dari lot kita), jasa produksi (ikan dari PT, cukup beratnya), atau titip saja (langsung ke titipan gudang). Hasil jasa produksi masuk stok sebagai milik PT-nya.",
+      "Owner bisa nelusurin dua arah: dari lot ke produksinya, atau dari produksi balik ke lot asalnya. Tiap produksi punya tombol Koreksi, dan yang udah disetujui bisa dibuka lagi sama owner selama hasilnya belum masuk stok.",
       "Berat loin cukup diisi total per grade. Kalau perlu, bisa juga ditimbang per potong lewat tabel timbang. Tabelnya saya samain sama formulir kertas yang biasa dipakai: nomor ekor, nomor loin, grade, dan berat sampai tiga angka di belakang koma. Cukup pakai keyboard, total per grade dan per ekor kehitung sendiri.",
       "Kalau sinyal putus, catatannya tetap aman di HP dan kekirim sendiri begitu sinyal balik. Dua petugas yang ngedit baris yang sama nggak saling nimpa, dan tiap koreksi nyatet angka sebelum dan sesudahnya.",
       "Ada neraca berat: ikan masuk harus sama dengan loin, hasil samping, limbah, dan susut yang ditimbang. Sisanya tampil sebagai \"selisih belum jelas\", dan nggak pernah saya isi otomatis. Hasil di luar 40 sampai 80 persen ditandai buat dicek, targetnya 60 persen.",
@@ -278,7 +281,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di tiap tombol, dan di database. Nota dan foto absen disimpan di tempat tertutup, cuma bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi, jadi kata sandi nggak bisa ditebak-tebak." },
   { judul: "Angkanya nggak geser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa dibulatin diam-diam. Saya udah uji pakai 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhannya hasilnya sama persis." },
   { judul: "Satu putaran penuh udah diuji", isi: "Saya jalanin pembelian sampai uang masuk pakai kelima jabatan, terus nyocokin angka di neraca, stok, tagihan, rincian proyek, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 14 November juga lulus semua: 632 pemeriksaan aturan database dan 108 pemeriksaan logika." },
+  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 18 November juga lulus semua: 682 pemeriksaan aturan database dan 112 pemeriksaan logika." },
   { judul: "Cadangan tiap hari", isi: "Database dicadangin tiap malam dan dienkripsi. Udah empat kali berhasil, tiga di antaranya otomatis terjadwal. Yang belum saya lakuin: nyoba mulihin cadangan ke tempat kosong (ada di bagian yang masih tersisa)." },
 ] as const;
 
@@ -293,8 +296,10 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 14 November udah lulus pemeriksaan otomatis, termasuk 632 pemeriksaan aturan database. Saya juga udah coba sendiri pakai data contoh. Yang belum: nyoba langsung di sistem yang udah dipakai." },
-  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal bayar nelayan kalau ikannya datang tanpa pesanan, sama aturan transit dan ikan yang nginep, udah saya tulisin usulannya di bagian atas. Tim tinggal jawab pertanyaannya. Fitur terima ikan tanpa pesanan dan tarif gudang yang baru saya kerjain setelah ada jawaban." },
+  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 18 November udah lulus pemeriksaan otomatis, termasuk 682 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan, grading, ajukan, setujui, bayar, koreksi, produksi jual, jasa, sama titip. Yang belum: dicoba tim di sistem yang udah dipakai." },
+  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal bayar nelayan tunai sebelum disetujui, sama aturan transit dan ikan yang nginep, usulannya ada di bagian atas. Tim tinggal jawab pertanyaannya." },
+  { judul: "Meeting UX bareng Mas Bisma", isi: "Format Excel produksi dan finance, alur QC yang lebih detail, dan maksud input per proyek mau dibahas bareng di meeting tambahan. Biar nggak nebak, saya nunggu contoh file dan alurnya dari tim dulu." },
+  { judul: "Gambar dan video panduan", isi: "Teks panduan udah ngikutin alur baru. Gambar dan video buat penerimaan, pembelian, dan mulai produksi masih tampilan lama, nanti saya ambil ulang." },
   { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps udah kepasang di sistem. Tapi baru bisa dibilang beres kalau udah dicoba dari HP di kantor, soalnya pin di peta bisa agak beda sama tempat orang berdiri pas absen." },
   { judul: "Urutan menu lengkap", isi: "Pembelian, Persetujuan, Mutu dan Penerimaan, terus Produksi udah saya urutin. Menu lainnya nunggu daftar lengkap dari tim pengguna." },
   { judul: "Efek satu akun per jabatan", isi: "Semua petugas lapangan pakai satu akun yang sama. Jadi absen masuk dan pulang cuma kecatat sekali sehari buat semuanya, dan catatan perubahan cuma nunjukin jabatannya, orangnya nggak kelihatan." },

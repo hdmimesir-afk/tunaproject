@@ -1,5 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { bisaDiedit, gradeLot, lampiranKurang, lampiranWajib, namaPemegang, ringkasBatch, selisihHarga, sisaBayar, sisaBelumDibagi } from "./pembelian";
+import { bisaDiedit, gradeLot, kodePO, lampiranKurang, lampiranWajib, namaPemegang, rincianAjukan, ringkasBatch, selisihHarga, sisaBayar, sisaBelumDibagi } from "./pembelian";
+
+describe("rincianAjukan (harga per grade dari grading tuna utuh)", () => {
+  const lot = (grade: [string, string, number][]) => ({
+    kg: grade.reduce((a, g) => a + g[2], 0), qc: "lulus" as const, grade_id: null, grades: null,
+    lot_grades: grade.map(([id, kode, kg]) => ({ grade_id: id, kg, grades: { kode } })),
+  });
+  it("menjumlah berat per grade dari beberapa lot, total dalam sen", () => {
+    const r = rincianAjukan([lot([["a", "A-SO", 200], ["b", "B-SO", 100]]), lot([["a", "A-SO", 100.5]])], { a: 50000, b: 40000.5 });
+    expect(r.baris).toEqual([
+      { grade_id: "a", kode: "A-SO", kg: 300.5, harga: 50000, jumlah: 15025000 },
+      { grade_id: "b", kode: "B-SO", kg: 100, harga: 40000.5, jumlah: 4000050 },
+    ]);
+    expect(r.total).toBe(19025050);
+    expect(r.kg).toBe(400.5);
+    expect(r.lengkap).toBe(true);
+  });
+  it("belum lengkap kalau ada grade tanpa harga", () => {
+    const r = rincianAjukan([lot([["a", "A-SO", 10], ["b", "B-SO", 5]])], { a: 1000 });
+    expect(r.lengkap).toBe(false);
+    expect(r.total).toBe(10000);
+  });
+  it("lot yang belum digrading nggak ikut", () => {
+    expect(rincianAjukan([{ kg: 50, qc: "menunggu", grade_id: null, grades: null, lot_grades: [] }], {}).baris).toEqual([]);
+  });
+  it("kode PO yang belum terbit", () => {
+    expect(kodePO(null)).toBe("Belum terbit");
+    expect(kodePO("PO-0001")).toBe("PO-0001");
+  });
+});
 
 describe("lampiranKurang", () => {
   const aturan = [

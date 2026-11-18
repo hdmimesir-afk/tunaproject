@@ -13,7 +13,9 @@ import type { AturanLampiran, Dokumen, JenisDokumen, LotBaris } from "@/lib/type
 type Saring = "semua" | "menunggu" | "lulus" | "ditahan";
 const KOLOM = "md:grid md:grid-cols-[minmax(0,1fr)_100px_130px_minmax(0,1.4fr)_auto] md:gap-4 lg:grid-cols-[minmax(0,1.1fr)_130px_180px_minmax(0,1.3fr)_auto] lg:gap-5";
 const AMBER = "#8A5A00";
-const teksLot = (l: LotBaris) => `${l.kode} ${l.po_kode} ${l.cycles?.kode ?? ""} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
+/** Posisi pembelian lot: belum diajukan, lagi diajukan, atau kode PO-nya. */
+const statusBeli = (l: LotBaris) => (l.po_kode ? l.po_kode : l.po_id ? "Diajukan" : "Belum diajukan");
+const teksLot = (l: LotBaris) => `${l.kode} ${statusBeli(l)} ${l.cycles?.kode ?? ""} ${l.cycles?.nama ?? ""} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
 /** Lampiran lot (nota nelayan, foto timbangan) beserta aturan wajibnya dari admin. Null bila pengguna tidak boleh melihat berkas. */
 export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean; aturan: AturanLampiran[] };
@@ -24,7 +26,9 @@ const UNGGAH_LOT: { jenis: JenisDokumen; label: string }[] = [
 ];
 
 /** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label (beberapa grade tampil dengan beratnya). Tabel di desktop, kartu di HP. */
-export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris[]; bolehMutu: boolean; onCek: (l: LotBaris) => void; lampiran: LampiranLot | null }) {
+export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi, lampiran, kanan }: {
+  lots: LotBaris[]; bolehMutu: boolean; bolehKoreksi: boolean; onGrading: (l: LotBaris) => void; onKoreksi: (l: LotBaris) => void; lampiran: LampiranLot | null; kanan?: React.ReactNode;
+}) {
   const [saring, setSaring] = useState<Saring>("semua");
   const jumlah = useMemo(() => ({
     semua: lots.length,
@@ -34,10 +38,10 @@ export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris
   }), [lots]);
   const dasar = saring === "semua" ? lots : lots.filter((l) => l.qc === saring);
   const { q, setQ, hasil: tampil } = useCari(dasar, teksLot);
-  const pilihan: { id: Saring; label: string }[] = [{ id: "semua", label: "Semua" }, { id: "menunggu", label: "Menunggu" }, { id: "lulus", label: "Lulus" }, { id: "ditahan", label: "Ditahan" }];
+  const pilihan: { id: Saring; label: string }[] = [{ id: "semua", label: "Semua" }, { id: "menunggu", label: "Menunggu" }, { id: "lulus", label: "Digrading" }, { id: "ditahan", label: "Ditahan" }];
 
   return (
-    <Card title="Lot ikan">
+    <Card title="Lot ikan" right={kanan}>
       <div className="space-y-3">
         <div role="group" aria-label="Filter mutu" className="flex w-full gap-0.5 rounded-full bg-white p-1 md:w-fit md:gap-1">
           {pilihan.map((p) => (
@@ -49,7 +53,7 @@ export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris
             </button>
           ))}
         </div>
-        {lots.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari lot, PO, pemasok, atau kelas" tampil={tampil.length} total={dasar.length} />}
+        {lots.length > 0 && <KotakCari q={q} onUbah={setQ} placeholder="Cari lot, PO, proyek, pemasok, atau grade" tampil={tampil.length} total={dasar.length} />}
 
         {tampil.length === 0 ? (
           <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
@@ -63,7 +67,8 @@ export function DaftarLot({ lots, bolehMutu, onCek, lampiran }: { lots: LotBaris
             <ul>
               {tampil.map((l) => (
                 <BarisLot key={l.id} l={l} kurang={lampiran ? lampiranKurang(lampiran.aturan, "lots", l.id, lampiran.dokumen) : []} aksi={<>
-                  {bolehMutu && l.sisa_kg === l.kg && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onCek(l)}>{l.qc === "menunggu" ? "Cek mutu" : "Ubah"}</Btn>}
+                  {bolehMutu && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onGrading(l)}>{l.qc === "menunggu" ? "Grading" : "Grading ulang"}</Btn>}
+                  {bolehKoreksi && <Btn size="sm" v="light" onClick={() => onKoreksi(l)}>Koreksi</Btn>}
                   {lampiran && <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} bolehTulis={lampiran.bolehTulis}
                     unggah={UNGGAH_LOT.map((u) => (lampiranWajib(lampiran.aturan, "lots", u.jenis) ? { ...u, label: `${u.label} (wajib)` } : u))} />}
                 </>} />
@@ -90,8 +95,8 @@ function BarisLot({ l, aksi, kurang }: { l: LotBaris; aksi: React.ReactNode; kur
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-[15px] font-semibold" style={{ color: INK }}>{l.kode}</span>
-          <span className="rounded-md bg-[#EEF0F5] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: "#4A5560" }}>{l.po_kode}</span>
-          {l.cycles?.kode && <span className="rounded-md bg-[#E4ECF7] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: "#2B4A70" }} title="Proyek">{l.cycles.kode}</span>}
+          <span className="rounded-md bg-[#EEF0F5] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: "#4A5560" }} title="Pembelian">{statusBeli(l)}</span>
+          {l.cycles?.kode && <span className="rounded-md bg-[#E4ECF7] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: "#2B4A70" }} title="Proyek">{l.cycles.nama ? `${l.cycles.kode} · ${l.cycles.nama}` : l.cycles.kode}</span>}
           {l.sebelum_disetujui && <span className="rounded-md bg-[#FBF0D5] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: AMBER }}>Sebelum disetujui</span>}
         </div>
         <div className="mt-0.5 truncate text-[12.5px]" style={{ color: MUTED }}>{l.suppliers?.nama ?? "-"}</div>
@@ -121,14 +126,14 @@ function BarisLot({ l, aksi, kurang }: { l: LotBaris; aksi: React.ReactNode; kur
       {/* Mutu, kelas, catatan */}
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Pill t={LABEL_QC[l.qc]} />
+          {l.qc !== "lulus" && <Pill t={LABEL_QC[l.qc]} />}
           {grade.map((g) => (
             <span key={g.grade_id} className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[#D5D9E0] px-2.5 py-[3px] text-[11.5px] leading-none" style={{ color: INK }}>
               <b className="font-semibold">{g.kode}</b>{grade.length > 1 && <span className="tabular-nums" style={{ color: MUTED }}>{formatKg(g.kg)} kg</span>}
             </span>
           ))}
         </div>
-        {sisa > 0 && <p className="mt-1 text-[12px] tabular-nums" style={{ color: AMBER }}>{formatKg(sisa)} kg tanpa grade</p>}
+        {sisa > 0 && <p className="mt-1 text-[12px] tabular-nums" style={{ color: AMBER }}>{formatKg(sisa)} kg belum digrading</p>}
         {catatan && <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: MUTED }}>{catatan}</p>}
       </div>
 

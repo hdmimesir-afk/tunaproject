@@ -1,16 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
-import { Btn, Card, DataList, Modal, Pill, Stat } from "@/components/ui";
+import { useCallback } from "react";
+import { Btn, Card, DataList, Pill, Stat } from "@/components/ui";
 import { MUTED } from "@/components/ui/tokens";
 import type { DetailPO as Detail } from "@/lib/data/pembelian";
 import { rp, tanggal } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { LABEL_BAYAR, LABEL_PO, LABEL_TERIMA } from "@/lib/logic/pembelian";
+import { kodePO, LABEL_BAYAR, LABEL_PO } from "@/lib/logic/pembelian";
 import type { Opsi, Pengguna, POBaris } from "@/lib/types/pembelian";
 import { DetailPO, type Kelengkapan } from "./DetailPO";
-import { FormPO } from "./FormPO";
 
 /** Diajukan tanpa nota dan notanya belum dilampirkan. */
 const notaMenyusul = (p: POBaris) => p.nota_menyusul && p.jml_nota === 0;
@@ -25,14 +24,13 @@ type Props = {
   bolehTulis: boolean;
   bolehBayar: boolean;
   bolehDokumen: boolean;
-  bolehSiklusBaru: boolean;
-  bolehPemasokBaru: boolean;
   hariIni: string;
 };
 
-export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, kelengkapan, bolehTulis, bolehBayar, bolehDokumen, bolehSiklusBaru, bolehPemasokBaru, hariIni }: Props) {
+/* PO lahir dari penerimaan: ikan diterima dan digrading di Mutu dan Penerimaan, diajukan, terus disetujui (kode PO terbit).
+   Halaman ini buat ngecek PO, bayar pemasok, lampiran, dan koreksi. */
+export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, kelengkapan, bolehTulis, bolehBayar, bolehDokumen, hariIni }: Props) {
   const router = useRouter();
-  const [buat, setBuat] = useState(false);
   const bukaPO = useCallback((id: string) => router.push(`/pembelian?po=${id}`), [router]);
 
   const menunggu = daftar.filter((p) => p.status_persetujuan === "diajukan").length;
@@ -42,38 +40,30 @@ export function PembelianKelola({ daftar, pemasok, siklus, pengguna, detail, kel
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
-        <Stat value={String(daftar.length)} label="Total PO" />
-        <Stat value={String(menunggu)} label="Menunggu persetujuan" tone={menunggu > 0 ? "warn" : undefined} />
-        <Stat value={rp(sisaHutang)} label={`Belum dibayar (${belumBayar.length} PO disetujui)`} />
+        <Stat value={String(daftar.length)} label="Total pembelian" />
+        <Stat value={String(menunggu)} label="Nunggu persetujuan" tone={menunggu > 0 ? "warn" : undefined} />
+        <Stat value={rp(sisaHutang)} label={`Belum dibayar (${belumBayar.length} PO)`} />
       </div>
 
-      <Card title="Daftar PO" right={bolehTulis && <Btn size="sm" onClick={() => setBuat(true)}>Buat PO</Btn>}>
+      <Card title="Daftar PO">
         <DataList
           rows={daftar}
-          empty={bolehTulis ? "Belum ada PO. Mulai aja dari tombol Buat PO." : "Belum ada PO."}
-          cari={(p) => `${p.kode} ${p.supplier_nama} ${p.siklus_kode ?? ""} ${LABEL_PO[p.status_persetujuan]} ${LABEL_TERIMA[p.status_terima]} ${LABEL_BAYAR[p.status_bayar]} ${notaMenyusul(p) ? "nota menyusul" : ""}`}
+          empty="Belum ada pembelian. Pembelian diajukan dari menu Mutu dan Penerimaan, habis ikannya diterima dan digrading."
+          cari={(p) => `${kodePO(p.kode)} ${p.supplier_nama} ${p.siklus_kode ?? ""} ${p.proyek_nama ?? ""} ${p.lot_kode ?? ""} ${LABEL_PO[p.status_persetujuan]} ${LABEL_BAYAR[p.status_bayar]} ${notaMenyusul(p) ? "nota menyusul" : ""}`}
           cols={[
-            { h: "PO", r: (p: POBaris) => <><span className="font-medium">{p.kode}</span>{notaMenyusul(p) && <span className="ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Nota menyusul</span>}<span className="block text-[12px]" style={{ color: MUTED }}>{p.supplier_nama} · {tanggal(p.tanggal)}{p.siklus_kode && ` · ${p.siklus_kode}`}</span></> },
+            { h: "PO", r: (p: POBaris) => <><span className="font-medium">{kodePO(p.kode)}</span>{notaMenyusul(p) && <span className="ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Nota menyusul</span>}<span className="block text-[12px]" style={{ color: MUTED }}>{p.supplier_nama} · {tanggal(p.tanggal)}{p.siklus_kode && ` · ${p.siklus_kode}`}{p.lot_kode && ` · ${p.lot_kode}`}</span></> },
             { h: "Berat", r: (p) => `${formatKg(p.kg)} kg`, right: true },
             { h: "Total", r: (p) => rp(p.total), right: true },
             { h: "Persetujuan", r: (p) => <Pill t={LABEL_PO[p.status_persetujuan]} /> },
-            { h: "Diterima", r: (p) => <Pill t={LABEL_TERIMA[p.status_terima]} /> },
             { h: "Bayar", r: (p) => (p.status_persetujuan === "disetujui" ? <Pill t={LABEL_BAYAR[p.status_bayar]} /> : <span style={{ color: MUTED }}>-</span>) },
           ]}
           actions={(p) => <Btn size="sm" v="light" onClick={() => bukaPO(p.id)}>Buka</Btn>}
         />
       </Card>
 
-      {buat && (
-        <Modal title="Buat PO" onClose={() => setBuat(false)}>
-          <FormPO po={null} pemasok={pemasok} siklus={siklus} bolehSiklusBaru={bolehSiklusBaru} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni}
-            onSelesai={(id) => { setBuat(false); if (id) bukaPO(id); }} />
-        </Modal>
-      )}
-
       {detail && (
         <DetailPO key={detail.po.id} detail={detail} kelengkapan={kelengkapan} pengguna={pengguna} pemasok={pemasok} siklus={siklus} bolehTulis={bolehTulis} bolehBayar={bolehBayar}
-          bolehDokumen={bolehDokumen} bolehSiklusBaru={bolehSiklusBaru} hariIni={hariIni} onTutup={() => router.push("/pembelian")} />
+          bolehDokumen={bolehDokumen} hariIni={hariIni} onTutup={() => router.push("/pembelian")} />
       )}
     </div>
   );

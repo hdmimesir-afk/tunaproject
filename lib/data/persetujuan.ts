@@ -29,9 +29,19 @@ export async function dataPersetujuan(): Promise<DataPersetujuan> {
   const poIds = [...new Set([...aktif, ...((riwayat.data ?? []) as Pengajuan[])].map((a) => a.ref_id))];
   const nota: Record<string, Dokumen[]> = {};
   if (poIds.length > 0) {
-    const dok = await sb.from("documents").select("*").eq("ref_tabel", "purchase_orders").eq("jenis", "nota").in("ref_id", poIds);
-    if (dok.error) gagal("nota");
+    // Nota bisa dilampirin di PO-nya atau di lot-lotnya (nota nelayan pas bongkar).
+    const [dok, lot] = await Promise.all([
+      sb.from("documents").select("*").eq("ref_tabel", "purchase_orders").eq("jenis", "nota").in("ref_id", poIds),
+      sb.from("lots").select("id, po_id").in("po_id", poIds),
+    ]);
+    if (dok.error || lot.error) gagal("nota");
     for (const d of (dok.data ?? []) as Dokumen[]) (nota[d.ref_id] ??= []).push(d);
+    const poDariLot = new Map(((lot.data ?? []) as { id: string; po_id: string }[]).map((l) => [l.id, l.po_id]));
+    if (poDariLot.size > 0) {
+      const dokLot = await sb.from("documents").select("*").eq("ref_tabel", "lots").eq("jenis", "nota").in("ref_id", [...poDariLot.keys()]);
+      if (dokLot.error) gagal("nota lot");
+      for (const d of (dokLot.data ?? []) as Dokumen[]) (nota[poDariLot.get(d.ref_id) ?? ""] ??= []).push(d);
+    }
   }
 
   // Lot bongkar malam yang PO-nya masih menunggu persetujuan.

@@ -13,8 +13,11 @@ import { formatPct, hitungNeraca, type BatasHasil } from "@/lib/logic/neraca";
 import { LABEL_PRODUKSI } from "@/lib/logic/produksi";
 import { bacaDraf } from "@/lib/offline/draft";
 import type { Opsi, Pengguna } from "@/lib/types/pembelian";
+import { LABEL_LINI, type ProyekOpsi } from "@/lib/types/produksi";
+import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
 import { cetakFormulir } from "./cetak";
 import { GridLoin } from "./GridLoin";
+import { BukaLagi, KoreksiProduksi } from "./KoreksiProduksi";
 
 type Props = {
   detail: Detail;
@@ -25,6 +28,8 @@ type Props = {
   bolehTulis: boolean;
   bolehPeriksa: boolean;
   bolehSetuju: boolean;
+  proyek: ProyekOpsi[];
+  koreksiAwal?: boolean;
   onTutup: () => void;
 };
 
@@ -247,8 +252,10 @@ function MintaPerbaikan({ id }: { id: string }) {
 }
 
 /* ------------------------------------------------------------- utama */
-export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehTulis, bolehPeriksa, bolehSetuju, onTutup }: Props) {
+export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehTulis, bolehPeriksa, bolehSetuju, proyek, koreksiAwal, onTutup }: Props) {
   const { produksi: p, alokasi, loin, ekor, riwayat } = detail;
+  const [koreksi, setKoreksi] = useState(!!koreksiAwal && bolehTulis);
+  const jasa = p.kg_masuk_pt !== null && p.kg_masuk_pt !== undefined;
   const berjalan = p.status === "berjalan";
   const bolehEdit = bolehTulis && berjalan;
   const namaGrade = useMemo(() => new Map(grade.map((g) => [g.id, g.label])), [grade]);
@@ -272,11 +279,17 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
     <Modal title={`${p.kode} · ${tanggal(p.tanggal)}`} onClose={onTutup} lebar>
       <div className="flex flex-wrap items-center gap-1.5">
         <Pill t={LABEL_PRODUKSI[p.status]} />
-        {p.siklus_kode && <Pill t={p.siklus_kode} />}
-        <span className="ml-auto flex gap-2">
+        {p.siklus_kode && <Pill t={[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" · ")} />}
+        <span className="ml-auto flex flex-wrap gap-2">
+          {bolehTulis && <Btn size="sm" v="light" onClick={() => setKoreksi(true)}>Koreksi</Btn>}
+          {bolehSetuju && p.status === "diperiksa" && !p.sudah_stok && <BukaLagi produksiId={p.id} />}
           <Btn size="sm" v="light" onClick={() => { if (!cetakFormulir(detail, namaGrade, namaSamping)) alert("Jendela cetak diblokir browser. Izinkan pop-up dulu, terus coba lagi."); }}>Cetak formulir</Btn>
         </span>
       </div>
+      <p className="text-[12.5px]" style={{ color: MUTED }}>
+        {LABEL_LINI[p.lini_bisnis ?? "jual"]} · Pemilik ikan: {p.pt_nama ?? (jasa ? "-" : "PT Katalis (sendiri)")}
+      </p>
+      {koreksi && <KoreksiProduksi detail={detail} proyek={proyek} onTutup={() => setKoreksi(false)} />}
 
       {p.catatan_perbaikan && berjalan && (
         <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Diminta perbaikan: {p.catatan_perbaikan}</p>
@@ -284,11 +297,17 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
 
       <Bagian judul="Neraca berat"><Neraca p={p} batas={batas} /></Bagian>
 
-      <Bagian judul="Lot yang diproduksi">
-        <div className="flex flex-wrap gap-1.5">
-          {alokasi.map((a) => <span key={a.id} className="rounded-full bg-white px-3 py-1.5 text-[12.5px]" style={{ color: INK }}>{a.lot_kode} · {kgTeks(a.kg)} kg</span>)}
-        </div>
-      </Bagian>
+      {jasa ? (
+        <Bagian judul="Ikan dari PT">
+          <span className="rounded-full bg-white px-3 py-1.5 text-[12.5px]" style={{ color: INK }}>{p.pt_nama ?? "PT"} · {kgTeks(p.kg_masuk_pt ?? 0)} kg</span>
+        </Bagian>
+      ) : (
+        <Bagian judul="Lot yang diproduksi">
+          <div className="flex flex-wrap gap-1.5">
+            {alokasi.map((a) => <span key={a.id} className="rounded-full bg-white px-3 py-1.5 text-[12.5px]" style={{ color: INK }}>{a.lot_kode} · {kgTeks(a.kg)} kg</span>)}
+          </div>
+        </Bagian>
+      )}
 
       {caraAktif === "total" ? (
         <Bagian judul="Loin total per grade" kanan={bolehEdit && !adaTotal && <Btn size="sm" v="ghost" onClick={() => setCara("potong")}>Timbang per potong</Btn>}>
@@ -360,6 +379,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
           )
         )}
       </Bagian>}
+      <RiwayatKoreksi daftar={detail.koreksi} pengguna={pengguna} nama={Object.fromEntries(proyek.map((x) => [x.id, x.label]))} />
     </Modal>
   );
 }

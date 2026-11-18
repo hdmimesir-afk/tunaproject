@@ -3,7 +3,8 @@ import { BATAS_BAWAAN, type BatasHasil } from "@/lib/logic/neraca";
 import { createClient } from "@/lib/supabase/server";
 import { gradeLot } from "@/lib/logic/pembelian";
 import type { LotBaris, Opsi } from "@/lib/types/pembelian";
-import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LoinTotal, LotSiap, ProduksiBaris, RiwayatLoin } from "@/lib/types/produksi";
+import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LoinTotal, LotSiap, ProduksiBaris, ProyekOpsi, RiwayatLoin } from "@/lib/types/produksi";
+import { riwayatKoreksi, type Koreksi } from "./koreksi";
 
 /* Lapisan akses data produksi. Klien pengguna, jadi RLS berlaku. Pemanggil sudah memeriksa produksi.read. */
 
@@ -18,12 +19,12 @@ export async function daftarProduksi(): Promise<ProduksiBaris[]> {
   return (data ?? []) as ProduksiBaris[];
 }
 
-/** Lot yang lulus mutu dan masih bersisa, siap dialokasikan ke produksi. */
+/** Lot yang nggak ditahan dan masih bersisa, siap dialokasikan ke produksi. Lot yang belum digrading juga boleh diolah. */
 export async function lotSiapProduksi(): Promise<LotSiap[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("lots")
     .select("id, kode, kg, qc, sisa_kg, grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
-    .eq("qc", "lulus").gt("sisa_kg", 0).order("kode");
+    .neq("qc", "ditahan").gt("sisa_kg", 0).order("kode");
   if (error) gagal("daftar lot");
   return (data ?? []).map((l) => {
     const x = l as unknown as LotBaris & { suppliers: { nama: string } | null };
@@ -31,6 +32,25 @@ export async function lotSiapProduksi(): Promise<LotSiap[]> {
     const kode = gradeLot(x).map((g) => g.kode).join(", ");
     return { id: x.id, kode: x.kode, sisa_kg: x.sisa_kg, grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-" };
   });
+}
+
+/** Proyek yang masih terbuka, plus lini bisnis dan PT-nya (buat form produksi dan titipan). */
+export async function proyekTerbuka(): Promise<ProyekOpsi[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("cycles").select("id, kode, nama, lini_bisnis, pt_id").eq("status", "terbuka").order("kode", { ascending: false }).limit(80);
+  if (error) gagal("daftar proyek");
+  return (data ?? []).map((c) => ({
+    id: c.id as string, label: [c.kode, c.nama].filter(Boolean).join(" · "),
+    lini_bisnis: (c.lini_bisnis ?? "jual") as ProyekOpsi["lini_bisnis"], pt_id: (c.pt_id as string | null) ?? null,
+  }));
+}
+
+/** PT pemilik ikan buat jasa produksi dan titipan (diambil dari daftar pembeli). */
+export async function daftarPT(): Promise<Opsi[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("buyers").select("id, nama").eq("aktif", true).order("nama");
+  if (error) gagal("daftar PT");
+  return (data ?? []).map((b) => ({ id: b.id as string, label: b.nama as string }));
 }
 
 export async function gradeProduksi(): Promise<Opsi[]> {
@@ -68,6 +88,7 @@ export type DetailProduksi = {
   ekor: Ekor[];
   samping: KomponenSamping[];
   riwayat: RiwayatLoin[];
+  koreksi: Koreksi[];
 };
 
 export async function detailProduksi(id: string): Promise<DetailProduksi | null> {
@@ -83,7 +104,9 @@ export async function detailProduksi(id: string): Promise<DetailProduksi | null>
   ]);
   if (p.error || alokasi.error || loin.error || total.error || ekor.error || samping.error || riwayat.error) gagal("detail produksi");
   if (!p.data) return null;
+  const koreksi = await riwayatKoreksi(["productions"], [id]);
   return {
+    koreksi,
     produksi: p.data as ProduksiBaris,
     alokasi: (alokasi.data ?? []) as AlokasiLot[],
     loin: (loin.data ?? []) as ItemLoin[],

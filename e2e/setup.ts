@@ -62,4 +62,10 @@ export default async function setup() {
     const lot = await supabase.from("lots").insert({ po_id: po.data.id, po_kode: po.data.kode, supplier_id: pemasok.id, kg: 2000, sisa_kg: 2000, qc: "lulus", grade_id: grade.data.id });
     if (lot.error) throw new Error(`Gagal membuat lot uji: ${lot.error.message}`);
   }
+
+  // Alur baru: satu lot yang udah digrading tapi belum diajukan pembeliannya (tanpa PO), buat uji "Ajukan pembelian".
+  const siap = await supabase.from("lots").insert({ supplier_id: pemasok.id, kg: 300, sisa_kg: 300, qc: "lulus", grade_id: grade.data.id, catatan: "e2e-ajukan" }).select("id").single();
+  if (siap.error) throw new Error(`Gagal membuat lot uji ajukan: ${siap.error.message}`);
+  const lg = await supabase.from("lot_grades").insert({ lot_id: siap.data.id, grade_id: grade.data.id, kg: 300 });
+  if (lg.error) throw new Error(`Gagal membuat grading lot uji: ${lg.error.message}`);
 }

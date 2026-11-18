@@ -123,6 +123,7 @@ const FormTitipan = z.object({
   ruanganId: Opsional.pipe(z.uuid().nullable()).optional(),
   perluAbf: z.string().optional(),
   catatan: z.string().trim().max(300),
+  siklusId: Opsional.pipe(z.uuid().nullable()).optional(),
 });
 
 export async function terimaTitipan(_: HasilForm, fd: FormData): Promise<HasilForm> {
@@ -132,6 +133,7 @@ export async function terimaTitipan(_: HasilForm, fd: FormData): Promise<HasilFo
     p_buyer: p.data.buyerId, p_product: p.data.productId, p_grade: p.data.gradeId, p_kondisi: p.data.kondisi, p_kg: p.data.kg,
     p_lokasi: p.data.lokasi, p_perlu_abf: p.data.perluAbf === "on", p_catatan: p.data.catatan,
     ...(p.data.ruanganId ? { p_room: p.data.ruanganId } : {}),
+    ...(p.data.siklusId ? { p_cycle: p.data.siklusId } : {}),
   }, "Titipan diterima.");
 }
 

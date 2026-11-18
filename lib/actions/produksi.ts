@@ -21,36 +21,134 @@ async function izin(aksi: string): Promise<{ error: string } | null> {
 const kgDariGram = (g: number) => g / 1000;
 
 /* -------------------------------------------------------------- mulai */
+/* Form mulai produksi (training 17 Nov): proyek (pilih atau baru, pakai nama), tanggal, PT pemilik ikan, dan lini bisnis.
+   jual: ikan dari lot. jasa: ikan dari PT, cukup beratnya. titip: nggak diproduksi, lanjut ke titipan gudang. */
 const FormMulai = z.object({
+  lini: z.enum(["jual", "jasa", "titip"], "Pilih lini bisnisnya"),
+  siklusId: z.union([z.literal("baru"), z.uuid("Pilih proyeknya")], "Pilih proyeknya"),
+  namaProyek: z.string().trim().max(120, "Nama proyeknya kepanjangan").optional(),
+  ptId: z.union([z.literal(""), z.uuid("Pilih PT-nya")]).optional(),
   tanggal: z.iso.date("Isi tanggal"),
   catatan: z.string().trim().max(300),
-  alokasi: z.string().transform((s, ctx) => {
-    try {
-      return z.array(z.object({ lot_id: z.uuid(), kg: z.string() })).min(1, "Pilih minimal satu lot").parse(JSON.parse(s));
-    } catch {
-      ctx.addIssue({ code: "custom", message: "Pilih minimal satu lot dan isi beratnya" });
-      return z.NEVER;
-    }
-  }),
+  kgPt: z.string().max(14).optional(),
+  alokasi: z.string().max(20_000).optional(),
 });
+const Alokasi = z.array(z.object({ lot_id: z.uuid(), kg: z.string() }));
 
-/** Mulai produksi dari satu atau beberapa lot yang lulus mutu. Mengembalikan id produksi di `id`. */
+function proyekBaru(d: z.infer<typeof FormMulai>) {
+  return d.siklusId === "baru" ? { nama: d.namaProyek ?? "", lini_bisnis: d.lini, pt_id: d.lini === "jual" ? "" : d.ptId ?? "" } : null;
+}
+
+/** Mulai produksi. Mengembalikan id produksi di `id`. Lini titip cuma bikin proyek (id proyek di `id`), barangnya diterima di gudang. */
 export async function mulaiProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const tolak = await izin("produksi.write");
   if (tolak) return tolak;
   const p = FormMulai.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  const alokasi: { lot_id: string; kg: number }[] = [];
-  for (const a of p.data.alokasi) {
-    const g = keGram(a.kg);
-    if (g === null) return { error: "Berat dari tiap lot harus lebih dari nol, paling banyak tiga angka di belakang koma." };
-    alokasi.push({ lot_id: a.lot_id, kg: kgDariGram(g) });
-  }
+  const d = p.data;
+  if (d.siklusId === "baru" && !d.namaProyek) return { kolom: { namaProyek: ["Tulis nama proyeknya"] } };
+  if (d.lini !== "jual" && d.siklusId === "baru" && !d.ptId) return { kolom: { ptId: ["Pilih PT pemilik ikannya"] } };
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("mulai_produksi", { p_alokasi: alokasi, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan });
+
+  if (d.lini === "titip") {
+    if (d.siklusId !== "baru") return { id: d.siklusId, pesan: "Lanjut terima titipannya di Gudang Dingin." };
+    const { data, error } = await supabase.rpc("buat_proyek", { p_nama: d.namaProyek, p_lini: "titip", p_pt: d.ptId || null, p_tanggal: d.tanggal });
+    if (error) return { error: pesanDb(error) };
+    refresh();
+    return { id: data as string, pesan: "Proyek titipan udah dibikin. Lanjut terima barangnya di Gudang Dingin." };
+  }
+
+  const alokasi: { lot_id: string; kg: number }[] = [];
+  let kgPt: number | null = null;
+  if (d.lini === "jasa") {
+    const g = keGram(d.kgPt ?? "");
+    if (g === null) return { kolom: { kgPt: ["Isi berat ikan dari PT, lebih dari nol"] } };
+    kgPt = kgDariGram(g);
+  } else {
+    let isi: z.infer<typeof Alokasi>;
+    try {
+      isi = Alokasi.parse(JSON.parse(d.alokasi || "[]"));
+    } catch {
+      return { error: "Pilih minimal satu lot dan isi beratnya." };
+    }
+    if (isi.length === 0) return { error: "Pilih minimal satu lot dan isi beratnya." };
+    for (const a of isi) {
+      const g = keGram(a.kg);
+      if (g === null) return { error: "Berat dari tiap lot harus lebih dari nol, paling banyak tiga angka di belakang koma." };
+      alokasi.push({ lot_id: a.lot_id, kg: kgDariGram(g) });
+    }
+  }
+  const { data, error } = await supabase.rpc("mulai_produksi", {
+    p_alokasi: alokasi, p_tanggal: d.tanggal, p_catatan: d.catatan,
+    p_cycle: d.siklusId === "baru" ? null : d.siklusId, p_proyek_baru: proyekBaru(d), p_kg_pt: kgPt,
+  });
   if (error) return { error: pesanDb(error) };
   refresh();
   return { pesan: "Produksi dimulai.", id: data as string };
+}
+
+/* ------------------------------------------------------------ koreksi */
+const FormKoreksi = z.object({
+  produksiId: z.uuid(),
+  tanggal: z.iso.date("Isi tanggal"),
+  siklusId: z.union([z.literal(""), z.uuid("Proyeknya nggak valid")]),
+  kgPt: z.string().max(14).optional(),
+  catatan: z.string().trim().max(300),
+  alokasi: z.string().max(20_000).optional(),
+  alasan: z.string().trim().min(1, "Tulis alasan koreksinya").max(500, "Alasannya kepanjangan"),
+});
+
+/** Koreksi produksi: tanggal, proyek, berat ikan dari PT, catatan, dan berat tiap lot yang dipakai. Wajib alasan. */
+export async function koreksiProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("produksi.write");
+  if (tolak) return tolak;
+  const p = FormKoreksi.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const d = p.data;
+  let kgPt: number | null = null;
+  if (d.kgPt && d.kgPt.trim() !== "") {
+    const g = keGram(d.kgPt);
+    if (g === null) return { kolom: { kgPt: ["Berat ikan dari PT harus lebih dari nol"] } };
+    kgPt = kgDariGram(g);
+  }
+  let ubah: { lot_id: string; kg: string; lama: number }[] = [];
+  try {
+    ubah = z.array(z.object({ lot_id: z.uuid(), kg: z.string(), lama: z.number() })).parse(JSON.parse(d.alokasi || "[]"));
+  } catch {
+    return { error: "Data lot-nya nggak valid. Muat ulang halaman, terus coba lagi." };
+  }
+  const supabase = await createClient();
+  for (const a of ubah) {
+    const g = keGram(a.kg);
+    if (g === null) return { error: "Berat tiap lot harus lebih dari nol, paling banyak tiga angka di belakang koma." };
+    if (g === Math.round(a.lama * 1000)) continue;
+    const { error } = await supabase.rpc("ubah_alokasi_lot", { p_production: d.produksiId, p_lot: a.lot_id, p_kg: kgDariGram(g), p_alasan: d.alasan });
+    if (error) return { error: pesanDb(error) };
+  }
+  const { error } = await supabase.rpc("koreksi_produksi", {
+    p_production: d.produksiId, p_tanggal: d.tanggal, p_cycle: d.siklusId || null, p_kg_pt: kgPt, p_catatan: d.catatan, p_alasan: d.alasan,
+  });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Koreksi udah disimpan." };
+}
+
+const FormBukaLagi = z.object({
+  produksiId: z.uuid(),
+  alasan: z.string().trim().min(1, "Tulis alasannya").max(500, "Alasannya kepanjangan"),
+});
+
+/** Owner buka lagi produksi yang udah disetujui (selama hasilnya belum masuk stok), biar bisa dikoreksi. */
+export async function bukaLagiProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("produksi.setuju");
+  if (tolak) return tolak;
+  const p = FormBukaLagi.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("buka_lagi_produksi", { p_production: p.data.produksiId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Produksi dibuka lagi. Silakan dikoreksi, terus diperiksa ulang." };
 }
 
 /* -------------------------------------------------------------- loin */
