@@ -29,7 +29,7 @@ export default function UpdatePage() {
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
               <h1 id="judul">Masukan dari rapat udah masuk ke sistem.</h1>
-              <p className="u-lead">Masukan dari training dan meeting operasional udah masuk: ikan diterima dulu tanpa PO, terima per ekor sekalian grading kayak di desain Mas Bisma, grade tuna utuh AB/C/D, koreksi di mana-mana termasuk timbangan produksi yang udah disetujui, dan laporan produksi yang lengkap. Sekarang tinggal {USULAN.length} hal yang nunggu jawaban tim, usulannya udah saya tulis. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
+              <p className="u-lead">Masukan dari training sama meeting operasional udah saya masukin semua. Ikan sekarang diterima dulu tanpa PO, bisa dicatet per ekor sekalian grading kayak di desain Mas Bisma, grade tuna utuh udah pake AB/C/D, koreksi ada di mana mana sampe timbangan produksi yg udah disetujui, dan laporan produksinya udah lengkap. Tinggal {USULAN.length} hal yg nunggu jawaban tim, usulannya udah saya tulis di bawah. Ini rangkuman per {TANGGAL}, plus tampilan aslinya di HP sama laptop.</p>
               <div className="u-aksi">
                 <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasannya</a>
@@ -45,7 +45,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="terbaru" aria-labelledby="h-terbaru">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-terbaru">Yang baru per {TANGGAL}</h2>
-            <p className="u-pengantar">Empat yang paling atas itu masukan habis training tanggal 17. Tiga berikutnya beres-beres tanggal 14, sisanya dari rapat 10 November dan jawaban perusahaan tanggal 11. Sekarang orang lapangan bisa langsung nyatet ikan datang tanpa nunggu PO, dan semua data bisa dikoreksi pakai alasan.</p>
+            <p className="u-pengantar">Yg paling atas itu hasil meeting operasional sama desain Mas Bisma tanggal 18, abis itu masukan training tanggal 17, beres beres tanggal 14, trus sisanya dari rapat 10 November. Intinya sekarang orang lapangan bisa langsung nyatet ikan per ekor tanpa nunggu PO, dan semua data bisa dikoreksi asal ada alasannya.</p>
             <div className="u-kartu-grid u-badan">
               {TERBARU.map((k) => <div key={k.judul}><h3>{k.judul}</h3><p>{k.isi}</p></div>)}
             </div>
@@ -64,7 +64,7 @@ export default function UpdatePage() {
         <section className="u-bagian u-bagian-alt" id="ringkasan" aria-labelledby="h-ringkasan">
           <div className="u-wadah" id="usulan">
             <h2 className="u-judul" id="h-usulan">Yang perlu jawaban tim</h2>
-            <p className="u-pengantar">Pertanyaan ini belum kejawab, jadi saya tulisin usulannya dulu. Kalau udah cocok, tinggal jawab pertanyaan di bawah tiap usulan. Kalau ada yang beda sama kebiasaan di lapangan, bilang aja. Semuanya belum saya kerjain sampai ada jawaban.</p>
+            <p className="u-pengantar">Ini yg belum kejawab, jadi saya tulisin usulannya dulu. Kalo udah cocok tinggal jawab pertanyaan di bawah tiap usulan, kalo beda sama kebiasaan di lapangan bilang aja. Semuanya belum saya kerjain sampe ada jawaban dari tim.</p>
             <div className="u-dua u-badan">
               {USULAN.map((u) => (
                 <div key={u.judul}>
@@ -80,7 +80,7 @@ export default function UpdatePage() {
           </div>
           <div className="u-wadah" style={{ marginTop: "var(--space-xl, 48px)" }}>
             <h2 className="u-judul" id="h-ringkasan">Singkatnya, sistemnya udah jadi</h2>
-            <p className="u-pengantar">Fitur yang kita sepakati udah jadi semua. Sekarang saya lagi ngerjain penyesuaian dari catatan rapat. Sisanya tinggal dicoba di lapangan, plus beberapa hal yang memang cuma owner yang bisa mutusin.</p>
+            <p className="u-pengantar">Fitur yang kita sepakati udah jadi semua. Sekarang saya lagi ngerjain penyesuaian dari catatan rapat. Sisanya tinggal dicoba di lapangan, plus beberapa hal yang emang cuma owner yang bisa mutusin.</p>
             <ul className="u-angka u-badan">
               {ANGKA.map((a) => <li key={a.nilai}><span className="u-besar">{a.nilai}</span><p>{a.label}</p></li>)}
             </ul>
@@ -92,7 +92,7 @@ export default function UpdatePage() {
               <div>
                 <h3 className="u-sub">Cara baca laporan ini</h3>
                 <p style={{ marginTop: "var(--space-md)", color: "var(--color-ink-2)" }}>
-                  Semua angka di sini hasil hitungan dan pemeriksaan, nggak ada yang kira-kira. Jumlah pemeriksaan otomatis dan catatan kas diambil dari pemeriksaan lengkap {PERIKSA_LENGKAP}. Layar di bagian Tampilan itu halaman sistem yang asli, cuma saya isi data contoh, jadi susunannya persis kayak yang nanti dilihat pengguna. Data perusahaan nggak ada di halaman ini.
+                  Semua angka di sini hasil hitungan dan pemeriksaan, gak ada yang kira kira. Jumlah pemeriksaan otomatis dan catatan kas diambil dari pemeriksaan lengkap {PERIKSA_LENGKAP}. Layar di bagian Tampilan itu halaman sistem yang asli, cuma saya isi data contoh, jadi susunannya persis kayak yang nanti dilihat pengguna. Data perusahaan gak ada di halaman ini.
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function UpdatePage() {
                 <Perangkat jenis="laptop" layar="/update/layar/dashboard" judul="Dashboard Owner di laptop" />
                 <div className="u-catatan">
                   <h3>Dashboard Owner</h3>
-                  <p>Saya bikin supaya owner cukup buka halaman ini tiap pagi. Semua yang nunggu keputusan muncul satu-satu, dan sekali ketuk langsung dibawa ke urusannya.</p>
+                  <p>Saya bikin biar owner cukup buka halaman ini tiap pagi. Semua yang nunggu keputusan muncul satu satu, dan sekali ketuk langsung dibawa ke urusannya.</p>
                   <ul>
                     <li>Yang merah paling mendesak, misalnya tagihan yang udah telat.</li>
                     <li>Di contoh ini ada tujuh urusan. Enam langsung kelihatan, sisanya disimpan di tombol &ldquo;Lihat lainnya&rdquo;.</li>
@@ -131,7 +131,7 @@ export default function UpdatePage() {
                 <Perangkat jenis="laptop" layar="/update/layar/siklus" judul="Rincian Proyek di laptop" />
                 <div className="u-catatan">
                   <h3>Rincian proyek</h3>
-                  <p>Satu proyek (satu batch atau satu bongkaran) dari beli ikan sampai uang masuk saya rapiin jadi tujuh tahap. Nggak perlu ngetik ulang.</p>
+                  <p>Satu proyek (satu batch atau satu bongkaran) dari beli ikan sampai uang masuk saya rapiin jadi tujuh tahap. Gak perlu ngetik ulang.</p>
                   <ul>
                     <li>Pembelian, mutu ikan, produksi, stok, penjualan, tagihan, dan biaya ada di satu layar.</li>
                     <li>Ketuk satu baris buat lihat transaksinya sama notanya.</li>
@@ -145,21 +145,21 @@ export default function UpdatePage() {
                   <Perangkat jenis="hp" layar="/update/layar/persetujuan" judul="Persetujuan di HP" />
                   <figcaption className="u-catatan">
                     <h3>Persetujuan</h3>
-                    <p>Pembelian yang dibuka dari dashboard langsung disorot. Notanya ada di kartu. Kalau notanya nyusul ada tandanya, kalau harganya naik ada peringatannya.</p>
+                    <p>Pembelian yang dibuka dari dashboard langsung disorot. Notanya ada di kartu. Kalo notanya nyusul ada tandanya, kalo harganya naik ada peringatannya.</p>
                   </figcaption>
                 </figure>
                 <figure style={{ margin: 0 }}>
                   <Perangkat jenis="hp" layar="/update/layar/grid" judul="Grid loin di HP" />
                   <figcaption className="u-catatan">
                     <h3>Timbangan loin</h3>
-                    <p>Petugas nimbang per potong. Kalau sinyal putus, catatannya tetap aman di HP.</p>
+                    <p>Petugas nimbang per potong. Kalo sinyal putus, catatannya tetep aman di HP.</p>
                   </figcaption>
                 </figure>
                 <figure style={{ margin: 0 }}>
                   <Perangkat jenis="hp" layar="/update/layar/absensi" judul="Absensi di HP" />
                   <figcaption className="u-catatan">
                     <h3>Absensi</h3>
-                    <p>Karyawan absen pakai lokasi dan foto langsung dari kamera. Absen yang ditolak juga tetap kecatat, lengkap sama alasannya.</p>
+                    <p>Karyawan absen pake lokasi dan foto langsung dari kamera. Absen yang ditolak juga tetep kecatat, lengkap sama alasannya.</p>
                   </figcaption>
                 </figure>
                 <figure style={{ margin: 0 }}>
@@ -171,14 +171,14 @@ export default function UpdatePage() {
                 </figure>
               </div>
             </div>
-            <p className="u-contoh">Nama, angka, dan tanggal di layar-layar ini cuma contoh, biar tampilannya kelihatan. Susunannya asli. Menu sampingnya sengaja saya sederhanain, soalnya menu yang asli ngikutin siapa yang lagi masuk.</p>
+            <p className="u-contoh">Nama, angka, dan tanggal di layar layar ini cuma contoh, biar tampilannya kelihatan. Susunannya asli. Menu sampingnya sengaja saya sederhanain, soalnya menu yang asli ngikutin siapa yang lagi masuk.</p>
           </div>
         </section>
 
         <section className="u-bagian" id="modul" aria-labelledby="h-modul">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-modul">Isi tiap menu</h2>
-            <p className="u-pengantar">Ada lima belas menu. Saya jelasin satu-satu sesuai cara kerjanya sekarang.</p>
+            <p className="u-pengantar">Ada lima belas menu. Saya jelasin satu satu sesuai cara kerjanya sekarang.</p>
             <ol className="u-modul u-badan">
               {MODUL.map((m) => (
                 <li key={m.slug} id={`modul-${m.slug}`}>
@@ -193,7 +193,7 @@ export default function UpdatePage() {
         <section className="u-bagian u-bagian-alt" id="peran" aria-labelledby="h-peran">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-peran">Lima jabatan dan menu yang mereka lihat</h2>
-            <p className="u-pengantar">Bisa lihat menunya belum tentu boleh ngubah isinya. Tombol ubah cuma muncul buat jabatan yang memang berhak.</p>
+            <p className="u-pengantar">Bisa lihat menunya belum tentu boleh ngubah isinya. Tombol ubah cuma muncul buat jabatan yang emang berhak.</p>
             <div className="u-tabel-bungkus" tabIndex={0} role="region" aria-label="Tabel menu per jabatan">
               <table className="u-tabel">
                 <caption>Menu yang muncul buat tiap jabatan, sama persis dengan aturan akses di sistem.</caption>
@@ -214,7 +214,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="kualitas" aria-labelledby="h-kualitas">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-kualitas">Seberapa aman datanya</h2>
-            <p className="u-pengantar">Hal-hal ini dijaga sistemnya sendiri, jadi aman walaupun orangnya lagi nggak hati-hati.</p>
+            <p className="u-pengantar">Hal hal ini dijaga sistemnya sendiri, jadi aman walaupun orangnya lagi gak hati hati.</p>
             <div className="u-kartu-grid u-badan">
               {KUALITAS.map((k) => <div key={k.judul}><h3>{k.judul}</h3><p>{k.isi}</p></div>)}
             </div>
@@ -234,7 +234,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="berikutnya" aria-labelledby="h-berikutnya">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-berikutnya">Langkah berikutnya</h2>
-            <p className="u-pengantar">Usul saya serah terimanya dua tahap, biar sistemnya udah bisa dipakai tanpa nunggu satu proyek asli selesai.</p>
+            <p className="u-pengantar">Usul saya serah terimanya dua tahap, biar sistemnya udah bisa dipake tanpa nunggu satu proyek asli selesai.</p>
             <ul className="u-tahap u-badan">
               {BERIKUTNYA.map((t) => <li key={t.tahap}><span className="u-label">{t.tahap}</span><h3>{t.judul}</h3><p>{t.isi}</p></li>)}
             </ul>
