@@ -7,7 +7,7 @@ import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
 import { petaPengguna } from "@/lib/data/pembelian";
-import { batasHasil, daftarProduksi, daftarPT, detailProduksi, gradeProduksi, jenisHasilSamping, lotSiapProduksi, proyekTerbuka } from "@/lib/data/produksi";
+import { batasHasil, daftarProduksi, daftarPT, detailProduksi, gradeProduksi, jenisHasilSamping, lotSiapProduksi, proyekTerbuka, ringkasGradeProduksi } from "@/lib/data/produksi";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh } from "@/lib/izin";
@@ -46,9 +46,10 @@ async function ProduksiData({ searchParams }: { searchParams: PageProps<"/produk
     proyekTerbuka(),
     bolehTulis ? daftarPT() : Promise.resolve([]),
   ]);
+  const ringkasGrade = await ringkasGradeProduksi(daftar.map((p) => p.id));
   return (
     <ProduksiKelola
-      daftar={daftar} lotSiap={lot} proyek={proyek} pt={pt} koreksiAwal={sp.koreksi === "1"}
+      daftar={daftar} lotSiap={lot} proyek={proyek} pt={pt} koreksiAwal={sp.koreksi === "1"} ringkasGrade={ringkasGrade}
       grade={grade} samping={samping} pengguna={pengguna} detail={detail} batas={batas}
       bolehTulis={bolehTulis} bolehPeriksa={boleh(sesi, "produksi.periksa")} bolehSetuju={boleh(sesi, "produksi.setuju")} hariIni={hariIni()}
     />

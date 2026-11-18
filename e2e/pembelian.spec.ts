@@ -53,7 +53,22 @@ test("pembelian diajukan dari lot yang udah digrading, harga per grade, konfirma
 test("petugas nerima ikan tanpa PO", async ({ page }) => {
   await masukAs(page, PETUGAS);
   await page.goto("/mutu");
+  // Per ekor (bawaan): petugas nggak punya izin grading, jadi grade-nya nanti diisi QC.
   await page.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
+  await page.getByLabel("No. tag ekor 1").fill("E2E-01");
+  await page.getByLabel("Berat ekor 1 (kg)").fill("42");
+  await page.getByLabel("Berat ekor 1 (kg)").press("Enter");
+  await expect(page.getByLabel("No. tag ekor 2")).toHaveValue("E2E-02");
+  await page.getByLabel("Berat ekor 2 (kg)").fill("38");
+  await page.getByLabel("Tusukan gancu ekor 2").getByRole("button", { name: "Tambah gancu" }).click();
+  await expect(page.getByTestId("ringkasan-ekor")).toContainText("2 ekor · 80 kg");
+  await expect(page.getByTestId("ringkasan-ekor")).toContainText("79 kg dibayar");
+  await page.getByRole("button", { name: "Catat penerimaan" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Ikan udah diterima" })).toBeVisible();
+
+  // Berat total, cara lama, tetap bisa.
+  await page.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
+  await page.getByRole("radio", { name: "Berat total" }).click();
   await page.getByLabel("Berat timbang (kg)").fill("150");
   await page.getByRole("button", { name: "Catat penerimaan" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Ikan udah diterima" })).toBeVisible();

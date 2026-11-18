@@ -15,7 +15,7 @@ const KOLOM = "md:grid md:grid-cols-[minmax(0,1fr)_100px_130px_minmax(0,1.4fr)_a
 const AMBER = "#8A5A00";
 /** Posisi pembelian lot: belum diajukan, lagi diajukan, atau kode PO-nya. */
 const statusBeli = (l: LotBaris) => (l.po_kode ? l.po_kode : l.po_id ? "Diajukan" : "Belum diajukan");
-const teksLot = (l: LotBaris) => `${l.kode} ${statusBeli(l)} ${l.cycles?.kode ?? ""} ${l.cycles?.nama ?? ""} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
+const teksLot = (l: LotBaris) => `${l.kode} ${(l.lot_ekor ?? []).map((e) => e.no_tag).join(" ")} ${statusBeli(l)} ${l.cycles?.kode ?? ""} ${l.cycles?.nama ?? ""} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
 /** Lampiran lot (nota nelayan, foto timbangan) beserta aturan wajibnya dari admin. Null bila pengguna tidak boleh melihat berkas. */
 export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean; aturan: AturanLampiran[] };
@@ -87,7 +87,9 @@ function BarisLot({ l, aksi, kurang }: { l: LotBaris; aksi: React.ReactNode; kur
   const catatan = l.sebelum_disetujui ? "Bongkar malam" : l.qc_catatan || l.catatan || "";
   const menunggu = l.qc === "menunggu";
   const grade = gradeLot(l);
-  const sisa = grade.length > 0 ? sisaBelumDibagi(l.kg, grade) : 0;
+  // Lot per ekor: potongan gancu memang nggak dibayar, jadi bukan "belum digrading".
+  const potongan = (l.lot_ekor ?? []).reduce((a, e) => a + Math.round(e.potongan_kg * 1000), 0) / 1000;
+  const sisa = grade.length > 0 ? Math.max(0, Math.round((sisaBelumDibagi(l.kg, grade) - potongan) * 1000) / 1000) : 0;
   return (
     <li className={`flex flex-col gap-3 border-t border-[#EEF0F4] px-4 py-4 first:border-t-0 md:items-center md:px-5 ${KOLOM} hover:bg-[#FAFBFD]`}
       style={menunggu ? { boxShadow: "inset 3px 0 0 #E2B24A" } : undefined}>
@@ -108,7 +110,8 @@ function BarisLot({ l, aksi, kurang }: { l: LotBaris; aksi: React.ReactNode; kur
         <span className="text-[12px] md:hidden" style={{ color: MUTED }}>Diterima</span>
         <div className="text-right md:text-left">
           <div className="text-[14px] font-semibold tabular-nums" style={{ color: INK }}>{formatKg(l.kg)} kg</div>
-          <div className="text-[12px]" style={{ color: MUTED }}>{tanggal(l.tanggal_terima)}</div>
+          <div className="text-[12px]" style={{ color: MUTED }}>{tanggal(l.tanggal_terima)}{l.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}</div>
+          {potongan > 0 && <div className="text-[12px] tabular-nums" style={{ color: MUTED }}>Potongan gancu {formatKg(potongan)} kg</div>}
         </div>
       </div>
 

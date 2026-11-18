@@ -32,8 +32,17 @@ const FormMulai = z.object({
   catatan: z.string().trim().max(300),
   kgPt: z.string().max(14).optional(),
   alokasi: z.string().max(20_000).optional(),
+  jumlahEkor: z.string().max(7).optional(),
 });
 const Alokasi = z.array(z.object({ lot_id: z.uuid(), kg: z.string() }));
+
+/** Jumlah ekor dari isian: kosong = null, selain angka bulat positif = salah. */
+function bacaJumlahEkor(t: string | undefined): number | null | "salah" {
+  const s = (t ?? "").trim();
+  if (s === "") return null;
+  const n = Number(s);
+  return Number.isInteger(n) && n > 0 && n <= 100_000 ? n : "salah";
+}
 
 function proyekBaru(d: z.infer<typeof FormMulai>) {
   return d.siklusId === "baru" ? { nama: d.namaProyek ?? "", lini_bisnis: d.lini, pt_id: d.lini === "jual" ? "" : d.ptId ?? "" } : null;
@@ -58,6 +67,8 @@ export async function mulaiProduksi(_: HasilForm, fd: FormData): Promise<HasilFo
     return { id: data as string, pesan: "Proyek titipan udah dibikin. Lanjut terima barangnya di Gudang Dingin." };
   }
 
+  const ekor = bacaJumlahEkor(d.jumlahEkor);
+  if (ekor === "salah") return { kolom: { jumlahEkor: ["Isi angka bulat, atau kosongin"] } };
   const alokasi: { lot_id: string; kg: number }[] = [];
   let kgPt: number | null = null;
   if (d.lini === "jasa") {
@@ -83,6 +94,10 @@ export async function mulaiProduksi(_: HasilForm, fd: FormData): Promise<HasilFo
     p_cycle: d.siklusId === "baru" ? null : d.siklusId, p_proyek_baru: proyekBaru(d), p_kg_pt: kgPt,
   });
   if (error) return { error: pesanDb(error) };
+  if (ekor !== null) {
+    const { error: e2 } = await supabase.rpc("isi_ekor_produksi", { p_production: data as string, p_jumlah: ekor, p_alasan: "" });
+    if (e2) return { id: data as string, pesan: `Produksi dimulai, tapi jumlah ekornya gagal disimpan: ${pesanDb(e2)}` };
+  }
   refresh();
   return { pesan: "Produksi dimulai.", id: data as string };
 }
@@ -96,6 +111,7 @@ const FormKoreksi = z.object({
   catatan: z.string().trim().max(300),
   alokasi: z.string().max(20_000).optional(),
   alasan: z.string().trim().min(1, "Tulis alasan koreksinya").max(500, "Alasannya kepanjangan"),
+  jumlahEkor: z.string().max(7).optional(),
 });
 
 /** Koreksi produksi: tanggal, proyek, berat ikan dari PT, catatan, dan berat tiap lot yang dipakai. Wajib alasan. */
@@ -105,6 +121,8 @@ export async function koreksiProduksi(_: HasilForm, fd: FormData): Promise<Hasil
   const p = FormKoreksi.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   const d = p.data;
+  const ekor = bacaJumlahEkor(d.jumlahEkor);
+  if (ekor === "salah") return { kolom: { jumlahEkor: ["Isi angka bulat, atau kosongin"] } };
   let kgPt: number | null = null;
   if (d.kgPt && d.kgPt.trim() !== "") {
     const g = keGram(d.kgPt);
@@ -129,8 +147,63 @@ export async function koreksiProduksi(_: HasilForm, fd: FormData): Promise<Hasil
     p_production: d.produksiId, p_tanggal: d.tanggal, p_cycle: d.siklusId || null, p_kg_pt: kgPt, p_catatan: d.catatan, p_alasan: d.alasan,
   });
   if (error) return { error: pesanDb(error) };
+  if (d.jumlahEkor !== undefined) {
+    const { error: e2 } = await supabase.rpc("isi_ekor_produksi", { p_production: d.produksiId, p_jumlah: ekor, p_alasan: d.alasan });
+    if (e2) return { error: pesanDb(e2) };
+  }
   refresh();
   return { pesan: "Koreksi udah disimpan." };
+}
+
+/* --------------------------------------------- koreksi timbangan setelah selesai */
+const FormTimbangan = z.object({
+  produksiId: z.uuid(),
+  loin: z.string().max(10_000).optional(),
+  samping: z.string().max(10_000),
+  limbah: z.string().trim().max(14),
+  susut: z.string().trim().max(14),
+  alasan: z.string().trim().min(1, "Tulis alasan koreksinya").max(500, "Alasannya kepanjangan"),
+});
+const BarisKg = (id: "grade_id" | "category_id") => z.array(z.object({ [id]: z.uuid(), kg: z.string().max(14) }));
+
+/** Koreksi timbangan produksi yang udah selesai, diperiksa, atau disetujui (juga yang udah masuk stok). Status nggak berubah. */
+export async function koreksiTimbangan(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("produksi.write");
+  if (tolak) return tolak;
+  const p = FormTimbangan.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const d = p.data;
+  let loin: { grade_id: string; kg: number }[] | null = null;
+  let samping: { category_id: string; kg: number }[] = [];
+  try {
+    if (d.loin) {
+      loin = [];
+      for (const b of BarisKg("grade_id").parse(JSON.parse(d.loin)) as { grade_id: string; kg: string }[]) {
+        const g = gramBolehNol(b.kg);
+        if (g === "salah") return { error: "Berat loin per grade harus angka, paling banyak tiga angka di belakang koma." };
+        loin.push({ grade_id: b.grade_id, kg: kgDariGram(g ?? 0) });
+      }
+    }
+    for (const s of BarisKg("category_id").parse(JSON.parse(d.samping)) as { category_id: string; kg: string }[]) {
+      const g = gramBolehNol(s.kg);
+      if (g === "salah") return { error: "Berat hasil samping harus angka, paling banyak tiga angka di belakang koma." };
+      if (g !== null) samping.push({ category_id: s.category_id, kg: kgDariGram(g) });
+    }
+  } catch {
+    return { error: "Data timbangannya nggak valid. Muat ulang halaman, terus coba lagi." };
+  }
+  samping = samping.filter((s, i, a) => a.findIndex((x) => x.category_id === s.category_id) === i);
+  const limbah = gramBolehNol(d.limbah);
+  const susut = gramBolehNol(d.susut);
+  if (limbah === "salah" || susut === "salah") return { kolom: { limbah: limbah === "salah" ? ["Isi angka, maks. 3 desimal"] : undefined, susut: susut === "salah" ? ["Isi angka, maks. 3 desimal"] : undefined } };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("koreksi_timbangan", {
+    p_production: d.produksiId, p_loin: loin, p_samping: samping,
+    p_limbah: limbah === null ? null : kgDariGram(limbah), p_susut: susut === null ? null : kgDariGram(susut), p_alasan: d.alasan,
+  });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Timbangan udah dikoreksi." };
 }
 
 const FormBukaLagi = z.object({

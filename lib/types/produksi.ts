@@ -35,9 +35,14 @@ export type ProduksiBaris = {
   lini_bisnis?: LiniBisnis;
   pt_id?: string | null;
   pt_nama?: string | null;
-  /** Hasilnya udah masuk stok: berat masuk nggak bisa dikoreksi lagi. */
+  /** Hasilnya udah masuk stok: hasil di stok jadi batas bawah koreksi timbangan. */
   sudah_stok?: boolean;
+  /** Jumlah ekor yang masuk produksi (boleh kosong). */
+  jumlah_ekor?: number | null;
 };
+
+/** Lot asal produksi: berat lot, jumlah ekor, dan grade tuna utuhnya (berat dibayar per grade). */
+export type LotAsal = { id: string; kg: number; jumlah_ekor: number | null; grade: { kode: string; kg: number }[] };
 
 /** Lini bisnis proyek: jual (ikan kita), jasa (ikan dari PT, kita olah), titip (cuma disimpan). */
 export type LiniBisnis = "jual" | "jasa" | "titip";
@@ -65,4 +70,4 @@ export type LoinTotal = { id: string; grade_id: string; kg: number };
 export type Ekor = { id: string; no_ekor: number; berat_utuh_kg: number };
 export type KomponenSamping = { id: string; category_id: string; kg: number };
 export type RiwayatLoin = { id: number; item_id: string; aksi: "tambah" | "koreksi" | "batal"; sebelum: Record<string, unknown> | null; sesudah: Record<string, unknown>; oleh: string | null; pada: string };
-export type LotSiap = { id: string; kode: string; sisa_kg: number; grade_kode: string | null; supplier_nama: string };
+export type LotSiap = { id: string; kode: string; sisa_kg: number; grade_kode: string | null; supplier_nama: string; kg?: number; jumlah_ekor?: number | null };

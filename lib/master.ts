@@ -69,6 +69,7 @@ export const PENGATURAN = {
   rencana_hasil_pct: { label: "Rencana hasil olahan (%)", min: 1, max: 100 },
   batas_hasil_min_pct: { label: "Batas bawah hasil wajar (%)", min: 0, max: 100 },
   batas_hasil_max_pct: { label: "Batas atas hasil wajar (%)", min: 0, max: 100 },
+  potongan_gancu_kg: { label: "Potongan per tusukan gancu (kg)", min: 0, max: 5 },
 } as const;
 export type KunciPengaturan = keyof typeof PENGATURAN;
 export const isKunciPengaturan = (k: unknown): k is KunciPengaturan => typeof k === "string" && k in PENGATURAN;

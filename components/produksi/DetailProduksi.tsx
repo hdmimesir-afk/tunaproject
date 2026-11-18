@@ -17,7 +17,7 @@ import { LABEL_LINI, type ProyekOpsi } from "@/lib/types/produksi";
 import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
 import { cetakFormulir } from "./cetak";
 import { GridLoin } from "./GridLoin";
-import { BukaLagi, KoreksiProduksi } from "./KoreksiProduksi";
+import { BukaLagi, KoreksiProduksi, KoreksiTimbangan } from "./KoreksiProduksi";
 
 type Props = {
   detail: Detail;
@@ -67,7 +67,8 @@ function Neraca({ p, batas }: { p: Detail["produksi"]; batas: BatasHasil }) {
   const n = hitungNeraca({ masukKg: p.masuk_kg, loinKg: p.loin_kg, hasilSampingKg: p.samping_kg, limbahKg: p.limbah_kg, susutKg: p.susut_kg }, batas);
   return (
     <Inner className="!p-3.5">
-      <Baris k="Ikan masuk" v={`${kgTeks(n.masukKg)} kg`} tebal />
+      <Baris k="Ikan masuk" v={`${p.jumlah_ekor ? `${p.jumlah_ekor} ekor · ` : ""}${kgTeks(n.masukKg)} kg`} tebal />
+      {!!p.jumlah_ekor && n.masukKg > 0 && <Baris k="Rata-rata per ekor" v={`${kgTeks(Math.round((n.masukKg / p.jumlah_ekor) * 1000) / 1000)} kg utuh${n.loinKg > 0 ? ` · ${kgTeks(Math.round((n.loinKg / p.jumlah_ekor) * 1000) / 1000)} kg loin` : ""}`} />}
       <Baris k={`Loin · ${formatPct(n.hasilPct)}% dari ikan masuk`} v={`${kgTeks(n.loinKg)} kg`} />
       <Baris k="Hasil samping" v={`${kgTeks(n.hasilSampingKg)} kg`} />
       <Baris k="Limbah" v={n.limbahKg === null ? "belum ditimbang" : `${kgTeks(n.limbahKg)} kg`} />
@@ -255,6 +256,7 @@ function MintaPerbaikan({ id }: { id: string }) {
 export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehTulis, bolehPeriksa, bolehSetuju, proyek, koreksiAwal, onTutup }: Props) {
   const { produksi: p, alokasi, loin, ekor, riwayat } = detail;
   const [koreksi, setKoreksi] = useState(!!koreksiAwal && bolehTulis);
+  const [timbangan, setTimbangan] = useState(false);
   const jasa = p.kg_masuk_pt !== null && p.kg_masuk_pt !== undefined;
   const berjalan = p.status === "berjalan";
   const bolehEdit = bolehTulis && berjalan;
@@ -282,6 +284,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         {p.siklus_kode && <Pill t={[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" · ")} />}
         <span className="ml-auto flex flex-wrap gap-2">
           {bolehTulis && <Btn size="sm" v="light" onClick={() => setKoreksi(true)}>Koreksi</Btn>}
+          {bolehTulis && !berjalan && <Btn size="sm" v="light" onClick={() => setTimbangan(true)}>Koreksi timbangan</Btn>}
           {bolehSetuju && p.status === "diperiksa" && !p.sudah_stok && <BukaLagi produksiId={p.id} />}
           <Btn size="sm" v="light" onClick={() => { if (!cetakFormulir(detail, namaGrade, namaSamping)) alert("Jendela cetak diblokir browser. Izinkan pop-up dulu, terus coba lagi."); }}>Cetak formulir</Btn>
         </span>
@@ -290,6 +293,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         {LABEL_LINI[p.lini_bisnis ?? "jual"]} · Pemilik ikan: {p.pt_nama ?? (jasa ? "-" : "PT Katalis (sendiri)")}
       </p>
       {koreksi && <KoreksiProduksi detail={detail} proyek={proyek} onTutup={() => setKoreksi(false)} />}
+      {timbangan && <KoreksiTimbangan detail={detail} grade={grade} samping={samping} onTutup={() => setTimbangan(false)} />}
 
       {p.catatan_perbaikan && berjalan && (
         <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Diminta perbaikan: {p.catatan_perbaikan}</p>
@@ -303,9 +307,17 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         </Bagian>
       ) : (
         <Bagian judul="Lot yang diproduksi">
-          <div className="flex flex-wrap gap-1.5">
-            {alokasi.map((a) => <span key={a.id} className="rounded-full bg-white px-3 py-1.5 text-[12.5px]" style={{ color: INK }}>{a.lot_kode} · {kgTeks(a.kg)} kg</span>)}
-          </div>
+          <ul className="overflow-hidden rounded-2xl bg-white" data-testid="lot-asal">
+            {alokasi.map((a) => {
+              const l = detail.lotAsal.find((x) => x.id === a.lot_id);
+              return (
+                <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-t border-[#EEF0F4] px-3.5 py-2 text-[12.5px] first:border-t-0" style={{ color: INK }}>
+                  <span><b className="font-semibold">{a.lot_kode}</b> · {kgTeks(a.kg)} kg dipakai{l && Math.round(l.kg * 1000) !== Math.round(a.kg * 1000) ? ` dari ${kgTeks(l.kg)} kg` : ""}{l?.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}</span>
+                  <span style={{ color: MUTED }}>Grade tuna utuh: {l && l.grade.length > 0 ? l.grade.map((g) => `${g.kode} ${kgTeks(g.kg)} kg`).join(", ") : "belum digrading"}</span>
+                </li>
+              );
+            })}
+          </ul>
         </Bagian>
       )}
 

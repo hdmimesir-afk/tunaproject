@@ -10,10 +10,19 @@ function gagal(apa: string): never {
 export async function daftarLot(): Promise<LotBaris[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("lots")
-    .select("*, suppliers(nama), grades(kode, nama), cycles(kode, nama), lot_grades(grade_id, kg, grades(kode)), purchase_orders(kode, status_persetujuan)")
+    .select("*, suppliers(nama), grades(kode, nama), cycles(kode, nama), lot_grades(grade_id, kg, grades(kode)), purchase_orders(kode, status_persetujuan), lot_ekor(id, urutan, no_tag, spesies, kg, grade_id, gancu, potongan_kg, kg_bayar, batal)")
     .order("kode", { ascending: false }).limit(100);
   if (error) gagal("daftar lot");
-  return (data ?? []) as unknown as LotBaris[];
+  // Ekor yang dibuang lewat koreksi nggak ditampilkan; urut sesuai catatan.
+  return ((data ?? []) as unknown as LotBaris[]).map((l) => ({ ...l, lot_ekor: (l.lot_ekor ?? []).filter((e) => !e.batal).sort((a, b) => a.urutan - b.urutan) }));
+}
+
+/** Potongan berat per tusukan gancu (kg), dari Pengaturan. */
+export async function potonganGancu(): Promise<number> {
+  const sb = await createClient();
+  const { data } = await sb.from("settings").select("nilai").eq("kunci", "potongan_gancu_kg").maybeSingle();
+  const n = Number(data?.nilai);
+  return Number.isFinite(n) && n >= 0 ? n : 1;
 }
 
 export async function gradeAktif(): Promise<Opsi[]> {

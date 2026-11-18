@@ -3,7 +3,7 @@ import { BATAS_BAWAAN, type BatasHasil } from "@/lib/logic/neraca";
 import { createClient } from "@/lib/supabase/server";
 import { gradeLot } from "@/lib/logic/pembelian";
 import type { LotBaris, Opsi } from "@/lib/types/pembelian";
-import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LoinTotal, LotSiap, ProduksiBaris, ProyekOpsi, RiwayatLoin } from "@/lib/types/produksi";
+import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LoinTotal, LotAsal, LotSiap, ProduksiBaris, ProyekOpsi, RiwayatLoin } from "@/lib/types/produksi";
 import { riwayatKoreksi, type Koreksi } from "./koreksi";
 
 /* Lapisan akses data produksi. Klien pengguna, jadi RLS berlaku. Pemanggil sudah memeriksa produksi.read. */
@@ -19,18 +19,48 @@ export async function daftarProduksi(): Promise<ProduksiBaris[]> {
   return (data ?? []) as ProduksiBaris[];
 }
 
+/** Ringkasan grade per produksi buat laporan: grade loin (grading akhir) dan grade tuna utuh dari lot asalnya. */
+export type GradeProduksi = { loin: string; utuh: string };
+export async function ringkasGradeProduksi(ids: string[]): Promise<Record<string, GradeProduksi>> {
+  if (ids.length === 0) return {};
+  const sb = await createClient();
+  const [total, potong, alokasi] = await Promise.all([
+    sb.from("production_loin_totals").select("production_id, kg, grades(kode, urutan)").in("production_id", ids).gt("kg", 0),
+    sb.from("production_items").select("production_id, kg, grades(kode, urutan)").in("production_id", ids).eq("batal", false),
+    sb.from("lot_allocations").select("production_id, lots(qc, lot_grades(kg, grades(kode, urutan)))").in("production_id", ids),
+  ]);
+  if (total.error || potong.error || alokasi.error) gagal("ringkasan grade produksi");
+  type G = { kode: string; urutan: number } | null;
+  const tambah = (peta: Map<string, Map<string, { gram: number; urutan: number }>>, id: string, g: G, kg: number) => {
+    const m = peta.get(id) ?? new Map<string, { gram: number; urutan: number }>();
+    const x = m.get(g?.kode ?? "?") ?? { gram: 0, urutan: g?.urutan ?? 99 };
+    m.set(g?.kode ?? "?", { gram: x.gram + Math.round(Number(kg) * 1000), urutan: x.urutan });
+    peta.set(id, m);
+  };
+  const loin = new Map<string, Map<string, { gram: number; urutan: number }>>();
+  for (const r of [...(total.data ?? []), ...(potong.data ?? [])] as unknown as { production_id: string; kg: number; grades: G }[]) tambah(loin, r.production_id, r.grades, r.kg);
+  const utuh = new Map<string, Map<string, { gram: number; urutan: number }>>();
+  for (const a of (alokasi.data ?? []) as unknown as { production_id: string; lots: { qc: string; lot_grades: { kg: number; grades: G }[] } | null }[]) {
+    if (a.lots?.qc !== "lulus") continue;
+    for (const g of a.lots.lot_grades) if (g.kg > 0) tambah(utuh, a.production_id, g.grades, g.kg);
+  }
+  const teks = (m?: Map<string, { gram: number; urutan: number }>) =>
+    m ? [...m.entries()].sort((a, b) => a[1].urutan - b[1].urutan || a[0].localeCompare(b[0])).map(([k, v]) => `${k} ${(v.gram / 1000).toLocaleString("id-ID", { maximumFractionDigits: 3 })}`).join(", ") : "";
+  return Object.fromEntries(ids.map((id) => [id, { loin: teks(loin.get(id)), utuh: teks(utuh.get(id)) }]));
+}
+
 /** Lot yang nggak ditahan dan masih bersisa, siap dialokasikan ke produksi. Lot yang belum digrading juga boleh diolah. */
 export async function lotSiapProduksi(): Promise<LotSiap[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("lots")
-    .select("id, kode, kg, qc, sisa_kg, grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
+    .select("id, kode, kg, qc, sisa_kg, jumlah_ekor, grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
     .neq("qc", "ditahan").gt("sisa_kg", 0).order("kode");
   if (error) gagal("daftar lot");
   return (data ?? []).map((l) => {
     const x = l as unknown as LotBaris & { suppliers: { nama: string } | null };
     // Satu lot bisa beberapa grade (cek mutu); ditampilkan semua, terberat dulu.
     const kode = gradeLot(x).map((g) => g.kode).join(", ");
-    return { id: x.id, kode: x.kode, sisa_kg: x.sisa_kg, grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-" };
+    return { id: x.id, kode: x.kode, sisa_kg: x.sisa_kg, grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-", kg: x.kg, jumlah_ekor: x.jumlah_ekor ?? null };
   });
 }
 
@@ -89,6 +119,8 @@ export type DetailProduksi = {
   samping: KomponenSamping[];
   riwayat: RiwayatLoin[];
   koreksi: Koreksi[];
+  /** Lot asal (jumlah ekor dan grade tuna utuh), buat laporan produksi. */
+  lotAsal: LotAsal[];
 };
 
 export async function detailProduksi(id: string): Promise<DetailProduksi | null> {
@@ -104,9 +136,21 @@ export async function detailProduksi(id: string): Promise<DetailProduksi | null>
   ]);
   if (p.error || alokasi.error || loin.error || total.error || ekor.error || samping.error || riwayat.error) gagal("detail produksi");
   if (!p.data) return null;
-  const koreksi = await riwayatKoreksi(["productions"], [id]);
+  const idLot = (alokasi.data ?? []).map((a) => a.lot_id as string);
+  const [koreksi, lot] = await Promise.all([
+    riwayatKoreksi(["productions"], [id]),
+    idLot.length > 0
+      ? sb.from("lots").select("id, kg, qc, jumlah_ekor, lot_grades(kg, grades(kode))").in("id", idLot)
+      : Promise.resolve({ data: [] as unknown[], error: null }),
+  ]);
+  const lotAsal: LotAsal[] = ((lot.data ?? []) as { id: string; kg: number; qc: string; jumlah_ekor: number | null; lot_grades: { kg: number; grades: { kode: string } | null }[] }[])
+    .map((l) => ({
+      id: l.id, kg: Number(l.kg), jumlah_ekor: l.jumlah_ekor,
+      grade: l.qc === "lulus" ? l.lot_grades.filter((g) => g.kg > 0).map((g) => ({ kode: g.grades?.kode ?? "?", kg: Number(g.kg) })) : [],
+    }));
   return {
     koreksi,
+    lotAsal,
     produksi: p.data as ProduksiBaris,
     alokasi: (alokasi.data ?? []) as AlokasiLot[],
     loin: (loin.data ?? []) as ItemLoin[],

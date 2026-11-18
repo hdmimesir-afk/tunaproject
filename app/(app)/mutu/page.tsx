@@ -7,7 +7,7 @@ import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
 import { dokumenDari } from "@/lib/data/dokumen";
 import { riwayatKoreksi } from "@/lib/data/koreksi";
-import { daftarLot, gradeAktif } from "@/lib/data/mutu";
+import { daftarLot, gradeAktif, potonganGancu } from "@/lib/data/mutu";
 import { aturanLampiran, daftarSiklus, pemasokAktif, petaPengguna } from "@/lib/data/pembelian";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
@@ -35,8 +35,8 @@ async function MutuData() {
   if (!boleh(sesi, "mutu.read")) return <TanpaIzin />;
   const bolehTerima = boleh(sesi, "penerimaan.write");
   const bolehLampiran = boleh(sesi, "dokumen.read");
-  const [lots, grade, aturan, pemasok, siklus, pengguna] = await Promise.all([
-    daftarLot(), gradeAktif(), bolehLampiran ? aturanLampiran() : Promise.resolve([]), pemasokAktif(), daftarSiklus(), petaPengguna(),
+  const [lots, grade, aturan, pemasok, siklus, pengguna, potonganKg] = await Promise.all([
+    daftarLot(), gradeAktif(), bolehLampiran ? aturanLampiran() : Promise.resolve([]), pemasokAktif(), daftarSiklus(), petaPengguna(), potonganGancu(),
   ]);
   const [dokumen, koreksi] = await Promise.all([
     bolehLampiran ? dokumenDari("lots", lots.map((l) => l.id)) : Promise.resolve([]),
@@ -45,7 +45,7 @@ async function MutuData() {
   return (
     <MutuKelola lots={lots} grade={grade} pemasok={pemasok} siklus={siklus} pengguna={pengguna} koreksi={koreksi} hariIni={hariIni()}
       bolehTerima={bolehTerima} bolehMutu={boleh(sesi, "mutu.write")} bolehAjukan={boleh(sesi, "pembelian.write")}
-      bolehPemasokBaru={boleh(sesi, "master.write")}
+      bolehPemasokBaru={boleh(sesi, "master.write")} potonganKg={potonganKg}
       lampiran={bolehLampiran ? { dokumen, aturan, bolehTulis: boleh(sesi, "dokumen.write") } : null} />
   );
 }

@@ -14,7 +14,9 @@ import { rp } from "@/lib/format";
 import { keGram } from "@/lib/logic/grid";
 import { formatKg } from "@/lib/logic/neraca";
 import { gradeLot, lampiranWajib, rincianAjukan } from "@/lib/logic/pembelian";
+import { ringkasEkor } from "@/lib/logic/ekor";
 import { DaftarLot, type LampiranLot } from "./DaftarLot";
+import { dariLot, ekorBaru, IsianEkor } from "./IsianEkor";
 import type { LotBaris, Opsi, Pengguna } from "@/lib/types/pembelian";
 
 const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]";
@@ -46,7 +48,9 @@ function PilihPemasok({ pemasok, nilai, onUbah, bolehBaru, error }: { pemasok: O
 }
 
 /* ------------------------------------------------------------ terima ikan */
-function TerimaIkan(props: { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: boolean; hariIni: string }) {
+type PropsTerima = { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; grade: Opsi[]; bolehMutu: boolean; potonganKg: number };
+
+function TerimaIkan(props: PropsTerima) {
   // Setelah sukses, form dipasang ulang (key berganti) supaya isiannya kosong, dan pesan sukses tetap tampil.
   const [kunci, setKunci] = useState(0);
   const [berhasil, setBerhasil] = useState<string | null>(null);
@@ -58,27 +62,62 @@ function TerimaIkan(props: { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: 
   );
 }
 
-function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, onSukses }: { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; onSukses: (pesan: string) => void }) {
+function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMutu, potonganKg, onSukses }: PropsTerima & { onSukses: (pesan: string) => void }) {
   const [supplierId, setSupplierId] = useState("");
   const [proyek, setProyek] = useState("");
+  const [cara, setCara] = useState<"total" | "ekor">("ekor");
+  const [ekor, setEkor] = useState(() => [ekorBaru()]);
+  const [kg, setKg] = useState("");
+  const [langsungGrade, setLangsungGrade] = useState(false);
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev, fd) => {
     const r = await terimaIkan(prev, fd);
     if (r?.pesan) onSukses(r.pesan);
     return r;
   }, undefined);
+  const r = ringkasEkor(ekor, potonganKg);
+  const kgAngka = Number(kg.replace(",", "."));
+  const bisaKirim = cara === "total" || (r.jumlah > 0 && r.salah.size === 0 && (!r.adaGrade || r.semuaGrade));
   return (
     <form action={action} className="space-y-3 px-2.5 pb-2.5">
       <Pesan state={state?.error ? state : undefined} />
-      <p className="text-[13px]" style={{ color: MUTED }}>Ikan yang datang langsung dicatat di sini, nggak perlu nunggu PO. PO-nya terbit nanti setelah pembeliannya disetujui.</p>
+      <input type="hidden" name="cara" value={cara} />
+      <p className="text-[13px]" style={{ color: MUTED }}>
+        Ikan yang datang langsung dicatat di sini, nggak perlu nunggu PO.{bolehMutu ? " Grade-nya bisa sekalian diisi." : " Grade-nya nanti diisi QC."} PO terbit setelah pembeliannya disetujui.
+      </p>
       <PilihPemasok pemasok={pemasok} nilai={supplierId} onUbah={setSupplierId} bolehBaru={bolehPemasokBaru} error={state?.kolom?.supplierId?.[0]} />
+      <div role="radiogroup" aria-label="Cara catat" className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-1">
+        {([["ekor", "Per ekor"], ["total", "Berat total"]] as const).map(([id, label]) => (
+          <button key={id} type="button" role="radio" aria-checked={cara === id} onClick={() => setCara(id)}
+            className="h-10 rounded-xl text-[13.5px] font-medium" style={cara === id ? { background: INK, color: "#fff" } : { color: MUTED }}>{label}</button>
+        ))}
+      </div>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Berat timbang (kg)" error={state?.kolom?.kg?.[0]}>
-          <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" required />
-        </Field>
+        {cara === "total" ? (
+          <Field label="Berat timbang (kg)" error={state?.kolom?.kg?.[0]}>
+            <TextIn name="kg" inputMode="decimal" value={kg} onChange={(e) => setKg(e.target.value)} required />
+          </Field>
+        ) : <div className="hidden" />}
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}>
           <TextIn name="tanggal" type="date" defaultValue={hariIni} required />
         </Field>
+        {cara === "total" && (
+          <Field label="Jumlah ekor" hint="Boleh kosong." error={state?.kolom?.jumlahEkor?.[0]}>
+            <TextIn name="jumlahEkor" inputMode="numeric" />
+          </Field>
+        )}
       </div>
+      {cara === "ekor" && <IsianEkor baris={ekor} onUbah={setEkor} grade={grade} bolehGrade={bolehMutu} potonganKg={potonganKg} error={state?.kolom?.ekor?.[0]} />}
+      {cara === "total" && bolehMutu && (
+        <label className="flex items-center gap-2.5 text-[13px]" style={{ color: INK }}>
+          <input type="checkbox" checked={langsungGrade} onChange={(e) => setLangsungGrade(e.target.checked)} className="h-4 w-4 accent-[#00171F]" />
+          <span>Sekalian grading</span>
+        </label>
+      )}
+      {cara === "total" && langsungGrade && (
+        Number.isFinite(kgAngka) && kgAngka > 0
+          ? <IsianGrade kgLot={kgAngka} grade={grade} error={state?.kolom?.baris?.[0]} />
+          : <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat timbangnya dulu.</p>
+      )}
       <Field label="Proyek (batch atau bongkaran)" error={state?.kolom?.siklusId?.[0]}>
         <select name="siklusId" value={proyek} onChange={(e) => setProyek(e.target.value)} className={selectCls}>
           <option value="">Tanpa proyek</option>
@@ -92,7 +131,7 @@ function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, onSukses }: { 
         </Field>
       )}
       <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
-      <Btn type="submit" disabled={pending}>{pending ? "Menyimpan..." : "Catat penerimaan"}</Btn>
+      <Btn type="submit" disabled={pending || !bisaKirim}>{pending ? "Menyimpan..." : "Catat penerimaan"}</Btn>
       <p className="text-[12px]" style={{ color: MUTED }}>Foto timbangan dilampirin dari daftar lot di bawah, tombol Lampiran.</p>
     </form>
   );
@@ -103,18 +142,18 @@ type BarisIsian = { k: number; gradeId: string; kg: string };
 const teksKg = (kg: number) => String(kg).replace(".", ",");
 
 /** Satu lot bisa berisi beberapa grade. Baris pertama terisi berat lot penuh, jadi lot satu grade cukup pilih grade-nya. */
-function IsianGrade({ lot, grade, error }: { lot: LotBaris; grade: Opsi[]; error?: string }) {
+function IsianGrade({ lot, kgLot, grade, error }: { lot?: LotBaris; kgLot: number; grade: Opsi[]; error?: string }) {
   const [baris, setBaris] = useState<BarisIsian[]>(() => {
-    const ada = gradeLot(lot);
+    const ada = lot ? gradeLot(lot) : [];
     return ada.length > 0
       ? ada.map((g, i) => ({ k: i, gradeId: g.grade_id, kg: teksKg(g.kg) }))
-      : [{ k: 0, gradeId: "", kg: teksKg(lot.kg) }];
+      : [{ k: 0, gradeId: "", kg: kgLot > 0 ? teksKg(kgLot) : "" }];
   });
   const ubah = (k: number, isi: Partial<BarisIsian>) => setBaris((b) => b.map((x) => (x.k === k ? { ...x, ...isi } : x)));
   const tambah = () => setBaris((b) => [...b, { k: Math.max(...b.map((x) => x.k)) + 1, gradeId: "", kg: "" }]);
   const hapus = (k: number) => setBaris((b) => b.filter((x) => x.k !== k));
 
-  const gramLot = Math.round(lot.kg * 1000);
+  const gramLot = Math.round(kgLot * 1000);
   const gramIsi = baris.reduce((a, b) => a + (keGram(b.kg) ?? 0), 0);
   const lebih = gramIsi > gramLot;
   const sisa = gramLot - gramIsi;
@@ -148,7 +187,7 @@ function IsianGrade({ lot, grade, error }: { lot: LotBaris; grade: Opsi[]; error
       )}
       <p className="rounded-2xl px-3.5 py-2.5 text-[13px] tabular-nums" data-testid="jumlah-grade"
         style={lebih ? { background: "#FBE5E3", color: "#A8322B" } : sisa > 0 ? { background: "#FBF0D5", color: "#8A5A00" } : { background: "#fff", color: INK }}>
-        Jumlah {formatKg(gramIsi / 1000)} kg dari {formatKg(lot.kg)} kg.{" "}
+        Jumlah {formatKg(gramIsi / 1000)} kg dari {formatKg(kgLot)} kg.{" "}
         {lebih ? `Kelebihan ${formatKg(-sisa / 1000)} kg, kurangin beratnya.` : sisa > 0 ? `${formatKg(sisa / 1000)} kg belum digrading, jadi nggak ikut dibayar.` : "Semua berat udah digrading."}
       </p>
       {error && <p role="alert" className="text-[12.5px]" style={{ color: "#A8322B" }}>{error}</p>}
@@ -161,19 +200,42 @@ function Grading({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
   const [state, action, pending] = useActionState<HasilForm, FormData>(cekMutuLot, undefined);
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
   const bisaTahan = lot.sisa_kg === lot.kg && !lot.po_id;
+  const ekor = lot.lot_ekor ?? [];
+  const perEkor = ekor.length > 0;
+  const kodeGrade = new Map(grade.map((g) => [g.id, g.label.split(" · ")[0]]));
+  const ringkas = [...ekor.reduce((m, e) => {
+    const k = e.grade_id ?? "";
+    const x = m.get(k) ?? { n: 0, kg: 0 };
+    return m.set(k, { n: x.n + 1, kg: Math.round((x.kg + e.kg_bayar) * 1000) / 1000 });
+  }, new Map<string, { n: number; kg: number }>()).entries()];
+  const kurangGrade = ekor.filter((e) => !e.grade_id).length;
   return (
     <Modal title={`Grading ${lot.kode}`} onClose={onTutup}>
       <form action={action} className="space-y-4">
         <input type="hidden" name="lotId" value={lot.id} />
         <input type="hidden" name="hasil" value={tahan ? "ditahan" : "lulus"} />
+        {perEkor && <input type="hidden" name="perEkor" value="1" />}
         <Pesan state={state} />
-        <p className="text-[13px]" style={{ color: MUTED }}>{lot.suppliers?.nama ?? "-"} · {formatKg(lot.kg)} kg</p>
+        <p className="text-[13px]" style={{ color: MUTED }}>{lot.suppliers?.nama ?? "-"} · {formatKg(lot.kg)} kg{lot.jumlah_ekor ? ` · ${lot.jumlah_ekor} ekor` : ""}</p>
         <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }} data-testid="arti-mutu">
           {tahan
             ? "Ditahan: ikannya gugur atau bau, jadi nggak diolah dan nggak diajukan pembeliannya."
             : "Grading tuna utuh. Hasilnya dipakai buat ngitung harga yang dibayar ke nelayan. Ikannya tetap bisa langsung diolah."}
         </p>
-        {!tahan && <IsianGrade lot={lot} grade={grade} error={state?.kolom?.baris?.[0]} />}
+        {!tahan && !perEkor && <IsianGrade lot={lot} kgLot={lot.kg} grade={grade} error={state?.kolom?.baris?.[0]} />}
+        {!tahan && perEkor && (
+          <div className="space-y-2" data-testid="grade-dari-ekor">
+            <p className="text-[13px]" style={{ color: INK }}>Lot ini dicatat per ekor, jadi grading-nya ngikut grade tiap ekor (berat dibayar, udah dipotong gancu).</p>
+            <ul className="overflow-hidden rounded-2xl bg-white">
+              {ringkas.map(([id, x]) => (
+                <li key={id || "kosong"} className="flex justify-between border-t border-[#EEF0F4] px-3.5 py-2 text-[13px] tabular-nums first:border-t-0" style={{ color: id ? INK : "#8A5A00" }}>
+                  <span>{id ? kodeGrade.get(id) ?? "?" : "Belum ada grade"} · {x.n} ekor</span><b className="font-semibold">{formatKg(x.kg)} kg</b>
+                </li>
+              ))}
+            </ul>
+            {kurangGrade > 0 && <p className="text-[12.5px]" style={{ color: "#8A5A00" }}>{kurangGrade} ekor belum ada grade-nya. Isi lewat tombol Koreksi di lot ini.</p>}
+          </div>
+        )}
         {(bisaTahan || lot.qc === "ditahan") && (
           <label className="flex items-start gap-2.5 text-[13px]" style={{ color: INK }}>
             <input type="checkbox" checked={tahan} onChange={(e) => setTahan(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#A8322B]" />
@@ -181,34 +243,52 @@ function Grading({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
           </label>
         )}
         <Field label="Catatan" hint={tahan ? "Tulis kenapa ditahan." : "Boleh kosong."}><TextIn name="catatan" maxLength={300} defaultValue={lot.qc_catatan} /></Field>
-        <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : tahan ? "Tahan lot ini" : "Simpan grading"}</Btn>
+        <Btn type="submit" full disabled={pending || (!tahan && perEkor && kurangGrade > 0)}>{pending ? "Menyimpan..." : tahan ? "Tahan lot ini" : "Simpan grading"}</Btn>
       </form>
     </Modal>
   );
 }
 
 /* ----------------------------------------------------------------- koreksi */
-function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, onTutup }: {
-  lot: LotBaris; pemasok: Opsi[]; siklus: Opsi[]; koreksi: Koreksi[]; pengguna: Record<string, Pengguna>; onTutup: () => void;
+function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu, potonganKg, onTutup }: {
+  lot: LotBaris; pemasok: Opsi[]; siklus: Opsi[]; koreksi: Koreksi[]; pengguna: Record<string, Pengguna>;
+  grade: Opsi[]; bolehMutu: boolean; potonganKg: number; onTutup: () => void;
 }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(koreksiLot, undefined);
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
+  const perEkor = (lot.lot_ekor ?? []).length > 0;
+  const [ekor, setEkor] = useState(() => dariLot(lot.lot_ekor ?? []));
+  const r = ringkasEkor(ekor, potonganKg);
   const terpakai = Math.max(0, lot.kg - lot.sisa_kg);
   const proyekAda = lot.cycle_id && !siklus.some((s) => s.id === lot.cycle_id) ? [{ id: lot.cycle_id, label: lot.cycles?.kode ?? "Proyek lama" }] : [];
   const nama = Object.fromEntries([...pemasok, ...siklus, ...proyekAda].map((o) => [o.id, o.label]));
   return (
-    <Modal title={`Koreksi ${lot.kode}`} onClose={onTutup}>
+    <Modal title={`Koreksi ${lot.kode}`} onClose={onTutup} lebar={perEkor}>
       <form action={action} className="space-y-4">
         <input type="hidden" name="lotId" value={lot.id} />
         <Pesan state={state} />
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Berat (kg)" hint={terpakai > 0 ? `Minimal ${formatKg(terpakai)} kg, udah dipakai produksi.` : undefined} error={state?.kolom?.kg?.[0]}>
-            <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" defaultValue={lot.kg} required />
-          </Field>
-          <Field label="Tanggal terima" error={state?.kolom?.tanggal?.[0]}>
-            <TextIn name="tanggal" type="date" defaultValue={lot.tanggal_terima} required />
-          </Field>
-        </div>
+        {perEkor ? (
+          <>
+            <input type="hidden" name="kg" value={lot.kg} />
+            <Field label="Tanggal terima" error={state?.kolom?.tanggal?.[0]}>
+              <TextIn name="tanggal" type="date" defaultValue={lot.tanggal_terima} required />
+            </Field>
+            <IsianEkor baris={ekor} onUbah={setEkor} grade={grade} bolehGrade={bolehMutu} potonganKg={potonganKg} error={state?.kolom?.ekor?.[0]} />
+            {terpakai > 0 && <p className="text-[12px]" style={{ color: MUTED }}>Udah dipakai produksi {formatKg(terpakai)} kg, jadi total beratnya minimal segitu.</p>}
+          </>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Berat (kg)" hint={terpakai > 0 ? `Minimal ${formatKg(terpakai)} kg, udah dipakai produksi.` : undefined} error={state?.kolom?.kg?.[0]}>
+              <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" defaultValue={lot.kg} required />
+            </Field>
+            <Field label="Tanggal terima" error={state?.kolom?.tanggal?.[0]}>
+              <TextIn name="tanggal" type="date" defaultValue={lot.tanggal_terima} required />
+            </Field>
+            <Field label="Jumlah ekor" hint="Boleh kosong." error={state?.kolom?.jumlahEkor?.[0]}>
+              <TextIn name="jumlahEkor" inputMode="numeric" defaultValue={lot.jumlah_ekor ?? ""} />
+            </Field>
+          </div>
+        )}
         {lot.po_id ? (
           <>
             <input type="hidden" name="supplierId" value={lot.supplier_id} />
@@ -230,7 +310,7 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, onTutup }: {
         <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} defaultValue={lot.catatan} /></Field>
         <Field label="Alasan koreksi" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={500} required placeholder="Misalnya salah ketik berat" /></Field>
         {lot.po_id && <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Lot ini udah masuk pembelian. Kalau berat yang digrading berubah, harganya dihitung ulang dan pembeliannya balik ke persetujuan.</p>}
-        <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Simpan koreksi"}</Btn>
+        <Btn type="submit" full disabled={pending || (perEkor && (r.jumlah === 0 || r.salah.size > 0))}>{pending ? "Menyimpan..." : "Simpan koreksi"}</Btn>
         <RiwayatKoreksi daftar={koreksi} pengguna={pengguna} nama={nama} />
       </form>
     </Modal>
@@ -341,14 +421,16 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
   const hariIniSaja = lots.filter((l) => l.tanggal_terima === hariIni);
   const perPemasok = [...hariIniSaja.reduce((m, l) => {
     const k = l.supplier_id;
-    const a = m.get(k) ?? { nama: l.suppliers?.nama ?? "-", lot: [] as string[], gram: 0, belum: 0 };
+    const a = m.get(k) ?? { nama: l.suppliers?.nama ?? "-", lot: [] as string[], gram: 0, belum: 0, ekor: 0 };
     a.lot.push(l.kode);
     a.gram += Math.round(l.kg * 1000);
+    a.ekor += l.jumlah_ekor ?? 0;
     if (l.qc === "menunggu") a.belum += 1;
     m.set(k, a);
     return m;
-  }, new Map<string, { nama: string; lot: string[]; gram: number; belum: number }>()).values()];
+  }, new Map<string, { nama: string; lot: string[]; gram: number; belum: number; ekor: number }>()).values()];
   const totalGram = perPemasok.reduce((a, p) => a + p.gram, 0);
+  const totalEkor = perPemasok.reduce((a, p) => a + p.ekor, 0);
   return (
     <Card title="Penerimaan hari ini" right={<span className="text-[12px]" style={{ color: MUTED }}>{hariIniSaja.length} lot</span>}>
       <div className="px-2.5 pb-2.5" data-testid="terima-hari-ini">
@@ -360,7 +442,7 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
               <li key={p.nama + p.lot[0]} className="px-3.5 py-2.5">
                 <div className="flex items-baseline justify-between gap-2 text-[13.5px] font-medium" style={{ color: INK }}>
                   <span className="min-w-0 truncate">{p.nama}</span>
-                  <span className="shrink-0 tabular-nums">{formatKg(p.gram / 1000)} kg</span>
+                  <span className="shrink-0 tabular-nums">{p.ekor > 0 ? `${p.ekor} ekor · ` : ""}{formatKg(p.gram / 1000)} kg</span>
                 </div>
                 <div className="flex justify-between gap-2 text-[12px]" style={{ color: MUTED }}>
                   {/* Daftar lot dibatasi biar nelayan yang setor banyak lot nggak bikin kotaknya melebar. */}
@@ -370,7 +452,7 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
               </li>
             ))}
             <li className="flex justify-between px-3.5 py-2.5 text-[13px] font-semibold tabular-nums" style={{ color: INK }}>
-              <span>Total</span><span>{formatKg(totalGram / 1000)} kg</span>
+              <span>Total</span><span>{totalEkor > 0 ? `${totalEkor} ekor · ` : ""}{formatKg(totalGram / 1000)} kg</span>
             </li>
           </ul>
         )}
@@ -380,9 +462,9 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
 }
 
 /* ---------------------------------------------------------------- halaman */
-export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran }: {
+export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg }: {
   lots: LotBaris[]; grade: Opsi[]; pemasok: Opsi[]; siklus: Opsi[]; pengguna: Record<string, Pengguna>; koreksi: Koreksi[]; hariIni: string;
-  bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null;
+  bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null; potonganKg: number;
 }) {
   const [grading, setGrading] = useState<LotBaris | null>(null);
   const [koreksiLot, setKoreksiLot] = useState<LotBaris | null>(null);
@@ -399,17 +481,17 @@ export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, ha
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} />}
+        {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg} />}
         <TerimaHariIni lots={lots} hariIni={hariIni} />
       </div>
 
       <DaftarLot lots={lots} bolehMutu={bolehMutu} bolehKoreksi={bolehTerima} onGrading={setGrading} onKoreksi={setKoreksiLot} lampiran={lampiran}
         kanan={bolehAjukan && <Btn size="sm" onClick={() => setAjukan(true)}>Ajukan pembelian{siapAjukan > 0 ? ` (${siapAjukan})` : ""}</Btn>} />
       {grading && <Grading key={grading.id} lot={grading} grade={grade} onTutup={() => setGrading(null)} />}
-      {koreksiLot && <KoreksiLot key={koreksiLot.id} lot={koreksiLot} pemasok={pemasok} siklus={siklus} pengguna={pengguna}
+      {koreksiLot && <KoreksiLot key={koreksiLot.id} lot={koreksiLot} pemasok={pemasok} siklus={siklus} pengguna={pengguna} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg}
         koreksi={koreksi.filter((k) => k.ref_id === koreksiLot.id)} onTutup={() => setKoreksiLot(null)} />}
       {ajukan && <AjukanPembelian lots={lots} lampiran={lampiran} onTutup={() => setAjukan(false)} />}
-      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Alurnya: terima ikan, grading tuna utuh (buat harga ke nelayan), ajukan pembelian, disetujui (PO terbit), baru dibayar. Lot yang belum digrading tetap boleh langsung diolah. Yang ditahan cuma ikan gugur atau bau.</p></Inner>
+      <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Alurnya: terima ikan (per ekor atau berat total), grading tuna utuh buat harga ke nelayan (bisa sekalian waktu terima), ajukan pembelian, disetujui (PO terbit), baru dibayar. Lot yang belum digrading tetap boleh langsung diolah. Yang ditahan cuma ikan gugur atau bau.</p></Inner>
     </div>
   );
 }

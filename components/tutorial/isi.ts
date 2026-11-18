@@ -232,13 +232,14 @@ export const BAB: Bab[] = [
         peran: ["owner", "qc", "petugas"],
         langkah: [
           "Di bagian Terima ikan, pilih nelayan atau pemasoknya. Kalau belum ada di daftar, tekan Pemasok belum ada di daftar.",
-          "Isi Berat timbang (kg) dan cek Tanggal.",
-          "Pilih Proyek, atau Proyek baru terus tulis namanya. Satu proyek itu satu batch atau bongkaran.",
+          "Pilih cara catat. Per ekor: isi nomor tag dan berat tiap ekor, tekan Enter buat pindah ke ekor berikutnya (nomor tag-nya nambah sendiri). Tap grade AB, C, atau D, dan tambahin tusukan gancu kalau ada.",
+          "Atau pilih Berat total: isi berat timbang, jumlah ekor kalau tahu, dan centang Sekalian grading kalau mau langsung isi grade-nya.",
+          "Cek Tanggal, terus pilih Proyek, atau Proyek baru dan tulis namanya. Satu proyek itu satu batch atau bongkaran.",
           "Tekan Catat penerimaan. Sistem bikin lot baru.",
         ],
         gambar: "20-hp-mutu",
         keterangan: "Form Terima ikan dan daftar lot di HP.",
-        catatan: "Nggak perlu nunggu PO. PO-nya baru terbit nanti, waktu pembeliannya disetujui.",
+        catatan: "Nggak perlu nunggu PO. PO-nya baru terbit nanti, waktu pembeliannya disetujui. Di cara per ekor, potongan gancu (bawaan 1 kg per tusukan) nggak dibayar, dan hasil grading lot dihitung dari grade tiap ekor. Petugas yang nggak punya izin grading cukup isi tag dan beratnya, grade-nya nanti diisi QC lewat Koreksi.",
       },
       {
         judul: "Melihat daftar lot",

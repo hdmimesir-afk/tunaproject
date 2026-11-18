@@ -6,9 +6,10 @@ import { Btn, Card, DataList, Field, Modal, Pill, Stat, TextIn } from "@/compone
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { mulaiProduksi } from "@/lib/actions/produksi";
-import type { DetailProduksi as Detail } from "@/lib/data/produksi";
+import type { DetailProduksi as Detail, GradeProduksi } from "@/lib/data/produksi";
+import { unduhExcel } from "@/lib/excel";
 import { tanggal } from "@/lib/format";
-import { gramKeTeks, tampilKg } from "@/lib/logic/grid";
+import { gramKeTeks, keGram, tampilKg } from "@/lib/logic/grid";
 import { formatPct, type BatasHasil } from "@/lib/logic/neraca";
 import { LABEL_PRODUKSI } from "@/lib/logic/produksi";
 import type { Opsi, Pengguna } from "@/lib/types/pembelian";
@@ -30,9 +31,42 @@ type Props = {
   bolehPeriksa: boolean;
   bolehSetuju: boolean;
   hariIni: string;
+  /** Grade loin (grading akhir) dan grade tuna utuh lot asal per produksi, buat laporan. */
+  ringkasGrade: Record<string, GradeProduksi>;
 };
 
 const kgTeks = (n: number) => tampilKg(Math.round(n * 1000));
+
+/** Laporan produksi ke Excel: ikan masuk (ekor dan berat), grade tuna utuh, loin per grade, yield, hasil samping, limbah, susut, selisih. */
+function unduhLaporan(daftar: ProduksiBaris[], ringkas: Record<string, GradeProduksi>) {
+  const kg = (n: number | null) => (n === null ? "" : n);
+  const baris = daftar.map((p) => [
+    p.kode, p.tanggal, [p.siklus_kode, p.proyek_nama].filter(Boolean).join(" "), LABEL_LINI[p.lini_bisnis ?? "jual"], p.pt_nama ?? (p.kg_masuk_pt ? "" : "PT Katalis"),
+    p.jumlah_ekor ?? "", kg(p.masuk_kg), ringkas[p.id]?.utuh ?? "", kg(p.loin_kg), ringkas[p.id]?.loin ?? "", p.hasil_pct,
+    kg(p.samping_kg), kg(p.limbah_kg), kg(p.susut_kg), kg(p.belum_jelas_kg), p.belum_jelas_pct, LABEL_PRODUKSI[p.status],
+  ]);
+  const jumlah = (f: (p: ProduksiBaris) => number | null | undefined) => Math.round(daftar.reduce((a, p) => a + Math.round(Number(f(p) ?? 0) * 1000), 0)) / 1000;
+  const masuk = jumlah((p) => p.masuk_kg);
+  const loin = jumlah((p) => p.loin_kg);
+  void unduhExcel("laporan-produksi", {
+    judul: "Laporan produksi",
+    bagian: [{
+      kolom: [
+        { judul: "Kode" }, { judul: "Tanggal" }, { judul: "Proyek" }, { judul: "Lini bisnis" }, { judul: "PT" },
+        { judul: "Jumlah ekor", jenis: "angka" }, { judul: "Ikan masuk (kg)", jenis: "kg" }, { judul: "Grade tuna utuh (lot asal)" },
+        { judul: "Loin (kg)", jenis: "kg" }, { judul: "Grading akhir loin" }, { judul: "Yield (%)", jenis: "persen" },
+        { judul: "Hasil samping (kg)", jenis: "kg" }, { judul: "Limbah (kg)", jenis: "kg" }, { judul: "Susut (kg)", jenis: "kg" },
+        { judul: "Selisih belum jelas (kg)", jenis: "kg" }, { judul: "Selisih (%)", jenis: "persen" }, { judul: "Status" },
+      ],
+      baris: [...baris, [
+        "TOTAL", "", "", "", "", daftar.reduce((a, p) => a + (p.jumlah_ekor ?? 0), 0) || "", masuk, "", loin, "",
+        masuk > 0 ? Math.round((loin / masuk) * 1000) / 10 : "", jumlah((p) => p.samping_kg), jumlah((p) => p.limbah_kg), jumlah((p) => p.susut_kg),
+        jumlah((p) => p.belum_jelas_kg), "", "",
+      ]],
+      tebal: [baris.length],
+    }],
+  });
+}
 
 const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3.5 text-[14px] outline-none focus:border-[#00171F]";
 
@@ -62,6 +96,11 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
       return n;
     });
   const siap = lini === "titip" || lini === "jasa" || alokasi.length > 0;
+  // Saran jumlah ekor: jumlah ekor lot yang dipakai utuh (sisa = berat lot). Lot yang dipakai sebagian nggak bisa ditebak.
+  const dipilih = lotSiap.filter((l) => l.id in pilih);
+  const utuhSemua = dipilih.length > 0 && dipilih.every((l) => l.jumlah_ekor && l.kg !== undefined && l.sisa_kg === l.kg
+    && keGram(pilih[l.id]) === Math.round(l.kg * 1000));
+  const saranEkor = utuhSemua ? dipilih.reduce((a, l) => a + (l.jumlah_ekor ?? 0), 0) : null;
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="alokasi" value={JSON.stringify(alokasi)} />
@@ -122,7 +161,7 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
                 <input type="checkbox" className="h-4 w-4 accent-[#00171F]" checked={aktif} onChange={(e) => alih(l, e.target.checked)} aria-label={`Pakai ${l.kode}`} />
                 <div className="min-w-0 flex-1 text-[13px]">
                   <div className="font-medium">{l.kode}{l.grade_kode ? ` · ${l.grade_kode}` : " · belum digrading"}</div>
-                  <div style={{ color: MUTED }}>{l.supplier_nama} · sisa {kgTeks(l.sisa_kg)} kg</div>
+                  <div style={{ color: MUTED }}>{l.supplier_nama} · sisa {kgTeks(l.sisa_kg)} kg{l.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}</div>
                 </div>
                 {aktif && (
                   <input aria-label={`Berat dari ${l.kode} (kg)`} inputMode="decimal" className="h-9 w-28 rounded-lg border border-[#E2E4EA] px-2 text-right text-[13px]"
@@ -133,13 +172,18 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
           })}
         </div>
       )}
+      {lini !== "titip" && (
+        <Field label="Jumlah ekor" hint={saranEkor ? `Dari lot yang dipilih: ${saranEkor} ekor.` : "Boleh kosong, bisa diisi nanti lewat Koreksi."} error={state?.kolom?.jumlahEkor?.[0]}>
+          <TextIn key={saranEkor ?? "kosong"} name="jumlahEkor" inputMode="numeric" defaultValue={saranEkor ?? ""} />
+        </Field>
+      )}
       <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
       <Btn type="submit" full disabled={pending || !siap}>{pending ? "Menyimpan..." : lini === "titip" ? "Buat proyek titipan" : "Mulai produksi"}</Btn>
     </form>
   );
 }
 
-export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade, samping, pengguna, detail, batas, bolehTulis, bolehPeriksa, bolehSetuju, hariIni }: Props) {
+export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade, samping, pengguna, detail, batas, bolehTulis, bolehPeriksa, bolehSetuju, hariIni, ringkasGrade }: Props) {
   const router = useRouter();
   const [mulai, setMulai] = useState(false);
   const buka = (id: string, koreksi = false) => router.push(`/produksi?p=${id}${koreksi ? "&koreksi=1" : ""}`);
@@ -154,15 +198,18 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
         <Stat value={String(menunggu)} label="Menunggu pemeriksaan" tone={menunggu > 0 ? "warn" : undefined} />
       </div>
 
-      <Card title="Daftar produksi" right={bolehTulis && <Btn size="sm" onClick={() => setMulai(true)}>Mulai produksi</Btn>}>
+      <Card title="Daftar produksi" right={<>
+        {daftar.length > 0 && <Btn size="sm" v="light" onClick={() => unduhLaporan(daftar, ringkasGrade)}>Unduh laporan</Btn>}
+        {bolehTulis && <Btn size="sm" onClick={() => setMulai(true)}>Mulai produksi</Btn>}
+      </>}>
         <DataList
           rows={daftar}
           empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai produksi, terus isi proyek dan ikannya." : "Belum ada produksi."}
           cari={(p) => `${p.kode} ${p.siklus_kode ?? ""} ${p.proyek_nama ?? ""} ${p.pt_nama ?? ""} ${LABEL_LINI[p.lini_bisnis ?? "jual"]} ${p.status.replace("_", " ")} ${p.tanggal}`}
           cols={[
             { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.siklus_kode ? ` · ${[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" ")}` : ""}{p.lini_bisnis === "jasa" ? ` · jasa ${p.pt_nama ?? ""}` : ""}</span></> },
-            { h: "Ikan masuk", r: (p) => `${kgTeks(p.masuk_kg)} kg`, right: true },
-            { h: "Loin", r: (p) => `${kgTeks(p.loin_kg)} kg${p.jumlah_loin > 0 ? ` · ${p.jumlah_loin} potong` : ""}`, right: true },
+            { h: "Ikan masuk", r: (p) => `${kgTeks(p.masuk_kg)} kg${p.jumlah_ekor ? ` · ${p.jumlah_ekor} ekor` : ""}`, right: true },
+            { h: "Loin", r: (p) => <>{kgTeks(p.loin_kg)} kg{p.jumlah_loin > 0 ? ` · ${p.jumlah_loin} potong` : ""}{ringkasGrade[p.id]?.loin && <span className="block text-[11.5px]" style={{ color: MUTED }}>{ringkasGrade[p.id].loin}</span>}</>, right: true },
             { h: "Hasil", r: (p) => `${formatPct(p.hasil_pct)}%`, right: true },
             { h: "Belum jelas", r: (p) => `${kgTeks(p.belum_jelas_kg)} kg (${formatPct(p.belum_jelas_pct)}%)`, right: true },
             { h: "Status", r: (p) => <Pill t={LABEL_PRODUKSI[p.status]} /> },

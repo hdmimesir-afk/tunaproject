@@ -115,6 +115,24 @@ export type LotBaris = {
   purchase_orders?: { kode: string | null; status_persetujuan: StatusPO } | null;
   /** Berat per grade dari cek mutu. Baris ber-kg 0 = grade yang sudah dikeluarkan. */
   lot_grades?: { grade_id: string; kg: number; grades: { kode: string } | null }[];
+  /** Jumlah ekor (diisi manual, atau dihitung dari ekornya kalau dicatat per ekor). */
+  jumlah_ekor?: number | null;
+  /** Ekor-ekornya kalau lot dicatat per ekor. Yang batal = dibuang lewat koreksi. */
+  lot_ekor?: EkorLot[];
+};
+
+/** Satu ekor di penerimaan per ekor. kg_bayar = kg dikurangi potongan gancu. */
+export type EkorLot = {
+  id: string;
+  urutan: number;
+  no_tag: string;
+  spesies: string;
+  kg: number;
+  grade_id: string | null;
+  gancu: number;
+  potongan_kg: number;
+  kg_bayar: number;
+  batal: boolean;
 };
 
 export type BayarBaris = {

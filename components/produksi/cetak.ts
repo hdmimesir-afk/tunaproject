@@ -31,7 +31,8 @@ export function cetakFormulir(d: DetailProduksi, namaGrade: Map<string, string>,
 <h1>FORMULIR PRODUKSI (FRM-PRD-01 rev 01)</h1>
 <table class="kepala"><tr><td>Kode produksi</td><td><b>${esc(p.kode)}</b></td><td>Tanggal</td><td>${esc(p.tanggal)}</td></tr>
 <tr><td>Proyek</td><td>${esc(p.siklus_kode ?? "-")}</td><td>Status</td><td>${esc(p.status.replace("_", " "))}</td></tr>
-<tr><td>Lot</td><td colspan="3">${esc(d.alokasi.map((a) => `${a.lot_kode} (${kg(a.kg)} kg)`).join(", ") || "-")}</td></tr></table>
+<tr><td>Lot</td><td colspan="3">${esc(d.alokasi.map((a) => `${a.lot_kode} (${kg(a.kg)} kg)`).join(", ") || (p.kg_masuk_pt ? `Ikan dari ${p.pt_nama ?? "PT"}` : "-"))}</td></tr>
+<tr><td>Jumlah ekor</td><td>${p.jumlah_ekor ?? "-"}</td><td>Grade tuna utuh</td><td>${esc(d.lotAsal.flatMap((l) => l.grade.map((g) => `${g.kode} ${kg(g.kg)}`)).join(", ") || "-")}</td></tr></table>
 ${tabelLoin}
 <h2>Komponen hasil</h2>
 <table><tbody>${samping}
@@ -39,9 +40,11 @@ ${tabelLoin}
 <tr><td>Susut (total)</td><td class="r">${p.susut_kg === null ? "belum ditimbang" : kg(p.susut_kg)}</td></tr></tbody></table>
 <h2>Neraca berat</h2>
 <table><tbody>
-<tr><td>Ikan masuk</td><td class="r">${kg(p.masuk_kg)}</td></tr>
-<tr><td>Loin (${p.hasil_pct.toLocaleString("id-ID")}%)</td><td class="r">${kg(p.loin_kg)}</td></tr>
+<tr><td>Ikan masuk${p.jumlah_ekor ? ` (${p.jumlah_ekor} ekor)` : ""}</td><td class="r">${kg(p.masuk_kg)}</td></tr>
+<tr><td>Loin, yield ${p.hasil_pct.toLocaleString("id-ID")}%</td><td class="r">${kg(p.loin_kg)}</td></tr>
 <tr><td>Hasil samping</td><td class="r">${kg(p.samping_kg)}</td></tr>
+<tr><td>Limbah</td><td class="r">${p.limbah_kg === null ? "belum ditimbang" : kg(p.limbah_kg)}</td></tr>
+<tr><td>Susut</td><td class="r">${p.susut_kg === null ? "belum ditimbang" : kg(p.susut_kg)}</td></tr>
 <tr><td>Selisih belum jelas (${p.belum_jelas_pct.toLocaleString("id-ID")}%)</td><td class="r">${kg(p.belum_jelas_kg)}</td></tr></tbody></table>
 ${p.penjelasan_selisih ? `<p>Penjelasan selisih: ${esc(p.penjelasan_selisih)}</p>` : ""}
 <div class="ttd"><div>Penimbang</div><div>Pemeriksa QC</div><div>Owner</div></div>
