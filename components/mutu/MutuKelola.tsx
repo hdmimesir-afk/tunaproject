@@ -119,8 +119,8 @@ function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMu
           : <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat timbangnya dulu.</p>
       )}
       <Field label="Proyek (batch atau bongkaran)" error={state?.kolom?.siklusId?.[0]}>
-        <select name="siklusId" value={proyek} onChange={(e) => setProyek(e.target.value)} className={selectCls}>
-          <option value="">Tanpa proyek</option>
+        <select name="siklusId" value={proyek} onChange={(e) => setProyek(e.target.value)} className={selectCls} required>
+          <option value="" disabled>Pilih proyek</option>
           <option value="baru">Proyek baru</option>
           {siklus.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
         </select>
@@ -302,8 +302,8 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
           </Field>
         )}
         <Field label="Proyek" error={state?.kolom?.siklusId?.[0]}>
-          <select name="siklusId" defaultValue={lot.cycle_id ?? ""} className={selectCls}>
-            <option value="">Tanpa proyek</option>
+          <select name="siklusId" defaultValue={lot.cycle_id ?? ""} className={selectCls} required>
+            <option value="" disabled>Pilih proyek</option>
             {[...proyekAda, ...siklus].map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         </Field>
@@ -319,10 +319,15 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
 
 /* ------------------------------------------------------- ajukan pembelian */
 function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampiran: LampiranLot | null; onTutup: () => void }) {
-  const siap = lots.filter((l) => !l.po_id && l.qc === "lulus" && gradeLot(l).length > 0);
-  const pemasokSiap = [...new Map(siap.map((l) => [l.supplier_id, l.suppliers?.nama ?? "-"])).entries()];
+  // Satu pengajuan = satu pemasok dan satu proyek. Lot tanpa proyek harus dipilihin proyeknya dulu lewat Koreksi.
+  const bisaDiajukan = lots.filter((l) => !l.po_id && l.qc === "lulus" && gradeLot(l).length > 0);
+  const tanpaProyek = bisaDiajukan.filter((l) => !l.cycle_id);
+  const siap = bisaDiajukan.filter((l) => l.cycle_id);
+  const kunci = (l: LotBaris) => `${l.supplier_id}|${l.cycle_id}`;
+  const pemasokSiap = [...new Map(siap.map((l) => [kunci(l),
+    `${l.suppliers?.nama ?? "-"} · ${[l.cycles?.kode, l.cycles?.nama].filter(Boolean).join(" ")}`])).entries()];
   const [supplierId, setSupplierId] = useState(pemasokSiap[0]?.[0] ?? "");
-  const lotPemasok = siap.filter((l) => l.supplier_id === supplierId);
+  const lotPemasok = siap.filter((l) => kunci(l) === supplierId);
   const [pilih, setPilih] = useState<string[]>(() => lotPemasok.map((l) => l.id));
   const [harga, setHarga] = useState<Record<string, string>>({});
   const [menyusul, setMenyusul] = useState(false);
@@ -340,7 +345,7 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
 
   const gantiPemasok = (id: string) => {
     setSupplierId(id);
-    setPilih(siap.filter((l) => l.supplier_id === id).map((l) => l.id));
+    setPilih(siap.filter((l) => kunci(l) === id).map((l) => l.id));
   };
   const kirim = (e: React.FormEvent) => {
     e.preventDefault();
@@ -357,12 +362,17 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
 
   return (
     <Modal title="Ajukan pembelian" onClose={onTutup}>
+      {tanpaProyek.length > 0 && (
+        <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }} data-testid="lot-tanpa-proyek">
+          {tanpaProyek.map((l) => l.kode).join(", ")} belum ada proyeknya, jadi belum bisa diajukan. Pilih proyeknya dulu lewat tombol Koreksi di lotnya.
+        </p>
+      )}
       {siap.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang siap diajukan. Lot harus udah digrading, nggak ditahan, dan belum masuk pembelian lain.</p>
+        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang siap diajukan. Lot harus udah digrading, nggak ditahan, punya proyek, dan belum masuk pembelian lain.</p>
       ) : (
         <form onSubmit={kirim} className="space-y-4">
           <Pesan state={state} />
-          <Field label="Pemasok atau nelayan">
+          <Field label="Pemasok dan proyek" hint="Satu pengajuan buat satu pemasok di satu proyek.">
             <select value={supplierId} onChange={(e) => gantiPemasok(e.target.value)} className={selectCls}>
               {pemasokSiap.map(([id, nama]) => <option key={id} value={id}>{nama}</option>)}
             </select>

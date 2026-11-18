@@ -53,14 +53,14 @@ export async function ringkasGradeProduksi(ids: string[]): Promise<Record<string
 export async function lotSiapProduksi(): Promise<LotSiap[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("lots")
-    .select("id, kode, kg, qc, sisa_kg, jumlah_ekor, grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
+    .select("id, kode, kg, qc, sisa_kg, jumlah_ekor, cycle_id, grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
     .neq("qc", "ditahan").gt("sisa_kg", 0).order("kode");
   if (error) gagal("daftar lot");
   return (data ?? []).map((l) => {
     const x = l as unknown as LotBaris & { suppliers: { nama: string } | null };
     // Satu lot bisa beberapa grade (cek mutu); ditampilkan semua, terberat dulu.
     const kode = gradeLot(x).map((g) => g.kode).join(", ");
-    return { id: x.id, kode: x.kode, sisa_kg: x.sisa_kg, grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-", kg: x.kg, jumlah_ekor: x.jumlah_ekor ?? null };
+    return { id: x.id, kode: x.kode, sisa_kg: x.sisa_kg, grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-", kg: x.kg, jumlah_ekor: x.jumlah_ekor ?? null, cycle_id: x.cycle_id };
   });
 }
 

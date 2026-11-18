@@ -14,8 +14,10 @@ async function mulaiProduksi(page: Page) {
   await masuk(page, PETUGAS);
   await page.goto("/produksi");
   await page.getByRole("button", { name: "Mulai produksi" }).click();
-  // Form baru: lini bisnis (bawaan jual), proyek baru pakai nama, terus pilih lot 2.000 kg yang masih utuh.
-  await page.getByLabel("Nama proyek").fill(`E2E produksi ${Date.now()}`);
+  // Lini jual: proyeknya dipilih dari proyek yang punya lot (kunci proyek), terus pilih lot 2.000 kg yang masih utuh.
+  const proyek = page.getByRole("dialog").getByLabel("Proyek");
+  const nilai = await proyek.locator("option", { hasText: "Proyek E2E" }).last().getAttribute("value");
+  await proyek.selectOption(nilai ?? "");
   await page.locator("div.rounded-2xl", { hasText: /sisa 2\.000/ }).getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
   await page.getByRole("button", { name: "Mulai produksi" }).last().click();
   await expect(page).toHaveURL(/p=/);

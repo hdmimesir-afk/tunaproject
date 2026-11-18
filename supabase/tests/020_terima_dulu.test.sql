@@ -33,7 +33,8 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000204", "role": "authenticated", "aal": "aal1"}';
 insert into uji values ('lot1', public.terima_ikan('10000000-0000-0000-0000-000000000201', 300, current_date, null, 'bongkar pagi', 'Bongkaran Uji 20'));
 insert into uji values ('lot2', public.terima_ikan('10000000-0000-0000-0000-000000000201', 100, current_date, (select cycle_id from public.lots where id = (select v from uji where k = 'lot1')), ''));
-insert into uji values ('lot3', public.terima_ikan('10000000-0000-0000-0000-000000000202', 50, current_date, null, ''));
+insert into uji values ('lot3', public.terima_ikan('10000000-0000-0000-0000-000000000202', 50, current_date, null, '', 'Bongkaran Lain 20'));
+insert into uji values ('c3', (select cycle_id from public.lots where id = (select v from uji where k = 'lot3')));
 select results_eq($$select qc, po_id is null, kg::text from public.lots where id = (select v from uji where k = 'lot1')$$,
   $$values ('menunggu', true, '300.000')$$, 'ikan diterima tanpa PO, status menunggu');
 select results_eq($$select c.nama, c.lini_bisnis from public.lots l join public.cycles c on c.id = l.cycle_id where l.id = (select v from uji where k = 'lot1')$$,
@@ -118,9 +119,9 @@ select lives_ok($$select public.koreksi_lot((select v from uji where k = 'lot3')
 select results_eq($$select kg::text, sisa_kg::text from public.lots where id = (select v from uji where k = 'lot3')$$, $$values ('55.000', '55.000')$$, 'berat dan sisa lot ikut berubah');
 
 -- ============================================================ produksi: lot menunggu boleh, ditahan nggak
-insert into uji values ('lot4', public.terima_ikan('10000000-0000-0000-0000-000000000202', 80, current_date, null, ''));
+insert into uji values ('lot4', public.terima_ikan('10000000-0000-0000-0000-000000000202', 80, current_date, (select v from uji where k = 'c3'), ''));
 select lives_ok($$insert into uji values ('prd', public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select v from uji where k = 'lot4'), 'kg', 80)),
-  current_date, '', null, jsonb_build_object('nama', 'Produksi Uji 20', 'lini_bisnis', 'jual')))$$, 'lot yang belum digrading boleh diolah');
+  current_date, '', (select v from uji where k = 'c3')))$$, 'lot yang belum digrading boleh diolah');
 select throws_ok($$select public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select v from uji where k = 'lot3'), 'kg', 10)))$$,
   'KT001', null, 'lot ditahan nggak bisa diolah');
 select lives_ok($$select public.ubah_alokasi_lot((select v from uji where k = 'prd'), (select v from uji where k = 'lot4'), 70, 'kelebihan catat')$$, 'koreksi berat lot di produksi');

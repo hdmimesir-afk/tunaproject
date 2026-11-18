@@ -125,9 +125,9 @@ function KoreksiPO({ detail, pemasok, siklus, onSelesai }: { detail: Detail; pem
           {pemasok.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
         </select>
       </Field>
-      <Field label="Proyek" error={state?.kolom?.siklusId?.[0]}>
-        <select name="siklusId" defaultValue={po.cycle_id ?? ""} className={selectCls}>
-          <option value="">Tanpa proyek</option>
+      <Field label="Proyek" error={state?.kolom?.siklusId?.[0]} hint="Lot di pembelian ini ikut pindah ke proyek yang dipilih.">
+        <select name="siklusId" defaultValue={po.cycle_id ?? ""} className={selectCls} required>
+          <option value="" disabled>Pilih proyek</option>
           {[...proyekAda, ...siklus].map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
         </select>
       </Field>

@@ -28,13 +28,14 @@ export const PERJALANAN = [
   { tanggal: "11 November", judul: "Masukan Mas Bisma, bagian kedua", isi: "Satu lot bisa diisi beberapa grade. Pembelian gak nunggu nota lagi. Siapa yang menyetujui dan lampiran apa yang wajib, admin yang atur. Siklus juga saya ganti namanya jadi Proyek, dan stoknya ikut kecatat per proyek." },
   { tanggal: "14 November", judul: "Beres beres sebelum dipake", isi: "Data contoh saya hapus atas permintaan tim, pesan di layar saya bikin lebih santai, dan gambar panduan saya perbarui. Buat dua pertanyaan yang belum kejawab, saya tulis usulan biar tim tinggal milih." },
   { tanggal: "17 November", judul: "Masukan habis training", isi: "Alurnya saya balik, ikan diterima dulu tanpa PO trus digrading, baru diajuin. PO nya terbit pas udah disetujui. Tombol Koreksi sekarang ada di penerimaan, pembelian sama produksi. Status Lulus saya hapus, dan form mulai produksi udah ada proyek, PT sama lini bisnisnya." },
-  { tanggal: "18 November", judul: "Desain Mas Bisma dan meeting operasional", isi: "Terima ikan udah bisa per ekor kayak di desain Mas Bisma, sekalian grading. Grade tuna utuh AB, C, D saya pisah dari grade loin. Produksi yang udah disetujui juga bisa dikoreksi timbangannya, dan laporan produksi udah lengkap sampe jumlah ekor, bisa diunduh ke Excel juga." },
+  { tanggal: "18 November", judul: "Desain Mas Bisma dan meeting operasional", isi: "Terima ikan udah bisa per ekor kayak di desain Mas Bisma, sekalian grading. Grade tuna utuh AB, C, D saya pisah dari grade loin. Produksi yang udah disetujui juga bisa dikoreksi timbangannya, laporan produksi udah lengkap sampe jumlah ekor, dan proyek sekarang dikunci biar datanya gak kecampur." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */
 /* Laporan terbaru, yang paling baru di atas: meeting operasional dan desain Mas Bisma 18 November, masukan training 17 November,
    beres beres 14 November, lalu masukan Mas Bisma (notulen 10 November). */
 export const TERBARU: { judul: string; isi: string }[] = [
+  { judul: "Proyek sekarang dikunci", isi: "Biar data antarproyek gak kecampur, terima ikan sekarang wajib pilih proyek (atau bikin proyek baru). Satu pengajuan pembelian cuma buat satu pemasok di satu proyek, dan produksi cuma bisa pake lot dari proyeknya sendiri. Kalo proyek pembelian dikoreksi, lotnya ikut pindah. Lot lama yg belum ada proyeknya gak diubah otomatis, tinggal dipilihin proyeknya lewat tombol Koreksi, abis itu baru bisa diajuin atau diolah." },
   { judul: "Terima ikan per ekor, sekalian grading", isi: "Ngikut desain Mas Bisma, ikan sekarang bisa dicatet per ekor. Isinya no tag, spesies, berat, grade AB/C/D sama tusukan gancu. Abis ngisi berat tinggal Enter, langsung pindah ke ekor berikutnya dan no tag nya nambah sendiri. Potongan gancu defaultnya 1 kg per tusukan dan gak dibayar, angkanya bisa diubah di Pengaturan. Berat lot sama hasil gradingnya keitung sendiri dari ekornya, jadi terima, timbang sama grading cukup sekali jalan. Cara lama yg berat total masih ada kok, sekarang malah bisa isi jumlah ekor sama langsung grading juga. Kalo ada yg salah tinggal Koreksi, ekornya bisa diubah, ditambah atau dibuang, semua kecatet." },
   { judul: "Koreksi timbangan produksi yang udah disetujui", isi: "Produksi yang udah selesai atau udah disetujui sekarang ada tombol Koreksi timbangan. Bisa buat benerin loin per grade, hasil samping, limbah sama susut. Statusnya gak berubah, tapi wajib isi alasan dan kecatet di riwayat. Kalo hasilnya udah masuk stok, loin + hasil samping gak boleh kurang dari yang udah masuk stok ya. Berat masuk juga masih bisa dikoreksi walaupun udah masuk stok." },
   { judul: "Laporan produksi lebih lengkap", isi: "Produksi sekarang nyatet jumlah ekor juga, otomatis keisi kalo lotnya dipake utuh. Di rincian produksi keliatan ekornya, rata rata berat per ekor sama grade tuna utuh dari lot asalnya. Di daftar produksi ada tombol Unduh laporan, isinya Excel lengkap: ikan masuk, ekor, grade tuna utuh, loin per grade, yield, hasil samping, limbah, susut sama selisihnya. Formulir cetak juga udah ikut lengkap." },
@@ -61,16 +62,15 @@ export const TERBARU: { judul: string; isi: string }[] = [
    (Kedatangan tanpa PO, harga per grade, dan penampungan = produksi udah dijawab dan udah dikerjain.) */
 export const USULAN: { judul: string; masalah: string; usulan: string[]; tanya: string[] }[] = [
   {
-    judul: "Proyek wajib di semua transaksi",
-    masalah: "Dari meeting kemarin, tiap transaksi sama produksi harus nyambung ke proyek biar datanya gak kecampur. Masalahnya sekarang proyek masih boleh dikosongin pas terima ikan, dan satu pengajuan pembelian atau satu produksi masih bisa ngambil lot dari proyek yg beda beda.",
+    judul: "Satu produksi dari dua bongkaran",
+    masalah: "Proyek udah dikunci: terima ikan wajib pilih proyek, dan satu pengajuan pembelian atau satu produksi cuma boleh pake lot dari proyek yg sama. Saya pake aturan yg paling ketat dulu biar datanya pasti gak kecampur.",
     usulan: [
-      "Proyek dibikin wajib pas terima ikan sama mulai produksi. Kalo proyeknya belum ada tinggal pilih Proyek baru trus tulis namanya.",
-      "Pengajuan pembelian sama produksi cuma boleh ngambil lot dari proyek yg sama, kalo dicampur sistem nolak.",
-      "Data lama yg masih Tanpa proyek gak diubah otomatis, nanti tim yg milihin proyeknya lewat tombol Koreksi.",
+      "Kalo di lapangan emang gak pernah nyampur, aturannya biarin kayak sekarang.",
+      "Kalo kadang satu produksi ngolah ikan dari dua bongkaran, saya bikin boleh dicampur asal dipilih proyek utamanya, dan lot dari proyek lain ditandain di laporan.",
     ],
     tanya: [
-      "Proyek mau diwajibin mulai dari terima ikan?",
-      "Pernah gak satu produksi sengaja ngolah ikan dari dua bongkaran yang beda?",
+      "Pernah gak satu produksi sengaja ngolah ikan dari dua bongkaran yg beda?",
+      "Penjualan sama biaya juga mau diwajibin pilih proyek? Sekarang dua ini masih boleh kosong.",
     ],
   },
   {
@@ -146,9 +146,9 @@ export const MODUL: Modul[] = [
   {
     slug: "mutu", nama: "Mutu dan Penerimaan", ringkas: "Langkah pertama: ikan datang, ditimbang, digrading, trus diajukan pembeliannya.",
     poin: [
-      "Ikan yang datang langsung dicatat jadi lot, gak perlu nunggu PO. Bisa per ekor (nomor tag, spesies, berat, grade, tusukan gancu) atau berat total plus jumlah ekor. Potongan gancu (bawaan 1 kg per tusukan) gak dibayar.",
+      "Ikan yang datang langsung dicatat jadi lot, gak perlu nunggu PO, tapi wajib masuk proyek. Bisa per ekor (nomor tag, spesies, berat, grade, tusukan gancu) atau berat total plus jumlah ekor. Potongan gancu (bawaan 1 kg per tusukan) gak dibayar.",
       "Grading tuna utuh pake grade AB, C, dan D, dan bisa sekalian waktu terima. Lot per ekor gradingnya ngikut grade tiap ekor. Hasilnya dipake buat ngitung harga ke nelayan. Ikan gugur atau bau ditandai Ditahan, dan gak bisa diolah.",
-      "Admin ngajuin pembelian dari lot yang udah digrading, harga per kg tiap grade. Jumlah dan totalnya kehitung sendiri. Satu pengajuan buat satu pemasok, boleh beberapa lot.",
+      "Admin ngajuin pembelian dari lot yang udah digrading, harga per kg tiap grade. Jumlah dan totalnya kehitung sendiri. Satu pengajuan buat satu pemasok di satu proyek, boleh beberapa lot.",
       "Foto timbangan wajib satu tiap kali terima ikan. Lot yang belum ada fotonya ditandai \"Belum ada\", tapi tetep bisa digrading dan diproduksi.",
       "Tiap lot punya tombol Koreksi (pake alasan). Lot per ekor bisa diubah, ditambah, atau dibuang ekornya, dan semuanya kecatat. Lot yang belum digrading tetep boleh langsung diolah.",
       "Kotak Penerimaan hari ini nampilin ekor dan berat yang masuk per nelayan.",
@@ -177,7 +177,7 @@ export const MODUL: Modul[] = [
   {
     slug: "produksi", nama: "Produksi", ringkas: "Nimbang loin, dan selisihnya kelihatan apa adanya.",
     poin: [
-      "Mulai produksi diisi proyek, tanggal, PT pemilik ikan, dan lini bisnis: jual (ikan dari lot kita), jasa produksi (ikan dari PT, cukup beratnya), atau titip saja (langsung ke titipan gudang). Hasil jasa produksi masuk stok sebagai milik PT nya.",
+      "Mulai produksi diisi proyek, tanggal, PT pemilik ikan, dan lini bisnis: jual (ikan dari lot kita), jasa produksi (ikan dari PT, cukup beratnya), atau titip saja (langsung ke titipan gudang). Hasil jasa produksi masuk stok sebagai milik PT nya. Produksi jual cuma bisa pake lot dari proyeknya sendiri.",
       "Owner bisa nelusurin dua arah: dari lot ke produksinya, atau dari produksi balik ke lot asalnya, lengkap sama jumlah ekor dan grade tuna utuhnya. Tiap produksi punya tombol Koreksi, dan yang udah disetujui bisa dibuka lagi sama owner selama hasilnya belum masuk stok.",
       "Produksi yang udah selesai atau disetujui punya tombol Koreksi timbangan buat loin per grade, hasil samping, limbah, dan susut. Statusnya tetep, wajib alasan, dan kalo udah masuk stok, hasilnya gak boleh kurang dari yang ada di stok.",
       "Berat loin cukup diisi total per grade. Kalo perlu, bisa juga ditimbang per potong lewat tabel timbang. Tabelnya saya samain sama formulir kertas yang biasa dipake: nomor ekor, nomor loin, grade, dan berat sampai tiga angka di belakang koma. Cukup pake keyboard, total per grade dan per ekor kehitung sendiri.",
@@ -316,7 +316,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di tiap tombol, dan di database. Nota dan foto absen disimpan di tempat tertutup, cuma bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi, jadi kata sandi gak bisa ditebak tebak." },
   { judul: "Angkanya gak geser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa dibulatin diam diam. Saya udah uji pake 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhannya hasilnya sama persis." },
   { judul: "Satu putaran penuh udah diuji", isi: "Saya jalanin pembelian sampai uang masuk pake kelima jabatan, trus nyocokin angka di neraca, stok, tagihan, rincian proyek, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipake. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 18 November juga lulus semua: 724 pemeriksaan aturan database dan 118 pemeriksaan logika." },
+  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipake. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 18 November juga lulus semua: 737 pemeriksaan aturan database dan 118 pemeriksaan logika." },
   { judul: "Cadangan tiap hari", isi: "Database dicadangin tiap malam dan dienkripsi. Udah empat kali berhasil, tiga di antaranya otomatis terjadwal. Yang belum saya lakuin: nyoba mulihin cadangan ke tempat kosong (ada di bagian yang masih tersisa)." },
 ] as const;
 
@@ -331,8 +331,8 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 18 November udah lulus pemeriksaan otomatis, termasuk 724 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan per ekor sekalian grading, koreksi ekor, ajukan, setujui, bayar, produksi jual, jasa, titip, sama koreksi timbangan produksi yang udah disetujui. Yang belum: dicoba tim di sistem yang udah dipake." },
-  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal proyek wajib, cara harga Cong, bayar nelayan tunai sebelum disetujui, sama aturan transit dan ikan yang nginep, usulannya ada di bagian atas. Tim tinggal jawab pertanyaannya." },
+  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 18 November udah lulus pemeriksaan otomatis, termasuk 737 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan per ekor sekalian grading, koreksi ekor, ajukan, setujui, bayar, produksi jual, jasa, titip, sama koreksi timbangan produksi yang udah disetujui. Yang belum: dicoba tim di sistem yang udah dipake." },
+  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal produksi dari dua bongkaran, cara harga Cong, bayar nelayan tunai sebelum disetujui, sama aturan transit dan ikan yang nginep, usulannya ada di bagian atas. Tim tinggal jawab pertanyaannya." },
   { judul: "Meeting UX bareng Mas Bisma", isi: "Format Excel produksi dan finance, alur QC yang lebih detail, dan maksud input per proyek mau dibahas bareng di meeting tambahan. Biar gak nebak, saya nunggu contoh file dan alurnya dari tim dulu." },
   { judul: "Video panduan", isi: "Teks dan gambar panduan udah ngikutin alur baru. Video buat penerimaan, pembelian, dan mulai produksi masih tampilan lama, nanti saya rekam ulang." },
   { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps udah kepasang di sistem. Tapi baru bisa dibilang beres kalo udah dicoba dari HP di kantor, soalnya pin di peta bisa agak beda sama tempat orang berdiri pas absen." },

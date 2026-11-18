@@ -39,11 +39,19 @@ export function KoreksiProduksi({ detail, proyek, onTutup }: { detail: Detail; p
         <Pesan state={state} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={p.tanggal} required /></Field>
-          <Field label="Proyek" error={state?.kolom?.siklusId?.[0]}>
-            <select name="siklusId" defaultValue={p.cycle_id ?? ""} className={selectCls}>
-              {!jasa && <option value="">Tanpa proyek</option>}
-              {[...proyekAda, ...cocok].map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-            </select>
+          <Field label="Proyek" error={state?.kolom?.siklusId?.[0]} hint={alokasi.length > 0 ? "Ngikut proyek lotnya." : undefined}>
+            {/* Produksi dari lot proyeknya ngikut lot, jadi nggak bisa dipindah dari sini (dijaga juga di database). */}
+            {alokasi.length > 0 && p.cycle_id ? (
+              <>
+                <input type="hidden" name="siklusId" value={p.cycle_id} />
+                <TextIn value={[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" · ")} readOnly />
+              </>
+            ) : (
+              <select name="siklusId" defaultValue={p.cycle_id ?? ""} className={selectCls} required>
+                <option value="" disabled>Pilih proyek</option>
+                {[...proyekAda, ...cocok].map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+              </select>
+            )}
           </Field>
         </div>
         {jasa ? (

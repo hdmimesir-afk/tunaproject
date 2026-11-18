@@ -14,7 +14,7 @@ select results_eq($$select count(*)::int from public.grades where jenis = 'loin'
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000211", "role": "authenticated", "aal": "aal1"}';
 create temp table uji21 (k text primary key, v uuid);
-insert into uji21 values ('lot', public.terima_ikan('10000000-0000-0000-0000-000000000211', 100, current_date, null, ''));
+insert into uji21 values ('lot', public.terima_ikan('10000000-0000-0000-0000-000000000211', 100, current_date, null, '', 'Proyek Uji 21'));
 
 select throws_ok($$select public.cek_mutu_grade((select v from uji21 where k = 'lot'), 'lulus', jsonb_build_array(
     jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 100)), '')$$,

@@ -85,6 +85,7 @@ export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm>
   const p = FormTerima.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   const d = p.data;
+  if (d.siklusId === "") return { kolom: { siklusId: ["Pilih proyeknya, atau bikin proyek baru"] } };
   if (d.siklusId === "baru" && !d.namaProyek) return { kolom: { namaProyek: ["Tulis nama proyeknya"] } };
 
   let kg: number | null = null;

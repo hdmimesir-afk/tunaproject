@@ -19,7 +19,7 @@ select ok((select relrowsecurity and relforcerowsecurity from pg_class where oid
 -- ============================================================ QC: terima per ekor + grading sekali jalan
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000221", "role": "authenticated", "aal": "aal1"}';
-select lives_ok($$insert into uji22 values ('lot1', public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, 'truk 1', null,
+select lives_ok($$insert into uji22 values ('lot1', public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, 'truk 1', 'Proyek Uji 22',
   null, null, jsonb_build_array(
     jsonb_build_object('no_tag', 'T-014', 'kg', 42, 'grade_id', (select id from public.grades where kode = 'AB'), 'gancu', 0),
     jsonb_build_object('no_tag', 'T-027', 'kg', 38, 'grade_id', (select id from public.grades where kode = 'AB'), 'gancu', 1),
@@ -33,22 +33,22 @@ select results_eq($$select string_agg(g.kode || '=' || lg.kg::text, ',' order by
   array['AB=125.000,C=51.000'], 'grading = berat dibayar per grade (gancu 1 kg dipotong)');
 select results_eq($$select kg_bayar::text from public.lot_ekor where no_tag = 'T-027'$$, array['37.000'], 'berat dibayar ekor bergancu');
 
-select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null, null, null,
+select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22', null, null,
   jsonb_build_array(jsonb_build_object('no_tag', 'A', 'kg', 10, 'grade_id', (select id from public.grades where kode = 'AB')),
                     jsonb_build_object('no_tag', 'B', 'kg', 10)))$$,
   'KT001', null, 'grade diisi sebagian ditolak');
-select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null, null, null,
+select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22', null, null,
   jsonb_build_array(jsonb_build_object('no_tag', 'A', 'kg', 10), jsonb_build_object('no_tag', 'A', 'kg', 12)))$$,
   'KT001', 'Nomor tag A dipakai lebih dari sekali.', 'nomor tag ganda ditolak');
-select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null, null, null,
+select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22', null, null,
   jsonb_build_array(jsonb_build_object('no_tag', 'A', 'kg', 1, 'gancu', 2)))$$,
   'KT001', 'Potongan gancu ekor ke-1 lebih besar dari beratnya.', 'potongan gancu nggak boleh lebih dari berat');
-select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null, null, null,
+select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22', null, null,
   jsonb_build_array(jsonb_build_object('no_tag', 'A', 'kg', 10, 'grade_id', (select id from public.grades where kode = 'A-SO'))))$$,
   'KT001', null, 'ekor nolak grade loin');
 
 -- Berat total + jumlah ekor + grading sekali jalan.
-select lives_ok($$insert into uji22 values ('lot2', public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null,
+select lives_ok($$insert into uji22 values ('lot2', public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22',
   200, 5, null, jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'C'), 'kg', 200))))$$,
   'terima berat total, jumlah ekor, dan grading');
 select results_eq($$select kg::text, jumlah_ekor, qc from public.lots where id = (select v from uji22 where k = 'lot2')$$,
@@ -56,10 +56,10 @@ select results_eq($$select kg::text, jumlah_ekor, qc from public.lots where id =
 
 -- ============================================================ petugas: per ekor tanpa grade, grading belakangan
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000222", "role": "authenticated", "aal": "aal1"}';
-select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null, null, null,
+select throws_ok($$select public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22', null, null,
   jsonb_build_array(jsonb_build_object('no_tag', 'P1', 'kg', 30, 'grade_id', (select id from public.grades where kode = 'AB'))))$$,
   '42501', null, 'petugas tanpa izin mutu nggak bisa sekalian grading');
-select lives_ok($$insert into uji22 values ('lot3', public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', null, null, null,
+select lives_ok($$insert into uji22 values ('lot3', public.terima_ikan_lengkap('10000000-0000-0000-0000-000000000221', current_date, null, '', 'Proyek Uji 22', null, null,
   jsonb_build_array(jsonb_build_object('no_tag', 'P1', 'kg', 30), jsonb_build_object('no_tag', 'P2', 'kg', 25, 'gancu', 2))))$$,
   'petugas terima per ekor tanpa grade');
 select results_eq($$select qc, kg::text, jumlah_ekor from public.lots where id = (select v from uji22 where k = 'lot3')$$,
@@ -100,7 +100,7 @@ select results_eq($$select string_agg(g.kode || '=' || lg.kg::text, ',' order by
 
 -- ============================================================ produksi: jumlah ekor dan koreksi timbangan setelah masuk stok
 select lives_ok($$insert into uji22 values ('prd', public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select v from uji22 where k = 'lot1'), 'kg', 177)),
-  current_date, '', null, jsonb_build_object('nama', 'Produksi Uji 22', 'lini_bisnis', 'jual')))$$, 'mulai produksi dari lot per ekor');
+  current_date, '', (select cycle_id from public.lots where id = (select v from uji22 where k = 'lot1'))))$$, 'mulai produksi dari lot per ekor');
 select lives_ok($$select public.isi_ekor_produksi((select v from uji22 where k = 'prd'), 4)$$, 'jumlah ekor produksi diisi');
 select throws_ok($$select public.isi_ekor_produksi((select v from uji22 where k = 'prd'), 5, '')$$, 'KT001', 'Tulis alasan koreksinya.', 'ngubah jumlah ekor wajib alasan');
 select lives_ok($$select public.simpan_loin_total((select v from uji22 where k = 'prd'),

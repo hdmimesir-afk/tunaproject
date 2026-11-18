@@ -23,7 +23,10 @@ test("pembelian diajukan dari lot yang udah digrading, harga per grade, konfirma
 
   await page.getByRole("button", { name: /^Ajukan pembelian/ }).click();
   const jendela = page.getByRole("dialog", { name: "Ajukan pembelian" });
-  await jendela.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
+  // Pilihannya pemasok sekaligus proyek (satu pengajuan = satu proyek).
+  const pilihan = jendela.getByLabel("Pemasok dan proyek");
+  const nilai = await pilihan.locator("option", { hasText: /Pemasok E2E · .*Proyek E2E/ }).last().getAttribute("value");
+  await pilihan.selectOption(nilai ?? "");
 
   // Tanpa harga dan tanpa tanda "Nota menyusul", tombol ajukan mati.
   await expect(jendela.getByRole("button", { name: "Ajukan untuk disetujui" })).toBeDisabled();
@@ -55,6 +58,8 @@ test("petugas nerima ikan tanpa PO", async ({ page }) => {
   await page.goto("/mutu");
   // Per ekor (bawaan): petugas nggak punya izin grading, jadi grade-nya nanti diisi QC.
   await page.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
+  await page.getByLabel("Proyek (batch atau bongkaran)").selectOption({ label: "Proyek baru" });
+  await page.getByLabel("Nama proyek").fill(`Bongkaran E2E ${Date.now()}`);
   await page.getByLabel("No. tag ekor 1").fill("E2E-01");
   await page.getByLabel("Berat ekor 1 (kg)").fill("42");
   await page.getByLabel("Berat ekor 1 (kg)").press("Enter");
@@ -68,6 +73,8 @@ test("petugas nerima ikan tanpa PO", async ({ page }) => {
 
   // Berat total, cara lama, tetap bisa.
   await page.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
+  await page.getByLabel("Proyek (batch atau bongkaran)").selectOption({ label: "Proyek baru" });
+  await page.getByLabel("Nama proyek").fill(`Bongkaran E2E total ${Date.now()}`);
   await page.getByRole("radio", { name: "Berat total" }).click();
   await page.getByLabel("Berat timbang (kg)").fill("150");
   await page.getByRole("button", { name: "Catat penerimaan" }).click();

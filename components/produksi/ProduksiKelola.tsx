@@ -75,8 +75,11 @@ const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3
 function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
   lotSiap: LotSiap[]; proyek: ProyekOpsi[]; pt: Opsi[]; hariIni: string; onSelesai: (id: string) => void; onTitip: (proyekId: string) => void;
 }) {
+  // Kunci proyek: produksi jual cuma boleh pakai lot dari proyeknya sendiri, jadi proyeknya dipilih dari proyek yang punya lot siap olah.
+  const proyekBerlot = proyek.filter((x) => x.lini_bisnis === "jual" && lotSiap.some((l) => l.cycle_id === x.id));
+  const lotTanpaProyek = lotSiap.filter((l) => !l.cycle_id);
   const [lini, setLini] = useState<LiniBisnis>("jual");
-  const [siklusId, setSiklusId] = useState("baru");
+  const [siklusId, setSiklusId] = useState(proyekBerlot[0]?.id ?? "");
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev: HasilForm, fd: FormData) => {
     const r = await mulaiProduksi(prev, fd);
     if (r?.id && !r.error) (fd.get("lini") === "titip" ? onTitip : onSelesai)(r.id);
@@ -84,10 +87,12 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
   }, undefined);
   const [pilih, setPilih] = useState<Record<string, string>>({});
   const alokasi = Object.entries(pilih).map(([lot_id, kg]) => ({ lot_id, kg }));
-  const pilihanProyek = proyek.filter((x) => x.lini_bisnis === lini);
+  const pilihanProyek = lini === "jual" ? proyekBerlot : proyek.filter((x) => x.lini_bisnis === lini);
   const proyekDipilih = proyek.find((x) => x.id === siklusId);
   const ptProyek = proyekDipilih?.pt_id ? pt.find((x) => x.id === proyekDipilih.pt_id)?.label : null;
-  const gantiLini = (l: LiniBisnis) => { setLini(l); setSiklusId("baru"); };
+  const lotProyek = lotSiap.filter((l) => l.cycle_id && l.cycle_id === siklusId);
+  const gantiLini = (l: LiniBisnis) => { setLini(l); setSiklusId(l === "jual" ? proyekBerlot[0]?.id ?? "" : "baru"); setPilih({}); };
+  const gantiProyek = (id: string) => { setSiklusId(id); setPilih({}); };
   const alih = (l: LotSiap, on: boolean) =>
     setPilih((p) => {
       const n = { ...p };
@@ -120,8 +125,10 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Proyek" error={state?.kolom?.siklusId?.[0]}>
-          <select name="siklusId" value={siklusId} onChange={(e) => setSiklusId(e.target.value)} className={selectCls}>
-            <option value="baru">Proyek baru</option>
+          <select name="siklusId" value={siklusId} onChange={(e) => gantiProyek(e.target.value)} className={selectCls} required>
+            {lini === "jual"
+              ? <option value="" disabled>{proyekBerlot.length > 0 ? "Pilih proyek" : "Belum ada proyek yang punya lot"}</option>
+              : <option value="baru">Proyek baru</option>}
             {pilihanProyek.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
           </select>
         </Field>
@@ -149,12 +156,16 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
         <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#E4ECF7", color: "#2B4A70" }}>Titip saja nggak diproduksi. Habis ini langsung lanjut ke Terima titipan di Gudang Dingin, proyeknya udah keisi.</p>
       ) : lini === "jasa" ? (
         <Field label="Berat ikan dari PT (kg)" error={state?.kolom?.kgPt?.[0]}><TextIn name="kgPt" inputMode="decimal" required /></Field>
-      ) : lotSiap.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang masih ada sisanya. Terima ikannya dulu di menu Mutu dan Penerimaan.</p>
+      ) : lotProyek.length === 0 ? (
+        <p className="text-[13px]" style={{ color: MUTED }}>
+          {proyekBerlot.length === 0 ? "Belum ada lot yang masih ada sisanya dan udah punya proyek. Terima ikannya dulu di menu Mutu dan Penerimaan." : "Pilih proyeknya dulu, nanti lot dari proyek itu muncul di sini."}
+          {lotTanpaProyek.length > 0 && ` ${lotTanpaProyek.map((l) => l.kode).join(", ")} belum ada proyeknya, pilih proyeknya lewat Koreksi di menu Mutu dan Penerimaan.`}
+        </p>
       ) : (
         <div className="space-y-2">
-          <p className="text-[12px] font-medium" style={{ color: MUTED }}>Pilih lot yang masuk produksi ini</p>
-          {lotSiap.map((l) => {
+          <p className="text-[12px] font-medium" style={{ color: MUTED }}>Pilih lot dari proyek ini yang masuk produksi</p>
+          {lotTanpaProyek.length > 0 && <p className="text-[12px]" style={{ color: "#8A5A00" }}>{lotTanpaProyek.map((l) => l.kode).join(", ")} belum ada proyeknya, jadi nggak muncul di sini. Pilih proyeknya lewat Koreksi di menu Mutu dan Penerimaan.</p>}
+          {lotProyek.map((l) => {
             const aktif = l.id in pilih;
             return (
               <div key={l.id} className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5">

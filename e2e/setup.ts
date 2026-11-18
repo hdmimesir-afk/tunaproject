@@ -52,20 +52,24 @@ export default async function setup() {
   const unit = await supabase.from("storage_units").insert({ product_id: loin.data.id, product_nama: "Loin tuna", kondisi: "beku", kg_masuk: 100, sisa_kg: 100, sisa_dasar_masuk: 100, lokasi: "E2E-JUAL" });
   if (unit.error) throw new Error(`Gagal membuat stok uji: ${unit.error.message}`);
 
+  // Semua lot uji masuk satu proyek (kunci proyek: produksi dan pengajuan cuma boleh pakai lot dari proyeknya sendiri).
+  const proyek = await supabase.from("cycles").insert({ nama: `Proyek E2E ${Date.now()}`, lini_bisnis: "jual" }).select("id").single();
+  if (proyek.error) throw new Error(`Gagal membuat proyek uji: ${proyek.error.message}`);
+
   // Lot baru yang lulus mutu, dibuat langsung (jalur terima ikan dan cek mutu sudah diuji di pgTAP).
-  const po = await supabase.from("purchase_orders").insert({ supplier_id: pemasok.id, kg: 16000, harga_per_kg: 45000, catatan: "e2e-produksi" }).select("id, kode").single();
+  const po = await supabase.from("purchase_orders").insert({ supplier_id: pemasok.id, cycle_id: proyek.data.id, kg: 16000, harga_per_kg: 45000, catatan: "e2e-produksi" }).select("id, kode").single();
   if (po.error) throw new Error(`Gagal membuat PO uji: ${po.error.message}`);
   // Lot digrading pakai grade tuna utuh (AB), bukan grade loin.
   const grade = await supabase.from("grades").select("id").eq("kode", "AB").single();
   if (grade.error) throw new Error(`Grade AB tidak ada: ${grade.error.message}`);
   // Delapan lot: tiap percobaan tes produksi (termasuk ulangan) memakai satu lot penuh.
   for (let i = 0; i < 8; i++) {
-    const lot = await supabase.from("lots").insert({ po_id: po.data.id, po_kode: po.data.kode, supplier_id: pemasok.id, kg: 2000, sisa_kg: 2000, qc: "lulus", grade_id: grade.data.id });
+    const lot = await supabase.from("lots").insert({ po_id: po.data.id, po_kode: po.data.kode, supplier_id: pemasok.id, cycle_id: proyek.data.id, kg: 2000, sisa_kg: 2000, qc: "lulus", grade_id: grade.data.id });
     if (lot.error) throw new Error(`Gagal membuat lot uji: ${lot.error.message}`);
   }
 
   // Alur baru: satu lot yang udah digrading tapi belum diajukan pembeliannya (tanpa PO), buat uji "Ajukan pembelian".
-  const siap = await supabase.from("lots").insert({ supplier_id: pemasok.id, kg: 300, sisa_kg: 300, qc: "lulus", grade_id: grade.data.id, catatan: "e2e-ajukan" }).select("id").single();
+  const siap = await supabase.from("lots").insert({ supplier_id: pemasok.id, cycle_id: proyek.data.id, kg: 300, sisa_kg: 300, qc: "lulus", grade_id: grade.data.id, catatan: "e2e-ajukan" }).select("id").single();
   if (siap.error) throw new Error(`Gagal membuat lot uji ajukan: ${siap.error.message}`);
   const lg = await supabase.from("lot_grades").insert({ lot_id: siap.data.id, grade_id: grade.data.id, kg: 300 });
   if (lg.error) throw new Error(`Gagal membuat grading lot uji: ${lg.error.message}`);

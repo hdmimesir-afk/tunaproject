@@ -70,4 +70,4 @@ export type LoinTotal = { id: string; grade_id: string; kg: number };
 export type Ekor = { id: string; no_ekor: number; berat_utuh_kg: number };
 export type KomponenSamping = { id: string; category_id: string; kg: number };
 export type RiwayatLoin = { id: number; item_id: string; aksi: "tambah" | "koreksi" | "batal"; sebelum: Record<string, unknown> | null; sesudah: Record<string, unknown>; oleh: string | null; pada: string };
-export type LotSiap = { id: string; kode: string; sisa_kg: number; grade_kode: string | null; supplier_nama: string; kg?: number; jumlah_ekor?: number | null };
+export type LotSiap = { id: string; kode: string; sisa_kg: number; grade_kode: string | null; supplier_nama: string; kg?: number; jumlah_ekor?: number | null; cycle_id?: string | null };
