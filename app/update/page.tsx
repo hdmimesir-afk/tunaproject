@@ -29,7 +29,7 @@ export default function UpdatePage() {
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
               <h1 id="judul">Masukan dari rapat udah masuk ke sistem.</h1>
-              <p className="u-lead">Masukan dari training udah masuk: ikan diterima dulu tanpa PO, grading buat harga nelayan, tombol koreksi, dan form produksi yang baru. Sekarang tinggal dua hal yang nunggu jawaban tim, usulannya udah saya tulis. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
+              <p className="u-lead">Masukan dari training dan meeting operasional udah masuk: ikan diterima dulu tanpa PO, terima per ekor sekalian grading kayak di desain Mas Bisma, grade tuna utuh AB/C/D, koreksi di mana-mana termasuk timbangan produksi yang udah disetujui, dan laporan produksi yang lengkap. Sekarang tinggal {USULAN.length} hal yang nunggu jawaban tim, usulannya udah saya tulis. Posisinya per {TANGGAL} saya rangkum di sini, plus tampilan aslinya di HP dan laptop.</p>
               <div className="u-aksi">
                 <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasannya</a>
@@ -63,8 +63,8 @@ export default function UpdatePage() {
 
         <section className="u-bagian u-bagian-alt" id="ringkasan" aria-labelledby="h-ringkasan">
           <div className="u-wadah" id="usulan">
-            <h2 className="u-judul" id="h-usulan">Dua hal yang perlu jawaban tim</h2>
-            <p className="u-pengantar">Dua pertanyaan ini belum kejawab, jadi saya tulisin usulannya dulu. Kalau udah cocok, tinggal jawab pertanyaan di bawah tiap usulan. Kalau ada yang beda sama kebiasaan di lapangan, bilang aja. Dua-duanya belum saya kerjain sampai ada jawaban.</p>
+            <h2 className="u-judul" id="h-usulan">Yang perlu jawaban tim</h2>
+            <p className="u-pengantar">Pertanyaan ini belum kejawab, jadi saya tulisin usulannya dulu. Kalau udah cocok, tinggal jawab pertanyaan di bawah tiap usulan. Kalau ada yang beda sama kebiasaan di lapangan, bilang aja. Semuanya belum saya kerjain sampai ada jawaban.</p>
             <div className="u-dua u-badan">
               {USULAN.map((u) => (
                 <div key={u.judul}>
