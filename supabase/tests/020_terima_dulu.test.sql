@@ -43,24 +43,24 @@ select throws_ok($$select public.terima_ikan('10000000-0000-0000-0000-0000000002
 -- ============================================================ QC: grading dan tahan
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000205", "role": "authenticated", "aal": "aal1"}';
 select lives_ok($$select public.cek_mutu_grade((select v from uji where k = 'lot1'), 'lulus', jsonb_build_array(
-    jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 200),
-    jsonb_build_object('grade_id', (select id from public.grades where kode = 'B-SO'), 'kg', 100)), '')$$, 'grading lot 1 dua grade');
+    jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 200),
+    jsonb_build_object('grade_id', (select id from public.grades where kode = 'C'), 'kg', 100)), '')$$, 'grading lot 1 dua grade');
 select lives_ok($$select public.cek_mutu_grade((select v from uji where k = 'lot2'), 'lulus', jsonb_build_array(
-    jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 100)), '')$$, 'grading lot 2');
+    jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 100)), '')$$, 'grading lot 2');
 select lives_ok($$select public.cek_mutu_grade((select v from uji where k = 'lot3'), 'ditahan', '[]'::jsonb, 'gugur')$$, 'lot 3 ditahan (gugur)');
 
 -- ============================================================ admin: ajukan pembelian per grade
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000203", "role": "authenticated", "aal": "aal1"}';
 select throws_ok($$select public.ajukan_pembelian(array[(select v from uji where k = 'lot1'), (select v from uji where k = 'lot3')],
-  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'harga_per_kg', 50000)), true)$$,
+  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'harga_per_kg', 50000)), true)$$,
   'KT001', null, 'lot ditahan nggak bisa diajukan');
 select throws_ok($$select public.ajukan_pembelian(array[(select v from uji where k = 'lot1')],
-  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'harga_per_kg', 50000)), true)$$,
-  'KT001', 'Isi harga per kg buat grade B-SO.', 'harga tiap grade wajib diisi');
+  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'harga_per_kg', 50000)), true)$$,
+  'KT001', 'Isi harga per kg buat grade C.', 'harga tiap grade wajib diisi');
 select lives_ok($$insert into uji values ('po', public.ajukan_pembelian(array[(select v from uji where k = 'lot1'), (select v from uji where k = 'lot2')],
   jsonb_build_array(
-    jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'harga_per_kg', 50000),
-    jsonb_build_object('grade_id', (select id from public.grades where kode = 'B-SO'), 'harga_per_kg', 40000)), true))$$,
+    jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'harga_per_kg', 50000),
+    jsonb_build_object('grade_id', (select id from public.grades where kode = 'C'), 'harga_per_kg', 40000)), true))$$,
   'ajukan dua lot dari pemasok yang sama');
 select results_eq($$select kode is null, status_persetujuan, kg::text, total::text, harga_per_kg::text from public.purchase_orders where id = (select v from uji where k = 'po')$$,
   $$values (true, 'diajukan', '400.000', '19000000.00', '47500.00')$$, 'PO belum punya kode, total per grade: 300x50rb + 100x40rb');
@@ -91,13 +91,13 @@ select lives_ok($$select public.catat_bayar((select v from uji where k = 'po'), 
 -- ============================================================ admin: koreksi harga PO yang udah disetujui
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000203", "role": "authenticated", "aal": "aal1"}';
 select throws_ok($$select public.koreksi_pembelian((select v from uji where k = 'po'),
-  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'harga_per_kg', 30000)),
+  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'harga_per_kg', 30000)),
   '10000000-0000-0000-0000-000000000201', (select cycle_id from public.purchase_orders where id = (select v from uji where k = 'po')), '', 'harga turun')$$,
   'KT001', null, 'total baru di bawah yang udah dibayar ditolak');
 select throws_ok($$select public.koreksi_pembelian((select v from uji where k = 'po'), null,
   '10000000-0000-0000-0000-000000000201', null, '', '')$$, 'KT001', null, 'koreksi tanpa alasan ditolak');
 select lives_ok($$select public.koreksi_pembelian((select v from uji where k = 'po'),
-  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'harga_per_kg', 52000)),
+  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'harga_per_kg', 52000)),
   '10000000-0000-0000-0000-000000000201', (select cycle_id from public.purchase_orders where id = (select v from uji where k = 'po')), '', 'salah ketik harga A')$$,
   'koreksi harga grade A');
 select results_eq($$select status_persetujuan, total::text from public.purchase_orders where id = (select v from uji where k = 'po')$$,

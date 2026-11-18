@@ -33,6 +33,7 @@ export const PERJALANAN = [
 /* -------------------------------------------------------------- terbaru */
 /* Laporan terbaru: masukan training 17 November, beres-beres 14 November, lalu masukan Mas Bisma (notulen 10 November). */
 export const TERBARU: { judul: string; isi: string }[] = [
+  { judul: "Grade tuna utuh dipisah dari grade loin", isi: "Grading waktu penerimaan sekarang pakai grade tuna utuh AB, C, dan D. Grade D tetap dibeli, yang ditolak cuma ikan gugur atau bau. Harga ke nelayan juga diisi per grade ini. Grade loin A-SO sampai C-SL tetap dipakai di produksi, stok, dan penjualan. Sistem nolak kalau dua grade ini ketuker. Kalau perlu nambah grade, admin bisa nambah di Pengaturan, pilih dipakai buat tuna utuh atau loin." },
   { judul: "Beberapa bagian dari desain Mas Bisma", isi: "Grade sekarang tinggal di-tap, nggak usah buka dropdown, baik di grading maupun di timbang loin per potong (di laptop dan tablet). Di halaman Mutu ada kotak Penerimaan hari ini, isinya ikan yang masuk per nelayan. Total di Ajukan pembelian dibikin gede, dan timbang per potong sekarang nampilin yield-nya. Penerimaan per ekor (nomor tag, potongan gancu) belum saya ambil karena ngubah cara kerja, jadi saya tanya dulu ke tim." },
   { judul: "Ikan diterima dulu, PO belakangan", isi: "Urutan menu Operasi sekarang: Mutu dan Penerimaan, Persetujuan, Pembelian, terus Produksi. Petugas langsung nyatet ikan yang datang, nggak perlu nunggu PO. Habis digrading, admin ngajuin pembeliannya dengan harga per kg tiap grade. Kode PO baru keluar waktu disetujui, terus Finance bayar di menu Pembelian. Tombol Buat PO yang lama saya hapus." },
   { judul: "Grading nentuin harga ke nelayan", isi: "Status Lulus udah nggak ada. Yang tersisa cuma Menunggu (belum digrading) sama Ditahan (ikan gugur atau bau). Hasil grading tuna utuh dipakai buat ngitung harga ke nelayan, jadi tiap grade punya harga sendiri. Lot yang belum digrading tetap boleh langsung diolah." },
@@ -282,7 +283,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di tiap tombol, dan di database. Nota dan foto absen disimpan di tempat tertutup, cuma bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi, jadi kata sandi nggak bisa ditebak-tebak." },
   { judul: "Angkanya nggak geser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa dibulatin diam-diam. Saya udah uji pakai 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhannya hasilnya sama persis." },
   { judul: "Satu putaran penuh udah diuji", isi: "Saya jalanin pembelian sampai uang masuk pakai kelima jabatan, terus nyocokin angka di neraca, stok, tagihan, rincian proyek, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 18 November juga lulus semua: 682 pemeriksaan aturan database dan 112 pemeriksaan logika." },
+  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipakai. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 18 November juga lulus semua: 690 pemeriksaan aturan database dan 112 pemeriksaan logika." },
   { judul: "Cadangan tiap hari", isi: "Database dicadangin tiap malam dan dienkripsi. Udah empat kali berhasil, tiga di antaranya otomatis terjadwal. Yang belum saya lakuin: nyoba mulihin cadangan ke tempat kosong (ada di bagian yang masih tersisa)." },
 ] as const;
 
@@ -297,7 +298,7 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 18 November udah lulus pemeriksaan otomatis, termasuk 682 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan, grading, ajukan, setujui, bayar, koreksi, produksi jual, jasa, sama titip. Yang belum: dicoba tim di sistem yang udah dipakai." },
+  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 18 November udah lulus pemeriksaan otomatis, termasuk 690 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan, grading, ajukan, setujui, bayar, koreksi, produksi jual, jasa, sama titip. Yang belum: dicoba tim di sistem yang udah dipakai." },
   { judul: "Jawaban lanjutan tim Katalis", isi: "Soal bayar nelayan tunai sebelum disetujui, sama aturan transit dan ikan yang nginep, usulannya ada di bagian atas. Tim tinggal jawab pertanyaannya." },
   { judul: "Meeting UX bareng Mas Bisma", isi: "Format Excel produksi dan finance, alur QC yang lebih detail, dan maksud input per proyek mau dibahas bareng di meeting tambahan. Biar nggak nebak, saya nunggu contoh file dan alurnya dari tim dulu." },
   { judul: "Video panduan", isi: "Teks dan gambar panduan udah ngikutin alur baru. Video buat penerimaan, pembelian, dan mulai produksi masih tampilan lama, nanti saya rekam ulang." },

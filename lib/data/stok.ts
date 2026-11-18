@@ -82,7 +82,7 @@ export async function produkAktif(): Promise<Opsi[]> {
 
 export async function gradeStok(): Promise<Opsi[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("grades").select("id, kode").eq("aktif", true).order("urutan");
+  const { data, error } = await sb.from("grades").select("id, kode").eq("aktif", true).eq("jenis", "loin").order("urutan");
   if (error) gagal("daftar grade");
   return (data ?? []).map((x) => ({ id: x.id as string, label: x.kode as string }));
 }

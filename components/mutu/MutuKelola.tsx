@@ -359,11 +359,12 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
             {perPemasok.map((p) => (
               <li key={p.nama + p.lot[0]} className="px-3.5 py-2.5">
                 <div className="flex items-baseline justify-between gap-2 text-[13.5px] font-medium" style={{ color: INK }}>
-                  <span className="truncate">{p.nama}</span>
+                  <span className="min-w-0 truncate">{p.nama}</span>
                   <span className="shrink-0 tabular-nums">{formatKg(p.gram / 1000)} kg</span>
                 </div>
                 <div className="flex justify-between gap-2 text-[12px]" style={{ color: MUTED }}>
-                  <span className="truncate">{p.lot.join(", ")}</span>
+                  {/* Daftar lot dibatasi biar nelayan yang setor banyak lot nggak bikin kotaknya melebar. */}
+                  <span className="min-w-0 break-words">{p.lot.length > 3 ? `${p.lot.slice(0, 3).join(", ")} +${p.lot.length - 3} lot lagi` : p.lot.join(", ")}</span>
                   {p.belum > 0 && <span className="shrink-0" style={{ color: "#8A5A00" }}>{p.belum} belum digrading</span>}
                 </div>
               </li>
@@ -397,7 +398,7 @@ export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, ha
         <Stat value={String(ditahan)} label="Ditahan (gugur/bau)" tone={ditahan > 0 ? "warn" : undefined} />
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
         {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} />}
         <TerimaHariIni lots={lots} hariIni={hariIni} />
       </div>

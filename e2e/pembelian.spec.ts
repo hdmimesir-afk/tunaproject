@@ -27,7 +27,7 @@ test("pembelian diajukan dari lot yang udah digrading, harga per grade, konfirma
 
   // Tanpa harga dan tanpa tanda "Nota menyusul", tombol ajukan mati.
   await expect(jendela.getByRole("button", { name: "Ajukan untuk disetujui" })).toBeDisabled();
-  await jendela.getByLabel("Harga per kg A-SO").fill("45000");
+  await jendela.getByLabel("Harga per kg AB").fill("45000");
   await expect(jendela.getByTestId("total-ajukan")).not.toHaveText("Rp0");
   await expect(jendela.getByRole("button", { name: "Ajukan untuk disetujui" })).toBeDisabled();
   await jendela.getByText("Nota menyusul.", { exact: false }).click();

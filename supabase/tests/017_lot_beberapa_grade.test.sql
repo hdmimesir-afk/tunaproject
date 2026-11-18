@@ -25,53 +25,53 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000171", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000171', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 300),
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'B-SO'), 'kg', 150.5),
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'C-SO'), 'kg', 40)
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 300),
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'C'), 'kg', 150.5),
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'D'), 'kg', 40)
   ), 'campur')$$,
   'lot lulus dengan tiga grade');
 select results_eq(
   $$select string_agg(g.kode || '=' || lg.kg::text, ',' order by g.kode) from public.lot_grades lg join public.grades g on g.id = lg.grade_id where lg.lot_id = 'c0000000-0000-0000-0000-000000000171' and lg.kg > 0$$,
-  array['A-SO=300.000,B-SO=150.500,C-SO=40.000'], 'berat per grade tersimpan');
+  array['AB=300.000,C=150.500,D=40.000'], 'berat per grade tersimpan');
 select results_eq(
   $$select l.qc || ' ' || g.kode from public.lots l join public.grades g on g.id = l.grade_id where l.id = 'c0000000-0000-0000-0000-000000000171'$$,
-  array['lulus A-SO'], 'grade utama lot = grade terberat');
+  array['lulus AB'], 'grade utama lot = grade terberat');
 
--- Diubah: C-SO dikeluarkan, B-SO jadi terberat.
+-- Diubah: D dikeluarkan, C jadi terberat.
 select lives_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000171', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 100),
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'B-SO'), 'kg', 400)
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 100),
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'C'), 'kg', 400)
   ), 'dinilai ulang')$$,
   'cek mutu bisa diubah selama lot belum dipakai');
 select results_eq(
   $$select string_agg(g.kode || '=' || lg.kg::text, ',' order by g.kode) from public.lot_grades lg join public.grades g on g.id = lg.grade_id where lg.lot_id = 'c0000000-0000-0000-0000-000000000171'$$,
-  array['A-SO=100.000,B-SO=400.000,C-SO=0.000'], 'grade yang dikeluarkan jadi nol, tidak dihapus');
+  array['AB=100.000,C=400.000,D=0.000'], 'grade yang dikeluarkan jadi nol, tidak dihapus');
 select results_eq(
   $$select g.kode from public.lots l join public.grades g on g.id = l.grade_id where l.id = 'c0000000-0000-0000-0000-000000000171'$$,
-  array['B-SO'], 'grade utama ikut berubah');
+  array['C'], 'grade utama ikut berubah');
 
 -- Penolakan.
 select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 150),
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'B-SO'), 'kg', 60)))$$,
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 150),
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'C'), 'kg', 60)))$$,
   'KT001', null, 'jumlah per grade melebihi berat lot ditolak');
 select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', '[]'::jsonb)$$,
   'KT001', null, 'lulus tanpa grade ditolak');
 select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 10),
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 20)))$$,
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 10),
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 20)))$$,
   'KT001', null, 'grade ganda ditolak');
 select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 0)))$$,
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 0)))$$,
   'KT001', null, 'berat nol ditolak');
 select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 1.2345)))$$,
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 1.2345)))$$,
   'KT001', null, 'lebih dari tiga desimal ditolak');
 select throws_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'oke', '[]'::jsonb)$$,
@@ -80,26 +80,26 @@ select throws_ok(
 -- Sebagian saja yang dibagi: sisanya tetap tercatat belum dinilai di laporan harga beli.
 select lives_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 150)))$$,
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 150)))$$,
   'jumlah per grade boleh kurang dari berat lot');
 
 -- Versi lama satu grade tetap jalan dan memakai seluruh berat lot.
 select lives_ok(
-  $$select public.cek_mutu('c0000000-0000-0000-0000-000000000172', 'lulus', (select id from public.grades where kode = 'C-SO'), 'satu grade')$$,
+  $$select public.cek_mutu('c0000000-0000-0000-0000-000000000172', 'lulus', (select id from public.grades where kode = 'D'), 'satu grade')$$,
   'cek_mutu lama tetap bisa dipakai');
 select results_eq(
   $$select string_agg(g.kode || '=' || lg.kg::text, ',' order by g.kode) from public.lot_grades lg join public.grades g on g.id = lg.grade_id where lg.lot_id = 'c0000000-0000-0000-0000-000000000172' and lg.kg > 0$$,
-  array['C-SO=200.000'], 'cek_mutu lama: seluruh 200 kg masuk satu grade');
+  array['D=200.000'], 'cek_mutu lama: seluruh 200 kg masuk satu grade');
 select lives_ok(
   $$select public.cek_mutu_grade('c0000000-0000-0000-0000-000000000172', 'lulus', jsonb_build_array(
-      jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 150)))$$,
-  'kembali ke 150 kg A-SO');
+      jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 150)))$$,
+  'kembali ke 150 kg AB');
 
 -- Laporan harga beli: nilai dibagi per grade, sisa 50 kg belum dinilai. Dibaca sebagai pemilik karena QC tidak melihat harga PO.
 reset role;
 select results_eq(
   $$select string_agg(grade_kode || '=' || kg::text || '/' || nilai::text, ',' order by grade_kode) from public.v_harga_beli where supplier_id = '10000000-0000-0000-0000-000000000017'$$,
-  array['A-SO=250.000/10000000.00,B-SO=400.000/16000000.00,Belum dinilai=50.000/2000000.00'], 'harga beli dibagi per grade, sisa jadi belum dinilai');
+  array['AB=250.000/10000000.00,Belum dinilai=50.000/2000000.00,C=400.000/16000000.00'], 'harga beli dibagi per grade, sisa jadi belum dinilai');
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000171", "role": "authenticated", "aal": "aal1"}';
 
@@ -111,7 +111,7 @@ select results_eq(
 
 -- Tabel hanya diubah lewat fungsi.
 select throws_ok(
-  $$insert into public.lot_grades (lot_id, grade_id, kg) values ('c0000000-0000-0000-0000-000000000172', (select id from public.grades where kode = 'A-SO'), 5)$$,
+  $$insert into public.lot_grades (lot_id, grade_id, kg) values ('c0000000-0000-0000-0000-000000000172', (select id from public.grades where kode = 'AB'), 5)$$,
   '42501', null, 'tidak bisa menulis langsung ke lot_grades');
 
 -- ============================================================ Petugas: boleh baca, tidak boleh menilai

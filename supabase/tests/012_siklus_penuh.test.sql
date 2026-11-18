@@ -58,7 +58,7 @@ set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c5",
 select ok(public.terima_po(current_setting('uji.po')::uuid, 200, 'tiba pagi', false) is not null, 'petugas menerima 200 kg menjadi lot');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c4", "role": "authenticated", "aal": "aal1"}';
 select lives_ok(
-  $$select public.cek_mutu((select id from public.lots where po_id = current_setting('uji.po')::uuid), 'lulus', (select id from public.grades where kode = 'A-SO'), 'segar')$$,
+  $$select public.cek_mutu((select id from public.lots where po_id = current_setting('uji.po')::uuid), 'lulus', (select id from public.grades where kode = 'AB'), 'segar')$$,
   'QC meluluskan lot');
 
 -- ============================================================ 4. Produksi per loin (Petugas) dan neraca

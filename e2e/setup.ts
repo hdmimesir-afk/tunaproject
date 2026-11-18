@@ -55,8 +55,9 @@ export default async function setup() {
   // Lot baru yang lulus mutu, dibuat langsung (jalur terima ikan dan cek mutu sudah diuji di pgTAP).
   const po = await supabase.from("purchase_orders").insert({ supplier_id: pemasok.id, kg: 16000, harga_per_kg: 45000, catatan: "e2e-produksi" }).select("id, kode").single();
   if (po.error) throw new Error(`Gagal membuat PO uji: ${po.error.message}`);
-  const grade = await supabase.from("grades").select("id").eq("kode", "A-SO").single();
-  if (grade.error) throw new Error(`Grade A-SO tidak ada: ${grade.error.message}`);
+  // Lot digrading pakai grade tuna utuh (AB), bukan grade loin.
+  const grade = await supabase.from("grades").select("id").eq("kode", "AB").single();
+  if (grade.error) throw new Error(`Grade AB tidak ada: ${grade.error.message}`);
   // Delapan lot: tiap percobaan tes produksi (termasuk ulangan) memakai satu lot penuh.
   for (let i = 0; i < 8; i++) {
     const lot = await supabase.from("lots").insert({ po_id: po.data.id, po_kode: po.data.kode, supplier_id: pemasok.id, kg: 2000, sisa_kg: 2000, qc: "lulus", grade_id: grade.data.id });

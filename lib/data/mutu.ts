@@ -18,7 +18,7 @@ export async function daftarLot(): Promise<LotBaris[]> {
 
 export async function gradeAktif(): Promise<Opsi[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("grades").select("id, kode, nama").eq("aktif", true).order("urutan");
+  const { data, error } = await sb.from("grades").select("id, kode, nama").eq("aktif", true).eq("jenis", "utuh").order("urutan");
   if (error) gagal("daftar kelas mutu");
   return (data ?? []).map((g) => ({ id: g.id as string, label: g.nama ? `${g.kode} · ${g.nama}` : (g.kode as string) }));
 }

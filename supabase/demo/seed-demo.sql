@@ -78,7 +78,7 @@ declare
   -- master
   s1 uuid; s2 uuid; s3 uuid;
   b_pasifik uuid; b_segara uuid; b_hotel uuid;
-  g_a uuid; g_b uuid; g_c uuid;
+  g_a uuid; g_b uuid; g_c uuid; u_ab uuid; u_c uuid;
   p_loin uuid;
   partner uuid;
   -- siklus A (selesai diolah, sebagian besar sudah laku) dan B (sedang berjalan)
@@ -111,6 +111,9 @@ begin
   select id into g_a from public.grades where upper(kode) = 'A-SO' and aktif;
   select id into g_b from public.grades where upper(kode) = 'B-SO' and aktif;
   select id into g_c from public.grades where upper(kode) = 'C-SO' and aktif;
+  -- Grading tuna utuh pakai grade tuna utuh (AB, C, D), bukan grade loin.
+  select id into u_ab from public.grades where upper(kode) = 'AB' and aktif;
+  select id into u_c from public.grades where upper(kode) = 'C' and aktif;
   select id into p_loin from public.products where lower(nama) = 'loin tuna' and aktif;
   if g_a is null or g_b is null or g_c is null or p_loin is null then
     raise exception 'Grade A-SO/B-SO/C-SO atau produk "Loin tuna" tidak ditemukan atau nonaktif.';
@@ -141,10 +144,10 @@ begin
   lot2 := public.terima_po(po2, 800, 'Diterima lengkap (contoh)', false);
   update public.lots set tanggal_terima = hari - 17 where id = lot1;
   update public.lots set tanggal_terima = hari - 16 where id = lot2;
-  perform public.cek_mutu(lot1, 'lulus', g_a, 'Daging merah cerah, tekstur baik (contoh)');
+  perform public.cek_mutu(lot1, 'lulus', u_ab, 'Daging merah cerah, tekstur baik (contoh)');
   -- Satu lot bisa berisi beberapa grade.
   perform public.cek_mutu_grade(lot2, 'lulus', jsonb_build_array(
-    jsonb_build_object('grade_id', g_b, 'kg', 500), jsonb_build_object('grade_id', g_a, 'kg', 300)), 'Sebagian warna agak pucat (contoh)');
+    jsonb_build_object('grade_id', u_c, 'kg', 500), jsonb_build_object('grade_id', u_ab, 'kg', 300)), 'Sebagian warna agak pucat (contoh)');
   update public.lots set qc_pada = ((tanggal_terima) + time '16:00') at time zone 'Asia/Jakarta' where id in (lot1, lot2);
 
   perform public.catat_bayar(po1, 30000000, hari - 16, 'Uang muka (contoh)');
@@ -234,7 +237,7 @@ begin
   lot4 := public.terima_po(po3, 600, 'Penerimaan kedua, menunggu cek mutu (contoh)', false);
   update public.lots set tanggal_terima = hari - 3 where id = lot3;
   update public.lots set tanggal_terima = hari - 2 where id = lot4;
-  perform public.cek_mutu(lot3, 'lulus', g_a, 'Lulus, kualitas baik (contoh)');
+  perform public.cek_mutu(lot3, 'lulus', u_ab, 'Lulus, kualitas baik (contoh)');
   perform public.catat_bayar(po3, 31875000, hari - 2, 'Bayar separuh (contoh)');
 
   prd_b := public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', lot3, 'kg', 400)), hari - 1, 'Produksi sedang berjalan (contoh)');

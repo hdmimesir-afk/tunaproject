@@ -26,6 +26,9 @@ export const MASTER = {
   grades: { label: "Grade", kolom: [
     { k: "kode", label: "Kode", jenis: "teks", wajib: true },
     { k: "nama", label: "Nama", jenis: "teks" },
+    { k: "jenis", label: "Dipakai buat", jenis: "pilih", bawaan: "loin", opsi: [
+      { nilai: "loin", label: "Loin (produksi, stok, penjualan)" }, { nilai: "utuh", label: "Tuna utuh (penerimaan, harga nelayan)" },
+    ] },
     { k: "urutan", label: "Urutan", jenis: "angka", min: 0, max: 999, bawaan: 0 },
   ] },
   component_categories: { label: "Hasil samping dan limbah", kolom: [

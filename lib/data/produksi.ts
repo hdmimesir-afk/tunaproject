@@ -55,7 +55,7 @@ export async function daftarPT(): Promise<Opsi[]> {
 
 export async function gradeProduksi(): Promise<Opsi[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("grades").select("id, kode, nama").eq("aktif", true).order("urutan");
+  const { data, error } = await sb.from("grades").select("id, kode, nama").eq("aktif", true).eq("jenis", "loin").order("urutan");
   if (error) gagal("daftar grade");
   return (data ?? []).map((g) => ({ id: g.id as string, label: g.kode as string }));
 }
