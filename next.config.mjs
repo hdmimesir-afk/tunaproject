@@ -6,6 +6,8 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Tombol bawaan Next.js di pojok bawah (mode dev) disembunyikan, biar nggak nongol di layar contoh /update. Galat tetap muncul.
+  devIndicators: false,
   turbopack: { root },
   // Pola data dan sesi sistem ERP mengikuti Cache Components (lihat AGENTS.md).
   cacheComponents: true,
