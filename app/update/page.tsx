@@ -29,7 +29,7 @@ export default function UpdatePage() {
             <div>
               <Image className="u-logo-besar" src="/brand/katalis-logo-dark.png" alt="KATALIS Lintas Global" width={148} height={60} priority />
               <h1 id="judul">Masukan dari rapat udah masuk ke sistem.</h1>
-              <p className="u-lead">Masukan dari training sama meeting operasional udah saya masukin semua. Ikan sekarang diterima dulu tanpa PO, bisa dicatet per ekor sekalian grading kayak di desain Mas Bisma, grade tuna utuh udah pake AB/C/D, koreksi ada di mana mana sampe timbangan produksi yg udah disetujui, dan laporan produksinya udah lengkap. Tinggal {USULAN.length} hal yg nunggu jawaban tim, usulannya udah saya tulis di bawah. Ini rangkuman per {TANGGAL}, plus tampilan aslinya di HP sama laptop.</p>
+              <p className="u-lead">Ikan sekarang diterima dulu tanpa PO, bisa dicatet per ekor, dan proyeknya udah dikunci. Tinggal {USULAN.length} hal yg nunggu jawaban tim.</p>
               <div className="u-aksi">
                 <a className="u-tombol" href="#terbaru">Lihat yang baru</a>
                 <a className="u-tombol u-tombol-sunyi" href="#ringkasan">Baca ringkasannya</a>
@@ -45,7 +45,7 @@ export default function UpdatePage() {
         <section className="u-bagian" id="terbaru" aria-labelledby="h-terbaru">
           <div className="u-wadah">
             <h2 className="u-judul" id="h-terbaru">Yang baru per {TANGGAL}</h2>
-            <p className="u-pengantar">Yg paling atas itu hasil meeting operasional sama desain Mas Bisma tanggal 18, abis itu masukan training tanggal 17, beres beres tanggal 14, trus sisanya dari rapat 10 November. Intinya sekarang orang lapangan bisa langsung nyatet ikan per ekor tanpa nunggu PO, dan semua data bisa dikoreksi asal ada alasannya.</p>
+            <p className="u-pengantar">Yg paling atas yg paling baru. Semua data sekarang bisa dikoreksi asal ada alasannya.</p>
             <div className="u-kartu-grid u-badan">
               {TERBARU.map((k) => <div key={k.judul}><h3>{k.judul}</h3><p>{k.isi}</p></div>)}
             </div>
