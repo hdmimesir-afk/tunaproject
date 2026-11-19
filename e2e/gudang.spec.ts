@@ -26,7 +26,8 @@ test.describe("gudang dingin", () => {
 
     await page.goto("/gudang");
     await page.getByRole("button", { name: "Rincian" }).first().click();
-    await expect(page.getByRole("dialog").getByText(/masa transit/)).toBeVisible();
+    // Nggak ada transit (jawaban tim 19 Nov 2026): langsung diambil pun tetap ditagih minimum 10 hari.
+    await expect(page.getByRole("dialog").getByText(/minimum 10 hari/).first()).toBeVisible();
   });
 
   test("jadwal yang bentrok ditandai dan bisa dipindah ke jam kosong pertama", async ({ page }) => {
