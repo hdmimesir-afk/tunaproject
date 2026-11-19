@@ -1,7 +1,7 @@
 -- Fase 4 Â· Stok, titipan gudang dingin, mesin tarif, koreksi stok, jadwal ABF. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(60);
+select plan(61);
 
 -- ---------------------------------------------------------------- data uji
 insert into auth.users (id, email) values
@@ -29,8 +29,9 @@ values ('e0000000-0000-0000-0000-000000000051', 'd0000000-0000-0000-0000-0000000
 
 -- ============================================================ Mesin tarif (murni)
 select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-01 03:00+00', 76, 10, 3, 10) ->> 'jumlah'), '100.00', 'tepat 3 jam: masih transit');
-select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-01 03:00:01+00', 76, 10, 3, 10) ->> 'jumlah'), '760.00', '3 jam lebih 1 detik: ditagih 1 hari');
-select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-02 00:00+00', 76, 10, 3, 10) ->> 'hari_ditagih'), '1', 'tepat 24 jam: 1 hari, tanpa minimum');
+select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-01 03:00:01+00', 76, 10, 3, 10) ->> 'jumlah'), '7600.00', '3 jam lebih 1 detik: lewat transit, kena minimum 10 hari');
+select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-02 00:00+00', 76, 10, 3, 10) ->> 'hari_ditagih'), '10', 'tepat 24 jam: tetap minimum 10 hari');
+select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-01 01:00+00', 76, 10, 0, 10) ->> 'jumlah'), '7600.00', 'tanpa transit: 1 jam tetap 10 hari');
 select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-02 00:00:01+00', 76, 10, 3, 10) ->> 'jumlah'), '7600.00', '24 jam lebih 1 detik: kena minimum 10 hari');
 select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-11 00:00+00', 76, 10, 3, 10) ->> 'jumlah'), '7600.00', 'tepat 10 hari: 10 hari');
 select is((public.hitung_biaya_simpan(10, '2026-01-01 00:00+00', '2026-01-11 00:00:01+00', 76, 10, 3, 10) ->> 'jumlah'), '8360.00', 'hari ke-11 menambah satu hari penuh');
@@ -88,7 +89,7 @@ select lives_ok(
   $$select public.terima_titipan('b1000000-0000-0000-0000-000000000051', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 100, 'TIT-2')$$,
   'titipan kedua masuk');
 select lives_ok($$select public.ambil_stok((select id from public.storage_units where lokasi = 'TIT-2'), 100)$$, 'titipan kedua langsung diambil');
-select is((select jenis || ':' || jumlah::text from public.service_charges where kg_dasar = 100 and jenis in ('transit', 'simpan')), 'transit:0.00', 'diambil dalam masa transit: tarif transit (belum ditetapkan, nol)');
+select is((select jenis || ':' || jumlah::text from public.service_charges where kg_dasar = 100 and jenis in ('transit', 'simpan')), 'simpan:76000.00', 'nggak ada transit: langsung diambil tetap ditagih minimum 10 hari');
 
 -- Koreksi stok menunggu Owner.
 select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where lokasi = 'RAK-1'), -5, 'salah timbang 1')$$, 'petugas mengajukan koreksi');

@@ -1,9 +1,10 @@
 /* Mesin tarif gudang dingin. Murni tanpa I/O; rumus yang sama ada di fungsi database hitung_biaya_simpan
    dan keduanya diuji dengan kasus batas yang sama. Hitungan memakai detik dan gram bulat supaya tidak bergeser.
 
-     lama <= masa transit  -> tarif transit x berat
-     selain itu            -> hari = lama dibulatkan ke atas per 24 jam; sampai 1 hari ditagih 1 hari,
-                              lebih dari itu ditagih paling sedikit minimum hari; tarif x berat x hari ditagih */
+     masa transit > 0 dan lama <= masa transit  -> tarif transit x berat
+     selain itu  -> hari = lama dibulatkan ke atas per 24 jam (minimal 1), ditagih paling sedikit minimum hari;
+                    tarif x berat x hari ditagih
+   Jawaban tim 19 Nov 2026: titipan nggak ada yang transit (masa transit 0), yang cuma semalam pun ditagih minimum 10 hari. */
 
 export type AturanSimpan = {
   tarifPerKg: number;
@@ -28,9 +29,9 @@ export function hitungBiayaSimpan(kgDasar: number, masuk: Date, keluar: Date, a:
   const detik = Math.ceil((keluar.getTime() - masuk.getTime()) / 1000);
   if (detik < 0) throw new Error("Waktu keluar lebih awal dari waktu masuk.");
   const gram = Math.round(kgDasar * 1000);
-  const transit = detik <= a.masaTransitJam * 3600;
-  const hariBulat = transit ? 0 : Math.ceil(detik / 86400);
-  const hariDitagih = transit ? 0 : hariBulat <= 1 ? 1 : Math.max(hariBulat, a.minimumHari);
+  const transit = a.masaTransitJam > 0 && detik <= a.masaTransitJam * 3600;
+  const hariBulat = transit ? 0 : Math.max(Math.ceil(detik / 86400), 1);
+  const hariDitagih = transit ? 0 : Math.max(hariBulat, a.minimumHari);
   const tarif = transit ? a.tarifTransitPerKg : a.tarifPerKg;
   // sen = gram x tarif(sen/kg) x hari / 1000, dibulatkan setengah ke atas seperti round() numeric di database.
   const sen = Math.round((gram * Math.round(tarif * 100) * (transit ? 1 : hariDitagih)) / 1000);
@@ -46,9 +47,8 @@ export function uraikanBiaya(b: Pick<Biaya, "transit" | "detik" | "hariBulat" | 
     return [`Lama simpan ${lama}, masih dalam masa transit (${b.masaTransitJam} jam).`, `${kg(b.kgDasar)} kg × ${rp(b.tarifPerKg)} = ${rp(b.jumlah)}`];
   }
   const baris = [`Lama simpan ${lama}, dibulatkan ke atas per 24 jam menjadi ${b.hariBulat} hari.`];
-  if (b.hariBulat > 1 && b.hariDitagih > b.hariBulat) baris.push(`Kurang dari minimum ${b.minimumHari} hari, jadi ditagih ${b.hariDitagih} hari.`);
-  else if (b.hariBulat > 1) baris.push(`Ditagih ${b.hariDitagih} hari (minimum ${b.minimumHari} hari terpenuhi).`);
-  else baris.push("Sampai 24 jam ditagih 1 hari.");
+  if (b.hariDitagih > b.hariBulat) baris.push(`Kurang dari minimum ${b.minimumHari} hari, jadi ditagih ${b.hariDitagih} hari.`);
+  else baris.push(`Ditagih ${b.hariDitagih} hari (minimum ${b.minimumHari} hari terpenuhi).`);
   baris.push(`${kg(b.kgDasar)} kg × ${rp(b.tarifPerKg)} × ${b.hariDitagih} hari = ${rp(b.jumlah)}`);
   return baris;
 }

@@ -16,13 +16,14 @@ describe("hitungBiayaSimpan: kasus batas", () => {
     expect(b.jumlah).toBe(100);
     expect(b.hariDitagih).toBe(0);
   });
-  it("3 jam lebih 1 detik: ditagih 1 hari", () => {
+  it("3 jam lebih 1 detik: lewat transit, kena minimum 10 hari", () => {
     const b = hitungBiayaSimpan(10, t0, setelah(3 * JAM + 1), aturan);
     expect(b.transit).toBe(false);
-    expect(b.jumlah).toBe(760);
+    expect(b.hariDitagih).toBe(10);
+    expect(b.jumlah).toBe(7600);
   });
-  it("tepat 24 jam: 1 hari tanpa minimum", () => {
-    expect(hitungBiayaSimpan(10, t0, setelah(HARI), aturan).hariDitagih).toBe(1);
+  it("tepat 24 jam: tetap minimum 10 hari", () => {
+    expect(hitungBiayaSimpan(10, t0, setelah(HARI), aturan).hariDitagih).toBe(10);
   });
   it("24 jam lebih 1 detik: kena minimum 10 hari", () => {
     const b = hitungBiayaSimpan(10, t0, setelah(HARI + 1), aturan);
@@ -38,6 +39,27 @@ describe("hitungBiayaSimpan: kasus batas", () => {
   });
   it("keluar sebelum masuk ditolak", () => {
     expect(() => hitungBiayaSimpan(10, setelah(10), t0, aturan)).toThrow();
+  });
+});
+
+// Jawaban tim 19 Nov 2026: titipan nggak ada transit (masa transit 0), yang cuma sebentar pun minimum 10 hari.
+describe("hitungBiayaSimpan: tanpa transit", () => {
+  const tanpa = { ...aturan, masaTransitJam: 0 };
+  it("cuma 1 jam: ditagih 10 hari, bukan transit", () => {
+    const b = hitungBiayaSimpan(10, t0, setelah(JAM), tanpa);
+    expect(b.transit).toBe(false);
+    expect(b.hariBulat).toBe(1);
+    expect(b.hariDitagih).toBe(10);
+    expect(b.jumlah).toBe(7600);
+  });
+  it("nginep semalam (20 jam): tetap 10 hari", () => {
+    expect(hitungBiayaSimpan(10, t0, setelah(20 * JAM), tanpa).jumlah).toBe(7600);
+  });
+  it("keluar di detik yang sama: dihitung 1 hari, ditagih 10 hari", () => {
+    expect(hitungBiayaSimpan(10, t0, t0, tanpa).hariDitagih).toBe(10);
+  });
+  it("uraian nyebut minimum", () => {
+    expect(uraikanBiaya(hitungBiayaSimpan(10, t0, setelah(5 * JAM), tanpa))[1]).toContain("minimum 10 hari");
   });
 });
 

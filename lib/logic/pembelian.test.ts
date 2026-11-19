@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bisaDiedit, gradeLot, kodePO, lampiranKurang, lampiranWajib, namaPemegang, rincianAjukan, ringkasBatch, selisihHarga, sisaBayar, sisaBelumDibagi } from "./pembelian";
+import { bisaDiedit, gradeLot, jatuhTempoTermin2, kodePO, lampiranKurang, lampiranWajib, namaPemegang, rincianAjukan, ringkasBatch, rencanaTermin, selisihHarga, sisaBayar, sisaBelumDibagi, tambahHariKerja } from "./pembelian";
 
 describe("rincianAjukan (harga per grade dari grading tuna utuh)", () => {
   const lot = (grade: [string, string, number][]) => ({
@@ -120,5 +120,24 @@ describe("bisaDiedit", () => {
     expect(bisaDiedit("perlu_revisi")).toBe(true);
     expect(bisaDiedit("diajukan")).toBe(false);
     expect(bisaDiedit("disetujui")).toBe(false);
+  });
+});
+
+describe("termin bayar nelayan (50% + sisanya paling lambat 10 hari kerja)", () => {
+  it("dibagi dua pas, sen ganjil masuk termin 2", () => {
+    expect(rencanaTermin(23_200_000)).toEqual({ pertama: 11_600_000, kedua: 11_600_000 });
+    expect(rencanaTermin(100.01)).toEqual({ pertama: 50.01, kedua: 50 });
+    const r = rencanaTermin(19_000_000.03);
+    expect(Math.round((r.pertama + r.kedua) * 100)).toBe(1_900_000_003);
+  });
+  it("10 hari kerja melompati Sabtu dan Minggu", () => {
+    expect(tambahHariKerja("2026-11-19", 10)).toBe("2026-12-03"); // Kamis -> Kamis dua minggu kemudian
+    expect(tambahHariKerja("2026-11-21", 1)).toBe("2026-11-23"); // Sabtu -> Senin
+    expect(tambahHariKerja("2026-11-20", 1)).toBe("2026-11-23"); // Jumat -> Senin
+  });
+  it("jatuh tempo dari pembayaran pertama yang nggak batal", () => {
+    expect(jatuhTempoTermin2([], 100)).toBeNull();
+    expect(jatuhTempoTermin2([{ tanggal: "2026-11-19" }], 0)).toBeNull();
+    expect(jatuhTempoTermin2([{ tanggal: "2026-11-17", batal: true }, { tanggal: "2026-11-19" }], 100)).toBe("2026-12-03");
   });
 });

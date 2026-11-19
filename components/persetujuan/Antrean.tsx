@@ -9,7 +9,7 @@ import { mintaRevisi, periksa, setujui, tolakPengajuan } from "@/lib/actions/per
 import type { DataPersetujuan } from "@/lib/data/persetujuan";
 import { rp, tanggal, waktu } from "@/lib/format";
 import { formatKg } from "@/lib/logic/neraca";
-import { kodePO, LABEL_APV, namaPemegang, ringkasBatch, selisihHarga } from "@/lib/logic/pembelian";
+import { HARI_KERJA_TERMIN, kodePO, LABEL_APV, namaPemegang, rencanaTermin, ringkasBatch, selisihHarga } from "@/lib/logic/pembelian";
 import type { PemegangTugas, Pengajuan, Pengguna } from "@/lib/types/pembelian";
 
 type Props = {
@@ -119,6 +119,10 @@ function Kartu({ a, props, nota, dipilih, onPilih, onSetuju, onAlasan }: {
       </div>
 
       <div className="text-[26px] font-normal tracking-tight" style={{ color: INK }}>{rp(a.jumlah)}</div>
+      {/* Disetujui 100%, dibayar dua termin (jawaban tim 19 Nov 2026). Cuma buat pengajuan pembelian. */}
+      {(!!a.payload?.baris?.length || a.po_kg !== null) && <p className="text-[12.5px] tabular-nums" style={{ color: MUTED }} data-testid="rencana-termin">
+        Dibayar 2 termin: {rp(rencanaTermin(a.jumlah).pertama)} (50%) dulu, sisanya {rp(rencanaTermin(a.jumlah).kedua)} paling lambat {HARI_KERJA_TERMIN} hari kerja setelahnya.
+      </p>}
       {a.payload?.koreksi && (
         <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>
           PO ini dikoreksi setelah disetujui{typeof a.payload.total_lama === "number" && `, total sebelumnya ${rp(a.payload.total_lama)}`}.{a.payload.alasan && ` Alasan: ${a.payload.alasan}`}

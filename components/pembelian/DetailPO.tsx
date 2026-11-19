@@ -8,7 +8,7 @@ import type { HasilForm } from "@/lib/actions/auth";
 import { batalkanBayar, catatBayar, koreksiPembelian } from "@/lib/actions/pembelian";
 import type { DetailPO as Detail } from "@/lib/data/pembelian";
 import { hariIni as hariIniFn, rp, tanggal, waktu } from "@/lib/format";
-import { gradeLot, kodePO, LABEL_APV, LABEL_BAYAR, LABEL_PO, lampiranWajib, namaPemegang, selisihHarga, sisaBayar } from "@/lib/logic/pembelian";
+import { gradeLot, HARI_KERJA_TERMIN, jatuhTempoTermin2, kodePO, LABEL_APV, LABEL_BAYAR, LABEL_PO, lampiranWajib, namaPemegang, rencanaTermin, selisihHarga, sisaBayar, tambahHariKerja } from "@/lib/logic/pembelian";
 import { formatKg } from "@/lib/logic/neraca";
 import type { AturanLampiran, BayarBaris, Opsi, PemegangTugas, Pengguna } from "@/lib/types/pembelian";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
@@ -55,22 +55,35 @@ function Pesan({ state }: { state: HasilForm }) {
 /** Data kelengkapan dari admin: aturan lampiran wajib, pemegang tugas, dan boleh-tidaknya melampirkan nota susulan. */
 export type Kelengkapan = { aturan: AturanLampiran[]; pemegang: PemegangTugas[]; bolehNotaSusulan: boolean };
 
-function FormBayar({ poId, sisa, hariIni }: { poId: string; sisa: number; hariIni: string }) {
+/** Bayar nelayan: disetujui 100%, dibayar dua termin. Tombol termin cuma ngisiin jumlah dan catatan, tetap bisa diubah. */
+function FormBayar({ poId, total, sisa, hariIni, sudahBayar }: { poId: string; total: number; sisa: number; hariIni: string; sudahBayar: boolean }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(catatBayar, undefined);
-  const [jumlah, setJumlah] = useState(String(sisa));
+  const termin = rencanaTermin(total);
+  const [tgl, setTgl] = useState(hariIni);
+  const isiTermin1 = () => ({ jumlah: String(Math.min(termin.pertama, sisa)), catatan: `Termin 1 (50%). Termin 2 paling lambat ${tanggal(tambahHariKerja(tgl, HARI_KERJA_TERMIN))}` });
+  const [jumlah, setJumlah] = useState(sudahBayar ? String(sisa) : isiTermin1().jumlah);
+  const [catatan, setCatatan] = useState(sudahBayar ? "Termin 2 (pelunasan)" : isiTermin1().catatan);
+  const pilih = (t: 1 | 2) => {
+    if (t === 1) { const x = isiTermin1(); setJumlah(x.jumlah); setCatatan(x.catatan); }
+    else { setJumlah(String(sisa)); setCatatan("Termin 2 (pelunasan)"); }
+  };
   return (
     <form action={action} className="space-y-3 rounded-2xl bg-white p-3.5">
       <input type="hidden" name="poId" value={poId} />
       <Pesan state={state} />
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Pilih termin">
+        {!sudahBayar && <Btn size="sm" v="light" onClick={() => pilih(1)}>Termin 1 (50%)</Btn>}
+        <Btn size="sm" v="light" onClick={() => pilih(2)}>{sudahBayar ? "Termin 2 (pelunasan)" : "Lunas sekaligus"}</Btn>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label={`Jumlah (sisa ${rp(sisa)})`} error={state?.kolom?.jumlah?.[0]}>
           <TextIn name="jumlah" type="number" inputMode="decimal" step="0.01" min="0" max={sisa} value={jumlah} onChange={(e) => setJumlah(e.target.value)} required />
         </Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}>
-          <TextIn name="tanggal" type="date" defaultValue={hariIni} required />
+          <TextIn name="tanggal" type="date" value={tgl} onChange={(e) => setTgl(e.target.value)} required />
         </Field>
       </div>
-      <Field label="Catatan" hint="Misalnya DP atau pelunasan."><TextIn name="catatan" maxLength={300} /></Field>
+      <Field label="Catatan" hint="Keisi otomatis dari tombol termin, boleh diubah."><TextIn name="catatan" maxLength={300} value={catatan} onChange={(e) => setCatatan(e.target.value)} /></Field>
       <KonfirmasiDua size="sm" label="Catat pembayaran" labelYa="Ya, catat pembayaran" pending={pending}
         pesan={`Catat pembayaran ${rp(Number(jumlah) || 0)} buat PO ini? Cek dulu nominalnya udah benar.`} />
     </form>
@@ -155,6 +168,7 @@ export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, boleh
   const penyetuju = namaPemegang(kelengkapan.pemegang, "persetujuan.setuju");
   const banding = selisihHarga(po.harga_per_kg, po.harga_acuan);
   const sisa = sisaBayar(po.total, po.total_bayar);
+  const tempo2 = jatuhTempoTermin2(bayar, sisa);
   const tanggalIni = hariIni || hariIniFn();
   const bisaKoreksi = bolehTulis && po.status_persetujuan !== "ditolak";
   const namaId = Object.fromEntries([...pemasok, ...siklus].map((o) => [o.id, o.label]));
@@ -258,7 +272,13 @@ export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, boleh
                 )}
               </div>
             ))}
-            {bolehBayar && po.status_persetujuan === "disetujui" && sisa > 0 && <FormBayar poId={po.id} sisa={sisa} hariIni={tanggalIni} />}
+            {tempo2 && (
+              <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" data-testid="tempo-termin2"
+                style={tempo2 < tanggalIni ? { background: "#FBE5E3", color: "#A8322B" } : { background: "#FBF0D5", color: "#8A5A00" }}>
+                Termin 2 {rp(sisa)} paling lambat {tanggal(tempo2)}{tempo2 < tanggalIni ? ", udah lewat" : ""}.
+              </p>
+            )}
+            {bolehBayar && po.status_persetujuan === "disetujui" && sisa > 0 && <FormBayar key={`${bayar.filter((b) => !b.batal).length}:${sisa}`} poId={po.id} total={po.total} sisa={sisa} hariIni={tanggalIni} sudahBayar={bayar.some((b) => !b.batal)} />}
             {bayar.length === 0 && !bolehBayar && <p className="text-[13px]" style={{ color: MUTED }}>Belum ada pembayaran. Nanti dicatat sama Finance.</p>}
           </div>
         </Bagian>

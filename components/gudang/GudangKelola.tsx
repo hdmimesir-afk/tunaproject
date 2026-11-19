@@ -158,7 +158,7 @@ function FormTarif({ aturan, onTutup, hariIni }: { aturan: AturanTarif; onTutup:
         <Field label={aturan.jenis === "simpan" ? "Tarif simpan (Rp/kg/hari)" : "Tarif (Rp/kg)"} error={state?.kolom?.tarif?.[0]}><TextIn name="tarif" type="number" step="0.01" min="0" defaultValue={aturan.tarif_per_kg} required /></Field>
         <Field label="Berlaku mulai" error={state?.kolom?.berlakuDari?.[0]}><TextIn name="berlakuDari" type="date" defaultValue={hariIni} required /></Field>
         <Field label="Minimum hari simpan" error={state?.kolom?.minimumHari?.[0]}><TextIn name="minimumHari" type="number" min="1" defaultValue={aturan.minimum_hari} required /></Field>
-        <Field label="Masa transit (jam)" error={state?.kolom?.masaTransitJam?.[0]}><TextIn name="masaTransitJam" type="number" min="0" defaultValue={aturan.masa_transit_jam} required /></Field>
+        <Field label="Masa transit (jam)" hint="Isi 0 kalau nggak ada transit. Titipan sebentar pun tetap kena minimum hari." error={state?.kolom?.masaTransitJam?.[0]}><TextIn name="masaTransitJam" type="number" min="0" defaultValue={aturan.masa_transit_jam} required /></Field>
       </div>
       <Field label="Dasar berat tagihan simpan">
         <select name="dasarBerat" className={pilihCls} defaultValue={aturan.dasar_berat}><option value="masuk">Berat masuk</option><option value="keluar">Berat keluar (timbang ulang)</option></select>
@@ -316,7 +316,7 @@ export function GudangKelola({ titipan, isi, ruangan, tagihan, tarif, booking, p
           cols={[
             { h: "Layanan", r: (a: AturanTarif) => <><span className="font-medium">{LABEL_JASA[a.jenis]}</span><span className="block text-[12px]" style={{ color: MUTED }}>berlaku {tanggal(a.berlaku_dari)}</span></> },
             { h: "Tarif", r: (a) => `${rp(a.tarif_per_kg)}${a.jenis === "simpan" ? "/kg/hari" : "/kg"}`, right: true },
-            { h: "Aturan", r: (a) => (a.jenis === "simpan" ? `minimum ${a.minimum_hari} hari · transit ${a.masa_transit_jam} jam · dasar ${a.dasar_berat}` : "-") },
+            { h: "Aturan", r: (a) => (a.jenis === "simpan" ? `minimum ${a.minimum_hari} hari · ${a.masa_transit_jam > 0 ? `transit ${a.masa_transit_jam} jam` : "tanpa transit"} · dasar ${a.dasar_berat}` : "-") },
             { h: "Status", r: (a) => <Pill t={a.dikonfirmasi ? "Dikonfirmasi" : "Belum dikonfirmasi"} /> },
           ]}
           actions={(a) => (bolehTarif ? <Btn size="sm" v="light" onClick={() => setUbah(a)}>Ubah</Btn> : null)}

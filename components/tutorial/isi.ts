@@ -172,7 +172,7 @@ export const BAB: Bab[] = [
       {
         judul: "Mencatat pembayaran ke pemasok",
         peran: ["owner", "finance"],
-        langkah: ["Buka PO yang udah Disetujui.", "Di bagian Pembayaran, isi Jumlah dan Tanggal.", "Kalau perlu, isi Catatan, misalnya DP atau pelunasan.", "Tekan Catat pembayaran.", "Tekan Lampirkan bukti transfer."],
+        langkah: ["Buka PO yang udah Disetujui.", "Di bagian Pembayaran, tekan Termin 1 (50%). Jumlah sama catatannya keisi sendiri, termasuk tanggal paling lambat termin 2.", "Cek Tanggal, terus tekan Catat pembayaran.", "Tekan Lampirkan bukti transfer.", "Pas bayar sisanya, buka PO yang sama terus tekan Termin 2 (pelunasan). Kalau mau langsung lunas, tekan Lunas sekaligus."],
         gambar: "02-pembelian-detail",
         keterangan: "Rincian PO: harga per grade, nota, riwayat persetujuan, lot, dan pembayaran.",
         catatan: "Disetujui belum tentu udah dibayar. Pembayaran yang dicatat otomatis masuk buku kas.",
@@ -266,14 +266,14 @@ export const BAB: Bab[] = [
         peran: ["owner", "admin"],
         langkah: [
           "Tekan Ajukan pembelian di atas daftar lot.",
-          "Pilih nelayan atau pemasoknya, terus centang lot-lotnya.",
-          "Isi Harga per kg tiap grade. Jumlah dan totalnya kehitung sendiri.",
+          "Pilih pemasok dan proyeknya, terus centang lot-lotnya.",
+          "Pilih cara harga. Per grade: isi Harga per kg tiap grade. Cong: cukup isi satu harga per kg buat semua grade. Jumlah dan totalnya kehitung sendiri.",
           "Kalau notanya belum ada, centang Nota menyusul.",
           "Tekan Ajukan untuk disetujui, terus Ya, ajukan sekarang.",
         ],
         gambar: "04-mutu-ajukan",
         keterangan: "Form Ajukan pembelian: harga per kg tiap grade, jumlah dan totalnya kehitung sendiri.",
-        catatan: "Satu pengajuan cuma buat satu pemasok, isinya boleh beberapa lot. Kode PO keluar waktu disetujui di menu Persetujuan.",
+        catatan: "Satu pengajuan cuma buat satu pemasok di satu proyek, isinya boleh beberapa lot. Yang disetujui 100%, nanti dibayar 2 termin: 50% dulu, sisanya paling lambat 10 hari kerja. Kode PO keluar waktu disetujui di menu Persetujuan.",
       },
       {
         judul: "Mengoreksi data penerimaan",
@@ -423,7 +423,7 @@ export const BAB: Bab[] = [
         gambar: "07-gudang-rincian",
         keterangan: "Rincian hitungan jasa simpan.",
       },
-      {"judul":"Mengubah tarif","peran":["owner","admin"],"langkah":["Di bagian Tarif, tekan Ubah di layanannya.","Isi Tarif dan Berlaku mulai.","Cek Minimum hari simpan, Masa transit (jam), dan Dasar berat tagihan simpan.","Kalau udah pasti, centang Angka ini sudah dikonfirmasi owner.","Tekan Simpan tarif."],"gambar":"07-gudang-ubah-tarif","keterangan":"Form Ubah tarif. Tagihan lama tetap pakai tarif waktu ikan masuk."},
+      {"judul":"Mengubah tarif","peran":["owner","admin"],"langkah":["Di bagian Tarif, tekan Ubah di layanannya.","Isi Tarif dan Berlaku mulai.","Cek Minimum hari simpan (10), Masa transit (0, karena nggak ada transit), dan Dasar berat tagihan simpan.","Kalau udah pasti, centang Angka ini sudah dikonfirmasi owner.","Tekan Simpan tarif."],"gambar":"07-gudang-ubah-tarif","keterangan":"Form Ubah tarif. Tagihan lama tetap pakai tarif waktu ikan masuk."},
       {"judul":"Mengatur kapasitas ruangan","peran":["owner","admin"],"langkah":["Di kartu ruangan, tekan Atur.","Isi Kapasitas (kg). Kapasitasnya nggak boleh di bawah isi ruangan.","Kalau udah pasti, centang Kapasitas ini sudah dikonfirmasi owner.","Tekan Simpan ruangan."],"gambar":"07-gudang-atur","keterangan":"Form Atur ruangan."},
       {
         judul: "Mengatur jadwal mesin",

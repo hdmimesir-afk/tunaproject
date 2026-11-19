@@ -3,7 +3,7 @@
    jangan kaku). Jumlah tes dan catatan kas yang diimpor diambil dari pemeriksaan lengkap per 26 Oktober 2026 (PERIKSA_LENGKAP), jumlah menu
    dan jabatan dihitung ulang per 11 November 2026. Tidak ada angka perkiraan. Pembaruan sesudah 26 Oktober dicatat di PERJALANAN dan TERBARU. */
 
-export const TANGGAL = "18 November 2026";
+export const TANGGAL = "19 November 2026";
 export const PERIKSA_LENGKAP = "26 Oktober 2026";
 
 /* ---------------------------------------------------------------- angka */
@@ -29,12 +29,16 @@ export const PERJALANAN = [
   { tanggal: "14 November", judul: "Beres beres sebelum dipake", isi: "Data contoh saya hapus atas permintaan tim, pesan di layar saya bikin lebih santai, dan gambar panduan saya perbarui. Buat dua pertanyaan yang belum kejawab, saya tulis usulan biar tim tinggal milih." },
   { tanggal: "17 November", judul: "Masukan habis training", isi: "Alurnya saya balik, ikan diterima dulu tanpa PO trus digrading, baru diajuin. PO nya terbit pas udah disetujui. Tombol Koreksi sekarang ada di penerimaan, pembelian sama produksi. Status Lulus saya hapus, dan form mulai produksi udah ada proyek, PT sama lini bisnisnya." },
   { tanggal: "18 November", judul: "Desain Mas Bisma dan meeting operasional", isi: "Terima ikan udah bisa per ekor kayak di desain Mas Bisma, sekalian grading. Grade tuna utuh AB, C, D saya pisah dari grade loin. Produksi yang udah disetujui juga bisa dikoreksi timbangannya, laporan produksi udah lengkap sampe jumlah ekor, dan proyek sekarang dikunci biar datanya gak kecampur." },
+  { tanggal: "19 November", judul: "Jawaban tim soal bayar dan titipan", isi: "Nelayan sekarang dibayar 2 termin, 50% dulu trus sisanya paling lambat 10 hari kerja. Ada pilihan harga cong (satu harga per kg). Titipan gak ada transit lagi, minimal 10 hari." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */
 /* Laporan terbaru, yang paling baru di atas: meeting operasional dan desain Mas Bisma 18 November, masukan training 17 November,
    beres beres 14 November, lalu masukan Mas Bisma (notulen 10 November). */
 export const TERBARU: { judul: string; isi: string }[] = [
+  { judul: "Bayar nelayan 2 termin", isi: "Pengajuan sama persetujuannya tetep 100%, tapi bayarnya dua kali. Di kartu persetujuan sekarang keliatan pembagiannya: 50% dulu, sisanya paling lambat 10 hari kerja. Di form bayar ada tombol Termin 1 (50%) sama Termin 2 (pelunasan), jumlah sama catatannya keisi sendiri, termasuk tanggal paling lambat termin 2. Abis termin 1 dibayar, di rincian PO muncul pengingat termin 2, jadi merah kalo udah lewat." },
+  { judul: "Harga cong", isi: "Pas ajuin pembelian sekarang ada pilihan Per grade atau Cong. Cong itu satu harga per kg buat semua ikan di pengajuan itu, gak liat grade. Gradingnya tetep kecatet buat laporan mutu, cuma harganya disamain. Catatan pengajuannya otomatis dikasih tulisan harga cong nya." },
+  { judul: "Titipan gak ada transit lagi", isi: "Sesuai jawaban tim, titipan gak ada yg transit. Mau cuma semalam atau beberapa jam, tetep ditagih minimal 10 hari. Tagihan yg udah kebuat sebelumnya gak berubah." },
   { judul: "Proyek sekarang dikunci", isi: "Biar data antarproyek gak kecampur, terima ikan sekarang wajib pilih proyek (atau bikin proyek baru). Satu pengajuan pembelian cuma buat satu pemasok di satu proyek, dan produksi cuma bisa pake lot dari proyeknya sendiri. Kalo proyek pembelian dikoreksi, lotnya ikut pindah. Lot lama yg belum ada proyeknya gak diubah otomatis, tinggal dipilihin proyeknya lewat tombol Koreksi, abis itu baru bisa diajuin atau diolah." },
   { judul: "Terima ikan per ekor, sekalian grading", isi: "Ngikut desain Mas Bisma, ikan sekarang bisa dicatet per ekor. Isinya no tag, spesies, berat, grade AB/C/D sama tusukan gancu. Abis ngisi berat tinggal Enter, langsung pindah ke ekor berikutnya dan no tag nya nambah sendiri. Potongan gancu defaultnya 1 kg per tusukan dan gak dibayar, angkanya bisa diubah di Pengaturan. Berat lot sama hasil gradingnya keitung sendiri dari ekornya, jadi terima, timbang sama grading cukup sekali jalan. Cara lama yg berat total masih ada kok, sekarang malah bisa isi jumlah ekor sama langsung grading juga. Kalo ada yg salah tinggal Koreksi, ekornya bisa diubah, ditambah atau dibuang, semua kecatet." },
   { judul: "Koreksi timbangan produksi yang udah disetujui", isi: "Produksi yang udah selesai atau udah disetujui sekarang ada tombol Koreksi timbangan. Bisa buat benerin loin per grade, hasil samping, limbah sama susut. Statusnya gak berubah, tapi wajib isi alasan dan kecatet di riwayat. Kalo hasilnya udah masuk stok, loin + hasil samping gak boleh kurang dari yang udah masuk stok ya. Berat masuk juga masih bisa dikoreksi walaupun udah masuk stok." },
@@ -74,48 +78,18 @@ export const USULAN: { judul: string; masalah: string; usulan: string[]; tanya: 
     ],
   },
   {
-    judul: "Cara harga \"Cong\" di desain penerimaan",
-    masalah: "Di desain Mas Bisma ada pilihan cara harga Per grade sama Cong. Yg per grade udah jalan, tapi Cong belum saya bikin soalnya saya belum tau pasti maksudnya apa.",
+    judul: "Biaya pembekuan buat barang yg udah beku",
+    masalah: "Transit udah gak ada, titipan sebentar pun tetep dihitung minimal 10 hari. Tinggal satu yg belum kejawab soal gudang: barang titipan yg dateng udah beku.",
     usulan: [
-      "Kalo Cong itu harga borongan satu nota, jadi satu harga buat semua ekor gak liat grade, nanti pas ajuin pembelian ada pilihan isi satu harga per kg atau langsung total notanya.",
-      "Gradingnya tetep dicatet buat laporan mutu, cuma gak dipake buat ngitung harga.",
+      "Biaya pembekuan Rp3.500 per kilo cuma ditagih kalo barangnya masuk ABF. Barang yg dateng udah beku dan langsung masuk cold storage gak kena.",
     ],
     tanya: [
-      "Cong itu harga borongan per nota, atau maksudnya lain?",
-      "Kalo borongan, yang disepakati per kg atau total uangnya?",
-    ],
-  },
-  {
-    judul: "Bayar nelayan tunai sebelum disetujui",
-    masalah: "Alur terima dulu udah jalan: ikan diterima tanpa PO, digrading, diajukan dengan harga per grade, trus PO terbit waktu disetujui. Sekarang nelayan baru bisa dibayar setelah PO nya disetujui. Yang belum jelas: di lapangan nelayan biasanya dibayar tunai saat itu juga atau gak.",
-    usulan: [
-      "Kalo nelayan biasa nunggu, alurnya biarin kayak sekarang: bayar setelah disetujui.",
-      "Kalo biasa dibayar tunai di tempat, saya kasih batas. Misalnya di bawah Rp5 juta boleh dibayar dulu pake nota, persetujuannya nyusul.",
-      "Pembayaran duluan itu tetep ditandai, biar kelihatan mana yang belum disetujui.",
-    ],
-    tanya: [
-      "Nelayan biasa dibayar tunai saat itu juga, atau nunggu?",
-      "Kalo boleh bayar duluan, batasnya berapa, dan siapa yang boleh?",
-    ],
-  },
-  {
-    judul: "Transit dan ikan yang nginep di gudang",
-    masalah: "Tarif simpan udah jelas: dihitung dari jam masuk sampai jam keluar, dibulatin ke atas per 24 jam, minimal 10 hari per titipan. Yang belum: kapan titipan dihitung transit, dan gimana kalo cuma nginep semalam.",
-    usulan: [
-      "Pas terima titipan, petugas bisa milih \"Transit\" kalo barangnya cuma numpang lewat.",
-      "Titipan transit yang keluar sebelum 24 jam cuma kena tarif transit, gak kena minimum 10 hari. Tarifnya diisi pas bikin tagihan, sesuai jawaban kemarin.",
-      "Kalo lewat 24 jam, otomatis jadi titipan simpan biasa, dihitung dari jam masuk. Jadi transit gak bisa dipake buat nyimpan lama.",
-      "Ikan yang nginep semalam trus diambil besoknya ikut aturan yang sama: ditandai transit, keluar sebelum 24 jam, cukup bayar transit.",
-      "Biaya pembekuan Rp3.500 per kilo cuma ditagih kalo barangnya masuk ABF. Barang yang datang udah beku dan langsung masuk cold storage gak kena.",
-      "Kalo sebagian barang keluar sebelum hari ke 10 dan sisanya lewat, saya hitung dari total kg hari satu titipan. Kalo totalnya udah lebih dari minimum, gak ada tambahan.",
-    ],
-    tanya: [
-      "Batas transit 24 jam udah pas, atau maunya beda?",
-      "Tarif transit dihitung sekali per titipan atau per hari?",
-      "Barang yang datang udah beku tetep kena biaya pembekuan atau gak?",
+      "Barang yg dateng udah beku tetep kena biaya pembekuan atau gak?",
     ],
   },
 ];
+
+/* Jawaban tim 19 Nov 2026 yg udah dikerjain: bayar nelayan dua termin, harga cong per kg, titipan tanpa transit minimal 10 hari. */
 
 /* Status sepuluh poin notulen Mas Bisma per 11 November. */
 export const NOTULEN: { poin: string; status: "selesai" | "menunggu" }[] = [
@@ -169,7 +143,7 @@ export const MODUL: Modul[] = [
     poin: [
       "Daftarnya nampilin semua pembelian. Yang masih nunggu persetujuan tulisannya Belum terbit.",
       "Rincian PO nampilin harga per grade, lot asalnya, nota, riwayat persetujuan, dan pembayaran.",
-      "Finance bisa nyicil pembayaran. Sistem nolak kalo bayarnya lebih dari nilai PO, atau PO nya belum disetujui. Pembayaran yang salah bisa dibatalin pake alasan, buku kasnya dapat baris pembalik.",
+      "Nelayan dibayar 2 termin: 50% dulu, sisanya paling lambat 10 hari kerja. Tombol termin ngisiin jumlah sama catatannya, dan pengingat termin 2 muncul di rincian PO. Sistem nolak kalo bayarnya lebih dari nilai PO, atau PO nya belum disetujui. Pembayaran yang salah bisa dibatalin pake alasan, buku kasnya dapat baris pembalik.",
       "Tombol Koreksi buat benerin harga per grade, pemasok, proyek, atau catatan. Kalo totalnya berubah setelah disetujui, PO balik ke Persetujuan.",
       "Kalo nota belum ada, pembelian tetep bisa diajukan dengan tanda \"Nota menyusul\". Notanya dilampirkan belakangan sama jabatan yang dipilih admin.",
     ],
@@ -201,7 +175,7 @@ export const MODUL: Modul[] = [
     poin: [
       "Gudang dicatat per ruangan: ABF 1, ABF 2, ABF 3, dan Cold Storage 1. Isi tiap ruangan kelihatan, dan stok bisa dipindah antarruangan, misalnya dari ABF ke cold storage setelah beku.",
       "Titipan pelanggan dicatat masuk keluarnya. Kapasitas 17.500 kg saya jaga: titipan baru ditolak kalo stok sendiri plus titipan udah lewat batas. Pembagian per ruangan masih sementara, nunggu angka dari owner.",
-      "Tarifnya saya simpan di pengaturan, jadi gampang diubah: simpan Rp76 per kg per hari minimum 10 hari, dan ABF Rp3.500 per kg. Minimum 10 hari itu masih usulan saya, nunggu konfirmasi owner. Data yang sama selalu ngasilin tagihan yang sama.",
+      "Tarifnya saya simpan di pengaturan, jadi gampang diubah: simpan Rp76 per kg per hari minimum 10 hari, dan ABF Rp3.500 per kg. Gak ada transit, titipan sebentar pun tetep minimal 10 hari, sesuai jawaban tim. Data yang sama selalu ngasilin tagihan yang sama.",
       "Tagihan jasa gudang nampilin cara ngitungnya, jadi pelanggan bisa ngecek sendiri.",
       "Jadwal mesin ABF dan produksi mitra ngasih tahu kalo bentrok, dan bisa dipindah ke jam kosong terdekat.",
     ],
@@ -316,7 +290,7 @@ export const KUALITAS = [
   { judul: "Akses berlapis", isi: "Izin dicek di halaman, di tiap tombol, dan di database. Nota dan foto absen disimpan di tempat tertutup, cuma bisa dibuka lewat tautan yang hangus dalam 60 detik. Percobaan masuk juga dibatasi, jadi kata sandi gak bisa ditebak tebak." },
   { judul: "Angkanya gak geser", isi: "Berat dihitung sampai tiga angka di belakang koma dan uang sampai dua angka, tanpa dibulatin diam diam. Saya udah uji pake 500 potong loin: total di layar, rekap per grade dan per ekor, neraca, dan file unduhannya hasilnya sama persis." },
   { judul: "Satu putaran penuh udah diuji", isi: "Saya jalanin pembelian sampai uang masuk pake kelima jabatan, trus nyocokin angka di neraca, stok, tagihan, rincian proyek, laba rugi, dashboard, dan buku kas. Perubahan saldo kas harus sama dengan laba kotor." },
-  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipake. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 18 November juga lulus semua: 737 pemeriksaan aturan database dan 118 pemeriksaan logika." },
+  { judul: "Dicek otomatis tiap ada perubahan", isi: "Tiap kali sistem saya ubah, pemeriksaan otomatis jalan di laptop dan HP sebelum perubahannya dipake. Pemeriksaan lengkap 26 Oktober lulus semua. Pembaruan 19 November juga lulus semua: 738 pemeriksaan aturan database dan 125 pemeriksaan logika." },
   { judul: "Cadangan tiap hari", isi: "Database dicadangin tiap malam dan dienkripsi. Udah empat kali berhasil, tiga di antaranya otomatis terjadwal. Yang belum saya lakuin: nyoba mulihin cadangan ke tempat kosong (ada di bagian yang masih tersisa)." },
 ] as const;
 
@@ -331,8 +305,8 @@ export const LIVE = [
 
 /* ------------------------------------------------------------ yang tersisa */
 export const BELUM = [
-  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 18 November udah lulus pemeriksaan otomatis, termasuk 737 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan per ekor sekalian grading, koreksi ekor, ajukan, setujui, bayar, produksi jual, jasa, titip, sama koreksi timbangan produksi yang udah disetujui. Yang belum: dicoba tim di sistem yang udah dipake." },
-  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal produksi dari dua bongkaran, cara harga Cong, bayar nelayan tunai sebelum disetujui, sama aturan transit dan ikan yang nginep, usulannya ada di bagian atas. Tim tinggal jawab pertanyaannya." },
+  { judul: "Dicoba di sistem yang udah jalan", isi: "Pembaruan 19 November udah lulus pemeriksaan otomatis, termasuk 738 pemeriksaan aturan database. Saya juga udah coba satu putaran sendiri: terima ikan per ekor sekalian grading, koreksi ekor, ajukan, setujui, bayar, produksi jual, jasa, titip, sama koreksi timbangan produksi yang udah disetujui. Yang belum: dicoba tim di sistem yang udah dipake." },
+  { judul: "Jawaban lanjutan tim Katalis", isi: "Soal produksi dari dua bongkaran sama biaya pembekuan barang yg udah beku, usulannya ada di bagian atas. Tim tinggal jawab pertanyaannya." },
   { judul: "Meeting UX bareng Mas Bisma", isi: "Format Excel produksi dan finance, alur QC yang lebih detail, dan maksud input per proyek mau dibahas bareng di meeting tambahan. Biar gak nebak, saya nunggu contoh file dan alurnya dari tim dulu." },
   { judul: "Video panduan", isi: "Teks dan gambar panduan udah ngikutin alur baru. Video buat penerimaan, pembelian, dan mulai produksi masih tampilan lama, nanti saya rekam ulang." },
   { judul: "Absen GPS dicoba di kantor", isi: "Titik kantor dari Google Maps udah kepasang di sistem. Tapi baru bisa dibilang beres kalo udah dicoba dari HP di kantor, soalnya pin di peta bisa agak beda sama tempat orang berdiri pas absen." },
@@ -341,7 +315,7 @@ export const BELUM = [
   { judul: "Dicoba orang di lapangan", isi: "Timbangan di HP pas sinyal jelek, sama absen pake kamera dan GPS di lokasi, baru saya uji pake perangkat tiruan. Belum dicoba di HP petugas yang asli, dan ini yang paling pengin saya coba duluan." },
   { judul: "Satu proyek asli dibandingin sama kertas", isi: "Angka loin, neraca, tagihan, dan kas belum saya cocokin sama catatan kertas. Ini syarat serah terima akhir." },
   { judul: "Bahan dari owner", isi: "Saya butuh data master yang asli, foto formulir timbang Siklus 1 per potong loin buat saya masukin, catatan susut, plus biaya bulanan dan aturan pajak biar laba bersih bisa dihitung. Daftar barang penunjang yang asli juga saya perlu, soalnya stok awalnya sekarang masih contoh." },
-  { judul: "Keputusan dari owner", isi: "Tolong dikonfirmasi: kapasitas tiap ruangan gudang, minimum hari tarif simpan, cara nyatet setoran modal investor di dashboard, dan foto absen disimpan berapa lama." },
+  { judul: "Keputusan dari owner", isi: "Tolong dikonfirmasi: kapasitas tiap ruangan gudang, cara nyatet setoran modal investor di dashboard, dan foto absen disimpan berapa lama." },
   { judul: "Uji mulihin cadangan", isi: "Cadangannya udah ada, tapi belum saya buktiin bisa dipulihin. Buat nyobanya saya butuh satu database kosong." },
   { judul: "Ngamanin akun pas serah terima", isi: "Bikin akun semua jabatan dan ganti kata sandi awal kita beresin bareng owner." },
   { judul: "Batas paket gratis", isi: "Hosting dan database pake paket gratis, sesuai keputusan owner. Hosting gratis aturannya buat pemakaian non komersial, dan database yang sepi tujuh hari bisa dijeda. Risikonya udah diterima owner dan udah dicatat." },

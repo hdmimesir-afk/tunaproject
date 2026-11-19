@@ -92,3 +92,33 @@ export function rincianAjukan(lot: Pick<LotBaris, "kg" | "qc" | "grade_id" | "gr
   const totalGram = baris.reduce((a, b) => a + gram(b.kg), 0);
   return { baris, lengkap, total: totalSen / 100, kg: totalGram / 1000 };
 }
+
+/* Bayar nelayan dua termin (jawaban tim 19 Nov 2026): pengajuan dan persetujuannya 100%, dibayar 50% dulu,
+   sisanya paling lambat 10 hari kerja (Senin sampai Jumat) setelah termin pertama. */
+export const HARI_KERJA_TERMIN = 10;
+
+/** Termin 1 = setengah total (dibulatkan ke sen), termin 2 = sisanya. Jumlah keduanya pasti sama dengan total. */
+export function rencanaTermin(total: number) {
+  const s = sen(total);
+  const pertama = Math.round(s / 2);
+  return { pertama: pertama / 100, kedua: (s - pertama) / 100 };
+}
+
+/** Tanggal (YYYY-MM-DD) setelah n hari kerja Senin sampai Jumat. Libur nasional belum dihitung. */
+export function tambahHariKerja(tanggal: string, n: number): string {
+  const d = new Date(`${tanggal}T00:00:00Z`);
+  let sisa = n;
+  while (sisa > 0) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const hari = d.getUTCDay();
+    if (hari !== 0 && hari !== 6) sisa -= 1;
+  }
+  return d.toISOString().slice(0, 10);
+}
+
+/** Jatuh tempo termin 2: dari pembayaran pertama yang nggak batal. Null kalau belum ada pembayaran atau udah lunas. */
+export function jatuhTempoTermin2(bayar: { tanggal: string; batal?: boolean }[], sisa: number): string | null {
+  if (sisa <= 0) return null;
+  const pertama = bayar.filter((b) => !b.batal).map((b) => b.tanggal).sort()[0];
+  return pertama ? tambahHariKerja(pertama, HARI_KERJA_TERMIN) : null;
+}

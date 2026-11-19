@@ -330,14 +330,21 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
   const lotPemasok = siap.filter((l) => kunci(l) === supplierId);
   const [pilih, setPilih] = useState<string[]>(() => lotPemasok.map((l) => l.id));
   const [harga, setHarga] = useState<Record<string, string>>({});
+  // Cong (jawaban tim 19 Nov 2026): satu harga per kg buat semua ikan di nota ini, nggak lihat grade.
+  const [caraHarga, setCaraHarga] = useState<"grade" | "cong">("grade");
+  const [hargaCong, setHargaCong] = useState("");
   const [menyusul, setMenyusul] = useState(false);
   const [catatan, setCatatan] = useState("");
   const [state, setState] = useState<HasilForm>(undefined);
   const [pending, mulai] = useTransition();
 
   const dipilih = lotPemasok.filter((l) => pilih.includes(l.id));
-  const angka = useMemo(() => Object.fromEntries(Object.entries(harga).map(([k, v]) => [k, v.trim() === "" ? null : Number(v.replace(",", "."))])), [harga]);
-  const r = rincianAjukan(dipilih, angka);
+  const keAngka = (v: string) => (v.trim() === "" ? null : Number(v.replace(",", ".")));
+  const angka = useMemo(() => Object.fromEntries(Object.entries(harga).map(([k, v]) => [k, keAngka(v)])), [harga]);
+  const r0 = rincianAjukan(dipilih, {});
+  const r = caraHarga === "cong"
+    ? rincianAjukan(dipilih, Object.fromEntries(r0.baris.map((b) => [b.grade_id, keAngka(hargaCong)])))
+    : rincianAjukan(dipilih, angka);
   const notaWajib = lampiran ? lampiranWajib(lampiran.aturan, "purchase_orders", "nota") : true;
   const adaNota = lampiran ? lampiran.dokumen.some((d) => d.jenis === "nota" && pilih.includes(d.ref_id)) : false;
   const perluTanda = notaWajib && !adaNota;
@@ -353,7 +360,8 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
       const hasil = await ajukanPembelian({
         lot: dipilih.map((l) => l.id),
         harga: r.baris.map((b) => ({ grade_id: b.grade_id, harga_per_kg: b.harga ?? 0 })),
-        notaMenyusul: perluTanda && menyusul, catatan,
+        notaMenyusul: perluTanda && menyusul,
+        catatan: caraHarga === "cong" ? [`Harga cong ${rp(keAngka(hargaCong) ?? 0)}/kg`, catatan.trim()].filter(Boolean).join(". ") : catatan,
       });
       setState(hasil);
       if (hasil?.pesan) onTutup();
@@ -389,6 +397,21 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
             ))}
           </fieldset>
           {r.baris.length > 0 && (
+            <div className="space-y-2">
+              <div role="radiogroup" aria-label="Cara harga" className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-1">
+                {([["grade", "Per grade"], ["cong", "Cong (satu harga)"]] as const).map(([id, label]) => (
+                  <button key={id} type="button" role="radio" aria-checked={caraHarga === id} onClick={() => setCaraHarga(id)}
+                    className="h-10 rounded-xl text-[13.5px] font-medium" style={caraHarga === id ? { background: INK, color: "#fff" } : { color: MUTED }}>{label}</button>
+                ))}
+              </div>
+              {caraHarga === "cong" && (
+                <Field label="Harga cong per kg" hint="Satu harga per kg buat semua grade di pengajuan ini.">
+                  <TextIn inputMode="decimal" placeholder="Rp" value={hargaCong} onChange={(e) => setHargaCong(e.target.value)} aria-label="Harga cong per kg" />
+                </Field>
+              )}
+            </div>
+          )}
+          {r.baris.length > 0 && (
             <div className="overflow-hidden rounded-2xl bg-white">
               <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_7.5rem_minmax(0,1fr)] gap-2 border-b border-[#EEF0F4] px-3.5 py-2 text-[12px] font-medium" style={{ color: MUTED }}>
                 <span>Grade</span><span className="text-right">Berat</span><span className="text-right">Harga/kg</span><span className="text-right">Jumlah</span>
@@ -397,9 +420,10 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
                 <div key={b.grade_id} className="grid grid-cols-[4.5rem_minmax(0,1fr)_7.5rem_minmax(0,1fr)] items-center gap-2 px-3.5 py-2 text-[13px] tabular-nums" style={{ color: INK }}>
                   <b className="font-semibold">{b.kode}</b>
                   <span className="text-right">{formatKg(b.kg)} kg</span>
-                  <input aria-label={`Harga per kg ${b.kode}`} inputMode="decimal" value={harga[b.grade_id] ?? ""} placeholder="Rp"
+                  <input aria-label={`Harga per kg ${b.kode}`} inputMode="decimal" placeholder="Rp" readOnly={caraHarga === "cong"}
+                    value={caraHarga === "cong" ? hargaCong : harga[b.grade_id] ?? ""}
                     onChange={(e) => setHarga((h) => ({ ...h, [b.grade_id]: e.target.value }))}
-                    className="h-10 w-full rounded-xl border border-[#E2E4EA] px-2.5 text-right outline-none focus:border-[#00171F]" />
+                    className="h-10 w-full rounded-xl border border-[#E2E4EA] px-2.5 text-right outline-none focus:border-[#00171F] read-only:bg-[#F4F5F8]" />
                   <span className="text-right">{b.jumlah === null ? "-" : rp(b.jumlah)}</span>
                 </div>
               ))}
