@@ -394,6 +394,14 @@ async function panggil(aksi: string, fn: string, args: Record<string, unknown>, 
 
 const Id = z.object({ produksiId: z.uuid() });
 
+/** Kondisi hasil (fresh atau beku): stok otomatis dari produksi ini ikut. */
+export async function aturKondisiHasil(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = Id.extend({ kondisi: z.enum(["fresh", "beku"]) }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { error: "Pilih Fresh atau Beku." };
+  return panggil("produksi.write", "atur_kondisi_hasil", { p_production: p.data.produksiId, p_kondisi: p.data.kondisi },
+    p.data.kondisi === "fresh" ? "Hasilnya dicatat fresh." : "Hasilnya dicatat beku.");
+}
+
 export async function selesaikanProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = Id.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { error: "Produksinya nggak valid." };

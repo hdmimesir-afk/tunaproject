@@ -5,7 +5,7 @@ import { Btn, Field, Inner, Modal, Pill, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { mintaPerbaikan, periksaProduksi, selesaikanProduksi, setujuiProduksi, simpanEkor, simpanKomponen, simpanLoinTotal } from "@/lib/actions/produksi";
+import { aturKondisiHasil, mintaPerbaikan, periksaProduksi, selesaikanProduksi, setujuiProduksi, simpanEkor, simpanKomponen, simpanLoinTotal } from "@/lib/actions/produksi";
 import type { DetailProduksi as Detail } from "@/lib/data/produksi";
 import { tanggal, waktu } from "@/lib/format";
 import { gramKeTeks, keGram, tampilKg } from "@/lib/logic/grid";
@@ -61,6 +61,34 @@ const Baris = ({ k, v, tebal, warna }: { k: string; v: React.ReactNode; tebal?: 
     <span className={`text-right tabular-nums ${tebal ? "font-semibold" : "font-medium"}`} style={{ color: warna ?? INK }}>{v}</span>
   </div>
 );
+
+/* ------------------------------------------------------- kondisi hasil */
+/** Fresh atau beku: kebawa ke stok otomatis. Dikunci kalau stoknya udah ada yang keluar. */
+function KondisiHasil({ produksiId, kondisi, bolehUbah, sudahStok }: { produksiId: string; kondisi: Detail["kondisi"]; bolehUbah: boolean; sudahStok: boolean }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(aturKondisiHasil, undefined);
+  const bisa = bolehUbah && !kondisi.terkunci;
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="produksiId" value={produksiId} />
+      <div role="radiogroup" aria-label="Kondisi hasil" className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-1 sm:w-80">
+        {(["beku", "fresh"] as const).map((k) => (
+          <button key={k} type="submit" name="kondisi" value={k} role="radio" aria-checked={kondisi.nilai === k}
+            disabled={!bisa || pending || kondisi.nilai === k}
+            className="h-10 rounded-xl text-[13.5px] font-medium disabled:cursor-default"
+            style={kondisi.nilai === k ? { background: INK, color: "#fff" } : { color: bisa ? INK : MUTED }}>
+            {k === "beku" ? "Beku" : "Fresh"}
+          </button>
+        ))}
+      </div>
+      <p className="text-[12px]" style={{ color: MUTED }}>
+        {kondisi.terkunci ? "Stoknya udah ada yg keluar, jadi kondisinya udah gak bisa diganti."
+          : sudahStok ? "Stok hasil produksi ini ikut berubah kalau kondisinya diganti."
+            : "Hasilnya masuk stok dengan kondisi ini begitu produksinya disetujui Owner."}
+      </p>
+      <Pesan state={state} />
+    </form>
+  );
+}
 
 /* ------------------------------------------------------------- neraca */
 function Neraca({ p, batas }: { p: Detail["produksi"]; batas: BatasHasil }) {
@@ -300,6 +328,10 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
       )}
 
       <Bagian judul="Neraca berat"><Neraca p={p} batas={batas} /></Bagian>
+
+      <Bagian judul="Kondisi hasil">
+        <KondisiHasil produksiId={p.id} kondisi={detail.kondisi} bolehUbah={bolehTulis} sudahStok={!!p.sudah_stok} />
+      </Bagian>
 
       {jasa ? (
         <Bagian judul="Ikan dari PT">

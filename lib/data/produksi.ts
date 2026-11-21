@@ -121,6 +121,8 @@ export type DetailProduksi = {
   koreksi: Koreksi[];
   /** Lot asal (jumlah ekor dan grade tuna utuh), buat laporan produksi. */
   lotAsal: LotAsal[];
+  /** Kondisi hasil buat stok otomatis, dan apa udah dikunci (stoknya udah ada yang keluar). */
+  kondisi: { nilai: "fresh" | "beku"; terkunci: boolean };
 };
 
 export async function detailProduksi(id: string): Promise<DetailProduksi | null> {
@@ -137,11 +139,13 @@ export async function detailProduksi(id: string): Promise<DetailProduksi | null>
   if (p.error || alokasi.error || loin.error || total.error || ekor.error || samping.error || riwayat.error) gagal("detail produksi");
   if (!p.data) return null;
   const idLot = (alokasi.data ?? []).map((a) => a.lot_id as string);
-  const [koreksi, lot] = await Promise.all([
+  const [koreksi, lot, kondisi, keluar] = await Promise.all([
     riwayatKoreksi(["productions"], [id]),
     idLot.length > 0
       ? sb.from("lots").select("id, kg, qc, jumlah_ekor, lot_grades(kg, grades(kode))").in("id", idLot)
       : Promise.resolve({ data: [] as unknown[], error: null }),
+    sb.from("productions").select("kondisi_hasil").eq("id", id).maybeSingle(),
+    sb.from("storage_units").select("sisa_kg, kg_masuk").eq("production_id", id).eq("otomatis", true),
   ]);
   const lotAsal: LotAsal[] = ((lot.data ?? []) as { id: string; kg: number; qc: string; jumlah_ekor: number | null; lot_grades: { kg: number; grades: { kode: string } | null }[] }[])
     .map((l) => ({
@@ -151,6 +155,10 @@ export async function detailProduksi(id: string): Promise<DetailProduksi | null>
   return {
     koreksi,
     lotAsal,
+    kondisi: {
+      nilai: kondisi.data?.kondisi_hasil === "fresh" ? "fresh" : "beku",
+      terkunci: (keluar.data ?? []).some((u) => Number(u.sisa_kg) < Number(u.kg_masuk)),
+    },
     produksi: p.data as ProduksiBaris,
     alokasi: (alokasi.data ?? []) as AlokasiLot[],
     loin: (loin.data ?? []) as ItemLoin[],

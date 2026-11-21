@@ -1,7 +1,7 @@
 -- Fase 4 Â· Stok, titipan gudang dingin, mesin tarif, koreksi stok, jadwal ABF. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(61);
+select plan(63);
 
 -- ---------------------------------------------------------------- data uji
 insert into auth.users (id, email) values
@@ -90,6 +90,11 @@ select is((select jenis || ':' || jumlah::text from public.service_charges where
 select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, 'salah timbang 1')$$, 'petugas mengajukan koreksi');
 select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -1, 'salah timbang 2')$$, 'petugas mengajukan koreksi kedua');
 select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '80.000', 'koreksi belum berlaku sebelum disetujui');
+-- Kondisi hasil: tiap ganti tercatat; udah ada yang keluar dari stok berarti dikunci.
+select throws_ok($$select public.atur_kondisi_hasil('d0000000-0000-0000-0000-000000000051', 'fresh')$$, 'KT001', null, 'kondisi hasil dikunci kalau stoknya udah ada yang keluar');
+reset role;
+select is((select count(*)::int from public.koreksi_data where ref_id = 'd0000000-0000-0000-0000-000000000051' and alasan like 'Kondisi hasil%'), 2, 'ganti kondisi hasil tercatat di riwayat koreksi');
+set local role authenticated;
 select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, '')$$, 'KT001', null, 'koreksi tanpa alasan ditolak');
 select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -100, 'terlalu besar')$$, 'KT001', null, 'koreksi yang membuat sisa negatif ditolak');
 select throws_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 1'), true)$$, '42501', null, 'petugas tidak boleh menyetujui koreksi');

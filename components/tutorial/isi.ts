@@ -352,7 +352,7 @@ export const BAB: Bab[] = [
       {
         judul: "Membaca dashboard stok",
         pengantar: "Urutannya ngikut kerja harian: 1. Ikan utuh dari bongkaran yg belum diolah (dikelompokin per proyek, yg belum masuk proyek paling atas). 2. Produksi yg lagi jalan. 3. Hasil produksi siap jual. 4. Titipan pelanggan.",
-        catatan: "Hasil produksi masuk stok sendiri begitu produksinya disetujui Owner: loin per grade sama hasil samping per jenis. Awalnya beku; kalau fresh, ganti kondisinya di produksinya.",
+        catatan: "Hasil produksi masuk stok sendiri begitu produksinya disetujui Owner: loin per grade sama hasil samping per jenis. Kondisinya (Fresh atau Beku) dipilih di rincian produksi, bagian Kondisi hasil. Bawaannya Beku. Kalau stoknya udah ada yg keluar, kondisinya kekunci.",
       },
       {
         judul: "Produksi dari ikan yg masuk semalam",
