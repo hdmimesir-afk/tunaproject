@@ -34,6 +34,10 @@ const FormTerima = z.object({
   baris: z.string().max(10_000).optional(),
   /** Per ekor: JSON [{id, no_tag, spesies, kg, grade_id, gancu}]. */
   ekor: z.string().max(200_000).optional(),
+  kapal: z.string().trim().max(80, "Nama kapal maksimal 80 huruf").default(""),
+  jenis: z.string().trim().max(40, "Jenis ikan maksimal 40 huruf").default(""),
+  /** Kunci anti dobel: dibuat sekali tiap form dibuka. Kirim ulang (klik dua kali, retry) = lot yang sama. */
+  kunci: z.uuid("Muat ulang halaman, terus coba lagi."),
 });
 
 const EkorRpc = z.array(z.object({
@@ -114,6 +118,7 @@ export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm>
     p_supplier: d.supplierId, p_tanggal: d.tanggal,
     p_cycle: null, p_catatan: d.catatan, p_proyek_baru: null,
     p_kg: kg, p_jumlah_ekor: jumlahEkor, p_ekor: ekor, p_grade: grade.length > 0 ? grade : null,
+    p_kapal: d.kapal, p_jenis: d.cara === "ekor" ? "" : d.jenis, p_kunci: d.kunci,
   });
   if (error) return { error: pesanDb(error) };
   refresh();
@@ -165,6 +170,8 @@ const FormKoreksiLot = z.object({
   jumlahEkor: z.string().max(7).optional(),
   /** Lot per ekor: JSON isian ekor yang baru. Berat lot ngikut ekornya. */
   ekor: z.string().max(200_000).optional(),
+  kapal: z.string().trim().max(80, "Nama kapal maksimal 80 huruf").optional(),
+  jenis: z.string().trim().max(40, "Jenis ikan maksimal 40 huruf").optional(),
 });
 
 /** Koreksi data penerimaan. Lot per ekor: ekornya dikoreksi dulu, beratnya ngikut. Kalau udah masuk pembelian, harga PO dihitung ulang. */
@@ -185,7 +192,7 @@ export async function koreksiLot(_: HasilForm, fd: FormData): Promise<HasilForm>
     const { data: lot } = await supabase.from("lots").select("kg").eq("id", d.lotId).single();
     const { error: e2 } = await supabase.rpc("koreksi_lot", {
       p_lot: d.lotId, p_kg: lot?.kg ?? d.kg, p_tanggal: d.tanggal, p_supplier: d.supplierId,
-      p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan,
+      p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan, p_kapal: d.kapal ?? null, p_jenis: null,
     });
     if (e2) return { error: `Ekornya udah dikoreksi, tapi data lainnya gagal: ${pesanDb(e2)}` };
   } else {
@@ -194,7 +201,7 @@ export async function koreksiLot(_: HasilForm, fd: FormData): Promise<HasilForm>
     if (n !== null && (!Number.isInteger(n) || n <= 0)) return { kolom: { jumlahEkor: ["Isi angka bulat, atau kosongin"] } };
     const { error } = await supabase.rpc("koreksi_lot", {
       p_lot: d.lotId, p_kg: d.kg, p_tanggal: d.tanggal, p_supplier: d.supplierId,
-      p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan,
+      p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan, p_kapal: d.kapal ?? null, p_jenis: d.jenis ?? null,
     });
     if (error) return { error: pesanDb(error) };
     if (d.jumlahEkor !== undefined) {

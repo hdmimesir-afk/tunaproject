@@ -41,32 +41,6 @@ const Kg = z.string().trim().transform((s, ctx) => {
 });
 const Opsional = z.string().trim().transform((s) => (s === "" ? null : s));
 
-/* ---------------------------------------------------- hasil produksi */
-const FormHasil = z.object({
-  produksiId: z.uuid("Pilih produksi"),
-  productId: z.uuid("Pilih produk"),
-  gradeId: Opsional.pipe(z.uuid().nullable()),
-  kondisi: z.enum(["fresh", "beku"], "Pilih fresh atau beku"),
-  kg: Kg,
-  lokasi: z.string().trim().max(60),
-  ruanganId: Opsional.pipe(z.uuid().nullable()).optional(),
-  langsungKirim: z.string().optional(),
-  catatan: z.string().trim().max(300),
-});
-
-/** Hasil produksi yang sudah disetujui Owner masuk stok (atau fresh langsung kirim tanpa masuk gudang). */
-export async function masukkanHasil(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const tolak = await izin("stok.write");
-  if (tolak) return tolak;
-  const p = FormHasil.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("stok.write", "masukkan_hasil_produksi", {
-    p_production: p.data.produksiId, p_product: p.data.productId, p_grade: p.data.gradeId, p_kondisi: p.data.kondisi, p_kg: p.data.kg,
-    p_lokasi: p.data.lokasi, p_langsung_kirim: p.data.langsungKirim === "on", p_catatan: p.data.catatan,
-    ...(p.data.ruanganId ? { p_room: p.data.ruanganId } : {}),
-  }, p.data.langsungKirim === "on" ? "Tercatat langsung kirim (nggak masuk gudang)." : "Hasil produksi masuk stok.");
-}
-
 /* ------------------------------------------------------- ambil stok */
 const FormAmbil = z.object({ unitId: z.uuid(), kg: Kg, alasan: z.string().trim().max(300) });
 
@@ -85,25 +59,8 @@ export async function ambilStok(_: HasilForm, fd: FormData): Promise<HasilForm> 
 }
 
 /* ---------------------------------------------------------- koreksi */
-const FormKoreksi = z.object({
-  unitId: z.uuid(),
-  selisih: z.string().trim().transform((s, ctx) => {
-    const minus = s.startsWith("-");
-    const g = keGram(minus ? s.slice(1) : s);
-    if (g === null) {
-      ctx.addIssue({ code: "custom", message: "Isi selisih berat (boleh minus), maksimal 3 desimal" });
-      return z.NEVER;
-    }
-    return kgDariGram(minus ? -g : g);
-  }),
-  alasan: z.string().trim().min(1, "Tulis alasan").max(300),
-});
-
-export async function ajukanKoreksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const p = FormKoreksi.safeParse(Object.fromEntries(fd.entries()));
-  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("stok.write", "ajukan_koreksi_stok", { p_unit: p.data.unitId, p_selisih_kg: p.data.selisih, p_alasan: p.data.alasan }, "Koreksi udah diajukan. Berlakunya nanti kalau udah disetujui Owner.");
-}
+/* Jalur lama "masukkan hasil produksi" dan "ajukan koreksi stok" udah ditutup (22 Nov 2026): stok masuk otomatis dari
+   produksi yg disetujui Owner, koreksinya lewat Koreksi produksi. Yang tersisa cuma mutusin pengajuan lama yg masih nunggu. */
 
 export async function putuskanKoreksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = z.object({ gerakId: z.uuid(), setuju: z.enum(["ya", "tidak"]), catatan: z.string().trim().max(300) }).safeParse(Object.fromEntries(fd.entries()));

@@ -10,6 +10,7 @@ import type { HasilForm } from "@/lib/actions/auth";
 import { putuskanKoreksi } from "@/lib/actions/stok";
 import { tanggal, waktu } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
+import { LABEL_STATUS_LOT, type StatusLot } from "@/lib/logic/stokLot";
 import type { ProduksiBaris } from "@/lib/types/produksi";
 import type { GerakStok, IkanUtuh, IsiGudang, Ruangan, UnitStok } from "@/lib/types/stok";
 
@@ -69,32 +70,99 @@ function PutusanKoreksi({ k }: { k: Koreksi }) {
   );
 }
 
+/* Warna tiga keadaan berat ikan utuh, dipakai di bar dan angka. */
+const WARNA_LOT = { tersedia: "#0B6B4A", sedang: "#C77D12", selesai: "#9AA2AB" } as const;
+const GAYA_STATUS: Record<StatusLot, { bg: string; fg: string }> = {
+  belum: { bg: "#DDF3E8", fg: "#0B6B4A" },
+  sebagian: { bg: "#FBF0D5", fg: "#8A5A00" },
+  diolah: { bg: "#FDEBD3", fg: "#9A5A0B" },
+  habis: { bg: "#EEF0F4", fg: "#5B6475" },
+};
+
+/** Bar perbandingan tersedia, sedang diproduksi, selesai diproduksi (berat ikan utuh, bukan loin). */
+function BarLot({ r }: { r: IkanUtuh["rincian"] }) {
+  const total = r.tersediaKg + r.sedangKg + r.selesaiKg;
+  if (total <= 0) return null;
+  const lebar = (n: number) => `${(n / total) * 100}%`;
+  return (
+    <div className="flex h-2 w-full overflow-hidden rounded-full bg-[#EEF0F4]" aria-hidden>
+      {r.tersediaKg > 0 && <span style={{ width: lebar(r.tersediaKg), background: WARNA_LOT.tersedia }} />}
+      {r.sedangKg > 0 && <span style={{ width: lebar(r.sedangKg), background: WARNA_LOT.sedang }} />}
+      {r.selesaiKg > 0 && <span style={{ width: lebar(r.selesaiKg), background: WARNA_LOT.selesai }} />}
+    </div>
+  );
+}
+
+function AngkaLot({ label, kg, warna, tebal }: { label: string; kg: number; warna: string; tebal?: boolean }) {
+  return (
+    <div className="flex min-w-0 flex-col justify-between gap-0.5">
+      <span className="flex items-start gap-1.5 text-[11px] leading-tight" style={{ color: MUTED }}>
+        <i className="mt-[3px] inline-block size-2 shrink-0 rounded-full" style={{ background: warna }} />{label}
+      </span>
+      <span className={`block truncate text-[14px] tabular-nums ${tebal ? "font-semibold" : "font-medium"}`} style={{ color: kg > 0 ? INK : "#B0B6BF" }}>{kgTeks(kg)}</span>
+    </div>
+  );
+}
+
+/** Satu lot ikan utuh: identitas, status, bar, dan tiga angka (tersedia, sedang diproduksi, selesai diproduksi). */
+function BarisLot({ l, bolehProduksi }: { l: IkanUtuh; bolehProduksi: boolean }) {
+  const r = l.rincian;
+  const gaya = GAYA_STATUS[r.status];
+  return (
+    <li className="space-y-2 border-t border-[#EEF0F4] px-3.5 py-3 first:border-t-0" data-testid="baris-lot">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 text-[13px]">
+          <span className="font-semibold" style={{ color: INK }}>{l.kode}</span>
+          <span className="block text-[12px] leading-snug" style={{ color: MUTED }}>
+            {l.pemasok} · terima {tanggal(l.tanggal_terima)}
+            {" · "}<span style={{ color: l.sudah_grading ? MUTED : "#8A5A00" }}>{l.sudah_grading ? `grade ${l.grade}` : "belum digrading"}</span>
+            {l.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}
+          </span>
+          {(l.jenis || l.kapal) && <span className="block text-[12px] leading-snug" style={{ color: MUTED }} data-testid="asal-lot">{[l.jenis, l.kapal].filter(Boolean).join(" · ")}</span>}
+        </div>
+        <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none" style={{ background: gaya.bg, color: gaya.fg }}>{LABEL_STATUS_LOT[r.status]}</span>
+      </div>
+      <BarLot r={r} />
+      <div className="grid grid-cols-3 gap-2">
+        <AngkaLot label="Tersedia" kg={r.tersediaKg} warna={WARNA_LOT.tersedia} tebal />
+        <AngkaLot label="Sedang diproduksi" kg={r.sedangKg} warna={WARNA_LOT.sedang} />
+        <AngkaLot label="Selesai diproduksi" kg={r.selesaiKg} warna={WARNA_LOT.selesai} />
+      </div>
+      <p className="text-[11.5px] leading-snug tabular-nums" style={{ color: MUTED }}>
+        Berat awal {kgTeks(r.awalKg)}{l.produksi_jalan.length > 0 ? ` · lagi diolah di ${[...new Set(l.produksi_jalan)].join(", ")}` : ""}
+      </p>
+      {bolehProduksi && r.tersediaKg > 0 && (
+        <div className="flex justify-end">
+          <Link href={`/produksi?mulai=1&lot=${l.id}${l.cycle_id ? `&proyek=${l.cycle_id}` : ""}`} className={tombolCls} style={{ background: INK, color: "#fff" }}>Mulai Produksi</Link>
+        </div>
+      )}
+      {r.selisihKg !== 0 && (
+        <p role="alert" className="rounded-xl px-3 py-1.5 text-[11.5px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>
+          Angkanya nggak pas {kgTeks(Math.abs(r.selisihKg))} dari berat awal. Cek lot ini di Mutu dan Penerimaan atau jalanin cek sinkron.
+        </p>
+      )}
+    </li>
+  );
+}
+
 /** Satu kelompok ikan utuh (satu proyek, atau yang belum masuk proyek) plus tombol buat langsung produksi. */
-function KelompokIkan({ judul, lots, href, bolehProduksi }: { judul: string; lots: IkanUtuh[]; href: string; bolehProduksi: boolean }) {
-  const ekor = lots.reduce((a, l) => a + (l.jumlah_ekor ?? 0), 0);
+function KelompokIkan({ judul, lots, href, bolehProduksi }: { judul: string; lots: IkanUtuh[]; href: string | null; bolehProduksi: boolean }) {
+  const tersedia = jumlahKg(lots.map((l) => l.rincian.tersediaKg));
+  const sedang = jumlahKg(lots.map((l) => l.rincian.sedangKg));
   return (
     <div className="overflow-hidden rounded-2xl bg-white" data-testid="kelompok-ikan">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EEF0F4] px-3.5 py-2.5">
         <div className="min-w-0">
           <p className="text-[13.5px] font-medium" style={{ color: INK }}>{judul}</p>
-          <p className="text-[12px] tabular-nums" style={{ color: MUTED }}>{lots.length} lot · {kgTeks(jumlahKg(lots.map((l) => l.sisa_kg)))}{ekor > 0 ? ` · ${ekor} ekor` : ""}</p>
+          <p className="text-[12px] tabular-nums" style={{ color: MUTED }}>
+            {lots.length} lot · tersedia <b className="font-semibold" style={{ color: WARNA_LOT.tersedia }}>{kgTeks(tersedia)}</b>{sedang > 0 ? <> · sedang diproduksi <b className="font-semibold" style={{ color: WARNA_LOT.sedang }}>{kgTeks(sedang)}</b></> : ""}
+          </p>
         </div>
-        {bolehProduksi && <Link href={href} className={tombolCls} style={{ background: INK, color: "#fff" }}>Produksi dari ikan ini</Link>}
+        {bolehProduksi && href && lots.filter((l) => l.rincian.tersediaKg > 0).length > 1 && (
+          <Link href={href} className={tombolCls} style={{ background: "#fff", color: INK, border: "1px solid #E2E4EA" }}>Mulai Produksi semua lot</Link>
+        )}
       </div>
-      <ul>
-        {lots.map((l) => (
-          <li key={l.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t border-[#EEF0F4] px-3.5 py-2 text-[13px] first:border-t-0">
-            <div className="min-w-0">
-              <span className="font-medium" style={{ color: INK }}>{l.kode}</span>
-              <span style={{ color: MUTED }}> · {l.pemasok} · terima {tanggal(l.tanggal_terima)}</span>
-              <span className="block text-[12px]" style={{ color: l.sudah_grading ? MUTED : "#8A5A00" }}>
-                {l.sudah_grading ? `Grade ${l.grade}` : "Belum digrading"}{l.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}{l.sisa_kg < l.kg ? ` · udah diolah ${kgTeks(l.kg - l.sisa_kg)}` : ""}
-              </span>
-            </div>
-            <b className="self-center font-semibold tabular-nums" style={{ color: INK }}>{kgTeks(l.sisa_kg)}</b>
-          </li>
-        ))}
-      </ul>
+      <ul>{lots.map((l) => <BarisLot key={l.id} l={l} bolehProduksi={bolehProduksi} />)}</ul>
     </div>
   );
 }
@@ -116,15 +184,19 @@ export function StokKelola({ ikan, produksi, units, isi, ruangan, koreksi, boleh
     return m.set(k, x);
   }, new Map<string, { judul: string; lots: IkanUtuh[] }>()).entries()]
     .sort((a, b) => (a[0] === "" ? -1 : b[0] === "" ? 1 : 0));
-  const hrefProduksi = (proyek: string, lots: IkanUtuh[]) =>
-    `/produksi?mulai=1${proyek ? `&proyek=${proyek}` : ""}&lot=${lots.map((l) => l.id).join(",")}`;
+  // Tombol produksi cuma bawa lot yang masih ada sisanya; kalau semuanya lagi diolah, tombolnya nggak muncul.
+  const hrefProduksi = (proyek: string, lots: IkanUtuh[]) => {
+    const bisa = lots.filter((l) => l.rincian.tersediaKg > 0);
+    return bisa.length === 0 ? null : `/produksi?mulai=1${proyek ? `&proyek=${proyek}` : ""}&lot=${bisa.map((l) => l.id).join(",")}`;
+  };
+  const lotTersedia = ikan.filter((l) => l.rincian.tersediaKg > 0);
 
   const ruang = (u: UnitStok) => (u.langsung_kirim ? "-" : (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : ""));
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
-        <Stat value={kgTeks(jumlahKg(ikan.map((l) => l.sisa_kg)))} label={`Ikan utuh belum diolah (${ikan.length} lot)`} />
+        <Stat value={kgTeks(jumlahKg(ikan.map((l) => l.rincian.tersediaKg)))} label={`Ikan utuh tersedia (${lotTersedia.length} lot)`} />
         <Stat value={String(jalan.length)} label={`Produksi lagi jalan, ${kgTeks(jumlahKg(jalan.map((p) => p.masuk_kg)))} masuk`} tone={jalan.some((p) => p.status === "berjalan") ? "warn" : undefined} />
         <Stat value={kgTeks(jumlahKg(hasil.map((u) => u.sisa_kg)))} label="Hasil produksi siap jual" tone="ok" />
         <Stat value={kgTeks(isi.isi_titipan_kg)} label="Titipan pelanggan" />
@@ -138,9 +210,9 @@ export function StokKelola({ ikan, produksi, units, isi, ruangan, koreksi, boleh
 
       <Card title="1. Ikan utuh (bahan baku)" right={<Link href="/mutu" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Mutu dan Penerimaan</Link>}>
         <div className="space-y-2.5 px-1 pb-1">
-          <p className="px-1.5 text-[12.5px]" style={{ color: MUTED }}>Ikan dari bongkaran yg udah diterima tapi belum diolah. Tekan Produksi dari ikan ini, lotnya langsung kecentang di form produksi.</p>
+          <p className="px-1.5 text-[12.5px]" style={{ color: MUTED }}>Ikan dari bongkaran per lot. <b className="font-medium" style={{ color: WARNA_LOT.tersedia }}>Tersedia</b> belum dipakai produksi, <b className="font-medium" style={{ color: WARNA_LOT.sedang }}>sedang diproduksi</b> belum disetujui Owner, <b className="font-medium" style={{ color: "#5B6475" }}>selesai diproduksi</b> udah disetujui. Semua berat ikan utuh, bukan berat loin.</p>
           {kelompok.length === 0
-            ? <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Nggak ada ikan utuh yg nunggu diolah.</div></Inner>
+            ? <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Nggak ada ikan utuh yg tersedia atau lagi diolah.</div></Inner>
             : kelompok.map(([k, g]) => <KelompokIkan key={k || "tanpa"} judul={g.judul} lots={g.lots} href={hrefProduksi(k, g.lots)} bolehProduksi={bolehProduksi} />)}
         </div>
       </Card>

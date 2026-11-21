@@ -98,10 +98,15 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
 }) {
   // Dari Rincian Proyek: lini bisnis dan proyeknya ngikut proyek yang dibuka.
   const awal = proyek.find((x) => x.id === proyekAwal);
+  // Dari Stok (tombol Mulai Produksi di lot): lotnya udah kepilih, lini otomatis jual (ikan sendiri). Kalau lotnya udah
+  // terikat proyek, proyeknya ikut lot dan nggak bisa diganti (satu lot satu proyek, dijaga juga di database).
+  const lotStok = lotSiap.filter((l) => lotAwal.includes(l.id));
+  const [dariStok, setDariStok] = useState(lotStok.length > 0);
+  const ikatan = lotStok.find((l) => l.cycle_id)?.cycle_id ?? null;
   // Proyek dipilih di sini (bukan pas terima ikan). Lot yg belum punya proyek bisa dipakai proyek mana aja,
   // begitu dipakai lotnya ikut proyek produksinya. Lot yg udah punya proyek cuma muncul di proyeknya sendiri.
-  const [lini, setLini] = useState<LiniBisnis>(awal?.lini_bisnis ?? "jual");
-  const [siklusId, setSiklusId] = useState(awal?.id ?? "baru");
+  const [lini, setLini] = useState<LiniBisnis>(lotStok.length > 0 ? "jual" : awal?.lini_bisnis ?? "jual");
+  const [siklusId, setSiklusId] = useState(ikatan ?? awal?.id ?? "baru");
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev: HasilForm, fd: FormData) => {
     const r = await mulaiProduksi(prev, fd);
     if (r?.id && !r.error) (fd.get("lini") === "titip" ? onTitip : onSelesai)(r.id);
@@ -111,12 +116,25 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
     .filter((l) => lotAwal.includes(l.id) && (!l.cycle_id || l.cycle_id === siklusId))
     .map((l) => [l.id, gramKeTeks(Math.round(l.sisa_kg * 1000)).replace(".", ",")])));
   const alokasi = Object.entries(pilih).map(([lot_id, kg]) => ({ lot_id, kg }));
-  const pilihanProyek = proyek.filter((x) => x.lini_bisnis === lini);
+  const pilihanProyek = proyek.filter((x) => x.lini_bisnis === lini || x.id === siklusId);
   const proyekDipilih = proyek.find((x) => x.id === siklusId);
   const ptProyek = proyekDipilih?.pt_id ? pt.find((x) => x.id === proyekDipilih.pt_id)?.label : null;
-  const lotProyek = lotSiap.filter((l) => !l.cycle_id || l.cycle_id === siklusId);
+  const lotProyek = dariStok ? lotStok : lotSiap.filter((l) => !l.cycle_id || l.cycle_id === siklusId);
+  // Lot yg dipilih udah terikat proyek? Proyeknya dikunci ke situ.
+  const kunciProyek = lini === "jual" ? lotSiap.find((l) => l.id in pilih && l.cycle_id)?.cycle_id ?? null : null;
+  const namaKunci = kunciProyek ? proyek.find((x) => x.id === kunciProyek)?.label ?? lotSiap.find((l) => l.cycle_id === kunciProyek)?.proyek ?? "proyeknya" : null;
+  // Berat yg diolah nggak boleh lebih dari yg tersedia (dicek lagi di database).
+  const salahLot = (l: LotSiap): string | null => {
+    if (!(l.id in pilih)) return null;
+    const g = keGram(pilih[l.id] ?? "");
+    if (g === null) return "Isi beratnya, lebih dari nol";
+    if (g > Math.round(l.sisa_kg * 1000)) return `Maks ${kgTeks(l.sisa_kg)} kg, sesuai yg tersedia`;
+    return null;
+  };
+  const adaSalah = lotSiap.some((l) => salahLot(l) !== null);
   const gantiLini = (l: LiniBisnis) => { setLini(l); setSiklusId("baru"); setPilih({}); };
-  const gantiProyek = (id: string) => { setSiklusId(id); setPilih({}); };
+  // Ganti proyek: lot yg udah terikat proyek lain dilepas, lot bebas tetap kepilih (biar isian dari Stok nggak ilang).
+  const gantiProyek = (id: string) => { setSiklusId(id); setPilih((p) => Object.fromEntries(Object.entries(p).filter(([k]) => { const c = lotSiap.find((l) => l.id === k)?.cycle_id; return !c || c === id; }))); };
   const alih = (l: LotSiap, on: boolean) =>
     setPilih((p) => {
       const n = { ...p };
@@ -124,7 +142,7 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
       else delete n[l.id];
       return n;
     });
-  const siap = lini === "titip" || lini === "jasa" || alokasi.length > 0;
+  const siap = lini === "titip" || lini === "jasa" || (alokasi.length > 0 && !adaSalah);
   // Saran jumlah ekor: jumlah ekor lot yang dipakai utuh (sisa = berat lot). Lot yang dipakai sebagian nggak bisa ditebak.
   const dipilih = lotSiap.filter((l) => l.id in pilih);
   const utuhSemua = dipilih.length > 0 && dipilih.every((l) => l.jumlah_ekor && l.kg !== undefined && l.sisa_kg === l.kg
@@ -136,6 +154,11 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
       <input type="hidden" name="lini" value={lini} />
       {state?.error && <div role="alert" className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{state.error}</div>}
 
+      {dariStok ? (
+        <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }}>
+          Produksi dari Stok: <b className="font-medium">{LABEL_LINI.jual}</b>. Cek beratnya, pilih proyeknya, terus simpan.
+        </p>
+      ) : (
       <fieldset className="space-y-1.5">
         <legend className="mb-1 text-[13px] font-medium" style={{ color: INK }}>Lini bisnis</legend>
         {(["jual", "jasa", "titip"] as LiniBisnis[]).map((l) => (
@@ -146,17 +169,25 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
           </label>
         ))}
       </fieldset>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Proyek" error={state?.kolom?.siklusId?.[0]}>
-          <select name="siklusId" value={siklusId} onChange={(e) => gantiProyek(e.target.value)} className={selectCls} required>
-            <option value="baru">Proyek baru</option>
-            {pilihanProyek.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-          </select>
+          {kunciProyek ? (
+            <>
+              <input type="hidden" name="siklusId" value={kunciProyek} />
+              <div className="flex h-11 items-center truncate rounded-2xl border border-[#E2E4EA] bg-[#F4F5F8] px-3.5 text-[14px]" style={{ color: INK }} data-testid="proyek-terkunci">{namaKunci}</div>
+            </>
+          ) : (
+            <select name="siklusId" value={siklusId} onChange={(e) => gantiProyek(e.target.value)} className={selectCls} required>
+              <option value="baru">Proyek baru</option>
+              {pilihanProyek.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+            </select>
+          )}
         </Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={hariIni} required /></Field>
       </div>
-      {siklusId === "baru" && (
+      {siklusId === "baru" && !kunciProyek && (
         <Field label="Nama proyek" hint="Misalnya nama kapal, pembeli, atau tanggal bongkar." error={state?.kolom?.namaProyek?.[0]}>
           <TextIn name="namaProyek" maxLength={120} required />
         </Field>
@@ -182,23 +213,19 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
         <p className="text-[13px]" style={{ color: MUTED }}>Belum ada ikan yg siap diolah. Terima ikannya dulu di menu Mutu dan Penerimaan.</p>
       ) : (
         <div className="space-y-2">
-          <p className="text-[12px] font-medium" style={{ color: MUTED }}>Pilih lot yg masuk produksi. Lotnya otomatis masuk proyek ini.</p>
-          {lotProyek.map((l) => {
-            const aktif = l.id in pilih;
-            return (
-              <div key={l.id} className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-2.5">
-                <input type="checkbox" className="h-4 w-4 accent-[#00171F]" checked={aktif} onChange={(e) => alih(l, e.target.checked)} aria-label={`Pakai ${l.kode}`} />
-                <div className="min-w-0 flex-1 text-[13px]">
-                  <div className="font-medium">{l.kode}{l.grade_kode ? ` · ${l.grade_kode}` : " · belum digrading"}</div>
-                  <div style={{ color: MUTED }}>{l.supplier_nama} · sisa {kgTeks(l.sisa_kg)} kg{l.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}</div>
-                </div>
-                {aktif && (
-                  <input aria-label={`Berat dari ${l.kode} (kg)`} inputMode="decimal" className="h-9 w-28 rounded-lg border border-[#E2E4EA] px-2 text-right text-[13px]"
-                    value={pilih[l.id]} onChange={(e) => setPilih((p) => ({ ...p, [l.id]: e.target.value }))} />
-                )}
-              </div>
-            );
-          })}
+          <p className="text-[12px] font-medium" style={{ color: MUTED }}>{dariStok ? "Lot dari Stok. Beratnya udah keisi sebesar yg tersedia, ubah kalau cuma sebagian yg diolah." : "Pilih lot yg masuk produksi."}</p>
+          {lotProyek.map((l) => <KartuLot key={l.id} l={l} aktif={l.id in pilih} nilai={pilih[l.id] ?? ""} salah={salahLot(l)}
+            onAlih={(on) => alih(l, on)} onUbah={(v) => setPilih((p) => ({ ...p, [l.id]: v }))} />)}
+          {dariStok && (
+            <Btn type="button" size="sm" v="ghost" onClick={() => setDariStok(false)}>+ Tambah lot lain</Btn>
+          )}
+          {alokasi.length > 0 && (
+            <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#E4ECF7", color: "#2B4A70" }} data-testid="info-ikatan-proyek">
+              {kunciProyek
+                ? `Lot ini udah terikat ke proyek ${namaKunci}. Satu lot cuma buat satu proyek, jadi produksinya otomatis masuk proyek itu.`
+                : "Begitu disimpan, lot yg dipakai terikat ke proyek ini. Sisa lotnya nanti cuma bisa dipakai proyek ini juga."}
+            </p>
+          )}
         </div>
       )}
       {lini !== "titip" && (
@@ -207,8 +234,46 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
         </Field>
       )}
       <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
-      <Btn type="submit" full disabled={pending || !siap}>{pending ? "Menyimpan..." : lini === "titip" ? "Buat proyek titipan" : "Mulai produksi"}</Btn>
+      <Btn type="submit" full disabled={pending || !siap}>{pending ? "Menyimpan..." : lini === "titip" ? "Buat proyek titipan" : "Simpan dan Mulai Produksi"}</Btn>
     </form>
+  );
+}
+
+/** Satu lot di form Mulai Produksi: nomor, jenis ikan, berat awal, tersedia, sedang diproses, dan berat yg mau diolah. */
+function KartuLot({ l, aktif, nilai, salah, onAlih, onUbah }: {
+  l: LotSiap; aktif: boolean; nilai: string; salah: string | null; onAlih: (on: boolean) => void; onUbah: (v: string) => void;
+}) {
+  const asal = [l.jenis, l.kapal].filter(Boolean).join(" · ");
+  return (
+    <div className="space-y-2.5 rounded-2xl bg-white px-3.5 py-3" data-testid="kartu-lot">
+      <label className="flex items-start gap-3">
+        <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[#00171F]" checked={aktif} onChange={(e) => onAlih(e.target.checked)} aria-label={`Pakai ${l.kode}`} />
+        <span className="min-w-0 flex-1 text-[13px]">
+          <span className="block font-semibold" style={{ color: INK }}>{l.kode}{l.grade_kode ? ` · ${l.grade_kode}` : " · belum digrading"}</span>
+          <span className="block truncate" style={{ color: MUTED }}>{[asal || "Jenis ikan belum diisi", l.supplier_nama, l.jumlah_ekor ? `${l.jumlah_ekor} ekor` : ""].filter(Boolean).join(" · ")}</span>
+          {l.proyek && <span className="block truncate text-[12px]" style={{ color: "#2B4A70" }}>Proyek {l.proyek}</span>}
+        </span>
+      </label>
+      <dl className="grid grid-cols-3 gap-2 text-[12px] tabular-nums">
+        <div><dt style={{ color: MUTED }}>Berat awal</dt><dd className="font-medium" style={{ color: INK }}>{kgTeks(l.kg ?? l.sisa_kg)} kg</dd></div>
+        <div><dt style={{ color: MUTED }}>Tersedia</dt><dd className="font-semibold" style={{ color: "#0B6B4A" }}>{kgTeks(l.sisa_kg)} kg</dd></div>
+        <div><dt style={{ color: MUTED }}>Sedang diproses</dt><dd className="font-medium" style={{ color: (l.sedang_kg ?? 0) > 0 ? "#8A5A00" : "#B0B6BF" }}>{kgTeks(l.sedang_kg ?? 0)} kg</dd></div>
+      </dl>
+      {aktif && (
+        <div>
+          <label className="flex items-center justify-between gap-3 text-[13px]" style={{ color: INK }}>
+            <span>Berat diolah</span>
+            <span className="relative">
+              <input aria-label={`Berat dari ${l.kode} (kg)`} aria-invalid={salah ? true : undefined} inputMode="decimal" value={nilai} onChange={(e) => onUbah(e.target.value)}
+                className="h-10 w-32 rounded-xl border bg-white pl-2 pr-8 text-right text-[14px] tabular-nums outline-none focus:border-[#00171F]"
+                style={{ borderColor: salah ? "#A8322B" : "#E2E4EA" }} />
+              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px]" style={{ color: MUTED }}>kg</span>
+            </span>
+          </label>
+          {salah && <p role="alert" className="mt-1 text-right text-[12px]" style={{ color: "#A8322B" }}>{salah}</p>}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -229,11 +294,11 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
 
       <Card title="Daftar produksi" right={<>
         {daftar.length > 0 && <Btn size="sm" v="light" onClick={() => unduhLaporan(daftar, ringkasGrade)}>Unduh laporan</Btn>}
-        {bolehTulis && <Btn size="sm" onClick={() => setMulai(true)}>Mulai produksi</Btn>}
+        {bolehTulis && <Btn size="sm" onClick={() => setMulai(true)}>Mulai Produksi</Btn>}
       </>}>
         <DataList
           rows={daftar}
-          empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai produksi, terus isi proyek dan ikannya." : "Belum ada produksi."}
+          empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai Produksi, atau dari halaman Stok pilih lotnya." : "Belum ada produksi."}
           cari={(p) => `${p.kode} ${p.siklus_kode ?? ""} ${p.proyek_nama ?? ""} ${p.pt_nama ?? ""} ${LABEL_LINI[p.lini_bisnis ?? "jual"]} ${p.status.replace("_", " ")} ${p.tanggal}`}
           cols={[
             { h: "Produksi", r: (p: ProduksiBaris) => (
@@ -263,7 +328,7 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
       </Card>
 
       {mulai && (
-        <Modal title="Mulai produksi" onClose={() => setMulai(false)}>
+        <Modal title="Mulai Produksi" onClose={() => setMulai(false)}>
           <FormMulai lotSiap={lotSiap} proyek={proyek} pt={pt} hariIni={hariIni} proyekAwal={mulaiAwal ?? ""} lotAwal={lotAwal}
             onSelesai={(id) => { setMulai(false); buka(id); }}
             onTitip={(proyekId) => { setMulai(false); router.push(`/gudang?titip=${proyekId}`); }} />

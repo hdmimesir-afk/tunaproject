@@ -18,7 +18,7 @@ async function mulaiProduksi(page: Page) {
   const proyek = page.getByRole("dialog").locator('select[name="siklusId"]');
   const nilai = await proyek.locator("option", { hasText: "Proyek E2E" }).last().getAttribute("value");
   await proyek.selectOption(nilai ?? "");
-  await page.locator("div.rounded-2xl", { hasText: /sisa 2\.000/ }).getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
+  await page.getByTestId("kartu-lot").filter({ hasText: /Tersedia\s*2\.000,000/ }).getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
   await page.getByRole("button", { name: "Mulai produksi" }).last().click();
   await expect(page).toHaveURL(/p=/);
   // Cara bawaan sekarang total per grade; tes ini menguji grid per potong.

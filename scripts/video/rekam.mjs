@@ -436,7 +436,7 @@ const ALUR = [
       let mulai = page.getByRole("dialog");
       await tunjuk(page, mulai.locator('select[name="siklusId"]'), "Proyek di form produksi");
       await tulis(page, "Proyeknya udah kepilih. Centang lot yg semalam diterima, lotnya otomatis masuk proyek ini.");
-      const lotTadi = mulai.locator("div.rounded-2xl", { hasText: /sisa 80(,000)? kg · 2 ekor/ }).last();
+      const lotTadi = mulai.getByTestId("kartu-lot").filter({ hasText: /2 ekor/ }).filter({ hasText: /Tersedia\s*80(,000)? kg/ }).last();
       await klik(page, lotTadi.getByRole("checkbox"), "Centang lot", 800);
       await klik(page, mulai.getByRole("button", { name: "Mulai produksi" }).last(), "Mulai produksi (form)", 2500);
       await page.waitForURL(/p=/, { timeout: 20_000 });

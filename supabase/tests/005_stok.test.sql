@@ -1,7 +1,7 @@
 -- Fase 4 Â· Stok, titipan gudang dingin, mesin tarif, koreksi stok, jadwal ABF. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(63);
+select plan(64);
 
 -- ---------------------------------------------------------------- data uji
 insert into auth.users (id, email) values
@@ -46,13 +46,13 @@ select is((select product_nama || ' ' || grade_kode || ':' || kondisi || ':' || 
 select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '100.000', 'sisa unit sama dengan berat masuk');
 select throws_ok(
   $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000051', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 50)$$,
-  'KT001', null, 'melebihi hasil produksi ditolak');
+  '42501', null, 'jalur input stok manual lama ditutup (stok masuk otomatis dari produksi)');
 select lives_ok($$select public.atur_kondisi_hasil('d0000000-0000-0000-0000-000000000051', 'fresh')$$, 'kondisi hasil diganti fresh');
 select is((select kondisi from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), 'fresh', 'kondisi unit otomatis ikut berubah');
 select lives_ok($$select public.atur_kondisi_hasil('d0000000-0000-0000-0000-000000000051', 'beku')$$, 'balik ke beku');
 select throws_ok(
   $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000052', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 1)$$,
-  'KT001', null, 'produksi yang belum diperiksa Owner tidak bisa masuk stok');
+  '42501', null, 'jalur lama ditutup juga buat produksi yang belum disetujui');
 
 select lives_ok($$select public.ambil_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), 20, 'kirim')$$, 'ambil sebagian stok sendiri');
 select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '80.000', 'sisa berkurang sesuai timbang ulang');
@@ -86,17 +86,22 @@ select lives_ok(
 select lives_ok($$select public.ambil_stok((select id from public.storage_units where lokasi = 'TIT-2'), 100)$$, 'titipan kedua langsung diambil');
 select is((select jenis || ':' || jumlah::text from public.service_charges where kg_dasar = 100 and jenis in ('transit', 'simpan')), 'simpan:76000.00', 'nggak ada transit: langsung diambil tetap ditagih minimum 10 hari');
 
--- Koreksi stok menunggu Owner.
-select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, 'salah timbang 1')$$, 'petugas mengajukan koreksi');
-select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -1, 'salah timbang 2')$$, 'petugas mengajukan koreksi kedua');
+-- Koreksi stok menunggu Owner. Jalur ajukan udah ditutup buat pengguna (22 Nov 2026); pengajuan lama dibikin langsung
+-- di database buat nyontohin data lama yang masih nunggu, dan tetap bisa diputuskan Owner.
+select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, 'baru')$$,
+  '42501', null, 'jalur ajukan koreksi stok lama ditutup');
+reset role;
+select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, 'salah timbang 1')$$, 'pengajuan koreksi lama 1');
+select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -1, 'salah timbang 2')$$, 'pengajuan koreksi lama 2');
+set local role authenticated;
 select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '80.000', 'koreksi belum berlaku sebelum disetujui');
 -- Kondisi hasil: tiap ganti tercatat; udah ada yang keluar dari stok berarti dikunci.
 select throws_ok($$select public.atur_kondisi_hasil('d0000000-0000-0000-0000-000000000051', 'fresh')$$, 'KT001', null, 'kondisi hasil dikunci kalau stoknya udah ada yang keluar');
 reset role;
 select is((select count(*)::int from public.koreksi_data where ref_id = 'd0000000-0000-0000-0000-000000000051' and alasan like 'Kondisi hasil%'), 2, 'ganti kondisi hasil tercatat di riwayat koreksi');
 set local role authenticated;
-select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, '')$$, 'KT001', null, 'koreksi tanpa alasan ditolak');
-select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -100, 'terlalu besar')$$, 'KT001', null, 'koreksi yang membuat sisa negatif ditolak');
+select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, '')$$, '42501', null, 'jalur koreksi lama tertutup (tanpa alasan)');
+select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -100, 'terlalu besar')$$, '42501', null, 'jalur koreksi lama tertutup (minus)');
 select throws_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 1'), true)$$, '42501', null, 'petugas tidak boleh menyetujui koreksi');
 select throws_ok($$select public.ubah_tarif('simpan', 80, 10, 3, 'masuk', current_date, true)$$, '42501', null, 'petugas tidak boleh mengubah tarif');
 

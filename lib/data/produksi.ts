@@ -2,6 +2,8 @@ import "server-only";
 import { BATAS_BAWAAN, type BatasHasil } from "@/lib/logic/neraca";
 import { createClient } from "@/lib/supabase/server";
 import { gradeLot } from "@/lib/logic/pembelian";
+import { jenisLot } from "@/lib/logic/ekor";
+import { DISETUJUI } from "@/lib/logic/stokLot";
 import type { LotBaris, Opsi } from "@/lib/types/pembelian";
 import type { AlokasiLot, Ekor, ItemLoin, KomponenSamping, LoinTotal, LotAsal, LotSiap, ProduksiBaris, ProyekOpsi, RiwayatLoin } from "@/lib/types/produksi";
 import { riwayatKoreksi, type Koreksi } from "./koreksi";
@@ -53,14 +55,27 @@ export async function ringkasGradeProduksi(ids: string[]): Promise<Record<string
 export async function lotSiapProduksi(): Promise<LotSiap[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("lots")
-    .select("id, kode, kg, qc, sisa_kg, jumlah_ekor, cycle_id, grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
+    .select("id, kode, kg, qc, sisa_kg, jumlah_ekor, kapal, jenis_ikan, lot_ekor(spesies, batal), cycle_id, cycles(kode, nama), grade_id, grades(kode, nama), lot_grades(grade_id, kg, grades(kode)), suppliers(nama)")
     .neq("qc", "ditahan").gt("sisa_kg", 0).order("kode");
   if (error) gagal("daftar lot");
+  const ids = (data ?? []).map((l) => l.id as string);
+  // Berat yang lagi diolah (produksi belum disetujui Owner), cuma buat info di form. Sama kayak hitungan di Stok.
+  const { data: alok, error: e2 } = ids.length > 0
+    ? await sb.from("lot_allocations").select("lot_id, kg, productions!inner(status)").in("lot_id", ids).neq("productions.status", DISETUJUI)
+    : { data: [], error: null };
+  if (e2) gagal("daftar lot");
+  const sedang = new Map<string, number>();
+  for (const a of (alok ?? []) as { lot_id: string; kg: number }[]) sedang.set(a.lot_id, (sedang.get(a.lot_id) ?? 0) + Math.round(Number(a.kg) * 1000));
   return (data ?? []).map((l) => {
-    const x = l as unknown as LotBaris & { suppliers: { nama: string } | null };
+    const x = l as unknown as LotBaris & { suppliers: { nama: string } | null; cycles: { kode: string; nama?: string | null } | null };
     // Satu lot bisa beberapa grade (cek mutu); ditampilkan semua, terberat dulu.
     const kode = gradeLot(x).map((g) => g.kode).join(", ");
-    return { id: x.id, kode: x.kode, sisa_kg: x.sisa_kg, grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-", kg: x.kg, jumlah_ekor: x.jumlah_ekor ?? null, cycle_id: x.cycle_id };
+    return {
+      id: x.id, kode: x.kode, sisa_kg: Number(x.sisa_kg), grade_kode: kode || null, supplier_nama: x.suppliers?.nama ?? "-", kg: Number(x.kg),
+      jumlah_ekor: x.jumlah_ekor ?? null, cycle_id: x.cycle_id,
+      sedang_kg: (sedang.get(x.id) ?? 0) / 1000, kapal: x.kapal ?? "", jenis: jenisLot(x.jenis_ikan, x.lot_ekor),
+      proyek: x.cycles ? [x.cycles.kode, x.cycles.nama].filter(Boolean).join(" · ") : null,
+    };
   });
 }
 
@@ -142,14 +157,14 @@ export async function detailProduksi(id: string): Promise<DetailProduksi | null>
   const [koreksi, lot, kondisi, keluar] = await Promise.all([
     riwayatKoreksi(["productions"], [id]),
     idLot.length > 0
-      ? sb.from("lots").select("id, kg, qc, jumlah_ekor, lot_grades(kg, grades(kode))").in("id", idLot)
+      ? sb.from("lots").select("id, kode, kg, qc, jumlah_ekor, kapal, jenis_ikan, lot_ekor(spesies, batal), lot_grades(kg, grades(kode))").in("id", idLot)
       : Promise.resolve({ data: [] as unknown[], error: null }),
     sb.from("productions").select("kondisi_hasil").eq("id", id).maybeSingle(),
     sb.from("storage_units").select("sisa_kg, kg_masuk").eq("production_id", id).eq("otomatis", true),
   ]);
-  const lotAsal: LotAsal[] = ((lot.data ?? []) as { id: string; kg: number; qc: string; jumlah_ekor: number | null; lot_grades: { kg: number; grades: { kode: string } | null }[] }[])
+  const lotAsal: LotAsal[] = ((lot.data ?? []) as { id: string; kode: string; kg: number; qc: string; jumlah_ekor: number | null; kapal: string | null; jenis_ikan: string | null; lot_ekor: { spesies: string; batal: boolean }[] | null; lot_grades: { kg: number; grades: { kode: string } | null }[] }[])
     .map((l) => ({
-      id: l.id, kg: Number(l.kg), jumlah_ekor: l.jumlah_ekor,
+      id: l.id, kode: l.kode, kg: Number(l.kg), jumlah_ekor: l.jumlah_ekor, kapal: l.kapal ?? "", jenis: jenisLot(l.jenis_ikan, l.lot_ekor),
       grade: l.qc === "lulus" ? l.lot_grades.filter((g) => g.kg > 0).map((g) => ({ kode: g.grades?.kode ?? "?", kg: Number(g.kg) })) : [],
     }));
   return {

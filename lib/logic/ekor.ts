@@ -70,3 +70,15 @@ export function tagBerikut(tagTerakhir: string): string {
   const n = String(Number(m[2]) + 1).padStart(m[2].length, "0");
   return m[1] + n;
 }
+
+/** Jenis ikan satu lot buat ditampilin. Berat total: dari lot. Per ekor: jenis dari ekornya (boleh campur), nggak didobel di lot. */
+export function jenisLot(jenisIkan: string | null | undefined, ekor?: { spesies: string; batal?: boolean }[] | null): string {
+  const dariEkor = [...new Set((ekor ?? []).filter((e) => !e.batal).map((e) => e.spesies.trim()).filter(Boolean))];
+  if (dariEkor.length > 0) return dariEkor.join(", ");
+  return (jenisIkan ?? "").trim();
+}
+
+/** "KM Sinar · Yellowfin", tanpa bagian yang kosong. */
+export function asalLot(kapal: string | null | undefined, jenis: string): string {
+  return [(kapal ?? "").trim(), jenis].filter(Boolean).join(" · ");
+}

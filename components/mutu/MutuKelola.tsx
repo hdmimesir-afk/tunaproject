@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Btn, Card, Field, Inner, Modal, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PilihGrade } from "@/components/ui/PilihGrade";
@@ -48,6 +48,8 @@ function PilihPemasok({ pemasok, nilai, onUbah, bolehBaru, error }: { pemasok: O
 }
 
 /* ------------------------------------------------------------ terima ikan */
+const JENIS_IKAN = ["Yellowfin", "Bigeye", "Skipjack", "Albacore", "Tuna"];
+
 type PropsTerima = { pemasok: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; grade: Opsi[]; bolehMutu: boolean; potonganKg: number };
 
 function TerimaIkan(props: PropsTerima) {
@@ -68,7 +70,12 @@ function FormTerima({ pemasok, bolehPemasokBaru, hariIni, grade, bolehMutu, poto
   const [ekor, setEkor] = useState(() => [ekorBaru()]);
   const [kg, setKg] = useState("");
   const [langsungGrade, setLangsungGrade] = useState(false);
+  // Kunci anti dobel: dibuat sekali pas pertama kirim, dipakai lagi kalau dikirim ulang (klik dua kali, koneksi putus terus coba lagi).
+  // Jadi kiriman ulang nggak bikin lot baru. Setelah sukses form dipasang ulang, kuncinya baru lagi.
+  const kunciKirim = useRef("");
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev, fd) => {
+    if (!kunciKirim.current) kunciKirim.current = crypto.randomUUID();
+    fd.set("kunci", kunciKirim.current);
     const r = await terimaIkan(prev, fd);
     if (r?.pesan) onSukses(r.pesan);
     return r;
@@ -105,6 +112,19 @@ function FormTerima({ pemasok, bolehPemasokBaru, hariIni, grade, bolehMutu, poto
           </Field>
         )}
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Asal kapal" hint="Nama kapal, boleh kosong." error={state?.kolom?.kapal?.[0]}>
+          <TextIn name="kapal" maxLength={80} placeholder="KM ..." autoComplete="off" />
+        </Field>
+        {cara === "total" ? (
+          <Field label="Jenis ikan" hint="Boleh kosong." error={state?.kolom?.jenis?.[0]}>
+            <TextIn name="jenis" maxLength={40} list="daftar-jenis-ikan" placeholder="Yellowfin" autoComplete="off" />
+          </Field>
+        ) : <p className="self-end pb-1 text-[12px]" style={{ color: MUTED }}>Jenis ikan diisi per ekor di tabel bawah.</p>}
+      </div>
+      <datalist id="daftar-jenis-ikan">
+        {JENIS_IKAN.map((j) => <option key={j} value={j} />)}
+      </datalist>
       {cara === "ekor" && <IsianEkor baris={ekor} onUbah={setEkor} grade={grade} bolehGrade={bolehMutu} potonganKg={potonganKg} error={state?.kolom?.ekor?.[0]} />}
       {cara === "total" && bolehMutu && (
         <label className="flex items-center gap-2.5 text-[13px]" style={{ color: INK }}>
@@ -288,6 +308,19 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
             </select>
           </Field>
         )}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Asal kapal" hint="Boleh kosong." error={state?.kolom?.kapal?.[0]}>
+            <TextIn name="kapal" maxLength={80} defaultValue={lot.kapal ?? ""} autoComplete="off" />
+          </Field>
+          {!perEkor && (
+            <Field label="Jenis ikan" hint="Boleh kosong." error={state?.kolom?.jenis?.[0]}>
+              <TextIn name="jenis" maxLength={40} list="daftar-jenis-ikan-koreksi" defaultValue={lot.jenis_ikan ?? ""} autoComplete="off" />
+            </Field>
+          )}
+        </div>
+        <datalist id="daftar-jenis-ikan-koreksi">
+          {JENIS_IKAN.map((j) => <option key={j} value={j} />)}
+        </datalist>
         <input type="hidden" name="siklusId" value={lot.cycle_id ?? ""} />
         <p className="text-[12.5px]" style={{ color: MUTED }}>
           {lot.cycle_id

@@ -38,8 +38,8 @@ test.describe("gudang dingin", () => {
     }
     await expect(page.getByRole("button", { name: "Hasil produksi masuk" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ambil" })).toHaveCount(0);
-    // Tombol produksi dari ikan utuh bawa lotnya ke form Mulai produksi.
-    const tombol = page.getByRole("link", { name: "Produksi dari ikan ini" }).first();
+    // Tombol Mulai Produksi di tiap lot bawa lotnya ke form Mulai Produksi.
+    const tombol = page.getByRole("link", { name: "Mulai Produksi", exact: true }).first();
     if (await tombol.count()) {
       await expect(tombol).toHaveAttribute("href", /\/produksi\?mulai=1.*lot=/);
     }

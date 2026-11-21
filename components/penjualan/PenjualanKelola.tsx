@@ -14,7 +14,7 @@ import {
 } from "@/lib/actions/penjualan";
 import type { DetailInvoice, DetailPesanan } from "@/lib/data/penjualan";
 import { rp, tanggal } from "@/lib/format";
-import { gramKeTeks, tampilKg } from "@/lib/logic/grid";
+import { gramKeTeks, keGram, tampilKg } from "@/lib/logic/grid";
 import { jumlahBaris, LABEL_PESANAN, LABEL_TAGIHAN, linkWa, pesanPengingat, totalBaris } from "@/lib/logic/penjualan";
 import type { Opsi } from "@/lib/types/pembelian";
 import type { HasilTertunda, Invoice, JasaBelumDitagih, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
@@ -125,20 +125,22 @@ function FormKirim({ d }: { d: DetailPesanan }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(kirimPesanan, undefined);
   const [nilai, setNilai] = useState(() => d.baris.map((b) => ({ id: b.id, kirim: kgInput(b.kg_pesan), diterima: "" })));
   const ubah = (i: number, k: "kirim" | "diterima", v: string) => setNilai((n) => n.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  // Berat kirim nggak boleh lebih dari yang dipesan (database juga nolak). Kurang boleh: pengiriman sebagian.
+  const lebih = d.baris.map((b, i) => { const g = keGram(nilai[i].kirim); return g !== null && g > Math.round(b.kg_pesan * 1000); });
   return (
     <form action={action} className="space-y-2.5">
       <input type="hidden" name="pesananId" value={d.pesanan.id} />
       <input type="hidden" name="baris" value={JSON.stringify(nilai)} />
       <PesanForm state={state} />
-      <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat hasil timbang pas kirim. Berat yang diterima pembeli boleh nyusul.</p>
+      <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat hasil timbang pas kirim, maksimal sebesar yang dipesan. Kalau kirimnya kurang, sisanya dilepas lagi ke stok. Berat yang diterima pembeli boleh nyusul.</p>
       {d.baris.map((b, i) => (
         <div key={b.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-2xl bg-white p-2.5 text-[13px]">
-          <span>{b.unit_kode} · {b.product_nama}{b.grade_kode ? ` ${b.grade_kode}` : ""}<span className="block text-[11.5px]" style={{ color: MUTED }}>dipesan {kgTeks(b.kg_pesan)}</span></span>
-          <input aria-label={`Berat kirim ${b.unit_kode}`} inputMode="decimal" className="h-10 w-24 rounded-xl border border-[#E2E4EA] px-3 text-right" value={nilai[i].kirim} onChange={(e) => ubah(i, "kirim", e.target.value)} />
+          <span>{b.unit_kode} · {b.product_nama}{b.grade_kode ? ` ${b.grade_kode}` : ""}<span className="block text-[11.5px]" style={{ color: lebih[i] ? "#A8322B" : MUTED }}>{lebih[i] ? `Maks ${kgTeks(b.kg_pesan)}, sesuai pesanan` : `dipesan ${kgTeks(b.kg_pesan)}`}</span></span>
+          <input aria-label={`Berat kirim ${b.unit_kode}`} aria-invalid={lebih[i] || undefined} inputMode="decimal" className="h-10 w-24 rounded-xl border px-3 text-right" style={{ borderColor: lebih[i] ? "#A8322B" : "#E2E4EA" }} value={nilai[i].kirim} onChange={(e) => ubah(i, "kirim", e.target.value)} />
           <input aria-label={`Berat diterima ${b.unit_kode}`} inputMode="decimal" placeholder="diterima" className="h-10 w-24 rounded-xl border border-[#E2E4EA] px-3 text-right" value={nilai[i].diterima} onChange={(e) => ubah(i, "diterima", e.target.value)} />
         </div>
       ))}
-      <KonfirmasiDua full label="Kirim pesanan" labelYa="Ya, kirim dan kurangi stok" pending={pending} pesan="Stok langsung berkurang sesuai berat kirim. Lanjut?" />
+      <KonfirmasiDua full label="Kirim pesanan" labelYa="Ya, kirim dan kurangi stok" pending={pending} disabled={lebih.some(Boolean)} pesan="Stok langsung berkurang sesuai berat kirim. Lanjut?" />
     </form>
   );
 }

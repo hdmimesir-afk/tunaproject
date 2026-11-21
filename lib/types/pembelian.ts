@@ -117,6 +117,9 @@ export type LotBaris = {
   lot_grades?: { grade_id: string; kg: number; grades: { kode: string } | null }[];
   /** Jumlah ekor (diisi manual, atau dihitung dari ekornya kalau dicatat per ekor). */
   jumlah_ekor?: number | null;
+  /** Asal kapal dan jenis ikan (berat total). Lot per ekor: jenisnya di tiap ekor. */
+  kapal?: string;
+  jenis_ikan?: string;
   /** Ekor-ekornya kalau lot dicatat per ekor. Yang batal = dibuang lewat koreksi. */
   lot_ekor?: EkorLot[];
 };

@@ -1,6 +1,8 @@
 import "server-only";
+import { jenisLot } from "@/lib/logic/ekor";
 import { createClient } from "@/lib/supabase/server";
 import type { Opsi } from "@/lib/types/pembelian";
+import { DISETUJUI, rincianLot } from "@/lib/logic/stokLot";
 import type { AturanTarif, Barang, Booking, GerakBarang, GerakStok, IkanUtuh, IsiGudang, ProduksiSiapStok, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
 
 /* Lapisan akses data stok dan gudang dingin. Klien pengguna, jadi RLS dan izin database berlaku. */
@@ -58,26 +60,51 @@ export async function koreksiMenunggu(): Promise<(GerakStok & { unit_kode: strin
   });
 }
 
-/** Ikan utuh dari penerimaan yang belum habis diolah (bahan baku), buat dashboard Stok. Lot yang ditahan nggak ikut. */
+const KOLOM_LOT = "id, kode, kg, sisa_kg, qc, jumlah_ekor, kapal, jenis_ikan, lot_ekor(spesies, batal), tanggal_terima, cycle_id, cycles(kode, nama), suppliers(nama), lot_grades(kg, grades(kode, urutan))";
+
+/** Ikan utuh (bahan baku) buat dashboard Stok: lot yang masih ada sisanya, plus lot yang sisanya udah habis tapi masih
+    lagi diolah (biar ikannya nggak "ilang" dari layar). Lot ditahan nggak ikut. Rinciannya dihitung dari lot_allocations
+    dan status produksinya (lihat lib/logic/stokLot.ts). Cuma baca, nggak ngubah data. */
 export async function ikanUtuh(): Promise<IkanUtuh[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("lots")
-    .select("id, kode, kg, sisa_kg, qc, jumlah_ekor, tanggal_terima, cycle_id, cycles(kode, nama), suppliers(nama), lot_grades(kg, grades(kode, urutan))")
-    .neq("qc", "ditahan").gt("sisa_kg", 0).order("tanggal_terima", { ascending: false }).order("kode", { ascending: false }).limit(300);
-  if (error) gagal("ikan utuh");
+  const [bersisa, jalan] = await Promise.all([
+    sb.from("lots").select(KOLOM_LOT).neq("qc", "ditahan").gt("sisa_kg", 0)
+      .order("tanggal_terima", { ascending: false }).order("kode", { ascending: false }).limit(300),
+    // Alokasi yang produksinya belum disetujui Owner: lotnya tetap ditampilin walau sisanya 0.
+    sb.from("lot_allocations").select("lot_id, productions!inner(status)").neq("productions.status", DISETUJUI).limit(1000),
+  ]);
+  if (bersisa.error || jalan.error) gagal("ikan utuh");
+  const adaId = new Set((bersisa.data ?? []).map((l) => l.id as string));
+  const kurang = [...new Set((jalan.data ?? []).map((a) => a.lot_id as string))].filter((id) => !adaId.has(id));
+  const [tambahan, alokasi] = await Promise.all([
+    kurang.length > 0 ? sb.from("lots").select(KOLOM_LOT).in("id", kurang) : Promise.resolve({ data: [] as unknown[], error: null }),
+    sb.from("lot_allocations").select("lot_id, kg, productions(kode, status)").in("lot_id", [...adaId, ...kurang]),
+  ]);
+  if (tambahan.error || alokasi.error) gagal("ikan utuh");
+  type Alok = { lot_id: string; kg: number; productions: { kode: string; status: string } | null };
+  const perLot = new Map<string, Alok[]>();
+  for (const a of (alokasi.data ?? []) as unknown as Alok[]) perLot.set(a.lot_id, [...(perLot.get(a.lot_id) ?? []), a]);
+  const data = [...(bersisa.data ?? []), ...((tambahan.data ?? []) as typeof bersisa.data & object)];
   type Baris = {
     id: string; kode: string; kg: number; sisa_kg: number; qc: string; jumlah_ekor: number | null; tanggal_terima: string; cycle_id: string | null;
+    kapal: string | null; jenis_ikan: string | null; lot_ekor: { spesies: string; batal: boolean }[] | null;
     cycles: { kode: string; nama: string | null } | null; suppliers: { nama: string } | null;
     lot_grades: { kg: number; grades: { kode: string; urutan: number } | null }[] | null;
   };
-  return ((data ?? []) as unknown as Baris[]).map((l) => ({
+  return ((data ?? []) as unknown as Baris[]).map((l) => {
+    const alok = perLot.get(l.id) ?? [];
+    return {
     id: l.id, kode: l.kode, kg: Number(l.kg), sisa_kg: Number(l.sisa_kg), jumlah_ekor: l.jumlah_ekor, tanggal_terima: l.tanggal_terima,
+    rincian: rincianLot(Number(l.kg), Number(l.sisa_kg), alok.map((a) => ({ kg: Number(a.kg), status: a.productions?.status ?? "" }))),
+    produksi_jalan: alok.filter((a) => a.productions && a.productions.status !== DISETUJUI).map((a) => a.productions!.kode),
     sudah_grading: l.qc === "lulus", pemasok: l.suppliers?.nama ?? "-", cycle_id: l.cycle_id,
+    kapal: l.kapal ?? "", jenis: jenisLot(l.jenis_ikan, l.lot_ekor),
     proyek: l.cycles ? [l.cycles.kode, l.cycles.nama].filter(Boolean).join(" · ") : null,
     grade: (l.lot_grades ?? []).filter((g) => Number(g.kg) > 0)
       .sort((a, b) => (a.grades?.urutan ?? 99) - (b.grades?.urutan ?? 99))
       .map((g) => g.grades?.kode ?? "?").join(", "),
-  }));
+    };
+  }).sort((a, b) => b.tanggal_terima.localeCompare(a.tanggal_terima) || b.kode.localeCompare(a.kode));
 }
 
 /** Produksi yang sudah disetujui Owner dan hasilnya belum seluruhnya masuk stok. */

@@ -5,6 +5,7 @@ import { Btn, Card, Pill } from "@/components/ui";
 import { KotakCari, useCari } from "@/components/ui/Cari";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
+import { asalLot, jenisLot } from "@/lib/logic/ekor";
 import { formatKg } from "@/lib/logic/neraca";
 import { gradeLot, LABEL_QC, lampiranKurang, lampiranWajib, sisaBelumDibagi } from "@/lib/logic/pembelian";
 import { LABEL_JENIS, TombolLampiran } from "@/components/dokumen/Dokumen";
@@ -15,7 +16,7 @@ const KOLOM = "md:grid md:grid-cols-[minmax(0,1fr)_100px_130px_minmax(0,1.4fr)_a
 const AMBER = "#8A5A00";
 /** Posisi pembelian lot: belum diajukan, lagi diajukan, atau kode PO-nya. */
 const statusBeli = (l: LotBaris) => (l.po_kode ? l.po_kode : l.po_id ? "Diajukan" : "Belum diajukan");
-const teksLot = (l: LotBaris) => `${l.kode} ${(l.lot_ekor ?? []).map((e) => e.no_tag).join(" ")} ${statusBeli(l)} ${l.cycles?.kode ?? ""} ${l.cycles?.nama ?? ""} ${l.suppliers?.nama ?? ""} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
+const teksLot = (l: LotBaris) => `${l.kode} ${(l.lot_ekor ?? []).map((e) => e.no_tag).join(" ")} ${statusBeli(l)} ${l.cycles?.kode ?? ""} ${l.cycles?.nama ?? ""} ${l.suppliers?.nama ?? ""} ${l.kapal ?? ""} ${jenisLot(l.jenis_ikan, l.lot_ekor)} ${gradeLot(l).map((g) => g.kode).join(" ")} ${LABEL_QC[l.qc]} ${l.qc_catatan} ${l.catatan} ${l.sebelum_disetujui ? "bongkar malam" : ""}`;
 
 /** Lampiran lot (nota nelayan, foto timbangan) beserta aturan wajibnya dari admin. Null bila pengguna tidak boleh melihat berkas. */
 export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean; aturan: AturanLampiran[] };
@@ -102,6 +103,9 @@ function BarisLot({ l, aksi, kurang }: { l: LotBaris; aksi: React.ReactNode; kur
           {l.sebelum_disetujui && <span className="rounded-md bg-[#FBF0D5] px-1.5 py-0.5 text-[11px] leading-none" style={{ color: AMBER }}>Sebelum disetujui</span>}
         </div>
         <div className="mt-0.5 truncate text-[12.5px]" style={{ color: MUTED }}>{l.suppliers?.nama ?? "-"}</div>
+        {asalLot(l.kapal, jenisLot(l.jenis_ikan, l.lot_ekor)) && (
+          <div className="truncate text-[12px]" style={{ color: MUTED }} data-testid="asal-lot">{asalLot(l.kapal, jenisLot(l.jenis_ikan, l.lot_ekor))}</div>
+        )}
         {kurang.length > 0 && <p className="mt-1 text-[12px]" style={{ color: AMBER }} data-testid="lampiran-kurang">Belum ada: {kurang.map((j) => LABEL_JENIS[j].toLowerCase()).join(", ")}</p>}
       </div>
 

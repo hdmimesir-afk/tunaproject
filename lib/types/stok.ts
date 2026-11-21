@@ -1,3 +1,4 @@
+import type { RincianLot } from "@/lib/logic/stokLot";
 /* Bentuk baris Fase 4 (stok, gudang dingin, jadwal). Angka numeric dari PostgREST datang sebagai number. */
 
 export type KondisiStok = "fresh" | "beku";
@@ -161,7 +162,14 @@ export type IkanUtuh = {
   /** Grade tuna utuh, misalnya "AB, C". Kosong kalau belum digrading. */
   grade: string;
   pemasok: string;
+  /** Asal kapal dan jenis ikan (per ekor: dari ekornya). Kosong kalau nggak diisi. */
+  kapal: string;
+  jenis: string;
   cycle_id: string | null;
   /** Kode dan nama proyek. Null kalau lotnya belum dipakai produksi. */
   proyek: string | null;
+  /** Berat ikan utuh: tersedia, sedang diproduksi, selesai diproduksi (bukan berat loin). */
+  rincian: RincianLot;
+  /** Kode produksi yang lagi ngolah lot ini (belum disetujui Owner). */
+  produksi_jalan: string[];
 };
