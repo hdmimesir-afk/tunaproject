@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { DashboardOwner } from "@/components/dashboard/DashboardOwner";
+import type { LaporanHarian } from "@/lib/data/laporanHarian";
 import type { Tindakan } from "@/lib/data/tindakan";
 import type { Dashboard } from "@/lib/types/keuangan";
 
@@ -33,5 +34,32 @@ describe("dashboard: perlu tindakan", () => {
     const html = tampil(Array.from({ length: 9 }, (_, i) => item(i + 1)));
     expect(html).toContain("Lihat 3 lainnya");
     expect(html).toContain('href="/persetujuan?x=9"'); // item yang dilipat tetap ada di halaman
+  });
+});
+
+describe("dashboard: laporan harian", () => {
+  const lap: LaporanHarian = {
+    periode: "kemarin", dari: "2026-11-21", sampai: "2026-11-21",
+    ikan: { kg: 1200, lot: 3, ekor: 40, pemasok: ["UD Samudra"] },
+    produksi: { jumlah: 1, masukKg: 900, loinKg: 540, sampingKg: 100, berjalan: 0, menunggu: 1, disetujui: 0 },
+    stok: { kg: 742, perJenis: [{ nama: "Loin tuna A-SO", kg: 742 }] },
+    jual: null,
+    uang: { masuk: 5_000_000, keluar: 1_000_000 },
+  };
+  const html = renderToStaticMarkup(<DashboardOwner d={d} izin={izin} nama="Hilmy" salam="Selamat pagi" tanggal="x" buku={[]} siklus={null} tindakan={[]}
+    laporan={{ data: lap, judulTanggal: "Sabtu, 21 November 2026", teks: "teks" }} />);
+
+  it("muncul di atas, judulnya ikut periode, dan tiap kotak nyambung ke menunya", () => {
+    expect(html.indexOf("Laporan kemarin")).toBeLessThan(html.indexOf("Perlu tindakan Anda"));
+    expect(html).toContain("Sabtu, 21 November 2026");
+    for (const h of ["/mutu", "/produksi", "/stok", "/keuangan"]) expect(html).toContain(`href="${h}"`);
+    expect(html).toContain("60,0%");
+    expect(html).toContain("1 nunggu dicek");
+  });
+
+  it("bisa ganti periode, dan bagian yang nggak boleh dilihat nggak muncul", () => {
+    expect(html).toContain('href="/dashboard?periode=7hari"');
+    expect(html).toContain('aria-current="page"');
+    expect(html).not.toContain("Terjual");
   });
 });

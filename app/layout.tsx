@@ -10,6 +10,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "KATALIS ERP",
   description: "Sistem pencatatan PT Katalis Lintas Global: pembelian ikan, produksi, stok, penjualan, dan keuangan.",
+  // Dipasang di HP: ikon dan nama di layar utama iPhone (Android pakai app/manifest.ts).
+  appleWebApp: { capable: true, title: "KATALIS", statusBarStyle: "black-translucent" },
+  icons: { icon: [{ url: "/pwa/icon-192.png", sizes: "192x192", type: "image/png" }], apple: "/pwa/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#00171F" };

@@ -5,7 +5,6 @@ import { Btn, Icon, Modal } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { catatDokumen, urlDokumen } from "@/lib/actions/pembelian";
 import { ukuranBerkas, waktu } from "@/lib/format";
-import { createClient } from "@/lib/supabase/client";
 import type { Dokumen, JenisDokumen, RefDokumen } from "@/lib/types/pembelian";
 
 /* Berkas diunggah langsung dari browser ke bucket privat (dengan sesi pengguna, jadi kebijakan Storage berlaku),
@@ -51,8 +50,10 @@ export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: {
       const tipe = TIPE.find((t) => t === file.type);
       if (!tipe) return setGalat("Pilih foto (JPEG, PNG, WebP, HEIC) atau PDF.");
       if (file.size > BATAS) return setGalat("Berkasnya lebih dari 10 MB. Kecilin dulu.");
+      // Klien Supabase baru dimuat pas ada yg diunggah, biar halaman nggak berat dari awal.
+      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
-      const path = `${refTabel}/${refId}/${crypto.randomUUID()}-${namaAman(file.name)}`;
+      const path =`${refTabel}/${refId}/${crypto.randomUUID()}-${namaAman(file.name)}`;
       const { error } = await supabase.storage.from("dokumen").upload(path, file, { contentType: file.type, upsert: false });
       if (error) return setGalat("Unggahnya gagal. Cek sinyal dulu, terus coba lagi.");
       const r = await catatDokumen({ refTabel, refId, jenis, path, namaAsli: file.name, ukuran: file.size, tipe });

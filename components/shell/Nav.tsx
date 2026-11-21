@@ -9,6 +9,7 @@ import { INK } from "@/components/ui/tokens";
 import { keluar } from "@/lib/actions/auth";
 import { MODULES } from "@/lib/modules";
 import { GRUP } from "./grup";
+import { DaftarSw, PasangAplikasi } from "./PasangAplikasi";
 
 type Pengguna = { nama: string; peran: string };
 
@@ -70,6 +71,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
 
   return (
     <>
+      <DaftarSw />
       {/* Desktop: menu samping gelap */}
       <aside className={`hidden shrink-0 flex-col transition-[width] duration-200 md:sticky md:top-0 md:z-20 md:flex md:h-dvh ${ringkas ? "md:w-[76px]" : "md:w-[248px]"}`} style={{ background: INK }}>
         <div className={`flex items-center pb-4 pt-5 ${ringkas ? "flex-col gap-3 px-2" : "gap-2.5 px-4"}`}>
@@ -108,6 +110,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
             </div>
           ))}
           <div className={ringkas ? "mt-2 border-t border-white/10 pt-2" : "mt-4"}>
+            <PasangAplikasi varian="samping" ringkas={ringkas} />
             <Link href="/tutorial" title={ringkas ? "Panduan" : undefined} aria-label={ringkas ? "Panduan" : undefined}
               className={`flex items-center rounded-full text-[14px] text-[#C6CCD3] transition hover:bg-white/[0.07] ${ringkas ? "mx-auto h-11 w-11 justify-center" : "gap-3 px-3.5 py-2.5"}`}>
               <Icon n="list" s={19} c="#9AA2AB" />
@@ -183,6 +186,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
                 <form action={keluar}><button type="submit" className="h-10 rounded-full bg-[#FBE5E3] px-4 text-[13px] font-medium text-[#A8322B]">Keluar</button></form>
               </div>
             )}
+            <PasangAplikasi varian="hp" />
             <label className="mb-4 flex h-11 items-center gap-2.5 rounded-2xl bg-white px-3.5">
               <Icon n="search" s={17} c="#8A949E" />
               <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari menu" aria-label="Cari menu" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-[#8A949E]" style={{ color: INK }} />

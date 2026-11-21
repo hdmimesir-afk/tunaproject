@@ -25,6 +25,14 @@ const nextConfig = {
         { key: "Content-Security-Policy", value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'" },
       ],
     }, {
+      // Service worker selalu dicek ulang biar versi barunya langsung kepakai.
+      source: "/sw.js",
+      headers: [
+        { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
+      ],
+    }, {
       // Hanya halaman Absensi yang boleh memakai kamera dan lokasi (header dengan kunci sama di aturan terakhir menang).
       source: "/absensi/:path*",
       headers: [{ key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self), payment=()" }],

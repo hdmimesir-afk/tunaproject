@@ -6,7 +6,6 @@ import { INK, MUTED } from "@/components/ui/tokens";
 import { catatAbsen, type HasilAbsen } from "@/lib/actions/absensi";
 import { hariIni } from "@/lib/format";
 import { tampilJarak, ukuranFoto } from "@/lib/logic/absensi";
-import { createClient } from "@/lib/supabase/client";
 
 /* Absen = lokasi GPS + foto langsung dari kamera. Foto diambil dari aliran kamera (bukan dari galeri), diperkecil,
    diunggah ke bucket privat milik pengguna, lalu dicatat lewat Server Action. Keputusan (radius, akurasi, waktu) ada di database. */
@@ -66,6 +65,8 @@ export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pula
       const blob = await new Promise<Blob | null>((ok) => kanvas.toBlob(ok, "image/jpeg", 0.72));
       if (!blob) return setHasil({ error: "Fotonya gagal diambil. Coba lagi ya." });
       const path = `${userId}/${hariIni()}-${jenis}-${crypto.randomUUID()}.jpg`;
+      // Klien Supabase baru dimuat pas fotonya dikirim, biar halaman Absensi ringan dari awal.
+      const { createClient } = await import("@/lib/supabase/client");
       const { error } = await createClient().storage.from("absensi").upload(path, blob, { contentType: "image/jpeg", upsert: false });
       if (error) return setHasil({ error: "Fotonya gagal diunggah. Cek sinyal dulu, terus coba lagi." });
       setHasil(await catatAbsen({ jenis, lat: posisi.lat, lng: posisi.lng, akurasi: posisi.akurasi, foto: path }));

@@ -102,6 +102,15 @@ export const BAB: Bab[] = [
         keterangan: "Halaman masuk.",
       },
       {
+        judul: "Pasang di HP kayak aplikasi",
+        langkah: [
+          "Android (Chrome): buka katalis-erp.vercel.app, masuk, tekan Menu di bawah, terus tekan Pasang aplikasi di HP ini. Kalau tombolnya nggak ada, tekan titik tiga di pojok kanan atas Chrome, terus Instal aplikasi.",
+          "iPhone (Safari): buka katalis-erp.vercel.app di Safari, tekan tombol Bagikan, terus pilih Tambah ke Layar Utama.",
+          "Ikon KATALIS muncul di layar utama. Bukanya dari situ, tampilannya penuh tanpa bilah browser.",
+        ],
+        catatan: "Aplikasinya tetap butuh internet buat ambil data terbaru. Isinya ikut update sendiri, nggak perlu pasang ulang.",
+      },
+      {
         judul: "Lupa kata sandi atau tautan kedaluwarsa",
         langkah: ["Hubungi Super Admin atau Owner.", "Minta dibikinin Tautan atur sandi dari menu Akses.", "Buka tautannya, terus bikin kata sandi baru."],
       },
@@ -140,6 +149,16 @@ export const BAB: Bab[] = [
     peran: SEMUA,
     menu: "/dashboard",
     tugas: [
+      {
+        judul: "Baca laporan harian",
+        pengantar: "Paling atas ada laporan: ikan masuk, loin hasil produksi (plus persen hasilnya), stok siap jual, yg terjual, sama uang masuk. Yg muncul ikut izin jabatan masing-masing.",
+        langkah: [
+          "Pilih Hari ini, Kemarin, atau 7 hari.",
+          "Ketuk salah satu kotak buat buka rinciannya.",
+          "Tekan Bagikan buat kirim laporannya. Di HP langsung muncul menu Bagikan (pilih WhatsApp), di laptop teksnya disalin, tinggal tempel.",
+        ],
+        catatan: "Kalau browser nggak ngizinin nyalin otomatis, teksnya muncul di jendela kecil, salin dari situ.",
+      },
       {
         judul: "Mengerjakan daftar Perlu tindakan Anda",
         pengantar: "Isinya transaksi yang lagi nunggu dikerjain, satu per satu. Yang mendesak ada di paling atas. Tiap jabatan cuma lihat yang bisa dia kerjain.",

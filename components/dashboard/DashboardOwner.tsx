@@ -5,6 +5,8 @@ import { rp } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
 import type { Tindakan as ItemTindakan } from "@/lib/data/tindakan";
 import { RuanganPanel } from "@/components/gudang/Ruangan";
+import type { LaporanHarian as DataLaporan } from "@/lib/data/laporanHarian";
+import { LaporanHarian } from "./LaporanHarian";
 import type { BarisLabaSiklus, BukuBulanan, Dashboard } from "@/lib/types/keuangan";
 import type { IsiGudang, Ruangan } from "@/lib/types/stok";
 
@@ -14,6 +16,8 @@ type Props = {
   d: Dashboard; izin: Izin; nama: string; salam: string; tanggal: string; buku: BukuBulanan[]; siklus: BarisLabaSiklus | null; tindakan: ItemTindakan[];
   /** Ruangan gudang dingin (ABF dan CS) beserta isinya, dan isi gudang total untuk menghitung yang belum ditempatkan. */
   ruangan?: Ruangan[]; isiGudang?: IsiGudang;
+  /** Laporan harian (ikan masuk, produksi, stok, terjual, uang) plus teks siap bagikan. */
+  laporan?: { data: DataLaporan; judulTanggal: string; teks: string };
 };
 
 const kgT = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
@@ -143,7 +147,7 @@ function ArusKas({ buku }: { buku: BukuBulanan[] }) {
 }
 
 /* ---------------------------------------------------------------- utama */
-export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan, ruangan = [], isiGudang }: Props) {
+export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan, ruangan = [], isiGudang, laporan }: Props) {
   const selisih = d.kas_masuk_bulan_ini - d.kas_keluar_bulan_ini;
   const adaKas = buku.length > 0;
   const isiRuangan = ruangan.reduce((a, r) => a + Math.round(r.isi_kg * 1000), 0) / 1000;
@@ -156,6 +160,8 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
         <p className="text-[13px]" style={{ color: MUTED }}>{tanggal}</p>
         <p className="mt-0.5 text-[19px] font-medium tracking-tight md:text-[21px]" style={{ color: INK }}>{salam}{nama ? `, ${nama}` : ""}</p>
       </div>
+
+      {laporan && <LaporanHarian lap={laporan.data} judulTanggal={laporan.judulTanggal} teks={laporan.teks} />}
 
       <Tindakan daftar={tindakan} />
 
@@ -212,15 +218,6 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
                 <div className="min-w-0 text-[13px] leading-snug" style={{ color: INK }}>
                   {d.dokumen_kurang > 0 ? <><b className="text-[17px] font-semibold tabular-nums">{d.dokumen_kurang}</b> transaksi belum punya nota atau bukti</> : <>Semua transaksi udah ada nota atau buktinya.</>}
                 </div>
-              </div>
-            </Bagian>
-          )}
-
-          {(izin.produksi || izin.stok) && (
-            <Bagian judul="Lantai produksi">
-              <div className="grid grid-cols-2 gap-2.5">
-                {izin.produksi && <Angka href="/produksi" icon="factory" label="Produksi berjalan" nilai={String(d.produksi_berjalan)} />}
-                {izin.stok && <Angka href="/gudang" icon="snow" label="Titipan di gudang" nilai={kgT(d.stok_titipan_kg)} />}
               </div>
             </Bagian>
           )}
