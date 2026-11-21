@@ -41,28 +41,23 @@ select throws_ok($$select public.hitung_biaya_simpan(10, '2026-01-02 00:00+00', 
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000042", "role": "authenticated", "aal": "aal1"}';
 
-select lives_ok(
-  $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000051', (select id from public.products where nama = 'Loin tuna'), (select id from public.grades where kode = 'A-SO'), 'beku', 60, 'RAK-1')$$,
-  'hasil produksi masuk stok beku');
-select is((select sisa_kg::text from public.storage_units where lokasi = 'RAK-1'), '60.000', 'sisa unit sama dengan berat masuk');
+select is((select product_nama || ' ' || grade_kode || ':' || kondisi || ':' || kg_masuk::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis),
+  'Loin tuna A-SO:beku:100.000', 'hasil produksi yang disetujui otomatis masuk stok (loin per grade, beku)');
+select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '100.000', 'sisa unit sama dengan berat masuk');
 select throws_ok(
   $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000051', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 50)$$,
   'KT001', null, 'melebihi hasil produksi ditolak');
-select lives_ok(
-  $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000051', (select id from public.products where nama = 'Loin tuna'), null, 'fresh', 30, 'FRESH-1', true)$$,
-  'fresh langsung kirim tercatat');
-select is((select status || ':' || sisa_kg::text from public.storage_units where lokasi = 'FRESH-1'), 'habis:0.000', 'fresh langsung kirim tidak menempati gudang');
-select throws_ok(
-  $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000051', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 1, '', true)$$,
-  'KT001', null, 'yang beku tidak boleh langsung kirim');
+select lives_ok($$select public.atur_kondisi_hasil('d0000000-0000-0000-0000-000000000051', 'fresh')$$, 'kondisi hasil diganti fresh');
+select is((select kondisi from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), 'fresh', 'kondisi unit otomatis ikut berubah');
+select lives_ok($$select public.atur_kondisi_hasil('d0000000-0000-0000-0000-000000000051', 'beku')$$, 'balik ke beku');
 select throws_ok(
   $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000052', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 1)$$,
   'KT001', null, 'produksi yang belum diperiksa Owner tidak bisa masuk stok');
 
-select lives_ok($$select public.ambil_stok((select id from public.storage_units where lokasi = 'RAK-1'), 20, 'kirim')$$, 'ambil sebagian stok sendiri');
-select is((select sisa_kg::text from public.storage_units where lokasi = 'RAK-1'), '40.000', 'sisa berkurang sesuai timbang ulang');
-select is((select count(*)::int from public.service_charges where unit_id = (select id from public.storage_units where lokasi = 'RAK-1')), 0, 'stok sendiri tidak ditagih');
-select throws_ok($$select public.ambil_stok((select id from public.storage_units where lokasi = 'RAK-1'), 100)$$, 'KT001', null, 'ambil melebihi sisa ditolak');
+select lives_ok($$select public.ambil_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), 20, 'kirim')$$, 'ambil sebagian stok sendiri');
+select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '80.000', 'sisa berkurang sesuai timbang ulang');
+select is((select count(*)::int from public.service_charges where unit_id = (select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis)), 0, 'stok sendiri tidak ditagih');
+select throws_ok($$select public.ambil_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), 100)$$, 'KT001', null, 'ambil melebihi sisa ditolak');
 select throws_ok($$insert into public.storage_units (product_id, product_nama, kondisi, kg_masuk, sisa_kg, sisa_dasar_masuk) values ((select id from public.products limit 1), 'x', 'beku', 1, 1, 1)$$, '42501', null, 'unit stok tidak bisa ditulis langsung');
 select throws_ok($$delete from public.storage_movements$$, '42501', null, 'pergerakan stok tidak bisa dihapus');
 
@@ -92,11 +87,11 @@ select lives_ok($$select public.ambil_stok((select id from public.storage_units 
 select is((select jenis || ':' || jumlah::text from public.service_charges where kg_dasar = 100 and jenis in ('transit', 'simpan')), 'simpan:76000.00', 'nggak ada transit: langsung diambil tetap ditagih minimum 10 hari');
 
 -- Koreksi stok menunggu Owner.
-select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where lokasi = 'RAK-1'), -5, 'salah timbang 1')$$, 'petugas mengajukan koreksi');
-select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where lokasi = 'RAK-1'), -1, 'salah timbang 2')$$, 'petugas mengajukan koreksi kedua');
-select is((select sisa_kg::text from public.storage_units where lokasi = 'RAK-1'), '40.000', 'koreksi belum berlaku sebelum disetujui');
-select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where lokasi = 'RAK-1'), -5, '')$$, 'KT001', null, 'koreksi tanpa alasan ditolak');
-select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where lokasi = 'RAK-1'), -100, 'terlalu besar')$$, 'KT001', null, 'koreksi yang membuat sisa negatif ditolak');
+select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, 'salah timbang 1')$$, 'petugas mengajukan koreksi');
+select lives_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -1, 'salah timbang 2')$$, 'petugas mengajukan koreksi kedua');
+select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '80.000', 'koreksi belum berlaku sebelum disetujui');
+select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -5, '')$$, 'KT001', null, 'koreksi tanpa alasan ditolak');
+select throws_ok($$select public.ajukan_koreksi_stok((select id from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), -100, 'terlalu besar')$$, 'KT001', null, 'koreksi yang membuat sisa negatif ditolak');
 select throws_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 1'), true)$$, '42501', null, 'petugas tidak boleh menyetujui koreksi');
 select throws_ok($$select public.ubah_tarif('simpan', 80, 10, 3, 'masuk', current_date, true)$$, '42501', null, 'petugas tidak boleh mengubah tarif');
 
@@ -123,11 +118,11 @@ select ok((select count(*) from public.service_charges) > 0, 'finance boleh meli
 -- ============================================================ Owner
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000041", "role": "authenticated", "aal": "aal2"}';
 select lives_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 1'), true)$$, 'Owner menyetujui koreksi');
-select is((select sisa_kg::text from public.storage_units where lokasi = 'RAK-1'), '35.000', 'koreksi berlaku setelah disetujui');
+select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '75.000', 'koreksi berlaku setelah disetujui');
 select throws_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 1'), true)$$, 'KT001', null, 'koreksi yang sudah diputuskan tidak bisa diputuskan lagi');
 select throws_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 2'), false, '')$$, 'KT001', null, 'menolak koreksi butuh alasan');
 select lives_ok($$select public.putuskan_koreksi_stok((select id from public.storage_movements where alasan = 'salah timbang 2'), false, 'tidak sesuai nota')$$, 'Owner menolak koreksi');
-select is((select sisa_kg::text from public.storage_units where lokasi = 'RAK-1'), '35.000', 'koreksi yang ditolak tidak mengubah stok');
+select is((select sisa_kg::text from public.storage_units where production_id = 'd0000000-0000-0000-0000-000000000051' and otomatis), '75.000', 'koreksi yang ditolak tidak mengubah stok');
 select lives_ok($$select public.ubah_tarif('simpan', 80, 10, 3, 'masuk', date '2027-01-01', true, 'tarif baru')$$, 'Owner menambah tarif baru');
 select is((select count(*)::int from public.tariff_rules where jenis = 'simpan'), 2, 'tarif lama tetap tersimpan (riwayat tarif)');
 

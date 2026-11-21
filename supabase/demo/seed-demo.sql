@@ -181,11 +181,11 @@ begin
   update public.production_items set dibuat_pada = (hari - 14 + time '13:00') at time zone 'Asia/Jakarta' where production_id = prd_a;
 
   -- ---------------------------------------------------------------- siklus A: stok dan penjualan
-  for r in select grade_id, sum(kg) as kg from public.production_items where production_id = prd_a and not batal group by grade_id loop
-    perform public.masukkan_hasil_produksi(prd_a, p_loin, r.grade_id, 'beku', r.kg,
-      case when r.grade_id = g_a then 'Cold Storage 1, rak A' when r.grade_id = g_b then 'Cold Storage 1, rak B' else 'Cold Storage 1, rak C' end,
-      false, 'Hasil produksi siklus contoh');
-  end loop;
+  -- Hasil produksi udah masuk stok sendiri waktu disetujui (21 Nov 2026); tinggal ditaruh di Cold Storage 1.
+  update public.storage_units
+  set room_id = (select id from public.cold_rooms where kode = 'CS-1'),
+      lokasi = case when grade_id = g_a then 'Cold Storage 1, rak A' when grade_id = g_b then 'Cold Storage 1, rak B' when grade_id = g_c then 'Cold Storage 1, rak C' else 'Cold Storage 1, rak samping' end
+  where production_id = prd_a and otomatis;
   select id into unit_a from public.storage_units where production_id = prd_a and grade_id = g_a;
   select id into unit_b from public.storage_units where production_id = prd_a and grade_id = g_b;
   select id into unit_c from public.storage_units where production_id = prd_a and grade_id = g_c;

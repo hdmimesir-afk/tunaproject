@@ -332,7 +332,7 @@ const ALUR = [
     },
   },
   {
-    no: 5, berkas: "05-periksa-dan-stok", judul: "Periksa produksi dan masuk stok", sub: "QC meriksa, Owner menyetujui, terus hasilnya masuk stok.",
+    no: 5, berkas: "05-periksa-dan-stok", judul: "Periksa produksi dan masuk stok", sub: "QC meriksa, Owner menyetujui, hasilnya masuk stok sendiri.",
     async jalan(page, k) {
       if (!k.produksi) throw new Error("Rekam alur 4 dulu (butuh kode produksi)");
       await masuk(page, "qc");
@@ -353,21 +353,13 @@ const ALUR = [
       await klik(page, d2.getByRole("button", { name: "Ya, setujui" }), "Ya, setujui", 2500);
 
       await buka(page, "/stok");
-      await tulis(page, "Produksi yang udah disetujui bisa dimasukin ke stok dari menu Stok.", 1200);
-      await klik(page, page.getByRole("button", { name: "Hasil produksi masuk" }), "Hasil produksi masuk");
-      const form = page.getByRole("dialog");
-      await tulis(page, "Pilih produksinya, produk, grade, kondisi, sama beratnya.", 1200);
-      await pilih(page, form.locator('select[name="produksiId"]'), k.produksi, "Produksi");
-      await pilih(page, form.locator('select[name="productId"]'), "Loin", "Produk");
-      await pilih(page, form.locator('select[name="gradeId"]'), "B-SO", "Grade");
-      await pilih(page, form.locator('select[name="kondisi"]'), "eku", "Kondisi");
-      await ketik(page, form.getByLabel("Berat (kg)"), "230", "Berat");
-      const ruang = form.locator('select[name="ruanganId"]');
-      if (await ruang.count()) await pilih(page, ruang, "Cold Storage", "Ruangan");
-      await klik(page, form.locator('button[type="submit"]').last(), "Simpan stok", 2500);
-      const kartu = page.locator("main li, main tr").filter({ hasText: "Proyek" }).first();
+      await tulis(page, "Begitu disetujui Owner, hasilnya langsung masuk stok sendiri. Nggak perlu input lagi.", 1500);
+      const kartu = page.locator("main li, main tr").filter({ hasText: k.produksi }).first();
       await tunjuk(page, kartu, "Stok baru");
-      await tulis(page, "Stoknya udah masuk, lengkap sama asal produksi dan proyeknya.", 3500);
+      await tulis(page, "Loin per grade sama hasil sampingnya kebaca dari timbangan produksi, lengkap sama proyeknya.", 2500);
+      await tulis(page, "Kalau ada yg nggak sesuai, benerin timbangannya di halaman Produksi. Stoknya ikut berubah.", 2500);
+      await sapu(page, page.locator("main h2"), 4);
+      await tulis(page, "Halaman Stok jadi dashboard: ikan utuh, yg lagi diproduksi, hasil siap jual, sama titipan.", 3500);
       await tulis(page, "");
     },
   },
@@ -398,6 +390,81 @@ const ALUR = [
       await klik(page, detail.getByRole("button", { name: "Terbitkan invoice" }), "Terbitkan invoice");
       await klik(page, detail.getByRole("button", { name: "Ya, terbitkan invoice" }), "Ya, terbitkan invoice", 2500);
       await tulis(page, "Invoice-nya udah terbit. Jatuh temponya ngikutin tempo bayar pembeli. Uang masuknya nanti dicatat di sini juga.", 3500);
+      await tulis(page, "");
+    },
+  },
+  {
+    // Masukan Mas Bisma 21 Nov 2026: tim nyari input per proyek dan 3 lini bisnis di menu Rincian Proyek. Alur ini berdiri sendiri.
+    no: 7, berkas: "07-proyek", judul: "Bikin proyek dan isi datanya", sub: "Ikan diterima dulu tanpa proyek, proyeknya dipilih pas mulai produksi.",
+    async jalan(page) {
+      const stempel = new Date().toISOString().slice(5, 16).replace(/[-T:]/g, "");
+      await masuk(page, "owner");
+
+      // 1. Malam: ikan bongkaran diterima di Mutu dan Penerimaan, tanpa proyek.
+      await buka(page, "/mutu");
+      await tulis(page, "Ikan dari bongkaran dicatat dulu di Mutu dan Penerimaan. Proyeknya nggak dipilih di sini, biar nggak salah input.");
+      await pilih(page, page.getByLabel("Pemasok atau nelayan"), "Nusantara", "Pemasok");
+      await tulis(page, "Catat per ekor: nomor tag, berat, sama grade nya. Enter buat pindah ke ekor berikutnya.", 1200);
+      await ketik(page, page.getByLabel("No. tag ekor 1"), "T-101", "Tag ekor 1");
+      await ketik(page, page.getByLabel("Berat ekor 1 (kg)"), "42", "Berat ekor 1");
+      await klik(page, page.getByRole("radiogroup", { name: "Grade ekor 1" }).getByRole("radio", { name: /^AB/ }), "Grade ekor 1", 500);
+      await page.getByLabel("Berat ekor 1 (kg)").press("Enter");
+      await ketik(page, page.getByLabel("Berat ekor 2 (kg)"), "38", "Berat ekor 2");
+      await klik(page, page.getByRole("radiogroup", { name: "Grade ekor 2" }).getByRole("radio", { name: /^C/ }), "Grade ekor 2", 500);
+      await tunjuk(page, page.getByTestId("ringkasan-ekor"), "Ringkasan ekor");
+      await klik(page, page.getByRole("button", { name: "Catat penerimaan" }), "Catat penerimaan", 2500);
+      await tulis(page, "Ikannya udah masuk sebagai lot, belum punya proyek.", 2000);
+
+      // 2. Besok pagi: bikin proyek, terus mulai produksi dari lot tadi.
+      await buka(page, "/siklus");
+      await tulis(page, "Semua proyek ada di menu Rincian Proyek. Satu proyek itu satu batch atau satu bongkaran.");
+      await sapu(page, page.locator("main tr"), 3);
+      await tulis(page, "Mau mulai proyek baru? Tekan Proyek baru.", 1200);
+      await klik(page, page.getByRole("button", { name: "Proyek baru" }), "Proyek baru");
+      let form = page.getByRole("dialog");
+      await ketik(page, form.getByLabel("Nama proyek"), `Bongkaran KM Bahari ${stempel}`, "Nama proyek");
+      await tulis(page, "Pilih lini bisnisnya. Ada tiga: jual, jasa produksi (ikan dari PT), sama titip saja.");
+      await klik(page, form.getByText("Jasa produksi ikan (jual)"), "Lini jual");
+      await tulis(page, "Lini jual itu ikan kita sendiri, jadi PT nya otomatis PT Katalis.", 1200);
+      await klik(page, form.getByRole("button", { name: "Bikin proyek" }), "Bikin proyek", 2500);
+      await page.waitForURL(/c=/, { timeout: 20_000 });
+      let detail = page.getByRole("dialog");
+      await tunjuk(page, detail.getByTestId("lanjut-isi"), "Isi data proyek ini");
+      await tulis(page, "Proyeknya langsung kebuka. Tekan Mulai produksi.", 1200);
+      await klik(page, detail.getByTestId("lanjut-isi").getByRole("link", { name: "Mulai produksi" }), "Mulai produksi", 2500);
+      await page.waitForURL(/\/produksi/, { timeout: 20_000 });
+      let mulai = page.getByRole("dialog");
+      await tunjuk(page, mulai.locator('select[name="siklusId"]'), "Proyek di form produksi");
+      await tulis(page, "Proyeknya udah kepilih. Centang lot yg semalam diterima, lotnya otomatis masuk proyek ini.");
+      const lotTadi = mulai.locator("div.rounded-2xl", { hasText: /sisa 80(,000)? kg · 2 ekor/ }).last();
+      await klik(page, lotTadi.getByRole("checkbox"), "Centang lot", 800);
+      await klik(page, mulai.getByRole("button", { name: "Mulai produksi" }).last(), "Mulai produksi (form)", 2500);
+      await page.waitForURL(/p=/, { timeout: 20_000 });
+      await tulis(page, "Produksinya jalan di proyek itu. Sore nya tinggal isi hasil produksinya.", 2500);
+
+      // Proyek jasa: ikan dari PT.
+      await buka(page, "/siklus");
+      await tulis(page, "Sekarang contoh jasa produksi, ikannya punya PT.", 1200);
+      await klik(page, page.getByRole("button", { name: "Proyek baru" }), "Proyek baru (jasa)");
+      form = page.getByRole("dialog");
+      await ketik(page, form.getByLabel("Nama proyek"), `Jasa PT Segara ${stempel}`, "Nama proyek jasa");
+      await klik(page, form.getByText("Jasa produksi (ikan dari PT)"), "Lini jasa");
+      await tulis(page, "Buat jasa dan titip, pilih PT pemilik ikannya.", 1200);
+      await pilih(page, form.locator('select[name="ptId"]'), "Segara", "PT pemilik ikan");
+      await klik(page, form.getByRole("button", { name: "Bikin proyek" }), "Bikin proyek jasa", 2500);
+      await page.waitForURL(/c=/, { timeout: 20_000 });
+      detail = page.getByRole("dialog");
+      await tulis(page, "Buat jasa juga sama, tekan Mulai produksi.", 1200);
+      await klik(page, detail.getByTestId("lanjut-isi").getByRole("link", { name: "Mulai produksi" }), "Mulai produksi", 2500);
+      await page.waitForURL(/\/produksi/, { timeout: 20_000 });
+      mulai = page.getByRole("dialog");
+      await tunjuk(page, mulai.locator('select[name="siklusId"]'), "Proyek jasa di form produksi");
+      await tulis(page, "Lini bisnis, proyek, sama PT nya udah keisi. Tinggal isi berat ikan dari PT.");
+      await ketik(page, mulai.getByLabel("Berat ikan dari PT (kg)"), "800", "Berat ikan dari PT");
+      await ketik(page, mulai.getByLabel("Jumlah ekor"), "20", "Jumlah ekor");
+      await klik(page, mulai.getByRole("button", { name: "Mulai produksi" }).last(), "Mulai produksi (form)", 2500);
+      await page.waitForURL(/p=/, { timeout: 20_000 });
+      await tulis(page, "Produksinya udah jalan di proyek jasa itu. Hasilnya nanti masuk stok sebagai milik PT nya.", 3500);
       await tulis(page, "");
     },
   },

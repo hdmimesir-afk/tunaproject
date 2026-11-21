@@ -22,7 +22,6 @@ async function izin(aksi: string): Promise<HasilForm | null> {
 }
 
 const Berat = z.coerce.number("Isi beratnya").positive("Berat harus lebih dari nol").max(10_000_000, "Beratnya kebesaran").transform((n) => Math.round(n * 1000) / 1000);
-const Proyek = z.union([z.literal(""), z.literal("baru"), z.uuid("Proyeknya nggak valid")]);
 
 const FormTerima = z.object({
   supplierId: z.uuid("Pilih pemasok atau nelayannya"),
@@ -30,8 +29,6 @@ const FormTerima = z.object({
   kg: z.string().max(14).optional(),
   jumlahEkor: z.string().max(7).optional(),
   tanggal: z.iso.date("Isi tanggalnya"),
-  siklusId: Proyek,
-  namaProyek: z.string().trim().max(120, "Nama proyeknya kepanjangan").optional(),
   catatan: z.string().trim().max(300),
   /** Grading langsung (berat total): JSON [{grade_id, kg}]. */
   baris: z.string().max(10_000).optional(),
@@ -78,15 +75,13 @@ function bacaGrade(teks: string | undefined): { baris: { grade_id: string; kg: n
   return { baris };
 }
 
-/** Terima ikan tanpa PO, cara berat total atau per ekor. Grading boleh sekalian (butuh izin mutu). Proyek boleh dipilih, baru, atau kosong. */
+/** Terima ikan tanpa PO, cara berat total atau per ekor. Grading boleh sekalian (butuh izin mutu). Proyeknya dipilih nanti di Produksi. */
 export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const tolak = await izin("penerimaan.write");
   if (tolak) return tolak;
   const p = FormTerima.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   const d = p.data;
-  if (d.siklusId === "") return { kolom: { siklusId: ["Pilih proyeknya, atau bikin proyek baru"] } };
-  if (d.siklusId === "baru" && !d.namaProyek) return { kolom: { namaProyek: ["Tulis nama proyeknya"] } };
 
   let kg: number | null = null;
   let jumlahEkor: number | null = null;
@@ -117,8 +112,7 @@ export async function terimaIkan(_: HasilForm, fd: FormData): Promise<HasilForm>
   const supabase = await createClient();
   const { error } = await supabase.rpc("terima_ikan_lengkap", {
     p_supplier: d.supplierId, p_tanggal: d.tanggal,
-    p_cycle: d.siklusId && d.siklusId !== "baru" ? d.siklusId : null,
-    p_catatan: d.catatan, p_proyek_baru: d.siklusId === "baru" ? d.namaProyek : null,
+    p_cycle: null, p_catatan: d.catatan, p_proyek_baru: null,
     p_kg: kg, p_jumlah_ekor: jumlahEkor, p_ekor: ekor, p_grade: grade.length > 0 ? grade : null,
   });
   if (error) return { error: pesanDb(error) };

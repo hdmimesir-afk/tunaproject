@@ -148,3 +148,20 @@ export type GerakBarang = {
   dibuat_pada: string;
 };
 export type ProduksiSiapStok = { id: string; kode: string; sisaKg: number };
+
+/** Lot ikan utuh yang masih ada sisanya (belum diolah), buat dashboard Stok. */
+export type IkanUtuh = {
+  id: string;
+  kode: string;
+  kg: number;
+  sisa_kg: number;
+  jumlah_ekor: number | null;
+  tanggal_terima: string;
+  sudah_grading: boolean;
+  /** Grade tuna utuh, misalnya "AB, C". Kosong kalau belum digrading. */
+  grade: string;
+  pemasok: string;
+  cycle_id: string | null;
+  /** Kode dan nama proyek. Null kalau lotnya belum dipakai produksi. */
+  proyek: string | null;
+};

@@ -2,7 +2,7 @@
 -- dan proyek dengan lini bisnis (jual / jasa / titip). Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(50);
+select plan(51);
 
 -- ---------------------------------------------------------------- data uji
 insert into auth.users (id, email) values
@@ -151,8 +151,8 @@ reset role;
 update public.productions set status = 'diperiksa' where id = (select v from uji where k = 'jasa');
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000205", "role": "authenticated", "aal": "aal1"}';
-select lives_ok($$insert into uji values ('stok', public.masukkan_hasil_produksi((select v from uji where k = 'jasa'), (select id from public.products where nama = 'Loin tuna'),
-  (select id from public.grades where kode = 'A-SO'), 'beku', 300))$$, 'hasil jasa masuk stok');
+select lives_ok($$insert into uji select 'stok', u.id from public.storage_units u where u.production_id = (select v from uji where k = 'jasa') and u.otomatis and u.grade_id is not null limit 1$$, 'hasil jasa otomatis masuk stok');
+select ok((select v from uji where k = 'stok') is not null, 'unit stok hasil jasa ada');
 select results_eq($$select buyer_id::text, pemilik_nama from public.storage_units where id = (select v from uji where k = 'stok')$$,
   $$values ('20000000-0000-0000-0000-000000000201', 'PT Pemilik Ikan 20')$$, 'stok hasil jasa milik PT');
 

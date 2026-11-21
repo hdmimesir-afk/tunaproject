@@ -231,7 +231,7 @@ async function barangMenipis(sb: Sb): Promise<HasilAlat> {
       kepala: ["Barang", "Kelompok", "Status", "Stok", "Minimum"], kananDari: 3,
       baris: baris.map((b) => [b.nama, b.kategori === "kerja" ? "Penunjang kerja" : "Penunjang pekerja", b.status_stok === "habis" ? "Habis" : "Menipis", `${formatKg(Number(b.stok))} ${b.satuan}`, `${formatKg(Number(b.stok_minimum))} ${b.satuan}`]),
     },
-    data: baris, tautan: [{ label: "Penunjang kerja", href: "/stok?tab=kerja" }, { label: "Penunjang pekerja", href: "/stok?tab=pekerja" }],
+    data: baris, tautan: [{ label: "Penunjang kerja", href: "/gudang?tab=kerja" }, { label: "Penunjang pekerja", href: "/gudang?tab=pekerja" }],
   };
 }
 
@@ -299,7 +299,7 @@ async function laporanPeriode(sb: Sb, sesi: Sesi | undefined, input: { periode?:
   if (izin("stok.read") && dash.barang_menipis !== undefined) {
     const b = await barangMenipis(sb);
     bagian.push({ judul: "Barang penunjang perlu diisi ulang", ringkas: b.ringkas, tabel: b.tabel });
-    tautan.push({ label: "Stok penunjang", href: "/stok?tab=kerja" });
+    tautan.push({ label: "Stok penunjang", href: "/gudang?tab=kerja" });
   }
 
   // 5. Menunggu keputusan atau pemeriksaan.

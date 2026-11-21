@@ -8,7 +8,7 @@ import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
 import { dokumenDari } from "@/lib/data/dokumen";
-import { daftarBooking, daftarRuangan, daftarTagihan, daftarTarif, daftarUnit, gradeStok, isiGudang, mitraAktif, pelangganAktif, produkAktif } from "@/lib/data/stok";
+import { daftarBarang, daftarBooking, daftarRuangan, daftarTagihan, daftarTarif, daftarUnit, gradeStok, isiGudang, mitraAktif, pelangganAktif, produkAktif, riwayatBarang } from "@/lib/data/stok";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh } from "@/lib/izin";
@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "KATALIS ERP | Gudang Dingin" };
 export default function GudangPage(props: PageProps<"/gudang">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Ruangan ABF dan CS, titipan pelanggan, tarif, dan jadwal" judul="Gudang Dingin" />
+      <Judul kicker="Ruangan ABF dan CS, titipan, pindah ruangan, tarif, jadwal, sama barang penunjang" judul="Gudang Dingin" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <GudangData searchParams={props.searchParams} />
@@ -37,7 +37,9 @@ async function GudangData({ searchParams }: { searchParams: PageProps<"/gudang">
   const sp = await searchParams;
   // Dari form mulai produksi lini "Titip saja": form Terima titipan langsung kebuka dengan proyeknya.
   const titipAwal = z.uuid().safeParse(typeof sp.titip === "string" ? sp.titip : "");
-  const [units, isi, ruangan, tagihan, tarif, booking, mitra, pelanggan, produk, grade, proyek] = await Promise.all([
+  const bacaStok = boleh(sesi, "stok.read");
+  const tab = sp.tab === "kerja" || sp.tab === "pekerja" ? sp.tab : "gudang";
+  const [units, isi, ruangan, tagihan, tarif, booking, mitra, pelanggan, produk, grade, proyek, barang, riwayat] = await Promise.all([
     daftarUnit(),
     isiGudang(),
     daftarRuangan(),
@@ -49,12 +51,16 @@ async function GudangData({ searchParams }: { searchParams: PageProps<"/gudang">
     bolehTulis ? produkAktif() : Promise.resolve([]),
     bolehTulis ? gradeStok() : Promise.resolve([]),
     bolehTulis && boleh(sesi, "siklus.read") ? proyekTerbuka() : Promise.resolve([]),
+    bacaStok ? daftarBarang() : Promise.resolve([]),
+    bacaStok ? riwayatBarang() : Promise.resolve([]),
   ]);
+  const sendiri = units.filter((u) => u.buyer_id === null && u.status === "aktif" && !u.langsung_kirim);
   const titipan = units.filter((u) => u.buyer_id !== null);
   const bolehLampiran = boleh(sesi, "dokumen.read");
   const dokumen = bolehLampiran ? await dokumenDari("storage_units", titipan.filter((u) => u.status === "aktif").map((u) => u.id)) : [];
   return (
-    <GudangKelola titipan={titipan} isi={isi} ruangan={ruangan} tagihan={tagihan} tarif={tarif} booking={booking}
+    <GudangKelola titipan={titipan} sendiri={sendiri} bolehStok={boleh(sesi, "stok.write")} tabAwal={tab}
+      penunjang={bacaStok ? { barang, riwayat } : null} isi={isi} ruangan={ruangan} tagihan={tagihan} tarif={tarif} booking={booking}
       pelanggan={pelanggan} produk={produk} grade={grade} mitra={mitra} bolehTulis={bolehTulis}
       proyekTitip={proyek.filter((x) => x.lini_bisnis === "titip")} titipAwal={titipAwal.success ? titipAwal.data : null} bolehTarif={boleh(sesi, "pengaturan.write")} hariIni={hariIni()}
       lampiran={bolehLampiran ? { dokumen, bolehTulis: boleh(sesi, "dokumen.write") } : null} />

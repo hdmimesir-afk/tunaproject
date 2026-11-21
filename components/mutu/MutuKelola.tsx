@@ -48,7 +48,7 @@ function PilihPemasok({ pemasok, nilai, onUbah, bolehBaru, error }: { pemasok: O
 }
 
 /* ------------------------------------------------------------ terima ikan */
-type PropsTerima = { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; grade: Opsi[]; bolehMutu: boolean; potonganKg: number; proyekAwal?: string };
+type PropsTerima = { pemasok: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; grade: Opsi[]; bolehMutu: boolean; potonganKg: number };
 
 function TerimaIkan(props: PropsTerima) {
   // Setelah sukses, form dipasang ulang (key berganti) supaya isiannya kosong, dan pesan sukses tetap tampil.
@@ -62,9 +62,8 @@ function TerimaIkan(props: PropsTerima) {
   );
 }
 
-function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMutu, potonganKg, proyekAwal, onSukses }: PropsTerima & { onSukses: (pesan: string) => void }) {
+function FormTerima({ pemasok, bolehPemasokBaru, hariIni, grade, bolehMutu, potonganKg, onSukses }: PropsTerima & { onSukses: (pesan: string) => void }) {
   const [supplierId, setSupplierId] = useState("");
-  const [proyek, setProyek] = useState(() => (proyekAwal && siklus.some((s) => s.id === proyekAwal) ? proyekAwal : ""));
   const [cara, setCara] = useState<"total" | "ekor">("ekor");
   const [ekor, setEkor] = useState(() => [ekorBaru()]);
   const [kg, setKg] = useState("");
@@ -82,7 +81,7 @@ function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMu
       <Pesan state={state?.error ? state : undefined} />
       <input type="hidden" name="cara" value={cara} />
       <p className="text-[13px]" style={{ color: MUTED }}>
-        Ikan yang datang langsung dicatat di sini, nggak perlu nunggu PO.{bolehMutu ? " Grade-nya bisa sekalian diisi." : " Grade-nya nanti diisi QC."} PO terbit setelah pembeliannya disetujui.
+        Ikan yang datang langsung dicatat di sini, nggak perlu nunggu PO.{bolehMutu ? " Grade-nya bisa sekalian diisi." : " Grade-nya nanti diisi QC."} PO terbit setelah pembeliannya disetujui. Proyeknya dipilih nanti pas mulai produksi.
       </p>
       <PilihPemasok pemasok={pemasok} nilai={supplierId} onUbah={setSupplierId} bolehBaru={bolehPemasokBaru} error={state?.kolom?.supplierId?.[0]} />
       <div role="radiogroup" aria-label="Cara catat" className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-1">
@@ -117,18 +116,6 @@ function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMu
         Number.isFinite(kgAngka) && kgAngka > 0
           ? <IsianGrade kgLot={kgAngka} grade={grade} error={state?.kolom?.baris?.[0]} />
           : <p className="text-[12.5px]" style={{ color: MUTED }}>Isi berat timbangnya dulu.</p>
-      )}
-      <Field label="Proyek (batch atau bongkaran)" error={state?.kolom?.siklusId?.[0]}>
-        <select name="siklusId" value={proyek} onChange={(e) => setProyek(e.target.value)} className={selectCls} required>
-          <option value="" disabled>Pilih proyek</option>
-          <option value="baru">Proyek baru</option>
-          {siklus.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-        </select>
-      </Field>
-      {proyek === "baru" && (
-        <Field label="Nama proyek" hint="Misalnya nama kapal atau tanggal bongkar." error={state?.kolom?.namaProyek?.[0]}>
-          <TextIn name="namaProyek" maxLength={120} required />
-        </Field>
       )}
       <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
       <Btn type="submit" disabled={pending || !bisaKirim}>{pending ? "Menyimpan..." : "Catat penerimaan"}</Btn>
@@ -301,12 +288,12 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
             </select>
           </Field>
         )}
-        <Field label="Proyek" error={state?.kolom?.siklusId?.[0]}>
-          <select name="siklusId" defaultValue={lot.cycle_id ?? ""} className={selectCls} required>
-            <option value="" disabled>Pilih proyek</option>
-            {[...proyekAda, ...siklus].map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
-        </Field>
+        <input type="hidden" name="siklusId" value={lot.cycle_id ?? ""} />
+        <p className="text-[12.5px]" style={{ color: MUTED }}>
+          {lot.cycle_id
+            ? `Proyek: ${nama[lot.cycle_id] ?? "-"}. Proyeknya ngikut produksi yg pakai lot ini.`
+            : "Proyeknya nanti ngikut produksi yg pakai lot ini."}
+        </p>
         <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} defaultValue={lot.catatan} /></Field>
         <Field label="Alasan koreksi" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={500} required placeholder="Misalnya salah ketik berat" /></Field>
         {lot.po_id && <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Lot ini udah masuk pembelian. Kalau berat yang digrading berubah, harganya dihitung ulang dan pembeliannya balik ke persetujuan.</p>}
@@ -319,13 +306,11 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
 
 /* ------------------------------------------------------- ajukan pembelian */
 function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampiran: LampiranLot | null; onTutup: () => void }) {
-  // Satu pengajuan = satu pemasok dan satu proyek. Lot tanpa proyek harus dipilihin proyeknya dulu lewat Koreksi.
-  const bisaDiajukan = lots.filter((l) => !l.po_id && l.qc === "lulus" && gradeLot(l).length > 0);
-  const tanpaProyek = bisaDiajukan.filter((l) => !l.cycle_id);
-  const siap = bisaDiajukan.filter((l) => l.cycle_id);
-  const kunci = (l: LotBaris) => `${l.supplier_id}|${l.cycle_id}`;
+  // Satu pengajuan = satu pemasok. Lot yg udah punya proyek (dari produksi) nggak dicampur sama proyek lain.
+  const siap = lots.filter((l) => !l.po_id && l.qc === "lulus" && gradeLot(l).length > 0);
+  const kunci = (l: LotBaris) => `${l.supplier_id}|${l.cycle_id ?? ""}`;
   const pemasokSiap = [...new Map(siap.map((l) => [kunci(l),
-    `${l.suppliers?.nama ?? "-"} · ${[l.cycles?.kode, l.cycles?.nama].filter(Boolean).join(" ")}`])).entries()];
+    [l.suppliers?.nama ?? "-", [l.cycles?.kode, l.cycles?.nama].filter(Boolean).join(" ")].filter(Boolean).join(" · ")])).entries()];
   const [supplierId, setSupplierId] = useState(pemasokSiap[0]?.[0] ?? "");
   const lotPemasok = siap.filter((l) => kunci(l) === supplierId);
   const [pilih, setPilih] = useState<string[]>(() => lotPemasok.map((l) => l.id));
@@ -370,17 +355,12 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
 
   return (
     <Modal title="Ajukan pembelian" onClose={onTutup}>
-      {tanpaProyek.length > 0 && (
-        <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }} data-testid="lot-tanpa-proyek">
-          {tanpaProyek.map((l) => l.kode).join(", ")} belum ada proyeknya, jadi belum bisa diajukan. Pilih proyeknya dulu lewat tombol Koreksi di lotnya.
-        </p>
-      )}
       {siap.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang siap diajukan. Lot harus udah digrading, nggak ditahan, punya proyek, dan belum masuk pembelian lain.</p>
+        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang siap diajukan. Lot harus udah digrading, nggak ditahan, dan belum masuk pembelian lain.</p>
       ) : (
         <form onSubmit={kirim} className="space-y-4">
           <Pesan state={state} />
-          <Field label="Pemasok dan proyek" hint="Satu pengajuan buat satu pemasok di satu proyek.">
+          <Field label="Pemasok" hint="Satu pengajuan buat satu pemasok.">
             <select value={supplierId} onChange={(e) => gantiPemasok(e.target.value)} className={selectCls}>
               {pemasokSiap.map(([id, nama]) => <option key={id} value={id}>{nama}</option>)}
             </select>
@@ -496,9 +476,9 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
 }
 
 /* ---------------------------------------------------------------- halaman */
-export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg, proyekAwal }: {
+export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg }: {
   lots: LotBaris[]; grade: Opsi[]; pemasok: Opsi[]; siklus: Opsi[]; pengguna: Record<string, Pengguna>; koreksi: Koreksi[]; hariIni: string;
-  bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null; potonganKg: number; proyekAwal?: string;
+  bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null; potonganKg: number;
 }) {
   const [grading, setGrading] = useState<LotBaris | null>(null);
   const [koreksiLot, setKoreksiLot] = useState<LotBaris | null>(null);
@@ -515,7 +495,7 @@ export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, ha
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg} proyekAwal={proyekAwal} />}
+        {bolehTerima && <TerimaIkan pemasok={pemasok} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg} />}
         <TerimaHariIni lots={lots} hariIni={hariIni} />
       </div>
 

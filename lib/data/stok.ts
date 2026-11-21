@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { AturanTarif, Barang, Booking, GerakBarang, GerakStok, IsiGudang, ProduksiSiapStok, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
+import type { AturanTarif, Barang, Booking, GerakBarang, GerakStok, IkanUtuh, IsiGudang, ProduksiSiapStok, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
 
 /* Lapisan akses data stok dan gudang dingin. Klien pengguna, jadi RLS dan izin database berlaku. */
 
@@ -56,6 +56,28 @@ export async function koreksiMenunggu(): Promise<(GerakStok & { unit_kode: strin
     const x = m as unknown as GerakStok & { storage_units: { kode: string; sisa_kg: number } | null };
     return { ...x, unit_kode: x.storage_units?.kode ?? "?", sisa_kg: x.storage_units?.sisa_kg ?? 0 };
   });
+}
+
+/** Ikan utuh dari penerimaan yang belum habis diolah (bahan baku), buat dashboard Stok. Lot yang ditahan nggak ikut. */
+export async function ikanUtuh(): Promise<IkanUtuh[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("lots")
+    .select("id, kode, kg, sisa_kg, qc, jumlah_ekor, tanggal_terima, cycle_id, cycles(kode, nama), suppliers(nama), lot_grades(kg, grades(kode, urutan))")
+    .neq("qc", "ditahan").gt("sisa_kg", 0).order("tanggal_terima", { ascending: false }).order("kode", { ascending: false }).limit(300);
+  if (error) gagal("ikan utuh");
+  type Baris = {
+    id: string; kode: string; kg: number; sisa_kg: number; qc: string; jumlah_ekor: number | null; tanggal_terima: string; cycle_id: string | null;
+    cycles: { kode: string; nama: string | null } | null; suppliers: { nama: string } | null;
+    lot_grades: { kg: number; grades: { kode: string; urutan: number } | null }[] | null;
+  };
+  return ((data ?? []) as unknown as Baris[]).map((l) => ({
+    id: l.id, kode: l.kode, kg: Number(l.kg), sisa_kg: Number(l.sisa_kg), jumlah_ekor: l.jumlah_ekor, tanggal_terima: l.tanggal_terima,
+    sudah_grading: l.qc === "lulus", pemasok: l.suppliers?.nama ?? "-", cycle_id: l.cycle_id,
+    proyek: l.cycles ? [l.cycles.kode, l.cycles.nama].filter(Boolean).join(" · ") : null,
+    grade: (l.lot_grades ?? []).filter((g) => Number(g.kg) > 0)
+      .sort((a, b) => (a.grades?.urutan ?? 99) - (b.grades?.urutan ?? 99))
+      .map((g) => g.grades?.kode ?? "?").join(", "),
+  }));
 }
 
 /** Produksi yang sudah disetujui Owner dan hasilnya belum seluruhnya masuk stok. */

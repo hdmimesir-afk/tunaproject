@@ -1,7 +1,7 @@
 -- Meeting 18 Nov 2026 poin 4: tiap transaksi dan produksi nyambung ke proyek, data antarproyek nggak kecampur. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(19);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000231', 'admin23@uji.local'),
@@ -18,13 +18,16 @@ grant all on uji23 to authenticated;
 -- ============================================================ QC: terima dan grading
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000232", "role": "authenticated", "aal": "aal1"}';
-select throws_ok($$select public.terima_ikan('10000000-0000-0000-0000-000000000231', 100)$$,
-  'KT001', 'Pilih proyeknya, atau bikin proyek baru.', 'terima ikan tanpa proyek ditolak');
+-- 21 Nov: proyek dipilih di Produksi, terima ikan boleh tanpa proyek.
+insert into uji23 values ('n1', public.terima_ikan('10000000-0000-0000-0000-000000000231', 70));
+insert into uji23 values ('n2', public.terima_ikan('10000000-0000-0000-0000-000000000231', 60));
+insert into uji23 values ('n3', public.terima_ikan('10000000-0000-0000-0000-000000000231', 55));
+select is((select count(*)::int from public.lots where id in (select v from uji23 where k like 'n%') and cycle_id is null), 3, 'terima ikan tanpa proyek jalan');
 insert into uji23 values ('a1', public.terima_ikan('10000000-0000-0000-0000-000000000231', 100, current_date, '30000000-0000-0000-0000-000000000231', ''));
 insert into uji23 values ('a2', public.terima_ikan('10000000-0000-0000-0000-000000000231', 80, current_date, '30000000-0000-0000-0000-000000000231', ''));
 insert into uji23 values ('b1', public.terima_ikan('10000000-0000-0000-0000-000000000231', 60, current_date, '30000000-0000-0000-0000-000000000232', ''));
 select public.cek_mutu_grade(v, 'lulus', jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'kg', 50)), '')
-from uji23 where k in ('a1', 'a2', 'b1');
+from uji23 where k in ('a1', 'a2', 'b1', 'n1', 'n2', 'n3');
 
 -- ============================================================ produksi
 select throws_ok($$select public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select v from uji23 where k = 'a1'), 'kg', 10),
@@ -43,6 +46,10 @@ select throws_ok($$select public.koreksi_produksi((select v from uji23 where k =
   'KT001', null, 'proyek produksi nggak bisa dipindah beda dari lotnya');
 select throws_ok($$select public.koreksi_lot((select v from uji23 where k = 'a1'), 100, current_date, '10000000-0000-0000-0000-000000000231', '30000000-0000-0000-0000-000000000232', '', 'pindah')$$,
   'KT001', null, 'lot yang udah dipakai produksi nggak bisa pindah proyek');
+select lives_ok($$select public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select v from uji23 where k = 'n1'), 'kg', 10)),
+    current_date, '', '30000000-0000-0000-0000-000000000232')$$, 'lot tanpa proyek dipakai produksi proyek B');
+select results_eq($$select cycle_id from public.lots where id = (select v from uji23 where k = 'n1')$$,
+  $$values ('30000000-0000-0000-0000-000000000232'::uuid)$$, 'lotnya ikut proyek produksinya');
 reset role;
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000231", "role": "authenticated", "aal": "aal1"}';
@@ -60,6 +67,16 @@ select lives_ok($$select public.koreksi_pembelian((select v from uji23 where k =
   '30000000-0000-0000-0000-000000000231', '', 'salah proyek')$$, 'koreksi proyek pembelian');
 select results_eq($$select cycle_id from public.lots where id = (select v from uji23 where k = 'b1')$$,
   $$values ('30000000-0000-0000-0000-000000000231'::uuid)$$, 'lotnya ikut pindah proyek');
+select lives_ok($$insert into uji23 values ('po2', public.ajukan_pembelian(array[(select v from uji23 where k = 'n2'), (select v from uji23 where k = 'n3')],
+  jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'AB'), 'harga_per_kg', 50000)), true))$$,
+  'lot tanpa proyek bisa diajukan pembeliannya');
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000232", "role": "authenticated", "aal": "aal1"}';
+select lives_ok($$select public.mulai_produksi(jsonb_build_array(jsonb_build_object('lot_id', (select v from uji23 where k = 'n2'), 'kg', 10)),
+    current_date, '', '30000000-0000-0000-0000-000000000231')$$, 'lot di pembelian tanpa proyek dipakai produksi proyek A');
+reset role;
+select results_eq($$select (select cycle_id from public.purchase_orders where id = (select v from uji23 where k = 'po2'))::text || '/' ||
+    (select cycle_id from public.lots where id = (select v from uji23 where k = 'n3'))::text$$,
+  $$values ('30000000-0000-0000-0000-000000000231/30000000-0000-0000-0000-000000000231')$$, 'pembelian dan lot lainnya ikut proyek A');
 reset role;
 
 select * from finish();

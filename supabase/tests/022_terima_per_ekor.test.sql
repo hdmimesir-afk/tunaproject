@@ -2,7 +2,7 @@
 -- dan koreksi timbangan produksi setelah disetujui. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(35);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000221', 'qc22@uji.local'),
@@ -110,8 +110,11 @@ select throws_ok($$select public.koreksi_timbangan((select v from uji22 where k 
 reset role;
 update public.productions set status = 'diperiksa' where id = (select v from uji22 where k = 'prd');
 set local role authenticated;
-select lives_ok($$select public.masukkan_hasil_produksi((select v from uji22 where k = 'prd'), (select id from public.products where nama = 'Loin tuna'),
-  (select id from public.grades where kode = 'A-SO'), 'beku', 90)$$, 'hasil masuk stok 90 kg');
+select is((select kg_masuk::text from public.storage_units where production_id = (select v from uji22 where k = 'prd') and otomatis), '100.000', 'hasil otomatis masuk stok 100 kg');
+reset role;
+-- Anggap 90 kg udah kejual.
+update public.storage_units set sisa_kg = 10, sisa_dasar_masuk = 10 where production_id = (select v from uji22 where k = 'prd') and otomatis;
+set local role authenticated;
 select throws_ok($$select public.koreksi_timbangan((select v from uji22 where k = 'prd'),
   jsonb_build_array(jsonb_build_object('grade_id', (select id from public.grades where kode = 'A-SO'), 'kg', 80)), null, null, null, 'salah timbang')$$,
   'KT001', null, 'loin nggak boleh kurang dari yang udah masuk stok');
@@ -120,6 +123,8 @@ select lives_ok($$select public.koreksi_timbangan((select v from uji22 where k =
   'koreksi timbangan setelah disetujui dan masuk stok');
 select results_eq($$select loin_kg::text, limbah_kg::text, status, jumlah_ekor from public.v_productions where id = (select v from uji22 where k = 'prd')$$,
   $$values ('95.000', '30.000', 'diperiksa', 4)$$, 'timbangan berubah, status tetap');
+select results_eq($$select kg_masuk::text, sisa_kg::text from public.storage_units where production_id = (select v from uji22 where k = 'prd') and otomatis and grade_id is not null$$,
+  $$values ('95.000', '5.000')$$, 'stok otomatis ikut koreksi timbangan');
 reset role;
 
 select * from finish();

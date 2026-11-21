@@ -101,7 +101,7 @@ export function Panduan() {
               <section id="video" className="t-bab" aria-labelledby="judul-video">
                 <header>
                   <h2 id="judul-video">Video panduan</h2>
-                  <p>Enam video pendek, urut dari beli ikan sampai tagihan. Direkam dari aplikasinya langsung, pakai data contoh.</p>
+                  <p>Video pendek, urut dari beli ikan sampai tagihan, plus cara bikin proyek. Direkam dari aplikasinya langsung, pakai data contoh.</p>
                 </header>
                 <ul className="t-video">
                   {VIDEO.map((v) => (

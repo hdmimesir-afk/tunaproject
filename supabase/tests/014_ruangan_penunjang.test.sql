@@ -22,8 +22,12 @@ insert into public.cycles (id, catatan) values ('f0000000-0000-0000-0000-0000000
 insert into public.productions (id, status, catatan, cycle_id) values ('d0000000-0000-0000-0000-000000000141', 'diperiksa', 'ruangan-uji', 'f0000000-0000-0000-0000-000000000141');
 insert into public.lot_allocations (production_id, lot_id, lot_kode, kg) values
   ('d0000000-0000-0000-0000-000000000141', 'c0000000-0000-0000-0000-000000000141', 'LOT-T141', 4000);
-insert into public.production_items (id, production_id, no_loin, grade_id, kg)
-values ('e0000000-0000-0000-0000-000000000141', 'd0000000-0000-0000-0000-000000000141', 1, (select id from public.grades where kode = 'A-SO'), 3000);
+insert into public.production_items (id, production_id, no_loin, grade_id, kg) values
+  ('e0000000-0000-0000-0000-000000000141', 'd0000000-0000-0000-0000-000000000141', 1, (select id from public.grades where kode = 'A-SO'), 2000),
+  ('e0000000-0000-0000-0000-000000000142', 'd0000000-0000-0000-0000-000000000141', 2, (select id from public.grades where kode = 'B-SO'), 1000);
+-- Hasil produksi yang disetujui masuk stok sendiri (belum ada ruangannya).
+update public.storage_units set lokasi = case grade_kode when 'A-SO' then 'RAK-A' else 'ABF-RAK' end
+where production_id = 'd0000000-0000-0000-0000-000000000141' and otomatis;
 
 -- ============================================================ ruangan: data dasar
 select is((select count(*)::int from public.cold_rooms where aktif), 4, 'ada empat ruangan aktif');
@@ -31,7 +35,7 @@ select is((select count(*)::int from public.cold_rooms where jenis = 'abf'), 3, 
 select is((select count(*)::int from public.cold_rooms where jenis = 'cs'), 1, 'CS ada satu');
 select is((select kapasitas_kg::text from public.v_gudang_isi), '17500.000', 'kapasitas gudang sama dengan jumlah kapasitas ruangan');
 select is((select kg_diolah::text from public.v_laba_rugi_siklus where cycle_id = 'f0000000-0000-0000-0000-000000000141'), '4000.000', 'kg_diolah adalah ikan yang masuk produksi');
-select is((select kg_ikan::text from public.v_laba_rugi_siklus where cycle_id = 'f0000000-0000-0000-0000-000000000141'), '0.000', 'kg_ikan tetap berasal dari PO siklus (PO uji tidak terhubung)');
+select is((select kg_ikan::text from public.v_laba_rugi_siklus where cycle_id = 'f0000000-0000-0000-0000-000000000141'), '4000.000', 'PO lot tanpa proyek ikut proyek produksinya, jadi kg_ikan kehitung');
 
 -- ============================================================ petugas lapangan
 set local role authenticated;
@@ -41,13 +45,13 @@ select throws_ok($$delete from public.cold_rooms$$, '42501', null, 'ruangan tida
 select throws_ok($$insert into public.cold_rooms (kode, nama, jenis, kapasitas_kg) values ('X', 'X', 'cs', 1)$$, '42501', null, 'ruangan tidak bisa ditulis langsung dari aplikasi');
 select is((select count(*)::int from public.cold_rooms), 4, 'petugas melihat ruangan');
 select lives_ok(
-  $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000141', (select id from public.products where nama = 'Loin tuna'), (select id from public.grades where kode = 'A-SO'), 'beku', 2000, 'RAK-A', false, '', (select id from public.cold_rooms where kode = 'CS-1'))$$,
-  'hasil produksi masuk ke CS-1');
+  $$select public.pindah_ruangan((select id from public.storage_units where lokasi = 'RAK-A'), (select id from public.cold_rooms where kode = 'CS-1'))$$,
+  'hasil produksi ditaruh di CS-1');
 select is((select isi_kg::text from public.v_ruangan_isi where kode = 'CS-1'), '2000.000', 'isi CS-1 bertambah');
 select is((select isi_sendiri_kg::text from public.v_ruangan_isi where kode = 'CS-1'), '2000.000', 'isi ruangan memisahkan milik sendiri');
 select lives_ok(
-  $$select public.masukkan_hasil_produksi('d0000000-0000-0000-0000-000000000141', (select id from public.products where nama = 'Loin tuna'), null, 'fresh', 1000, 'ABF-RAK', false, '', (select id from public.cold_rooms where kode = 'ABF-1'))$$,
-  'fresh masuk ke ABF-1');
+  $$select public.pindah_ruangan((select id from public.storage_units where lokasi = 'ABF-RAK'), (select id from public.cold_rooms where kode = 'ABF-1'))$$,
+  'hasil produksi ditaruh di ABF-1');
 select is((select isi_kg::text from public.v_ruangan_isi where kode = 'ABF-1'), '1000.000', 'isi ABF-1 bertambah');
 select throws_ok(
   $$select public.terima_titipan('b1000000-0000-0000-0000-000000000141', (select id from public.products where nama = 'Loin tuna'), null, 'beku', 2600, 'X', false, '', (select id from public.cold_rooms where kode = 'ABF-1'))$$,

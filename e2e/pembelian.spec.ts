@@ -23,8 +23,8 @@ test("pembelian diajukan dari lot yang udah digrading, harga per grade, konfirma
 
   await page.getByRole("button", { name: /^Ajukan pembelian/ }).click();
   const jendela = page.getByRole("dialog", { name: "Ajukan pembelian" });
-  // Pilihannya pemasok sekaligus proyek (satu pengajuan = satu proyek).
-  const pilihan = jendela.getByLabel("Pemasok dan proyek");
+  // Satu pengajuan = satu pemasok; lot yg udah punya proyek nggak dicampur proyek lain.
+  const pilihan = jendela.getByLabel("Pemasok", { exact: true });
   const nilai = await pilihan.locator("option", { hasText: /Pemasok E2E · .*Proyek E2E/ }).last().getAttribute("value");
   await pilihan.selectOption(nilai ?? "");
 
@@ -58,8 +58,8 @@ test("petugas nerima ikan tanpa PO", async ({ page }) => {
   await page.goto("/mutu");
   // Per ekor (bawaan): petugas nggak punya izin grading, jadi grade-nya nanti diisi QC.
   await page.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
-  await page.getByLabel("Proyek (batch atau bongkaran)").selectOption({ label: "Proyek baru" });
-  await page.getByLabel("Nama proyek").fill(`Bongkaran E2E ${Date.now()}`);
+  // Proyeknya nggak dipilih di sini (21 Nov), nanti di Produksi.
+  await expect(page.getByLabel("Proyek (batch atau bongkaran)")).toHaveCount(0);
   await page.getByLabel("No. tag ekor 1").fill("E2E-01");
   await page.getByLabel("Berat ekor 1 (kg)").fill("42");
   await page.getByLabel("Berat ekor 1 (kg)").press("Enter");
@@ -73,8 +73,6 @@ test("petugas nerima ikan tanpa PO", async ({ page }) => {
 
   // Berat total, cara lama, tetap bisa.
   await page.getByLabel("Pemasok atau nelayan").selectOption({ label: "Pemasok E2E" });
-  await page.getByLabel("Proyek (batch atau bongkaran)").selectOption({ label: "Proyek baru" });
-  await page.getByLabel("Nama proyek").fill(`Bongkaran E2E total ${Date.now()}`);
   await page.getByRole("radio", { name: "Berat total" }).click();
   await page.getByLabel("Berat timbang (kg)").fill("150");
   await page.getByRole("button", { name: "Catat penerimaan" }).click();

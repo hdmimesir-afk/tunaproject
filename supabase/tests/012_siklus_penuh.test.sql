@@ -87,14 +87,12 @@ set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000c1",
 select lives_ok($$select public.setujui_produksi((select id from public.productions where catatan = 'full-prd'))$$, 'Owner menyetujui produksi');
 
 -- ============================================================ 5. Stok
-select lives_ok(
-  $$select public.masukkan_hasil_produksi((select id from public.productions where catatan = 'full-prd'), (select id from public.products where nama = 'Loin tuna'), (select id from public.grades where kode = 'A-SO'), 'beku', 115.375)$$,
-  'loin grade A masuk stok');
-select lives_ok(
-  $$select public.masukkan_hasil_produksi((select id from public.productions where catatan = 'full-prd'), (select id from public.products where nama = 'Loin tuna'), (select id from public.grades where kode = 'B-SO'), 'beku', 30.5)$$,
-  'loin grade B masuk stok');
+select is((select u.kg_masuk::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.otomatis and u.grade_kode = 'A-SO'),
+  '115.375', 'loin grade A otomatis masuk stok waktu disetujui');
+select is((select u.kg_masuk::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.otomatis and u.grade_kode = 'B-SO'),
+  '30.500', 'loin grade B otomatis masuk stok waktu disetujui');
 select is(
-  (select sum(u.kg_masuk)::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd'),
+  (select sum(u.kg_masuk)::text from public.storage_units u join public.productions p on p.id = u.production_id where p.catatan = 'full-prd' and u.grade_id is not null),
   '145.875', 'berat stok = berat loin dari grid, tanpa ketik ulang');
 -- Super Admin membuat pesanan dari unit stok; id unit disimpan di sini karena tiap peran punya izin baca yang berbeda.
 do $$ begin
@@ -118,7 +116,7 @@ select lives_ok(
       from public.sale_allocations a where a.order_id = (select id from public.sales_orders where catatan = 'full-psn') and not a.batal))$$,
   'petugas mengirim dengan berat timbang kirim (grade A 99,5 kg)');
 select is(
-  (select string_agg(u.sisa_kg::text, '/' order by u.grade_kode) from public.storage_units u where u.production_id = current_setting('uji.prd')::uuid),
+  (select string_agg(u.sisa_kg::text, '/' order by u.grade_kode) from public.storage_units u where u.production_id = current_setting('uji.prd')::uuid and u.grade_id is not null),
   '15.875/0.500', 'sisa stok berkurang sebesar berat kirim: 115,375 - 99,5 dan 30,5 - 30');
 
 -- ============================================================ 7. Tagihan dan uang masuk

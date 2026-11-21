@@ -149,7 +149,7 @@ function FormProyek({ pt, hariIni, onSelesai }: { pt: Opsi[]; hariIni: string; o
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={hariIni} required /></Field>
       </div>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Bikin proyek"}</Btn>
-      <p className="text-[12px]" style={{ color: MUTED }}>Abis dibikin, isi datanya langsung dari dalam proyek: terima ikan, mulai produksi, atau terima titipan.</p>
+      <p className="text-[12px]" style={{ color: MUTED }}>Abis dibikin, isi datanya langsung dari dalam proyek: mulai produksi atau terima titipan. Ikan dari nelayan diterima dulu di Mutu dan Penerimaan, tanpa proyek.</p>
     </form>
   );
 }
@@ -160,7 +160,7 @@ function LanjutIsi({ r }: { r: RingkasSiklus }) {
   const tombol: { href: string; label: string }[] =
     r.lini_bisnis === "titip" ? [{ href: `/gudang?titip=${id}`, label: "Terima titipan" }]
       : r.lini_bisnis === "jasa" ? [{ href: `/produksi?mulai=1&proyek=${id}`, label: "Mulai produksi" }]
-        : [{ href: `/mutu?proyek=${id}`, label: "Terima ikan" }, { href: `/produksi?mulai=1&proyek=${id}`, label: "Mulai produksi" }];
+        : [{ href: `/produksi?mulai=1&proyek=${id}`, label: "Mulai produksi" }];
   return (
     <div className="flex flex-wrap items-center gap-2" data-testid="lanjut-isi">
       <span className="text-[12.5px]" style={{ color: MUTED }}>Isi data proyek ini:</span>

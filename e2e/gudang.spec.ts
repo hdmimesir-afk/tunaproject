@@ -14,7 +14,7 @@ test.describe("gudang dingin", () => {
     await dialog.getByRole("button", { name: "Terima titipan" }).click();
     await expect(page.getByText("250,000 kg").first()).toBeVisible();
 
-    await page.goto("/stok");
+    // Ambil titipan sekarang di Gudang Dingin (21 Nov), halaman Stok cuma dashboard.
     await page.getByRole("row", { name: /Pelanggan E2E/ }).first().getByRole("button", { name: "Ambil" }).click();
     const ambil = page.getByRole("dialog");
     await ambil.getByLabel(/Berat keluar/).fill("250");
@@ -28,6 +28,27 @@ test.describe("gudang dingin", () => {
     await page.getByRole("button", { name: "Rincian" }).first().click();
     // Nggak ada transit (jawaban tim 19 Nov 2026): langsung diambil pun tetap ditagih minimum 10 hari.
     await expect(page.getByRole("dialog").getByText(/minimum 10 hari/).first()).toBeVisible();
+  });
+
+  test("stok cuma dashboard: ikan utuh, lagi diproduksi, hasil siap jual, titipan, tanpa input", async ({ page }) => {
+    await masuk(page, PETUGAS);
+    await page.goto("/stok");
+    for (const judul of ["1. Ikan utuh (bahan baku)", "2. Lagi diproduksi", "3. Hasil produksi siap jual", "4. Titipan pelanggan"]) {
+      await expect(page.getByRole("heading", { name: judul })).toBeVisible();
+    }
+    await expect(page.getByRole("button", { name: "Hasil produksi masuk" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Ambil" })).toHaveCount(0);
+    // Tombol produksi dari ikan utuh bawa lotnya ke form Mulai produksi.
+    const tombol = page.getByRole("link", { name: "Produksi dari ikan ini" }).first();
+    if (await tombol.count()) {
+      await expect(tombol).toHaveAttribute("href", /\/produksi\?mulai=1.*lot=/);
+    }
+  });
+
+  test("barang penunjang pindah ke Gudang Dingin", async ({ page }) => {
+    await masuk(page, PETUGAS);
+    await page.goto("/gudang?tab=kerja");
+    await expect(page.getByRole("tab", { name: /Penunjang kerja/ })).toHaveAttribute("aria-selected", "true");
   });
 
   test("jadwal yang bentrok ditandai dan bisa dipindah ke jam kosong pertama", async ({ page }) => {

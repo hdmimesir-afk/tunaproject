@@ -61,12 +61,8 @@ select lives_ok($$select public.setujui_produksi((select id from public.producti
 select lives_ok($$select public.setujui_produksi((select id from public.productions where catatan = 'nm-b'))$$, 'Owner menyetujui produksi B');
 
 -- Hasil kedua produksi masuk stok sebagai dua unit, lalu satu pesanan mengambil dari keduanya.
-select lives_ok(
-  $$select public.masukkan_hasil_produksi((select id from public.productions where catatan = 'nm-a'), (select id from public.products where nama = 'Loin tuna'), null, 'beku', 30)$$,
-  'hasil produksi A masuk stok');
-select lives_ok(
-  $$select public.masukkan_hasil_produksi((select id from public.productions where catatan = 'nm-b'), (select id from public.products where nama = 'Loin tuna'), null, 'beku', 15)$$,
-  'hasil produksi B masuk stok');
+select ok((select count(*) from public.storage_units where otomatis and production_kode = (select kode from public.productions where catatan = 'nm-a')) = 1, 'hasil produksi A otomatis masuk stok');
+select ok((select count(*) from public.storage_units where otomatis and production_kode = (select kode from public.productions where catatan = 'nm-b')) = 1, 'hasil produksi B otomatis masuk stok');
 select lives_ok(
   $$select public.simpan_pesanan(null, 'b1000000-0000-0000-0000-0000000000a1', null, current_date, 'nm-psn', jsonb_build_array(
       jsonb_build_object('unit_id', (select id from public.storage_units where production_kode = (select kode from public.productions where catatan = 'nm-a')), 'kg', 20, 'harga', 100000),

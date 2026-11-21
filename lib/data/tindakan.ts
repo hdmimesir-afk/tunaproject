@@ -77,8 +77,12 @@ export async function daftarTindakan(sesi: Sesi, buku: BukuBulanan[]): Promise<T
   // 5. Lot baru menunggu cek mutu.
   if (boleh(sesi, "mutu.write")) {
     tambah(async () => {
-      const { data } = await sb.from("lots").select("id, kode, po_kode, kg, sebelum_disetujui").eq("qc", "menunggu").order("kode").limit(BATAS);
-      for (const l of data ?? []) hasil.push({ id: `lot-${l.id}`, kelompok: "Mutu", icon: "flask", judul: `${l.kode} · ${l.po_kode}`, rincian: `${kg(Number(l.kg))} nunggu cek mutu${l.sebelum_disetujui ? " · bongkar malam" : ""}`, aksi: "Cek mutu", href: "/mutu", mendesak: Boolean(l.sebelum_disetujui) });
+      const { data } = await sb.from("lots").select("id, kode, po_kode, kg, sebelum_disetujui, suppliers(nama)").eq("qc", "menunggu").order("kode").limit(BATAS);
+      for (const l of (data ?? []) as unknown as { id: string; kode: string; po_kode: string | null; kg: number; sebelum_disetujui: boolean; suppliers: { nama: string } | null }[]) {
+        // Lot sekarang diterima tanpa PO; kalau belum ada PO, tampilin nama pemasoknya.
+        const ket = l.po_kode ?? l.suppliers?.nama;
+        hasil.push({ id: `lot-${l.id}`, kelompok: "Mutu", icon: "flask", judul: ket ? `${l.kode} · ${ket}` : l.kode, rincian: `${kg(Number(l.kg))} nunggu grading${l.sebelum_disetujui ? " · bongkar malam" : ""}`, aksi: "Grading", href: "/mutu", mendesak: Boolean(l.sebelum_disetujui) });
+      }
     });
   }
 
