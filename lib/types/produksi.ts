@@ -42,7 +42,7 @@ export type ProduksiBaris = {
 };
 
 /** Lot asal produksi: berat lot, jumlah ekor, dan grade tuna utuhnya (berat dibayar per grade). */
-export type LotAsal = { id: string; kode?: string; kg: number; jumlah_ekor: number | null; kapal?: string; jenis?: string; grade: { kode: string; kg: number }[] };
+export type LotAsal = { id: string; kode?: string; kg: number; jumlah_ekor: number | null; jenis?: string; grade: { kode: string; kg: number }[] };
 
 /** Lini bisnis proyek: jual (ikan kita), jasa (ikan dari PT, kita olah), titip (cuma disimpan). */
 export type LiniBisnis = "jual" | "jasa" | "titip";
@@ -74,8 +74,7 @@ export type LotSiap = {
   id: string; kode: string; sisa_kg: number; grade_kode: string | null; supplier_nama: string; kg?: number; jumlah_ekor?: number | null; cycle_id?: string | null;
   /** Berat lot yang lagi diolah di produksi yang belum disetujui Owner (info aja). */
   sedang_kg?: number;
-  /** Asal kapal dan jenis ikan (per ekor: dari ekornya). */
-  kapal?: string;
+  /** Jenis ikan (per ekor: dari ekornya). */
   jenis?: string;
   /** Proyek yang udah ngiket lot ini (satu lot satu proyek). Null kalau belum. */
   proyek?: string | null;

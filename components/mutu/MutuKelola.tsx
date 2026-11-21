@@ -111,16 +111,11 @@ function FormTerima({ pemasok, bolehPemasokBaru, hariIni, grade, bolehMutu, poto
             <TextIn name="jumlahEkor" inputMode="numeric" />
           </Field>
         )}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Asal kapal" hint="Nama kapal, boleh kosong." error={state?.kolom?.kapal?.[0]}>
-          <TextIn name="kapal" maxLength={80} placeholder="KM ..." autoComplete="off" />
-        </Field>
-        {cara === "total" ? (
+        {cara === "total" && (
           <Field label="Jenis ikan" hint="Boleh kosong." error={state?.kolom?.jenis?.[0]}>
             <TextIn name="jenis" maxLength={40} list="daftar-jenis-ikan" placeholder="Yellowfin" autoComplete="off" />
           </Field>
-        ) : <p className="self-end pb-1 text-[12px]" style={{ color: MUTED }}>Jenis ikan diisi per ekor di tabel bawah.</p>}
+        )}
       </div>
       <datalist id="daftar-jenis-ikan">
         {JENIS_IKAN.map((j) => <option key={j} value={j} />)}
@@ -308,16 +303,11 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
             </select>
           </Field>
         )}
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Asal kapal" hint="Boleh kosong." error={state?.kolom?.kapal?.[0]}>
-            <TextIn name="kapal" maxLength={80} defaultValue={lot.kapal ?? ""} autoComplete="off" />
+        {!perEkor && (
+          <Field label="Jenis ikan" hint="Boleh kosong." error={state?.kolom?.jenis?.[0]}>
+            <TextIn name="jenis" maxLength={40} list="daftar-jenis-ikan-koreksi" defaultValue={lot.jenis_ikan ?? ""} autoComplete="off" />
           </Field>
-          {!perEkor && (
-            <Field label="Jenis ikan" hint="Boleh kosong." error={state?.kolom?.jenis?.[0]}>
-              <TextIn name="jenis" maxLength={40} list="daftar-jenis-ikan-koreksi" defaultValue={lot.jenis_ikan ?? ""} autoComplete="off" />
-            </Field>
-          )}
-        </div>
+        )}
         <datalist id="daftar-jenis-ikan-koreksi">
           {JENIS_IKAN.map((j) => <option key={j} value={j} />)}
         </datalist>

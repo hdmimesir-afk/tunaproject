@@ -118,7 +118,7 @@ function BarisLot({ l, bolehProduksi }: { l: IkanUtuh; bolehProduksi: boolean })
             {" · "}<span style={{ color: l.sudah_grading ? MUTED : "#8A5A00" }}>{l.sudah_grading ? `grade ${l.grade}` : "belum digrading"}</span>
             {l.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}
           </span>
-          {(l.jenis || l.kapal) && <span className="block text-[12px] leading-snug" style={{ color: MUTED }} data-testid="asal-lot">{[l.jenis, l.kapal].filter(Boolean).join(" · ")}</span>}
+          {l.jenis && <span className="block text-[12px] leading-snug" style={{ color: MUTED }} data-testid="asal-lot">{l.jenis}</span>}
         </div>
         <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none" style={{ background: gaya.bg, color: gaya.fg }}>{LABEL_STATUS_LOT[r.status]}</span>
       </div>

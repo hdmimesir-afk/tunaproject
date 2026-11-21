@@ -60,7 +60,7 @@ export async function koreksiMenunggu(): Promise<(GerakStok & { unit_kode: strin
   });
 }
 
-const KOLOM_LOT = "id, kode, kg, sisa_kg, qc, jumlah_ekor, kapal, jenis_ikan, lot_ekor(spesies, batal), tanggal_terima, cycle_id, cycles(kode, nama), suppliers(nama), lot_grades(kg, grades(kode, urutan))";
+const KOLOM_LOT = "id, kode, kg, sisa_kg, qc, jumlah_ekor, jenis_ikan, lot_ekor(spesies, batal), tanggal_terima, cycle_id, cycles(kode, nama), suppliers(nama), lot_grades(kg, grades(kode, urutan))";
 
 /** Ikan utuh (bahan baku) buat dashboard Stok: lot yang masih ada sisanya, plus lot yang sisanya udah habis tapi masih
     lagi diolah (biar ikannya nggak "ilang" dari layar). Lot ditahan nggak ikut. Rinciannya dihitung dari lot_allocations
@@ -87,7 +87,7 @@ export async function ikanUtuh(): Promise<IkanUtuh[]> {
   const data = [...(bersisa.data ?? []), ...((tambahan.data ?? []) as typeof bersisa.data & object)];
   type Baris = {
     id: string; kode: string; kg: number; sisa_kg: number; qc: string; jumlah_ekor: number | null; tanggal_terima: string; cycle_id: string | null;
-    kapal: string | null; jenis_ikan: string | null; lot_ekor: { spesies: string; batal: boolean }[] | null;
+    jenis_ikan: string | null; lot_ekor: { spesies: string; batal: boolean }[] | null;
     cycles: { kode: string; nama: string | null } | null; suppliers: { nama: string } | null;
     lot_grades: { kg: number; grades: { kode: string; urutan: number } | null }[] | null;
   };
@@ -98,7 +98,7 @@ export async function ikanUtuh(): Promise<IkanUtuh[]> {
     rincian: rincianLot(Number(l.kg), Number(l.sisa_kg), alok.map((a) => ({ kg: Number(a.kg), status: a.productions?.status ?? "" }))),
     produksi_jalan: alok.filter((a) => a.productions && a.productions.status !== DISETUJUI).map((a) => a.productions!.kode),
     sudah_grading: l.qc === "lulus", pemasok: l.suppliers?.nama ?? "-", cycle_id: l.cycle_id,
-    kapal: l.kapal ?? "", jenis: jenisLot(l.jenis_ikan, l.lot_ekor),
+    jenis: jenisLot(l.jenis_ikan, l.lot_ekor),
     proyek: l.cycles ? [l.cycles.kode, l.cycles.nama].filter(Boolean).join(" · ") : null,
     grade: (l.lot_grades ?? []).filter((g) => Number(g.kg) > 0)
       .sort((a, b) => (a.grades?.urutan ?? 99) - (b.grades?.urutan ?? 99))

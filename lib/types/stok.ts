@@ -162,8 +162,7 @@ export type IkanUtuh = {
   /** Grade tuna utuh, misalnya "AB, C". Kosong kalau belum digrading. */
   grade: string;
   pemasok: string;
-  /** Asal kapal dan jenis ikan (per ekor: dari ekornya). Kosong kalau nggak diisi. */
-  kapal: string;
+  /** Jenis ikan (per ekor: dari ekornya). Kosong kalau nggak diisi. */
   jenis: string;
   cycle_id: string | null;
   /** Kode dan nama proyek. Null kalau lotnya belum dipakai produksi. */

@@ -77,8 +77,3 @@ export function jenisLot(jenisIkan: string | null | undefined, ekor?: { spesies:
   if (dariEkor.length > 0) return dariEkor.join(", ");
   return (jenisIkan ?? "").trim();
 }
-
-/** "KM Sinar · Yellowfin", tanpa bagian yang kosong. */
-export function asalLot(kapal: string | null | undefined, jenis: string): string {
-  return [(kapal ?? "").trim(), jenis].filter(Boolean).join(" · ");
-}

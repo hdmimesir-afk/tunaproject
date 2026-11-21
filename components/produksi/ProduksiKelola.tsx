@@ -243,7 +243,7 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
 function KartuLot({ l, aktif, nilai, salah, onAlih, onUbah }: {
   l: LotSiap; aktif: boolean; nilai: string; salah: string | null; onAlih: (on: boolean) => void; onUbah: (v: string) => void;
 }) {
-  const asal = [l.jenis, l.kapal].filter(Boolean).join(" · ");
+  const asal = l.jenis ?? "";
   return (
     <div className="space-y-2.5 rounded-2xl bg-white px-3.5 py-3" data-testid="kartu-lot">
       <label className="flex items-start gap-3">

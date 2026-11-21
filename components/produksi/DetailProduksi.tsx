@@ -344,7 +344,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
               const l = detail.lotAsal.find((x) => x.id === a.lot_id);
               return (
                 <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-t border-[#EEF0F4] px-3.5 py-2 text-[12.5px] first:border-t-0" style={{ color: INK }}>
-                  <span><b className="font-semibold">{a.lot_kode}</b> · {kgTeks(a.kg)} kg dipakai{l && Math.round(l.kg * 1000) !== Math.round(a.kg * 1000) ? ` dari ${kgTeks(l.kg)} kg` : ""}{l?.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}{l && (l.jenis || l.kapal) ? ` · ${[l.jenis, l.kapal].filter(Boolean).join(" · ")}` : ""}</span>
+                  <span><b className="font-semibold">{a.lot_kode}</b> · {kgTeks(a.kg)} kg dipakai{l && Math.round(l.kg * 1000) !== Math.round(a.kg * 1000) ? ` dari ${kgTeks(l.kg)} kg` : ""}{l?.jumlah_ekor ? ` · ${l.jumlah_ekor} ekor` : ""}{l?.jenis ? ` · ${l.jenis}` : ""}</span>
                   <span style={{ color: MUTED }}>Grade tuna utuh: {l && l.grade.length > 0 ? l.grade.map((g) => `${g.kode} ${kgTeks(g.kg)} kg`).join(", ") : "belum digrading"}</span>
                 </li>
               );

@@ -253,7 +253,7 @@ export const BAB: Bab[] = [
           "Di bagian Terima ikan, pilih nelayan atau pemasoknya. Kalau belum ada di daftar, tekan Pemasok belum ada di daftar.",
           "Pilih cara catat. Per ekor: isi nomor tag dan berat tiap ekor, tekan Enter buat pindah ke ekor berikutnya (nomor tag-nya nambah sendiri). Tap grade AB, C, atau D, dan tambahin tusukan gancu kalau ada.",
           "Atau pilih Berat total: isi berat timbang, jumlah ekor kalau tahu, dan centang Sekalian grading kalau mau langsung isi grade-nya.",
-          "Isi Asal kapal (nama kapalnya) dan, buat berat total, Jenis ikan. Dua duanya boleh kosong. Buat cara per ekor, jenisnya diisi di tiap ekor.",
+          "Buat berat total, isi Jenis ikan kalau tahu (boleh kosong). Buat cara per ekor, jenisnya diisi di tiap ekor.",
           "Cek Tanggal. Proyeknya nggak dipilih di sini, nanti dipilih pas mulai produksi.",
           "Tekan Catat penerimaan sekali aja. Sistem bikin lot baru.",
         ],
@@ -298,7 +298,7 @@ export const BAB: Bab[] = [
       {
         judul: "Mengoreksi data penerimaan",
         peran: ["owner", "qc", "petugas"],
-        langkah: ["Di baris lot, tekan Koreksi.", "Benerin berat, tanggal, pemasok, asal kapal, jenis ikan, atau catatan.", "Tulis alasan koreksinya.", "Tekan Simpan koreksi."],
+        langkah: ["Di baris lot, tekan Koreksi.", "Benerin berat, tanggal, pemasok, jenis ikan, atau catatan.", "Tulis alasan koreksinya.", "Tekan Simpan koreksi."],
         gambar: "04-mutu-koreksi",
         keterangan: "Form Koreksi lot. Alasannya wajib diisi.",
         catatan: "Berat nggak boleh kurang dari yang udah dipakai produksi. Kalau lotnya udah masuk pembelian, harganya dihitung ulang, dan PO yang udah disetujui balik ke persetujuan kalau totalnya berubah.",
