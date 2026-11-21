@@ -85,7 +85,7 @@ export const TERBARU: { judul: string; isi: string }[] = [
 export const USULAN: { judul: string; masalah: string; usulan: string[]; tanya: string[] }[] = [
   {
     judul: "Satu produksi dari dua bongkaran",
-    masalah: "Proyek udah dikunci: terima ikan wajib pilih proyek, dan satu pengajuan pembelian atau satu produksi cuma boleh pake lot dari proyek yg sama. Saya pake aturan yg paling ketat dulu biar datanya pasti gak kecampur.",
+    masalah: "Proyek udah dikunci. Ikan diterima tanpa proyek, proyeknya dipilih pas mulai produksi, dan begitu dipake lotnya ikut proyek itu. Satu produksi atau satu pengajuan pembelian cuma boleh pake lot dari proyek yg sama. Saya pake aturan yg paling ketat dulu biar datanya pasti gak kecampur.",
     usulan: [
       "Kalo di lapangan emang gak pernah nyampur, aturannya biarin kayak sekarang.",
       "Kalo kadang satu produksi ngolah ikan dari dua bongkaran, saya bikin boleh dicampur asal dipilih proyek utamanya, dan lot dari proyek lain ditandain di laporan.",
