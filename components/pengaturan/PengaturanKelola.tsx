@@ -9,6 +9,8 @@ import { LABEL_JENIS } from "@/components/dokumen/Dokumen";
 import type { AturanLampiran } from "@/lib/types/pembelian";
 import type { LogHapus } from "@/lib/logic/hapus";
 import { HapusData } from "./HapusData";
+import { UploadExcel, type LogImpor } from "./UploadExcel";
+import type { JenisImpor } from "@/lib/imporMaster";
 import { MASTER, PENGATURAN, TABEL_MASTER, type Kolom, type KunciPengaturan, type TabelMaster } from "@/lib/master";
 
 export type BarisMaster = { id: string; aktif: boolean } & Record<string, string | number | boolean | null>;
@@ -148,9 +150,13 @@ function AturanLampiranKelola({ aturan, bolehAtur }: { aturan: AturanLampiran[];
   );
 }
 
-type TabPengaturan = TabelMaster | "target" | "lampiran" | "hapus";
+type TabPengaturan = TabelMaster | "target" | "lampiran" | "hapus" | "upload";
 
-export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtur, logHapus }: { data: Record<TabelMaster, BarisMaster[]>; pengaturan: NilaiPengaturan[]; aturan: AturanLampiran[]; bolehUbah: boolean; bolehAtur: boolean; logHapus: LogHapus[] | null }) {
+export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtur, logHapus, jenisImpor, logImpor }: {
+  data: Record<TabelMaster, BarisMaster[]>; pengaturan: NilaiPengaturan[]; aturan: AturanLampiran[]; bolehUbah: boolean; bolehAtur: boolean; logHapus: LogHapus[] | null;
+  /** Data yg boleh diupload lewat Excel sama pengguna ini (kosong = tab Upload Excel nggak muncul). */
+  jenisImpor: JenisImpor[]; logImpor: LogImpor[];
+}) {
   const [aktif, setAktif] = useState<TabPengaturan>("target");
   const tab = (id: TabPengaturan, label: string) => (
     <button key={id} type="button" onClick={() => setAktif(id)} className="whitespace-nowrap rounded-full px-3.5 py-2 text-[13px]"
@@ -162,6 +168,7 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
         {tab("target", "Target hasil")}
         {tab("lampiran", "Lampiran wajib")}
         {TABEL_MASTER.map((t) => tab(t, MASTER[t].label))}
+        {jenisImpor.length > 0 && tab("upload", "Upload Excel")}
         {logHapus && tab("hapus", "Hapus data")}
       </div>
       {aktif === "target" ? (
@@ -177,6 +184,8 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
         <AturanLampiranKelola aturan={aturan} bolehAtur={bolehAtur} />
       ) : aktif === "hapus" ? (
         logHapus && <HapusData log={logHapus} />
+      ) : aktif === "upload" ? (
+        <UploadExcel jenisBoleh={jenisImpor} log={logImpor} />
       ) : (
         <TabelData key={aktif} tabel={aktif} rows={data[aktif]} bolehUbah={bolehUbah} />
       )}

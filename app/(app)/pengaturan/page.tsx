@@ -8,6 +8,8 @@ import { aturanLampiran } from "@/lib/data/pembelian";
 import { supabaseConfigured } from "@/lib/env";
 import { boleh } from "@/lib/izin";
 import { TABEL_MASTER, type TabelMaster } from "@/lib/master";
+import { IMPOR, JENIS_IMPOR } from "@/lib/imporMaster";
+import type { LogImpor } from "@/components/pengaturan/UploadExcel";
 import type { LogHapus } from "@/lib/logic/hapus";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,7 +35,9 @@ async function PengaturanData() {
   const supabase = await createClient();
   // Hapus data cuma buat pemegang izin data.hapus (Owner).
   const bolehHapus = boleh(sesi, "data.hapus");
-  const [tabel, { data: pengaturan }, aturan, log] = await Promise.all([
+  // Upload Excel: pemasok, pembeli, produk butuh master.write; barang penunjang butuh stok.write.
+  const jenisImpor = JENIS_IMPOR.filter((j) => boleh(sesi, IMPOR[j].izin));
+  const [tabel, { data: pengaturan }, aturan, log, logImpor] = await Promise.all([
     Promise.all(TABEL_MASTER.map(async (t) => {
       const { data } = await supabase.from(t).select("*").order("aktif", { ascending: false }).order(t === "grades" || t === "component_categories" || t === "expense_categories" ? "urutan" : "nama");
       return [t, (data ?? []) as BarisMaster[]] as const;
@@ -43,6 +47,9 @@ async function PengaturanData() {
     bolehHapus
       ? supabase.from("hapus_data_log").select("id, waktu, oleh_nama, bagian, alasan, rincian, total").order("waktu", { ascending: false }).limit(100)
       : Promise.resolve({ data: null }),
+    jenisImpor.length > 0
+      ? supabase.from("impor_master_log").select("id, jenis, nama_file, baru, ubah, sama, oleh_nama, dibuat_pada").order("dibuat_pada", { ascending: false }).limit(30)
+      : Promise.resolve({ data: [] }),
   ]);
   return (
     <PengaturanKelola
@@ -52,6 +59,8 @@ async function PengaturanData() {
       bolehUbah={boleh(sesi, "master.write")}
       bolehAtur={boleh(sesi, "pengaturan.write")}
       logHapus={bolehHapus ? ((log.data ?? []) as LogHapus[]) : null}
+      jenisImpor={jenisImpor}
+      logImpor={(logImpor.data ?? []) as LogImpor[]}
     />
   );
 }

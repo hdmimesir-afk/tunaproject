@@ -772,6 +772,19 @@ export const BAB: Bab[] = [
         keterangan: "Tab Pembeli.",
       },
       {
+        judul: "Upload data master dari Excel",
+        peran: ["owner", "admin", "qc", "petugas"],
+        langkah: [
+          "Buka tab Upload Excel.",
+          "Pilih datanya: Pemasok, Pembeli, Produk, atau Barang penunjang.",
+          "Tekan Unduh template, terus isi di Excel mulai baris ke 2. Contoh isinya ada di lembar Petunjuk.",
+          "Pilih file Excel-nya (.xlsx). Sistem nampilin pratinjau: mana yg baru, diperbarui, sama, atau salah.",
+          "Kalau ada yg salah, benerin di file sesuai nomor barisnya, terus pilih filenya lagi.",
+          "Kalau udah bener semua, tekan Simpan, terus Ya, simpan sekarang.",
+        ],
+        catatan: "Nama yg udah ada nggak dibikin dobel, datanya diperbarui. Sel yg dikosongin di file nggak ngapus data yg udah ada. Kalau ada satu baris salah, nggak ada yg disimpan. Pemasok, pembeli, dan produk cuma bisa diupload Owner dan Admin; barang penunjang juga bisa sama petugas. Tiap upload kecatat di Riwayat upload.",
+      },
+      {
         judul: "Grade dan kategori biaya",
         peran: ["owner", "admin"],
         pengantar: "Caranya sama: tekan Tambah, Ubah, atau Nonaktifkan di tab masing-masing. Urutannya nentuin urutan pilihan di form.",
