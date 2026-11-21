@@ -1,7 +1,7 @@
 -- Meeting 18 Nov 2026 poin 4: tiap transaksi dan produksi nyambung ke proyek, data antarproyek nggak kecampur. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(18);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000231', 'admin23@uji.local'),
