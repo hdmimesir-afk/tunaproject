@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { z } from "zod";
 import { MutuKelola } from "@/components/mutu/MutuKelola";
 import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
@@ -15,13 +16,13 @@ import { boleh } from "@/lib/izin";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Mutu dan Penerimaan" };
 
-export default function MutuPage() {
+export default function MutuPage(props: PageProps<"/mutu">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
       <Judul kicker="Ikan datang ditimbang, digrading, terus diajukan pembeliannya" judul="Mutu dan Penerimaan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
-          <MutuData />
+          <MutuData searchParams={props.searchParams} />
         </Suspense>
       ) : (
         <Belum />
@@ -30,10 +31,13 @@ export default function MutuPage() {
   );
 }
 
-async function MutuData() {
+async function MutuData({ searchParams }: { searchParams: PageProps<"/mutu">["searchParams"] }) {
   const sesi = await requireSesi();
   if (!boleh(sesi, "mutu.read")) return <TanpaIzin />;
   const bolehTerima = boleh(sesi, "penerimaan.write");
+  // Dari tombol Terima ikan di Rincian Proyek: proyeknya udah kepilih di form.
+  const sp = await searchParams;
+  const proyekAwal = z.uuid().safeParse(typeof sp.proyek === "string" ? sp.proyek : "").data ?? "";
   const bolehLampiran = boleh(sesi, "dokumen.read");
   const [lots, grade, aturan, pemasok, siklus, pengguna, potonganKg] = await Promise.all([
     daftarLot(), gradeAktif(), bolehLampiran ? aturanLampiran() : Promise.resolve([]), pemasokAktif(), daftarSiklus(), petaPengguna(), potonganGancu(),
@@ -45,7 +49,7 @@ async function MutuData() {
   return (
     <MutuKelola lots={lots} grade={grade} pemasok={pemasok} siklus={siklus} pengguna={pengguna} koreksi={koreksi} hariIni={hariIni()}
       bolehTerima={bolehTerima} bolehMutu={boleh(sesi, "mutu.write")} bolehAjukan={boleh(sesi, "pembelian.write")}
-      bolehPemasokBaru={boleh(sesi, "master.write")} potonganKg={potonganKg}
+      bolehPemasokBaru={boleh(sesi, "master.write")} potonganKg={potonganKg} proyekAwal={proyekAwal}
       lampiran={bolehLampiran ? { dokumen, aturan, bolehTulis: boleh(sesi, "dokumen.write") } : null} />
   );
 }

@@ -7,7 +7,9 @@ import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { SiklusKelola } from "@/components/siklus/SiklusKelola";
 import { requireSesi } from "@/lib/data/auth";
 import { daftarRingkasSiklus, rantaiSiklus } from "@/lib/data/laporan";
+import { daftarPT } from "@/lib/data/produksi";
 import { supabaseConfigured } from "@/lib/env";
+import { hariIni } from "@/lib/format";
 import { boleh } from "@/lib/izin";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Rincian Proyek" };
@@ -32,6 +34,10 @@ async function SiklusData({ searchParams }: { searchParams: PageProps<"/siklus">
   if (!boleh(sesi, "siklus.read")) return <TanpaIzin />;
   const sp = await searchParams;
   const c = z.uuid().safeParse(typeof sp.c === "string" ? sp.c : "");
-  const [daftar, detail] = await Promise.all([daftarRingkasSiklus(), c.success ? rantaiSiklus(c.data) : Promise.resolve(null)]);
-  return <SiklusKelola daftar={daftar} detail={detail} bolehTutup={boleh(sesi, "siklus.tutup")} />;
+  // Bikin proyek boleh buat yang boleh bikin proyek dari penerimaan, produksi, atau gudang (sama kayak aturan database).
+  const bolehProyek = ["siklus.write", "produksi.write", "penerimaan.write", "gudang.write"].some((a) => boleh(sesi, a));
+  const [daftar, detail, pt] = await Promise.all([
+    daftarRingkasSiklus(), c.success ? rantaiSiklus(c.data) : Promise.resolve(null), bolehProyek ? daftarPT() : Promise.resolve([]),
+  ]);
+  return <SiklusKelola daftar={daftar} detail={detail} bolehTutup={boleh(sesi, "siklus.tutup")} bolehProyek={bolehProyek} pt={pt} hariIni={hariIni()} />;
 }

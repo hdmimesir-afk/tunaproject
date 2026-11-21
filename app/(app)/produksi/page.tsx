@@ -50,6 +50,7 @@ async function ProduksiData({ searchParams }: { searchParams: PageProps<"/produk
   return (
     <ProduksiKelola
       daftar={daftar} lotSiap={lot} proyek={proyek} pt={pt} koreksiAwal={sp.koreksi === "1"} ringkasGrade={ringkasGrade}
+      mulaiAwal={sp.mulai === "1" && bolehTulis ? z.uuid().safeParse(typeof sp.proyek === "string" ? sp.proyek : "").data ?? "" : null}
       grade={grade} samping={samping} pengguna={pengguna} detail={detail} batas={batas}
       bolehTulis={bolehTulis} bolehPeriksa={boleh(sesi, "produksi.periksa")} bolehSetuju={boleh(sesi, "produksi.setuju")} hariIni={hariIni()}
     />

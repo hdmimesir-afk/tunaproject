@@ -48,7 +48,7 @@ function PilihPemasok({ pemasok, nilai, onUbah, bolehBaru, error }: { pemasok: O
 }
 
 /* ------------------------------------------------------------ terima ikan */
-type PropsTerima = { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; grade: Opsi[]; bolehMutu: boolean; potonganKg: number };
+type PropsTerima = { pemasok: Opsi[]; siklus: Opsi[]; bolehPemasokBaru: boolean; hariIni: string; grade: Opsi[]; bolehMutu: boolean; potonganKg: number; proyekAwal?: string };
 
 function TerimaIkan(props: PropsTerima) {
   // Setelah sukses, form dipasang ulang (key berganti) supaya isiannya kosong, dan pesan sukses tetap tampil.
@@ -62,9 +62,9 @@ function TerimaIkan(props: PropsTerima) {
   );
 }
 
-function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMutu, potonganKg, onSukses }: PropsTerima & { onSukses: (pesan: string) => void }) {
+function FormTerima({ pemasok, siklus, bolehPemasokBaru, hariIni, grade, bolehMutu, potonganKg, proyekAwal, onSukses }: PropsTerima & { onSukses: (pesan: string) => void }) {
   const [supplierId, setSupplierId] = useState("");
-  const [proyek, setProyek] = useState("");
+  const [proyek, setProyek] = useState(() => (proyekAwal && siklus.some((s) => s.id === proyekAwal) ? proyekAwal : ""));
   const [cara, setCara] = useState<"total" | "ekor">("ekor");
   const [ekor, setEkor] = useState(() => [ekorBaru()]);
   const [kg, setKg] = useState("");
@@ -496,9 +496,9 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
 }
 
 /* ---------------------------------------------------------------- halaman */
-export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg }: {
+export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg, proyekAwal }: {
   lots: LotBaris[]; grade: Opsi[]; pemasok: Opsi[]; siklus: Opsi[]; pengguna: Record<string, Pengguna>; koreksi: Koreksi[]; hariIni: string;
-  bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null; potonganKg: number;
+  bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null; potonganKg: number; proyekAwal?: string;
 }) {
   const [grading, setGrading] = useState<LotBaris | null>(null);
   const [koreksiLot, setKoreksiLot] = useState<LotBaris | null>(null);
@@ -515,7 +515,7 @@ export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, ha
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg} />}
+        {bolehTerima && <TerimaIkan pemasok={pemasok} siklus={siklus} bolehPemasokBaru={bolehPemasokBaru} hariIni={hariIni} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg} proyekAwal={proyekAwal} />}
         <TerimaHariIni lots={lots} hariIni={hariIni} />
       </div>
 

@@ -33,6 +33,8 @@ type Props = {
   hariIni: string;
   /** Grade loin (grading akhir) dan grade tuna utuh lot asal per produksi, buat laporan. */
   ringkasGrade: Record<string, GradeProduksi>;
+  /** Dari tombol Mulai produksi di Rincian Proyek: form langsung kebuka, proyeknya udah kepilih ("" = tanpa proyek). */
+  mulaiAwal?: string | null;
 };
 
 const kgTeks = (n: number) => tampilKg(Math.round(n * 1000));
@@ -72,14 +74,16 @@ const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3
 
 /** Form mulai produksi: lini bisnis, proyek (pilih atau baru), tanggal, PT, lalu ikannya (lot buat jual, berat dari PT buat jasa).
     Titip saja nggak diproduksi: proyeknya dibikin, terus lanjut terima titipan di Gudang Dingin. */
-function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
-  lotSiap: LotSiap[]; proyek: ProyekOpsi[]; pt: Opsi[]; hariIni: string; onSelesai: (id: string) => void; onTitip: (proyekId: string) => void;
+function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", onSelesai, onTitip }: {
+  lotSiap: LotSiap[]; proyek: ProyekOpsi[]; pt: Opsi[]; hariIni: string; proyekAwal?: string; onSelesai: (id: string) => void; onTitip: (proyekId: string) => void;
 }) {
+  // Dari Rincian Proyek: lini bisnis dan proyeknya ngikut proyek yang dibuka.
+  const awal = proyek.find((x) => x.id === proyekAwal);
   // Kunci proyek: produksi jual cuma boleh pakai lot dari proyeknya sendiri, jadi proyeknya dipilih dari proyek yang punya lot siap olah.
-  const proyekBerlot = proyek.filter((x) => x.lini_bisnis === "jual" && lotSiap.some((l) => l.cycle_id === x.id));
+  const proyekBerlot = proyek.filter((x) => x.lini_bisnis === "jual" && (lotSiap.some((l) => l.cycle_id === x.id) || x.id === awal?.id));
   const lotTanpaProyek = lotSiap.filter((l) => !l.cycle_id);
-  const [lini, setLini] = useState<LiniBisnis>("jual");
-  const [siklusId, setSiklusId] = useState(proyekBerlot[0]?.id ?? "");
+  const [lini, setLini] = useState<LiniBisnis>(awal?.lini_bisnis ?? "jual");
+  const [siklusId, setSiklusId] = useState(awal?.id ?? proyekBerlot[0]?.id ?? "");
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev: HasilForm, fd: FormData) => {
     const r = await mulaiProduksi(prev, fd);
     if (r?.id && !r.error) (fd.get("lini") === "titip" ? onTitip : onSelesai)(r.id);
@@ -158,7 +162,8 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
         <Field label="Berat ikan dari PT (kg)" error={state?.kolom?.kgPt?.[0]}><TextIn name="kgPt" inputMode="decimal" required /></Field>
       ) : lotProyek.length === 0 ? (
         <p className="text-[13px]" style={{ color: MUTED }}>
-          {proyekBerlot.length === 0 ? "Belum ada lot yang masih ada sisanya dan udah punya proyek. Terima ikannya dulu di menu Mutu dan Penerimaan." : "Pilih proyeknya dulu, nanti lot dari proyek itu muncul di sini."}
+          {siklusId ? "Proyek ini belum punya lot yang siap diolah. Terima ikannya dulu di menu Mutu dan Penerimaan, pilih proyek ini."
+            : proyekBerlot.length === 0 ? "Belum ada lot yang masih ada sisanya dan udah punya proyek. Terima ikannya dulu di menu Mutu dan Penerimaan." : "Pilih proyeknya dulu, nanti lot dari proyek itu muncul di sini."}
           {lotTanpaProyek.length > 0 && ` ${lotTanpaProyek.map((l) => l.kode).join(", ")} belum ada proyeknya, pilih proyeknya lewat Koreksi di menu Mutu dan Penerimaan.`}
         </p>
       ) : (
@@ -194,9 +199,9 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, onSelesai, onTitip }: {
   );
 }
 
-export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade, samping, pengguna, detail, batas, bolehTulis, bolehPeriksa, bolehSetuju, hariIni, ringkasGrade }: Props) {
+export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade, samping, pengguna, detail, batas, bolehTulis, bolehPeriksa, bolehSetuju, hariIni, ringkasGrade, mulaiAwal }: Props) {
   const router = useRouter();
-  const [mulai, setMulai] = useState(false);
+  const [mulai, setMulai] = useState(mulaiAwal !== null && mulaiAwal !== undefined && bolehTulis);
   const buka = (id: string, koreksi = false) => router.push(`/produksi?p=${id}${koreksi ? "&koreksi=1" : ""}`);
   const berjalan = daftar.filter((p) => p.status === "berjalan").length;
   const menunggu = daftar.filter((p) => p.status === "selesai" || p.status === "diperiksa_qc").length;
@@ -234,7 +239,7 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
 
       {mulai && (
         <Modal title="Mulai produksi" onClose={() => setMulai(false)}>
-          <FormMulai lotSiap={lotSiap} proyek={proyek} pt={pt} hariIni={hariIni}
+          <FormMulai lotSiap={lotSiap} proyek={proyek} pt={pt} hariIni={hariIni} proyekAwal={mulaiAwal ?? ""}
             onSelesai={(id) => { setMulai(false); buka(id); }}
             onTitip={(proyekId) => { setMulai(false); router.push(`/gudang?titip=${proyekId}`); }} />
         </Modal>

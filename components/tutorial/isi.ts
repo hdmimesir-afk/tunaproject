@@ -561,6 +561,20 @@ export const BAB: Bab[] = [
     menu: "/siklus",
     tugas: [
       {
+        judul: "Bikin proyek dan isi datanya",
+        peran: ["owner", "admin", "qc", "petugas"],
+        langkah: [
+          "Tekan Proyek baru.",
+          "Isi Nama proyek, misalnya nama kapal atau tanggal bongkar.",
+          "Pilih lini bisnis: Jasa produksi ikan (jual), Jasa produksi (ikan dari PT), atau Titip saja. Buat jasa dan titip, pilih PT pemilik ikannya.",
+          "Tekan Bikin proyek. Proyeknya langsung kebuka.",
+          "Tekan tombol di bagian Isi data proyek ini: Terima ikan, Mulai produksi, atau Terima titipan. Formnya kebuka dengan proyek ini udah kepilih.",
+        ],
+        gambar: "11-siklus",
+        keterangan: "Daftar proyek dengan lini bisnis dan PT-nya.",
+        catatan: "Proyek juga masih bisa dibikin langsung dari form Terima ikan atau Mulai produksi lewat pilihan Proyek baru.",
+      },
+      {
         judul: "Menelusuri satu proyek",
         langkah: ["Tekan Telusuri di proyeknya.", "Baca tujuh tahapnya: beli ikan, terima dan cek mutu, produksi, stok, jual dan kirim, tagihan dan uang masuk, biaya lain.", "Ketuk satu baris buat buka transaksinya."],
         gambar: "11-siklus-detail",

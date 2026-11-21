@@ -56,7 +56,7 @@ export function LayarAbsensi() {
 export function LayarSiklus() {
   return (
     <Kerangka aktif="siklus" kicker="Satu proyek (batch atau bongkaran) dari beli ikan sampai uang masuk" judul="Rincian Proyek">
-      <Mati><SiklusKelola daftar={c.daftarSiklus} detail={c.rantai} bolehTutup /></Mati>
+      <Mati><SiklusKelola daftar={c.daftarSiklus} detail={c.rantai} bolehTutup bolehProyek={false} pt={[]} hariIni="2026-10-26" /></Mati>
     </Kerangka>
   );
 }

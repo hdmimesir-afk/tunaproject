@@ -76,6 +76,11 @@ export type RingkasSiklus = {
   nilai_invoice: number;
   uang_masuk: number;
   biaya_lain: number;
+  /** Dari tabel proyek (cycles): nama, lini bisnis, dan PT pemilik ikan. */
+  nama?: string;
+  lini_bisnis?: "jual" | "jasa" | "titip";
+  pt_id?: string | null;
+  pt_nama?: string | null;
 };
 
 export type BarisLabaSiklus = {

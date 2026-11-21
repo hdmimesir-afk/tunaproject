@@ -120,17 +120,32 @@ export async function rencanaHasil(): Promise<number> {
   return Number.isFinite(n) && n > 0 ? n : 60;
 }
 
+/** Nama, lini bisnis, dan PT tiap proyek, ditempel ke ringkasan proyek. */
+async function lengkapiProyek(ringkas: RingkasSiklus[]): Promise<RingkasSiklus[]> {
+  if (ringkas.length === 0) return ringkas;
+  const sb = await createClient();
+  const { data: cy } = await sb.from("cycles").select("id, nama, lini_bisnis, pt_id").in("id", ringkas.map((r) => r.cycle_id));
+  const idPt = [...new Set((cy ?? []).map((c) => c.pt_id as string | null).filter((x): x is string => !!x))];
+  const { data: pt } = idPt.length > 0 ? await sb.from("buyers").select("id, nama").in("id", idPt) : { data: [] as { id: string; nama: string }[] };
+  const namaPt = new Map((pt ?? []).map((b) => [b.id as string, b.nama as string]));
+  const peta = new Map((cy ?? []).map((c) => [c.id as string, c]));
+  return ringkas.map((r) => {
+    const c = peta.get(r.cycle_id);
+    return c ? { ...r, nama: (c.nama as string) ?? "", lini_bisnis: (c.lini_bisnis ?? "jual") as RingkasSiklus["lini_bisnis"], pt_id: (c.pt_id as string | null) ?? null, pt_nama: c.pt_id ? namaPt.get(c.pt_id as string) ?? null : null } : r;
+  });
+}
+
 export async function daftarRingkasSiklus(): Promise<RingkasSiklus[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("v_rincian_siklus").select("*").order("kode", { ascending: false });
   if (error) gagal("daftar proyek");
-  return (data ?? []) as RingkasSiklus[];
+  return lengkapiProyek((data ?? []) as RingkasSiklus[]);
 }
 
 export type RantaiSiklus = {
   ringkas: RingkasSiklus;
   po: { id: string; kode: string; supplier_nama: string; kg: number; total: number; status_persetujuan: string; total_bayar: number }[];
-  lot: { id: string; kode: string; po_kode: string; kg: number; qc: string }[];
+  lot: { id: string; kode: string; po_kode: string | null; kg: number; qc: string }[];
   produksi: { id: string; kode: string; status: string; masuk_kg: number; loin_kg: number }[];
   pesanan: { id: string; kode: string; buyer_nama: string; status: string; total_final: number; total_pesan: number; invoice_kode: string | null; invoice_id: string | null }[];
   invoice: { id: string; kode: string; total: number; sisa: number; status_tagihan: string }[];
@@ -154,8 +169,9 @@ export async function rantaiSiklus(id: string): Promise<RantaiSiklus | null> {
   ]);
   if (r.error) gagal("proyek");
   if (!r.data) return null;
+  const [ringkas] = await lengkapiProyek([r.data as RingkasSiklus]);
   return {
-    ringkas: r.data as RingkasSiklus,
+    ringkas,
     po: (po.data ?? []) as RantaiSiklus["po"],
     lot: (lot.data ?? []) as RantaiSiklus["lot"],
     produksi: (pr.data ?? []) as RantaiSiklus["produksi"],
