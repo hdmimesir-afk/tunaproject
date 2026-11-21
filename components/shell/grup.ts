@@ -7,7 +7,7 @@ export type Grup = { id: string; label: string; icon: IconName; slugs: string[] 
 export const GRUP: Grup[] = [
   { id: "beranda", label: "Beranda", icon: "grid", slugs: ["dashboard"] },
   { id: "operasi", label: "Operasi", icon: "factory", slugs: ["mutu", "persetujuan", "pembelian", "produksi"] },
-  { id: "simpan", label: "Stok", icon: "box", slugs: ["stok", "gudang"] },
+  { id: "simpan", label: "Stok", icon: "box", slugs: ["stok", "gudang", "penunjang"] },
   { id: "niaga", label: "Niaga", icon: "truck", slugs: ["penjualan", "keuangan"] },
   { id: "laporan", label: "Laporan", icon: "chart", slugs: ["laporan", "siklus"] },
   { id: "asisten", label: "Asisten", icon: "sparkles", slugs: ["asisten"] },

@@ -13,6 +13,7 @@ export const MODULES: Modul[] = [
   { slug: "produksi", label: "Produksi", icon: "factory", fase: 3, izin: "produksi.read", isi: "Grid loin per potong, komponen hasil, neraca berat" },
   { slug: "stok", label: "Stok", icon: "box", fase: 4, izin: "stok.read", isi: "Unit simpan per pemilik, fresh/beku, berat masuk/keluar" },
   { slug: "gudang", label: "Gudang Dingin", icon: "snow", fase: 4, izin: "gudang.read", isi: "Titipan pelanggan, tarif, jadwal ABF" },
+  { slug: "penunjang", label: "Barang Penunjang", icon: "alat", fase: 4, izin: "stok.read", isi: "Es, kemasan, label, dan kebutuhan pekerja: masuk, pakai, koreksi" },
   { slug: "penjualan", label: "Penjualan", icon: "truck", fase: 5, izin: "penjualan.read", isi: "Pesanan, kirim, tagihan, uang masuk" },
   { slug: "keuangan", label: "Keuangan", icon: "cash", fase: 5, izin: "keuangan.read", isi: "Buku kas, biaya per kategori, kelengkapan nota" },
   { slug: "laporan", label: "Laporan", icon: "chart", fase: 5, izin: "laporan.read", isi: "Laba rugi per proyek, harga beli, CSV" },

@@ -8,17 +8,17 @@ import { cocok, KotakCari } from "./Cari";
 import {
   ArrowDownLeft, ArrowUpRight, Calendar, ChartColumn, ChevronLeft, ChevronRight, CircleCheck, House, Clock, Download, Ellipsis, Factory, FileText, FlaskConical,
   LayoutGrid, List, Lock, Menu, Package, PanelLeftClose, PanelLeftOpen, Plus, Search, SendHorizontal, ShieldCheck, ShoppingCart, Snowflake, Sparkles, Truck,
-  User, Wallet, X, type LucideIcon,
+  User, Wallet, Wrench, X, type LucideIcon,
 } from "lucide-react";
 import { INK, MUTED, TILE } from "./tokens";
 
 export { INK, MUTED, TILE, BLUE } from "./tokens";
 
 /* ----------------------------------------------------------------- icons */
-export type IconName = "grid" | "box" | "check" | "chart" | "user" | "search" | "menu" | "arrow" | "dots" | "plus" | "back" | "calendar" | "note" | "cart" | "factory" | "shield" | "snow" | "cash" | "truck" | "clock" | "flask" | "lock" | "list" | "download" | "close" | "sparkles" | "send" | "home" | "next" | "panel-close" | "panel-open" | "masuk";
+export type IconName = "grid" | "box" | "check" | "chart" | "user" | "search" | "menu" | "arrow" | "dots" | "plus" | "back" | "calendar" | "note" | "cart" | "factory" | "shield" | "snow" | "cash" | "truck" | "clock" | "flask" | "lock" | "list" | "download" | "close" | "sparkles" | "send" | "home" | "next" | "panel-close" | "panel-open" | "masuk" | "alat";
 const LUCIDE: Record<IconName, LucideIcon> = {
   grid: LayoutGrid, box: Package, check: CircleCheck, chart: ChartColumn, user: User, search: Search, menu: Menu, arrow: ArrowUpRight, dots: Ellipsis, plus: Plus, close: X, sparkles: Sparkles, send: SendHorizontal, back: ChevronLeft, next: ChevronRight, home: House, "panel-close": PanelLeftClose, "panel-open": PanelLeftOpen, masuk: ArrowDownLeft,
-  calendar: Calendar, note: FileText, cart: ShoppingCart, factory: Factory, shield: ShieldCheck, snow: Snowflake, cash: Wallet, truck: Truck, clock: Clock, flask: FlaskConical, lock: Lock, list: List, download: Download,
+  calendar: Calendar, note: FileText, cart: ShoppingCart, factory: Factory, shield: ShieldCheck, snow: Snowflake, cash: Wallet, truck: Truck, clock: Clock, flask: FlaskConical, lock: Lock, list: List, download: Download, alat: Wrench,
 };
 export const Icon = ({ n, c = INK, s = 22 }: { n: IconName; c?: string; s?: number }) => {
   const L = LUCIDE[n];

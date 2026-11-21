@@ -7,6 +7,8 @@ import type { HasilForm } from "@/lib/actions/auth";
 import { setAktifMaster, simpanAturanLampiran, simpanMaster, simpanPengaturan } from "@/lib/actions/pengaturan";
 import { LABEL_JENIS } from "@/components/dokumen/Dokumen";
 import type { AturanLampiran } from "@/lib/types/pembelian";
+import type { LogHapus } from "@/lib/logic/hapus";
+import { HapusData } from "./HapusData";
 import { MASTER, PENGATURAN, TABEL_MASTER, type Kolom, type KunciPengaturan, type TabelMaster } from "@/lib/master";
 
 export type BarisMaster = { id: string; aktif: boolean } & Record<string, string | number | boolean | null>;
@@ -146,9 +148,11 @@ function AturanLampiranKelola({ aturan, bolehAtur }: { aturan: AturanLampiran[];
   );
 }
 
-export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtur }: { data: Record<TabelMaster, BarisMaster[]>; pengaturan: NilaiPengaturan[]; aturan: AturanLampiran[]; bolehUbah: boolean; bolehAtur: boolean }) {
-  const [aktif, setAktif] = useState<TabelMaster | "target" | "lampiran">("target");
-  const tab = (id: TabelMaster | "target" | "lampiran", label: string) => (
+type TabPengaturan = TabelMaster | "target" | "lampiran" | "hapus";
+
+export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtur, logHapus }: { data: Record<TabelMaster, BarisMaster[]>; pengaturan: NilaiPengaturan[]; aturan: AturanLampiran[]; bolehUbah: boolean; bolehAtur: boolean; logHapus: LogHapus[] | null }) {
+  const [aktif, setAktif] = useState<TabPengaturan>("target");
+  const tab = (id: TabPengaturan, label: string) => (
     <button key={id} type="button" onClick={() => setAktif(id)} className="whitespace-nowrap rounded-full px-3.5 py-2 text-[13px]"
       style={aktif === id ? { background: INK, color: "#fff", fontWeight: 600 } : { background: "#fff", color: INK }}>{label}</button>
   );
@@ -158,6 +162,7 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
         {tab("target", "Target hasil")}
         {tab("lampiran", "Lampiran wajib")}
         {TABEL_MASTER.map((t) => tab(t, MASTER[t].label))}
+        {logHapus && tab("hapus", "Hapus data")}
       </div>
       {aktif === "target" ? (
         <Card title="Target hasil olahan">
@@ -170,6 +175,8 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
         </Card>
       ) : aktif === "lampiran" ? (
         <AturanLampiranKelola aturan={aturan} bolehAtur={bolehAtur} />
+      ) : aktif === "hapus" ? (
+        logHapus && <HapusData log={logHapus} />
       ) : (
         <TabelData key={aktif} tabel={aktif} rows={data[aktif]} bolehUbah={bolehUbah} />
       )}

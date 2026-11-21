@@ -14,10 +14,9 @@ import { formatKg } from "@/lib/logic/neraca";
 import { uraikanBiaya } from "@/lib/logic/tarif";
 import { TombolLampiran } from "@/components/dokumen/Dokumen";
 import type { Dokumen, JenisDokumen, Opsi } from "@/lib/types/pembelian";
-import type { AturanTarif, Barang, Booking, GerakBarang, IsiGudang, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
+import type { AturanTarif, Booking, IsiGudang, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
 import type { ProyekOpsi } from "@/lib/types/produksi";
 import { jamWib, keInputWib, sekarangInputWib } from "@/lib/waktu";
-import { NAMA_KATEGORI, Penunjang } from "@/components/stok/Penunjang";
 import { FormAmbil, FormPindah } from "./AksiUnit";
 import { PilihRuangan, RuanganPanel } from "./Ruangan";
 
@@ -25,11 +24,8 @@ type Props = {
   titipan: UnitStok[];
   /** Stok milik sendiri (hasil produksi) yang masih di gudang, buat dipindah ruangan. */
   sendiri: UnitStok[];
-  /** Izin stok.write: pindah dan ambil stok sendiri, sama catat barang penunjang. */
+  /** Izin stok.write: pindah dan ambil stok sendiri. */
   bolehStok: boolean;
-  /** Barang penunjang (pindahan dari menu Stok). Null kalau nggak boleh baca stok. */
-  penunjang: { barang: Barang[]; riwayat: GerakBarang[] } | null;
-  tabAwal: "gudang" | "kerja" | "pekerja";
   isi: IsiGudang;
   ruangan: Ruangan[];
   tagihan: Tagihan[];
@@ -250,34 +246,7 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
 }
 
 /* --------------------------------------------------------------- utama */
-/** Tiga tab: gudang dingin (ruangan, titipan, tagihan, tarif, jadwal), penunjang kerja, dan penunjang pekerja. */
-export function GudangKelola({ penunjang, tabAwal, ...props }: Props) {
-  const [tab, setTab] = useState(tabAwal);
-  if (!penunjang) return <IsiGudangDingin {...props} />;
-  const menipis = (k: "kerja" | "pekerja") => penunjang.barang.filter((b) => b.kategori === k && b.aktif && b.status_stok !== "aman").length;
-  const tabs = [
-    { id: "gudang" as const, label: "Gudang dingin", peringatan: 0 },
-    { id: "kerja" as const, label: NAMA_KATEGORI.kerja, peringatan: menipis("kerja") },
-    { id: "pekerja" as const, label: NAMA_KATEGORI.pekerja, peringatan: menipis("pekerja") },
-  ];
-  return (
-    <div className="space-y-4">
-      <div role="tablist" aria-label="Bagian gudang" className="flex w-full gap-1 overflow-x-auto rounded-full bg-white p-1 md:w-fit">
-        {tabs.map((t) => (
-          <button key={t.id} role="tab" type="button" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
-            className="flex h-10 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 text-[13px] font-medium transition md:h-9 md:flex-none md:px-5"
-            style={tab === t.id ? { background: INK, color: "#fff" } : { color: MUTED }}>
-            {t.label}
-            {!!t.peringatan && <span className="rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold leading-none" style={tab === t.id ? { background: "rgba(255,255,255,.2)" } : { background: "#FBF0D5", color: "#8A5A00" }} title="Barang menipis atau habis">{t.peringatan}</span>}
-          </button>
-        ))}
-      </div>
-      {tab === "gudang" ? <IsiGudangDingin {...props} /> : <Penunjang kategori={tab} barang={penunjang.barang} riwayat={penunjang.riwayat} bolehTulis={props.bolehStok} />}
-    </div>
-  );
-}
-
-function IsiGudangDingin({ titipan, sendiri, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehStok, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal }: Omit<Props, "penunjang" | "tabAwal">) {
+export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehStok, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal }: Props) {
   const [terima, setTerima] = useState(!!titipAwal && bolehTulis);
   const [ambil, setAmbil] = useState<UnitStok | null>(null);
   const [pindah, setPindah] = useState<UnitStok | null>(null);

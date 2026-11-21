@@ -226,7 +226,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
           )}
 
           {izin.stok && d.barang_menipis !== undefined && (
-            <Bagian judul="Barang penunjang" kanan={<Selengkapnya href="/gudang?tab=kerja" label="Gudang" />}>
+            <Bagian judul="Barang penunjang" kanan={<Selengkapnya href="/penunjang" label="Barang Penunjang" />}>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: penunjangPerhatian > 0 ? "#FBF0D5" : "#DDF3E8" }}>
                   <Icon n={penunjangPerhatian > 0 ? "box" : "check"} s={17} c={penunjangPerhatian > 0 ? "#8A5A00" : "#0B6B4A"} />

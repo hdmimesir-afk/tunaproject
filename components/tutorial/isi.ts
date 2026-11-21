@@ -371,7 +371,7 @@ export const BAB: Bab[] = [
     slug: "gudang",
     judul: "Gudang Dingin",
     kelompok: "Stok",
-    ringkas: "Isi tiap ruangan ABF dan CS, titipan pelanggan, pindah ruangan, tagihan jasa, tarif, jadwal mesin, sama barang penunjang.",
+    ringkas: "Isi tiap ruangan ABF dan CS, titipan pelanggan, pindah ruangan, tagihan jasa, tarif, sama jadwal mesin.",
     peran: SEMUA,
     menu: "/gudang",
     tugas: [
@@ -416,14 +416,6 @@ export const BAB: Bab[] = [
         gambar: "06-stok-pindah",
         keterangan: "Form Pindah.",
       },
-      {
-        judul: "Mengelola barang penunjang",
-        peran: ["owner", "qc", "petugas"],
-        pengantar: "Ada di menu Gudang Dingin. Tab Penunjang kerja isinya kemasan, es, dan label. Tab Penunjang pekerja isinya kebutuhan pekerja. Tiap barang punya batas minimum, jadi yang Menipis dan Habis gampang kelihatan.",
-        langkah: ["Tekan Tambah stok pas barang datang.", "Tekan Pakai pas barang dipakai.", "Tekan Koreksi kalau hitungan fisiknya beda.", "Tekan Riwayat buat lihat keluar masuknya."],
-        gambar: "06-stok-penunjang",
-        keterangan: "Tab Penunjang kerja.",
-      },
       {"judul":"Mengubah tarif","peran":["owner","admin"],"langkah":["Di bagian Tarif, tekan Ubah di layanannya.","Isi Tarif dan Berlaku mulai.","Cek Minimum hari simpan (10), Masa transit (0, karena nggak ada transit), dan Dasar berat tagihan simpan.","Kalau udah pasti, centang Angka ini sudah dikonfirmasi owner.","Tekan Simpan tarif."],"gambar":"07-gudang-ubah-tarif","keterangan":"Form Ubah tarif. Tagihan lama tetap pakai tarif waktu ikan masuk."},
       {"judul":"Mengatur kapasitas ruangan","peran":["owner","admin"],"langkah":["Di kartu ruangan, tekan Atur.","Isi Kapasitas (kg). Kapasitasnya nggak boleh di bawah isi ruangan.","Kalau udah pasti, centang Kapasitas ini sudah dikonfirmasi owner.","Tekan Simpan ruangan."],"gambar":"07-gudang-atur","keterangan":"Form Atur ruangan."},
       {
@@ -432,6 +424,29 @@ export const BAB: Bab[] = [
         langkah: ["Tekan Tambah jadwal.", "Pilih Jenis dan Mitra.", "Isi waktu Mulai dan Selesai. Kalau bentrok, sistem ngasih peringatan dan nawarin Pakai jam kosong pertama.", "Isi Keterangan.", "Tekan Simpan jadwal."],
         gambar: "07-gudang-jadwal",
         keterangan: "Form Tambah jadwal.",
+      },
+    ],
+  },
+  {
+    slug: "penunjang",
+    judul: "Barang Penunjang",
+    kelompok: "Stok",
+    ringkas: "Es, kemasan, label, sama kebutuhan pekerja. Tiap barang punya batas minimum, jadi yg Menipis dan Habis gampang kelihatan.",
+    peran: SEMUA,
+    menu: "/penunjang",
+    tugas: [
+      {
+        judul: "Mengelola barang penunjang",
+        peran: ["owner", "qc", "petugas"],
+        pengantar: "Tab Penunjang kerja isinya kemasan, es, dan label. Tab Penunjang pekerja isinya kebutuhan pekerja.",
+        langkah: ["Tekan Tambah stok pas barang datang.", "Tekan Pakai pas barang dipakai.", "Tekan Koreksi kalau hitungan fisiknya beda.", "Tekan Riwayat buat lihat keluar masuknya."],
+        gambar: "06-stok-penunjang",
+        keterangan: "Tab Penunjang kerja.",
+      },
+      {
+        judul: "Nambah barang baru",
+        peran: ["owner", "qc", "petugas"],
+        langkah: ["Tekan Tambah barang.", "Isi nama, satuan, batas minimum, sama lokasinya.", "Tekan Simpan. Barang yg udah gak dipake dinonaktifkan, gak dihapus."],
       },
     ],
   },
@@ -700,6 +715,18 @@ export const BAB: Bab[] = [
     peran: SEMUA,
     menu: "/pengaturan",
     tugas: [
+      {
+        judul: "Menghapus data",
+        peran: ["owner"],
+        langkah: [
+          "Buka tab Hapus data (cuma muncul buat Owner).",
+          "Centang bagian yg mau dihapus, atau Semua data transaksi.",
+          "Tekan Lihat yg bakal kehapus. Cek daftarnya, termasuk data yg nyambung dan ikut kehapus.",
+          "Tulis alasannya, ketik HAPUS, terus tekan tombol Hapus.",
+          "Di Log hapus, tekan Detail buat lihat siapa yg hapus, kapan, alasannya, sama kode yg kehapus.",
+        ],
+        catatan: "Data yg dihapus gak bisa dibalikin. Hapus penjualan aja bikin stoknya balik, hapus produksi aja bikin sisa lot balik. Data master dan akun gak pernah ikut kehapus, dan log hapus gak bisa dihapus.",
+      },
       {
         judul: "Mengatur target hasil",
         peran: ["owner", "admin"],

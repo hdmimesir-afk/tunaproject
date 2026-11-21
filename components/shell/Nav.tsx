@@ -14,7 +14,7 @@ type Pengguna = { nama: string; peran: string };
 
 /* Urutan modul yang paling sering dipakai di HP. Empat yang pertama (yang boleh dilihat peran ini) jadi tab bawah;
    sisanya ada di lembar Menu. */
-const PRIORITAS = ["dashboard", "produksi", "mutu", "penjualan", "persetujuan", "pembelian", "stok", "keuangan", "laporan", "gudang", "siklus", "asisten", "akses", "pengaturan"];
+const PRIORITAS = ["dashboard", "produksi", "mutu", "penjualan", "persetujuan", "pembelian", "stok", "keuangan", "laporan", "gudang", "penunjang", "siklus", "asisten", "akses", "pengaturan"];
 
 /* Status menu ringkas (hanya ikon) di desktop: disimpan di localStorage bila bisa, selalu juga di memori
    (mode privat bisa menolak penyimpanan). Ctrl/⌘+B membalik. */

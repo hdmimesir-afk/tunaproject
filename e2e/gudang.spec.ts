@@ -45,9 +45,11 @@ test.describe("gudang dingin", () => {
     }
   });
 
-  test("barang penunjang pindah ke Gudang Dingin", async ({ page }) => {
+  test("barang penunjang punya menu sendiri", async ({ page }) => {
     await masuk(page, PETUGAS);
-    await page.goto("/gudang?tab=kerja");
+    await page.goto("/penunjang?tab=pekerja");
+    await expect(page.getByRole("tab", { name: /Penunjang pekerja/ })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: /Penunjang kerja/ }).click();
     await expect(page.getByRole("tab", { name: /Penunjang kerja/ })).toHaveAttribute("aria-selected", "true");
   });
 
