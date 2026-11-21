@@ -24,7 +24,7 @@ test("pembelian diajukan dari lot yang udah digrading, harga per grade, konfirma
   await page.getByRole("button", { name: /^Ajukan pembelian/ }).click();
   const jendela = page.getByRole("dialog", { name: "Ajukan pembelian" });
   // Satu pengajuan = satu pemasok; lot yg udah punya proyek nggak dicampur proyek lain.
-  const pilihan = jendela.getByLabel("Pemasok", { exact: true });
+  const pilihan = jendela.locator("select").first();
   const nilai = await pilihan.locator("option", { hasText: /Pemasok E2E · .*Proyek E2E/ }).last().getAttribute("value");
   await pilihan.selectOption(nilai ?? "");
 
