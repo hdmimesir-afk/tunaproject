@@ -41,6 +41,23 @@ type Props = {
 
 const kgTeks = (n: number) => tampilKg(Math.round(n * 1000));
 
+/** Isi sel dua baris: angka utama, keterangan kecil di bawahnya. */
+function Dua({ atas, bawah }: { atas: React.ReactNode; bawah?: string | null }) {
+  return (
+    <>
+      <span className="font-medium tabular-nums">{atas}</span>
+      {bawah && <span className="block text-[11.5px] font-normal tabular-nums md:ml-auto md:max-w-[12rem] md:whitespace-normal" style={{ color: MUTED }}>{bawah}</span>}
+    </>
+  );
+}
+
+/** Kode dan nama proyek; nama PT nggak diulang kalau udah jadi nama proyeknya. */
+const namaProyek = (p: ProduksiBaris) => {
+  const nama = p.proyek_nama?.trim() ?? "";
+  const pt = p.lini_bisnis === "jasa" && p.pt_nama && !nama.toLowerCase().includes(p.pt_nama.toLowerCase()) ? p.pt_nama : "";
+  return [p.siklus_kode, nama, pt].filter(Boolean).join(" · ");
+};
+
 /** Laporan produksi ke Excel: ikan masuk (ekor dan berat), grade tuna utuh, loin per grade, yield, hasil samping, limbah, susut, selisih. */
 function unduhLaporan(daftar: ProduksiBaris[], ringkas: Record<string, GradeProduksi>) {
   const kg = (n: number | null) => (n === null ? "" : n);
@@ -219,16 +236,28 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
           empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai produksi, terus isi proyek dan ikannya." : "Belum ada produksi."}
           cari={(p) => `${p.kode} ${p.siklus_kode ?? ""} ${p.proyek_nama ?? ""} ${p.pt_nama ?? ""} ${LABEL_LINI[p.lini_bisnis ?? "jual"]} ${p.status.replace("_", " ")} ${p.tanggal}`}
           cols={[
-            { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.siklus_kode ? ` · ${[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" ")}` : ""}{p.lini_bisnis === "jasa" ? ` · jasa ${p.pt_nama ?? ""}` : ""}</span></> },
-            { h: "Ikan masuk", r: (p) => `${kgTeks(p.masuk_kg)} kg${p.jumlah_ekor ? ` · ${p.jumlah_ekor} ekor` : ""}`, right: true },
-            { h: "Loin", r: (p) => <>{kgTeks(p.loin_kg)} kg{p.jumlah_loin > 0 ? ` · ${p.jumlah_loin} potong` : ""}{ringkasGrade[p.id]?.loin && <span className="block text-[11.5px]" style={{ color: MUTED }}>{ringkasGrade[p.id].loin}</span>}</>, right: true },
-            { h: "Hasil", r: (p) => `${formatPct(p.hasil_pct)}%`, right: true },
-            { h: "Belum jelas", r: (p) => `${kgTeks(p.belum_jelas_kg)} kg (${formatPct(p.belum_jelas_pct)}%)`, right: true },
+            { h: "Produksi", r: (p: ProduksiBaris) => (
+              <div className="min-w-0 md:min-w-[11rem]">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold">{p.kode}</span>
+                  {p.lini_bisnis === "jasa" && <span className="rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold leading-none" style={{ background: "#E4ECF7", color: "#2B4A70" }}>JASA</span>}
+                </div>
+                <span className="block text-[12px] font-normal" style={{ color: MUTED }}>{tanggal(p.tanggal)}</span>
+                {p.siklus_kode && <span className="block max-w-[16rem] truncate text-[12px] font-normal" style={{ color: MUTED }} title={namaProyek(p)}>{namaProyek(p)}</span>}
+              </div>
+            ) },
+            { h: "Ikan masuk", r: (p) => <Dua atas={`${kgTeks(p.masuk_kg)} kg`} bawah={p.jumlah_ekor ? `${p.jumlah_ekor} ekor` : null} />, right: true },
+            { h: "Loin", r: (p) => <Dua atas={`${kgTeks(p.loin_kg)} kg`} bawah={[p.jumlah_loin > 0 ? `${p.jumlah_loin} potong` : "", ringkasGrade[p.id]?.loin ?? ""].filter(Boolean).join(" · ") || null} />, right: true },
+            { h: "Hasil", r: (p) => {
+              const wajar = p.hasil_pct >= batas.minPct && p.hasil_pct <= batas.maxPct;
+              return <Dua atas={<span style={{ color: p.loin_kg > 0 && !wajar ? "#B4443C" : INK }}>{formatPct(p.hasil_pct)}%</span>}
+                bawah={p.belum_jelas_kg !== 0 ? `${kgTeks(p.belum_jelas_kg)} kg belum jelas` : "semua jelas"} />;
+            }, right: true },
             { h: "Status", r: (p) => <Pill t={LABEL_PRODUKSI[p.status]} /> },
           ]}
           actions={(p) => <>
             <Btn size="sm" v="light" onClick={() => buka(p.id)}>Buka</Btn>
-            {bolehTulis && <Btn size="sm" v="ghost" onClick={() => buka(p.id, true)}>Koreksi</Btn>}
+            {bolehTulis && <Btn size="sm" v="light" onClick={() => buka(p.id, true)}>Koreksi</Btn>}
           </>}
         />
       </Card>

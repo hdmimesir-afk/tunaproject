@@ -149,8 +149,8 @@ export function DataList<T>({ cols, rows, actions, empty = "Belum ada data.", ca
           <tbody>
             {rows.map((r, i) => (
               <tr key={i} className="border-t border-[#EEF0F4]">
-                {cols.map((c) => <td key={c.h} className={`px-4 py-3 ${c.right ? "whitespace-nowrap text-right" : ""}`} style={{ color: INK }}>{c.r(r)}</td>)}
-                {actions && <td className="px-4 py-2.5"><div className="flex justify-end gap-2">{actions(r)}</div></td>}
+                {cols.map((c) => <td key={c.h} className={`px-4 py-3 align-top ${c.right ? "whitespace-nowrap text-right tabular-nums" : ""}`} style={{ color: INK }}>{c.r(r)}</td>)}
+                {actions && <td className="px-4 py-2.5 align-top"><div className="flex justify-end gap-2">{actions(r)}</div></td>}
               </tr>
             ))}
           </tbody>

@@ -91,7 +91,9 @@ select is(
   'true', 'petugas kedua absen masuk');
 select ok(
   (select terlambat_menit from public.attendance where user_id = '00000000-0000-0000-0000-0000000000b4' and jenis = 'masuk') > 0
-  or (now() at time zone 'Asia/Jakarta')::time < time '00:01',
+  or (now() at time zone 'Asia/Jakarta')::time < time '00:01'
+  -- Minggu di luar jadwal kerja (aturan 4 Nov 2026): nggak dihitung terlambat.
+  or extract(isodow from (now() at time zone 'Asia/Jakarta')) = 7,
   'absen setelah jam masuk dan toleransi dihitung terlambat');
 
 -- ============================================================ Super Admin: rekap
