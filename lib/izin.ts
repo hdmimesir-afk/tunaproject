@@ -41,12 +41,13 @@ export function parseSesi(raw: unknown): Sesi | null {
 export const perluMfa = (s: Pick<Sesi, "wajibMfa" | "aal">) => s.wajibMfa && s.aal !== "aal2";
 
 /* Akun owner cuma buat lihat dan nyetujuin (permintaan owner 23 Nov 2026, "kayak aplikasi barber"): nggak ada input,
-   upload, hapus data, atau kelola akun dari aplikasi. Yang boleh: lihat (.read, .rekap), setuju/periksa (.setuju, .periksa),
-   tutup buku/proyek (.tutup), dan Asisten AI (cuma baca). Database tetap ngasih owner semua izin; batasan ini di aplikasi. */
+   upload, atau hapus data dari aplikasi. Yang boleh: lihat (.read, .rekap), setuju/periksa (.setuju, .periksa),
+   tutup buku/proyek (.tutup), Asisten AI (cuma baca), dan kelola akun karyawan di Akses (permintaan tim 23 Nov 2026,
+   biar owner tetap bisa ngundang akun walau belum ada Super Admin). Database tetap ngasih owner semua izin; batasan ini di aplikasi. */
 export const PERAN_OWNER = "owner";
 /** Menu yang muncul buat owner. Halaman lain tetap bisa dibuka dari kotak "Perlu persetujuan" buat nyetujuin, tanpa tombol input. */
-export const MENU_OWNER = new Set(["dashboard", "laporan"]);
-export const izinOwner = (aksi: string) => /\.(read|rekap|setuju|periksa|tutup)$/.test(aksi) || aksi === "asisten.use";
+export const MENU_OWNER = new Set(["dashboard", "laporan", "akses"]);
+export const izinOwner = (aksi: string) => /\.(read|rekap|setuju|periksa|tutup)$/.test(aksi) || aksi === "asisten.use" || aksi === "akses.kelola";
 
 /** Boleh melakukan aksi? Aksi kosong berarti cukup masuk dan aktif. Sama dengan aturan di database (kecuali owner, lihat di atas). */
 export function boleh(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, aksi?: string | null) {
@@ -55,7 +56,7 @@ export function boleh(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | 
   return !aksi || s.semuaIzin || s.izin.includes(aksi);
 }
 
-/** Menu buat sesi ini: owner cuma Dashboard dan Laporan, peran lain ngikut izin tiap modul. */
+/** Menu buat sesi ini: owner cuma Dashboard, Laporan, dan Akses; peran lain ngikut izin tiap modul. */
 export function bolehMenu(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, slug: string, izinModul: string | null) {
   if (s.roleId === PERAN_OWNER) return MENU_OWNER.has(slug) && boleh(s, izinModul);
   return boleh(s, izinModul);

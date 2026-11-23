@@ -152,7 +152,7 @@ export const BAB: Bab[] = [
       {
         judul: "Dashboard owner",
         peran: ["owner"],
-        pengantar: "Akun owner cuma buat lihat dan nyetujuin, nggak ada isian. Menunya Dashboard sama Laporan. Isinya: laporan harian, Perlu persetujuan Anda, saldo perusahaan, margin profit, balik modal (BEP), sisa kapasitas gudang dingin, absensi hari ini, CCTV, foto timbangan terbaru, sama invoice, kwitansi, dan bukti bayar.",
+        pengantar: "Akun owner cuma buat lihat dan nyetujuin, nggak ada isian data kerja. Menunya Dashboard, Laporan, sama Akses (buat ngundang akun karyawan). Isinya: laporan harian, Perlu persetujuan Anda, saldo perusahaan, margin profit, balik modal (BEP), sisa kapasitas gudang dingin, absensi hari ini, CCTV, foto timbangan terbaru, sama invoice, kwitansi, dan bukti bayar.",
         langkah: [
           "Di Perlu persetujuan Anda, tekan tombolnya (misalnya Periksa atau Putuskan). Halamannya kebuka cuma buat nyetujuin atau nolak.",
           "Tekan link CCTV buat buka kameranya.",

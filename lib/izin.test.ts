@@ -21,20 +21,21 @@ describe("boleh", () => {
   });
   it("owner cuma lihat dan setuju, nggak bisa input", () => {
     const owner = { ...dasar, roleId: "owner", semuaIzin: true, izin: [] };
-    for (const a of ["produksi.read", "produksi.setuju", "produksi.periksa", "persetujuan.setuju", "periode.tutup", "siklus.tutup", "absensi.rekap", "asisten.use"]) {
+    for (const a of ["produksi.read", "produksi.setuju", "produksi.periksa", "persetujuan.setuju", "periode.tutup", "siklus.tutup", "absensi.rekap", "asisten.use", "akses.kelola"]) {
       expect(boleh(owner, a), a).toBe(true);
     }
-    for (const a of ["produksi.write", "penerimaan.write", "dokumen.write", "data.hapus", "akses.kelola", "pengaturan.write", "absensi.absen", "nota.susulan"]) {
+    for (const a of ["produksi.write", "penerimaan.write", "dokumen.write", "data.hapus", "pengaturan.write", "master.write", "absensi.absen", "nota.susulan"]) {
       expect(boleh(owner, a), a).toBe(false);
     }
     expect(boleh(owner)).toBe(true);
   });
-  it("menu owner cuma Dashboard dan Laporan, peran lain ngikut izin", () => {
+  it("menu owner cuma Dashboard, Laporan, dan Akses; peran lain ngikut izin", () => {
     const owner = { ...dasar, roleId: "owner", semuaIzin: true, izin: [] };
     expect(bolehMenu(owner, "dashboard", null)).toBe(true);
     expect(bolehMenu(owner, "laporan", "laporan.read")).toBe(true);
     expect(bolehMenu(owner, "produksi", "produksi.read")).toBe(false);
     expect(bolehMenu(owner, "pengaturan", "master.read")).toBe(false);
+    expect(bolehMenu(owner, "akses", "akses.kelola")).toBe(true);
     expect(bolehMenu(dasar, "pengaturan", "master.read")).toBe(true);
     expect(bolehMenu({ ...dasar, roleId: "super_admin", semuaIzin: false, izin: ["akses.kelola"] }, "akses", "akses.kelola")).toBe(true);
   });
