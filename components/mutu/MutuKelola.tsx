@@ -135,7 +135,7 @@ function FormTerima({ pemasok, bolehPemasokBaru, hariIni, grade, bolehMutu, poto
       )}
       <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" maxLength={300} /></Field>
       <Btn type="submit" disabled={pending || !bisaKirim}>{pending ? "Menyimpan..." : "Catat penerimaan"}</Btn>
-      <p className="text-[12px]" style={{ color: MUTED }}>Foto timbangan dilampirin dari daftar lot di bawah, tombol Lampiran.</p>
+      
     </form>
   );
 }

@@ -7,7 +7,7 @@ import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
 import { jenisLot } from "@/lib/logic/ekor";
 import { formatKg } from "@/lib/logic/neraca";
-import { gradeLot, LABEL_QC, lampiranKurang, lampiranWajib, sisaBelumDibagi } from "@/lib/logic/pembelian";
+import { gradeLot, LABEL_QC, sisaBelumDibagi } from "@/lib/logic/pembelian";
 import { LABEL_JENIS, TombolLampiran } from "@/components/dokumen/Dokumen";
 import type { AturanLampiran, Dokumen, JenisDokumen, LotBaris } from "@/lib/types/pembelian";
 
@@ -20,12 +20,8 @@ const teksLot = (l: LotBaris) => `${l.kode} ${(l.lot_ekor ?? []).map((e) => e.no
 
 /** Lampiran lot (nota nelayan, foto timbangan) beserta aturan wajibnya dari admin. Null bila pengguna tidak boleh melihat berkas. */
 export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean; aturan: AturanLampiran[] };
-/* Permintaan tim 23 Nov 2026: nota dan invoice dipegang finance (dilampirin di menu Pembelian), jadi di Mutu operator cuma
-   ngelampirin foto timbangan (dipakai di dashboard owner). Lampiran lama tetap kelihatan di daftar. */
-const UNGGAH_LOT: { jenis: JenisDokumen; label: string }[] = [
-  { jenis: "foto_timbangan", label: "Lampirkan foto timbangan" },
-];
-const JENIS_DI_MUTU = new Set<JenisDokumen>(UNGGAH_LOT.map((u) => u.jenis));
+/* Permintaan tim 23 Nov 2026: nota dan invoice dipegang finance (dilampirin di menu Pembelian), dan timbangan udah dicek QC
+   (QC Katalis sama QC buyer). Jadi di Mutu nggak ada input lampiran lagi. Lampiran lama tetap bisa dilihat. */
 
 /** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label (beberapa grade tampil dengan beratnya). Tabel di desktop, kartu di HP. */
 export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi, lampiran, kanan }: {
@@ -68,11 +64,13 @@ export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi,
             </div>
             <ul>
               {tampil.map((l) => (
-                <BarisLot key={l.id} l={l} kurang={lampiran ? lampiranKurang(lampiran.aturan, "lots", l.id, lampiran.dokumen).filter((j) => JENIS_DI_MUTU.has(j)) : []} aksi={<>
+                <BarisLot key={l.id} l={l} kurang={[]} aksi={<>
                   {bolehMutu && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onGrading(l)}>{l.qc === "menunggu" ? "Grading" : "Grading ulang"}</Btn>}
                   {bolehKoreksi && <Btn size="sm" v="light" onClick={() => onKoreksi(l)}>Koreksi</Btn>}
-                  {lampiran && <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} bolehTulis={lampiran.bolehTulis}
-                    unggah={UNGGAH_LOT.map((u) => (lampiranWajib(lampiran.aturan, "lots", u.jenis) ? { ...u, label: `${u.label} (wajib)` } : u))} />}
+                  {/* Cuma buat lihat lampiran lama; nggak ada input lampiran baru di Mutu. */}
+                  {lampiran && lampiran.dokumen.some((d) => d.ref_id === l.id) && (
+                    <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} bolehTulis={false} unggah={[]} />
+                  )}
                 </>} />
               ))}
             </ul>

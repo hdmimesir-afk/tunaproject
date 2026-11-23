@@ -216,7 +216,7 @@ export function BerandaOwner({ d, izin, nama, salam, tanggal, tindakan, owner, t
               </Bagian>
             )}
           </div>
-          <FotoTimbanganOwner foto={owner.foto} />
+          {owner.foto.length > 0 && <FotoTimbanganOwner foto={owner.foto} />}
           <LampiranOwner lampiran={owner.lampiran} />
         </div>
       </Lipat>

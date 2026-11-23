@@ -239,7 +239,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
 
           {modeOwner && owner && (
             <>
-              <FotoTimbanganOwner foto={owner.foto} />
+              {owner.foto.length > 0 && <FotoTimbanganOwner foto={owner.foto} />}
               <LampiranOwner lampiran={owner.lampiran} />
             </>
           )}
@@ -287,7 +287,7 @@ export function Lipat({ aktif, children }: { aktif: boolean; children: React.Rea
     <details className="group" data-testid="rincian-owner">
       <summary className="flex h-12 cursor-pointer list-none items-center justify-center gap-2 rounded-full bg-white text-[14px] font-medium" style={{ color: INK, boxShadow: "0 1px 2px rgba(20,24,40,.06)" }}>
         <span className="group-open:hidden">Lihat rincian lainnya</span><span className="hidden group-open:inline">Tutup rincian</span>
-        <span className="text-[12px] font-normal" style={{ color: MUTED }}>kas, proyek, foto timbangan, lampiran</span>
+        <span className="text-[12px] font-normal" style={{ color: MUTED }}>kas, proyek, lampiran</span>
       </summary>
       <div className="mt-4">{children}</div>
     </details>
