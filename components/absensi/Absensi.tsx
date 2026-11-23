@@ -24,6 +24,8 @@ type Props = {
   rekap: RekapHadir[] | null;
   bolehKelola: boolean;
   bolehSetuju: boolean;
+  /** Pengguna ini absen sendiri? Owner cuma liat rekap dan nyetujuin izin, nggak absen. */
+  bolehAbsen: boolean;
 };
 
 const LABEL_IZIN = { izin: "Izin", sakit: "Sakit", libur: "Libur" } as const;
@@ -132,7 +134,7 @@ function Putusan({ i }: { i: Izin }) {
 function KartuIzin({ p }: { p: Props }) {
   const [form, setForm] = useState(false);
   return (
-    <Card title="Izin dan sakit" right={<Btn size="sm" v="light" onClick={() => setForm(true)}>Ajukan</Btn>}>
+    <Card title="Izin dan sakit" right={p.bolehAbsen ? <Btn size="sm" v="light" onClick={() => setForm(true)}>Ajukan</Btn> : undefined}>
       <DataList
         rows={p.izin}
         empty="Belum ada pengajuan."
@@ -290,11 +292,11 @@ function KartuLokasi({ lokasi }: { lokasi: LokasiKerja[] }) {
 export function Absensi(p: Props) {
   return (
     <div className="space-y-4">
-      <KartuHariIni p={p} />
+      {p.bolehAbsen && <KartuHariIni p={p} />}
       <KartuIzin p={p} />
       {p.rekap !== null && <KartuRekap p={p} />}
       {p.bolehKelola && <KartuLokasi lokasi={p.lokasi} />}
-      <Card title="Riwayat absen saya">
+      {p.bolehAbsen && <Card title="Riwayat absen saya">
         <DataList
           rows={p.saya}
           empty="Belum ada absen."
@@ -305,7 +307,7 @@ export function Absensi(p: Props) {
             { h: "Jarak", r: (a) => a.jarak_m != null ? tampilJarak(a.jarak_m) : "-" },
           ]}
         />
-      </Card>
+      </Card>}
     </div>
   );
 }

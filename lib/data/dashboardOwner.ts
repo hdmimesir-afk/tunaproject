@@ -19,7 +19,8 @@ export type DataOwner = {
   margin: ReturnType<typeof hitungMargin> | null;
   bep: ReturnType<typeof hitungBep> | null;
   absensi: (ReturnType<typeof ringkasAbsen> & { tanggal: string }) | null;
-  cctv: { id: string; nama: string; url: string }[];
+  /** Semua link CCTV (aktif dan nonaktif) buat diatur owner; yg tampil di dashboard cuma yg aktif. */
+  cctv: { id: string; nama: string; url: string; urutan: number; aktif: boolean }[];
   foto: FotoTimbangan[];
   lampiran: LampiranOwner[];
 };
@@ -83,8 +84,8 @@ export async function dataOwner(izin: IzinOwner, tren: BarisLabaSiklus[]): Promi
 
   const cctvP = izin.cctv
     ? aman((async () => {
-        const { data } = await sb.from("cctv_links").select("id, nama, url").eq("aktif", true).order("urutan").order("nama");
-        return (data ?? []) as { id: string; nama: string; url: string }[];
+        const { data } = await sb.from("cctv_links").select("id, nama, url, urutan, aktif").order("aktif", { ascending: false }).order("urutan").order("nama");
+        return (data ?? []) as DataOwner["cctv"];
       })(), [])
     : Promise.resolve([]);
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Suspense } from "react";
 import { SesiNav } from "@/components/shell/SesiNav";
+import { BannerOwner } from "@/components/shell/BannerOwner";
 import { INK } from "@/components/ui/tokens";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -24,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SesiNav />
       </Suspense>
       <main className="min-h-dvh min-w-0 flex-1 rounded-t-[28px] px-4 pb-32 pt-5 md:pb-12 md:pt-6 md:rounded-l-[32px] md:rounded-tr-none md:px-8" style={{ background: "linear-gradient(180deg,#EFF1F6 0%,#E9EDF5 60%,#DFE6F2 100%)" }}>
+        <Suspense fallback={null}><BannerOwner /></Suspense>
         {children}
       </main>
     </div>

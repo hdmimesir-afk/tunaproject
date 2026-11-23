@@ -5,6 +5,7 @@ import type { DataOwner } from "@/lib/data/dashboardOwner";
 
 // Server action buat buka lampiran nggak dijalanin di tes render.
 vi.mock("@/lib/actions/pembelian", () => ({ urlDokumen: async () => ({}), catatDokumen: async () => ({}) }));
+vi.mock("@/lib/actions/pengaturan", () => ({ simpanPengaturan: async () => undefined, simpanCctv: async () => undefined, setAktifCctv: async () => undefined }));
 import type { LaporanHarian } from "@/lib/data/laporanHarian";
 import type { Tindakan } from "@/lib/data/tindakan";
 import type { Dashboard } from "@/lib/types/keuangan";
@@ -73,7 +74,7 @@ const owner: DataOwner = {
   margin: { pendapatan: 200_000_000, biaya: 150_000_000, laba: 50_000_000, marginPct: 25, jumlahProyek: 3, belumLaku: 0 },
   bep: { modal: 500_000_000, laba: 50_000_000, pct: 10, sisa: 450_000_000, lunas: false, perBulan: 15_000_000, bulanLagi: 30 },
   absensi: { tanggal: "2026-11-23", hadir: 2, terlambat: 1, udahPulang: 0, orang: [{ nama: "Andi", masuk: "2026-11-23T01:10:00Z", pulang: null, terlambat: 10 }] },
-  cctv: [{ id: "c1", nama: "Gudang", url: "https://cctv.contoh.test/gudang" }],
+  cctv: [{ id: "c1", nama: "Gudang", url: "https://cctv.contoh.test/gudang", urutan: 0, aktif: true }],
   foto: [],
   lampiran: [{ id: "l1", jenis: "kwitansi", nama: "kwitansi-pt-a.pdf", ref: "Bayar dari pembeli", waktu: "2026-11-22T03:00:00Z" }],
 };
@@ -88,7 +89,8 @@ describe("dashboard: mode owner", () => {
     expect(html).toContain("Rp125.000.000");
     expect(html).toContain("Margin profit");
     expect(html).toContain("Balik modal (BEP)");
-    expect(html).toContain("kira kira 30 bulan lagi");
+    expect(html).toContain("Kira kira 30 bulan lagi");
+    expect(html).toContain("Lihat rincian lainnya");
     expect(html).toContain("Sisa kapasitas gudang dingin");
     expect(html).toContain("6.000,000 kg");
     expect(html).toContain("Absensi hari ini");
@@ -96,11 +98,10 @@ describe("dashboard: mode owner", () => {
     expect(html).toContain("kwitansi-pt-a.pdf");
   });
 
-  it("judulnya Perlu persetujuan, kotak angka nggak nautin ke menu yg disembunyiin", () => {
+  it("judulnya Perlu persetujuan, kotak angka bisa diketuk ke halamannya (cuma lihat)", () => {
     expect(html).toContain("Perlu persetujuan Anda");
     expect(html).toContain('href="/persetujuan?x=1"');
-    expect(html).not.toContain('href="/keuangan"');
-    expect(html).not.toContain('href="/penjualan"');
-    expect(html).not.toContain('href="/gudang"');
+    expect(html).toContain('href="/keuangan"');
+    expect(html).toContain('href="/penjualan"');
   });
 });

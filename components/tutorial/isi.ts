@@ -152,10 +152,11 @@ export const BAB: Bab[] = [
       {
         judul: "Dashboard owner",
         peran: ["owner"],
-        pengantar: "Akun owner cuma buat lihat dan nyetujuin, nggak ada isian data kerja. Menunya Dashboard, Laporan, sama Akses (buat ngundang akun karyawan). Isinya: laporan harian, Perlu persetujuan Anda, saldo perusahaan, margin profit, balik modal (BEP), sisa kapasitas gudang dingin, absensi hari ini, CCTV, foto timbangan terbaru, sama invoice, kwitansi, dan bukti bayar.",
+        pengantar: "Akun owner buat lihat dan nyetujuin, nggak ngisi data kerja. Semua menu bisa dibuka buat lihat laporan lengkap (ada tulisan Mode lihat di atasnya), kecuali Pengaturan. Dashboard-nya dibikin simpel: Perlu persetujuan Anda, saldo perusahaan, margin profit, balik modal (BEP), laporan hari ini, sisa kapasitas gudang, absensi hari ini, dan CCTV. Rincian lainnya (kas bulanan, proyek, foto timbangan, lampiran) ada di Lihat rincian lainnya.",
         langkah: [
           "Di Perlu persetujuan Anda, tekan tombolnya (misalnya Periksa atau Putuskan). Halamannya kebuka cuma buat nyetujuin atau nolak.",
-          "Tekan link CCTV buat buka kameranya.",
+          "Tekan link CCTV buat buka kameranya. Mau nambah atau ganti kamera? Tekan Atur di kotak CCTV.",
+          "Saldo awal kas sama modal usaha bisa diisi sendiri lewat tombol Atur saldo awal dan Atur modal.",
           "Tekan foto timbangan buat liat ukuran penuhnya, atau Buka di invoice, kwitansi, bukti bayar buat liat berkasnya.",
         ],
         catatan: "Margin profit diitung dari proyek yg udah ada penjualannya. Balik modal diitung dari laba kotor semua proyek dibanding modal yg diisi admin. Saldo awal, modal, sama link CCTV diisi admin di Pengaturan, tab Dashboard owner.",

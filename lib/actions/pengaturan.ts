@@ -2,7 +2,8 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
-import { requireIzin, TidakBerizin } from "@/lib/data/auth";
+import { requireIzin, requireSesi, TidakBerizin } from "@/lib/data/auth";
+import { PERAN_OWNER } from "@/lib/izin";
 import { isKunciPengaturan, isTabelMaster, PENGATURAN, skemaMaster } from "@/lib/master";
 import { createClient } from "@/lib/supabase/server";
 import { pesanDb } from "./pesan";
@@ -16,6 +17,14 @@ async function izin(aksi: string): Promise<HasilForm | null> {
     if (e instanceof TidakBerizin) return { error: e.message };
     throw e;
   }
+}
+
+/** Isian dashboard owner (saldo awal, modal, link CCTV): boleh owner (dari dashboard-nya) atau admin (pengaturan.write).
+    Ini satu satunya isian yg boleh buat owner; database juga ngizinin (owner pegang semua izin). */
+async function izinAturOwner(): Promise<HasilForm | null> {
+  const s = await requireSesi();
+  if (s.roleId === PERAN_OWNER) return null;
+  return izin("pengaturan.write");
 }
 
 /** Tambah (tanpa id) atau ubah (dengan id) satu baris data master. */
@@ -50,11 +59,11 @@ export async function setAktifMaster(fd: FormData) {
 }
 
 export async function simpanPengaturan(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const tolak = await izin("pengaturan.write");
-  if (tolak) return tolak;
   const kunci = fd.get("kunci");
   if (!isKunciPengaturan(kunci)) return { error: "Pengaturannya nggak dikenal." };
   const batas = PENGATURAN[kunci];
+  const tolak = batas.grup === "owner" ? await izinAturOwner() : await izin("pengaturan.write");
+  if (tolak) return tolak;
   const nilai = z.coerce.number().min(batas.min).max(batas.max).transform((n) => Math.round(n * 1000) / 1000).safeParse(fd.get("nilai"));
   if (!nilai.success) return { error: `${batas.label}: isi angka ${batas.min} sampai ${batas.max}.` };
   const supabase = await createClient();
@@ -74,7 +83,7 @@ const FormCctv = z.object({
 
 /** Tambah (tanpa id) atau ubah link CCTV. Cuma admin (pengaturan.write); owner lihat di dashboard. */
 export async function simpanCctv(_: HasilForm, fd: FormData): Promise<HasilForm> {
-  const tolak = await izin("pengaturan.write");
+  const tolak = await izinAturOwner();
   if (tolak) return tolak;
   const p = FormCctv.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
@@ -88,7 +97,7 @@ export async function simpanCctv(_: HasilForm, fd: FormData): Promise<HasilForm>
 
 /** Nonaktifkan atau aktifkan lagi link CCTV (nggak dihapus). */
 export async function setAktifCctv(fd: FormData) {
-  const tolak = await izin("pengaturan.write");
+  const tolak = await izinAturOwner();
   if (tolak) return;
   const id = z.uuid().safeParse(fd.get("id"));
   if (!id.success) return;

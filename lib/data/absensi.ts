@@ -44,5 +44,6 @@ export async function rekapKehadiran(bulan: string): Promise<RekapHadir[]> {
   const sb = await createClient();
   const { data, error } = await sb.rpc("rekap_kehadiran", { p_bulan: `${bulan}-01` });
   if (error) gagal("rekap kehadiran");
-  return (data ?? []) as RekapHadir[];
+  // Owner nggak absen (akunnya cuma buat lihat dan setuju), jadi nggak ikut direkap biar nggak kebaca "tidak hadir".
+  return ((data ?? []) as RekapHadir[]).filter((r) => r.role_nama !== "Owner");
 }

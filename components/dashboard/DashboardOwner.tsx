@@ -161,8 +161,8 @@ function ArusKas({ buku }: { buku: BukuBulanan[] }) {
 
 /* ---------------------------------------------------------------- utama */
 export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan, ruangan = [], isiGudang, laporan, modeOwner = false, owner }: Props) {
-  // Owner nggak punya menu kerja harian, jadi kotak angka cuma buat dilihat (Laporan tetap boleh).
-  const ke = (href: string) => (modeOwner && !href.startsWith("/laporan") ? null : href);
+  // Owner bisa buka semua menu buat lihat (tanpa tombol input), jadi kotak angka tetap bisa diketuk.
+  const ke = (href: string) => href;
   const lagi = (href: string, label: string) => (ke(href) ? <Selengkapnya href={href} label={label} /> : undefined);
   const selisih = d.kas_masuk_bulan_ini - d.kas_keluar_bulan_ini;
   const adaKas = buku.length > 0;
@@ -177,23 +177,26 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
         <p className="mt-0.5 text-[19px] font-medium tracking-tight md:text-[21px]" style={{ color: INK }}>{salam}{nama ? `, ${nama}` : ""}</p>
       </div>
 
-      {laporan && <LaporanHarian lap={laporan.data} judulTanggal={laporan.judulTanggal} teks={laporan.teks} />}
+      {/* Owner: yg penting dulu (persetujuan, uang), baru hari ini, rincian lainnya dilipat biar simpel. */}
+      {!modeOwner && laporan && <LaporanHarian lap={laporan.data} judulTanggal={laporan.judulTanggal} teks={laporan.teks} />}
 
       <Tindakan daftar={tindakan} judul={modeOwner ? "Perlu persetujuan Anda" : undefined} />
 
       {modeOwner && owner && (
         <>
-          <UangOwner saldo={owner.saldo} margin={owner.margin} bep={owner.bep} />
-          <div className="grid items-start gap-4 md:grid-cols-3">
+          <UangOwner saldo={owner.saldo} margin={owner.margin} bep={owner.bep} bolehAtur />
+          {laporan && <LaporanHarian lap={laporan.data} judulTanggal={laporan.judulTanggal} teks={laporan.teks} />}
+          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
             {izin.stok && <KapasitasOwner ruangan={ruangan} />}
             <AbsensiOwner absensi={owner.absensi} />
-            <CctvOwner cctv={owner.cctv} />
+            <CctvOwner cctv={owner.cctv} bolehAtur />
           </div>
         </>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
+      <Lipat aktif={modeOwner}>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="min-w-0 space-y-4 lg:col-span-2">
           {(izin.keuangan || izin.penjualan || izin.pembelian || izin.stok) && (
             <div className="grid grid-cols-2 gap-2.5">
               {izin.keuangan && <Angka href={ke("/keuangan")} icon="cash" label="Kas bulan ini" nilai={rp(selisih)} tone={selisih < 0 ? "warn" : selisih > 0 ? "ok" : undefined}
@@ -242,7 +245,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {(izin.keuangan || izin.pembelian) && (
             <Bagian judul="Kelengkapan dokumen" kanan={lagi("/keuangan", "Periksa")}>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3.5">
@@ -272,6 +275,21 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
           )}
         </div>
       </div>
+      </Lipat>
     </div>
+  );
+}
+
+/** Buat owner, rincian (kas bulanan, grafik, proyek, foto, lampiran, dokumen) dilipat biar dashboard-nya simpel. */
+function Lipat({ aktif, children }: { aktif: boolean; children: React.ReactNode }) {
+  if (!aktif) return <>{children}</>;
+  return (
+    <details className="group" data-testid="rincian-owner">
+      <summary className="flex h-12 cursor-pointer list-none items-center justify-center gap-2 rounded-full bg-white text-[14px] font-medium" style={{ color: INK, boxShadow: "0 1px 2px rgba(20,24,40,.06)" }}>
+        <span className="group-open:hidden">Lihat rincian lainnya</span><span className="hidden group-open:inline">Tutup rincian</span>
+        <span className="text-[12px] font-normal" style={{ color: MUTED }}>kas, proyek, foto timbangan, lampiran</span>
+      </summary>
+      <div className="mt-4">{children}</div>
+    </details>
   );
 }

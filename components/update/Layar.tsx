@@ -48,7 +48,7 @@ export function LayarGrid() {
 export function LayarAbsensi() {
   return (
     <Kerangka aktif="absensi" kicker="Lokasi dan foto langsung, waktu dari server" judul="Absensi">
-      <Mati><Absensi userId="u-petugas" hari="2026-10-26" bulan="2026-10" tanggalHarian="2026-10-26" lokasi={c.lokasi} saya={c.saya} izin={c.izinSaya} harian={null} rekap={null} bolehKelola={false} bolehSetuju={false} /></Mati>
+      <Mati><Absensi userId="u-petugas" hari="2026-10-26" bulan="2026-10" tanggalHarian="2026-10-26" lokasi={c.lokasi} saya={c.saya} izin={c.izinSaya} harian={null} rekap={null} bolehKelola={false} bolehSetuju={false} bolehAbsen /></Mati>
     </Kerangka>
   );
 }

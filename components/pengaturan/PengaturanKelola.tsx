@@ -4,13 +4,14 @@ import { useActionState, useState } from "react";
 import { Btn, Card, Field, Inner, Modal, Pill, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { setAktifMaster, simpanAturanLampiran, simpanMaster, simpanPengaturan } from "@/lib/actions/pengaturan";
+import { setAktifMaster, simpanAturanLampiran, simpanMaster } from "@/lib/actions/pengaturan";
 import { LABEL_JENIS } from "@/components/dokumen/Dokumen";
 import type { AturanLampiran } from "@/lib/types/pembelian";
 import type { LogHapus } from "@/lib/logic/hapus";
 import { HapusData } from "./HapusData";
 import { UploadExcel, type LogImpor } from "./UploadExcel";
 import { CctvKelola, type Cctv } from "./CctvKelola";
+import { FormPengaturan } from "./FormPengaturan";
 import { rp } from "@/lib/format";
 import type { JenisImpor } from "@/lib/imporMaster";
 import { MASTER, PENGATURAN, TABEL_MASTER, type Kolom, type KunciPengaturan, type TabelMaster } from "@/lib/master";
@@ -96,18 +97,7 @@ function TabelData({ tabel, rows, bolehUbah }: { tabel: TabelMaster; rows: Baris
   );
 }
 
-function FormPengaturan({ kunci, nilai, bolehAtur }: { kunci: KunciPengaturan; nilai: number | undefined; bolehAtur: boolean }) {
-  const [state, action, pending] = useActionState<HasilForm, FormData>(simpanPengaturan, undefined);
-  const p = PENGATURAN[kunci];
-  return (
-    <form action={action} className="flex flex-wrap items-end gap-2">
-      <input type="hidden" name="kunci" value={kunci} />
-      <div className={p.grup === "owner" ? "w-full max-w-[320px]" : "w-[220px]"}><Field label={p.label}><TextIn name="nilai" type="number" min={p.min} max={p.max} step={p.step} defaultValue={nilai ?? ""} disabled={!bolehAtur} /></Field></div>
-      {bolehAtur && <Btn type="submit" size="sm" disabled={pending}>{pending ? "..." : "Simpan"}</Btn>}
-      <div className="w-full"><Galat state={state} /></div>
-    </form>
-  );
-}
+
 
 const NAMA_CATATAN: Record<AturanLampiran["ref_tabel"], string> = { purchase_orders: "PO (pembelian)", lots: "Penerimaan ikan (lot)", payments: "Pembayaran ke pemasok" };
 

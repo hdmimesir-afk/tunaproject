@@ -31,7 +31,9 @@ export default function AbsensiPage(props: PageProps<"/absensi">) {
 
 async function AbsensiData({ searchParams }: { searchParams: PageProps<"/absensi">["searchParams"] }) {
   const sesi = await requireSesi();
-  if (!boleh(sesi, "absensi.absen")) return <TanpaIzin />;
+  // Owner nggak absen, tapi tetap bisa liat rekap dan nyetujuin izin.
+  const bolehAbsen = boleh(sesi, "absensi.absen");
+  if (!bolehAbsen && !boleh(sesi, "absensi.rekap")) return <TanpaIzin />;
   const sp = await searchParams;
   const hari = hariIni();
   const bulan = bulanSah(sp.bulan, hari.slice(0, 7));
@@ -49,7 +51,7 @@ async function AbsensiData({ searchParams }: { searchParams: PageProps<"/absensi
     <Absensi
       userId={sesi.userId} hari={hari} bulan={bulan} tanggalHarian={tanggalHarian}
       lokasi={lokasi} saya={saya} izin={izin} rekap={rekap} harian={harian}
-      bolehKelola={boleh(sesi, "absensi.kelola")} bolehSetuju={boleh(sesi, "absensi.setuju")}
+      bolehKelola={boleh(sesi, "absensi.kelola")} bolehSetuju={boleh(sesi, "absensi.setuju")} bolehAbsen={bolehAbsen}
     />
   );
 }

@@ -14,10 +14,10 @@ function FormCctv({ c, onSelesai }: { c: Cctv | null; onSelesai: () => void }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(simpanCctv, undefined);
   useEffect(() => { if (state?.pesan) onSelesai(); }, [state, onSelesai]);
   return (
-    <form action={action} className="space-y-3 rounded-2xl bg-white p-3.5" data-testid="form-cctv">
+    <form action={action} className="min-w-0 space-y-3 rounded-2xl bg-white p-3.5" data-testid="form-cctv">
       {c && <input type="hidden" name="id" value={c.id} />}
       {state?.error && <p role="alert" className="text-[12.5px]" style={{ color: "#A8322B" }}>{state.error}</p>}
-      <div className="grid gap-3 md:grid-cols-[1fr_2fr_6rem]">
+      <div className="grid min-w-0 gap-3 md:grid-cols-[1fr_2fr_6rem]">
         <Field label="Nama kamera" error={state?.kolom?.nama?.[0]}><TextIn name="nama" maxLength={60} defaultValue={c?.nama ?? ""} placeholder="Gudang" required /></Field>
         <Field label="Link" error={state?.kolom?.url?.[0]}><TextIn name="url" type="url" maxLength={500} defaultValue={c?.url ?? ""} placeholder="https://..." required /></Field>
         <Field label="Urutan" error={state?.kolom?.urutan?.[0]}><TextIn name="urutan" type="number" min={0} max={999} defaultValue={c?.urutan ?? 0} /></Field>
@@ -30,11 +30,12 @@ function FormCctv({ c, onSelesai }: { c: Cctv | null; onSelesai: () => void }) {
   );
 }
 
-export function CctvKelola({ daftar, bolehAtur }: { daftar: Cctv[]; bolehAtur: boolean }) {
+export function CctvKelola({ daftar, bolehAtur, polos = false }: { daftar: Cctv[]; bolehAtur: boolean; /** Tanpa kotak Card, buat dipakai di dalam jendela (dashboard owner). */ polos?: boolean }) {
   const [edit, setEdit] = useState<Cctv | "baru" | null>(null);
-  return (
-    <Card title={`Link CCTV · ${daftar.filter((c) => c.aktif).length} aktif`} right={bolehAtur && edit === null ? <Btn size="sm" onClick={() => setEdit("baru")}>Tambah</Btn> : undefined}>
-      <div className="space-y-2 px-2.5 pb-2.5">
+  const judul = `Link CCTV · ${daftar.filter((c) => c.aktif).length} aktif`;
+  const tambah = bolehAtur && edit === null ? <Btn size="sm" onClick={() => setEdit("baru")}>Tambah</Btn> : undefined;
+  const isi = (
+      <div className={`min-w-0 space-y-2 ${polos ? "" : "px-2.5 pb-2.5"}`}>
         <p className="text-[13px]" style={{ color: MUTED }}>Link ke aplikasi atau halaman CCTV tiap kamera. Owner tinggal pencet di dashboard. Peran lain nggak bisa lihat linknya.</p>
         {edit === "baru" && <FormCctv c={null} onSelesai={() => setEdit(null)} />}
         {daftar.length === 0 && edit === null && <p className="rounded-2xl bg-white px-4 py-5 text-center text-[13px]" style={{ color: MUTED }}>Belum ada link CCTV.</p>}
@@ -61,6 +62,14 @@ export function CctvKelola({ daftar, bolehAtur }: { daftar: Cctv[]; bolehAtur: b
           )))}
         </ul>
       </div>
-    </Card>
   );
+  if (polos) {
+    return (
+      <div className="min-w-0 space-y-2">
+        <div className="flex items-center justify-between gap-2"><p className="text-[14px] font-medium" style={{ color: INK }}>{judul}</p>{tambah}</div>
+        {isi}
+      </div>
+    );
+  }
+  return <Card title={judul} right={tambah}>{isi}</Card>;
 }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Icon } from "@/components/ui";
+import { Btn, Icon, Modal } from "@/components/ui";
+import { CctvKelola } from "@/components/pengaturan/CctvKelola";
+import { FormPengaturan } from "@/components/pengaturan/FormPengaturan";
+import type { KunciPengaturan } from "@/lib/master";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { LABEL_JENIS } from "@/components/dokumen/Dokumen";
 import { urlDokumen } from "@/lib/actions/pembelian";
@@ -37,8 +40,26 @@ const Kosong = ({ children }: { children: React.ReactNode }) => (
   <p className="rounded-2xl bg-white px-4 py-5 text-center text-[13px]" style={{ color: MUTED }}>{children}</p>
 );
 
+/** Tombol kecil "Atur" yg buka isian satu angka pengaturan (saldo awal atau modal). */
+function AturAngka({ kunci, nilai, judul, label }: { kunci: KunciPengaturan; nilai: number; judul: string; label: string }) {
+  const [buka, setBuka] = useState(false);
+  return (
+    <>
+      <Btn size="sm" v="light" onClick={() => setBuka(true)}>{label}</Btn>
+      {buka && (
+        <Modal title={judul} onClose={() => setBuka(false)}>
+          <div className="space-y-2">
+            <FormPengaturan kunci={kunci} nilai={nilai} bolehAtur />
+            <p className="text-[12px]" style={{ color: MUTED }}>Sekarang: {rp(nilai)}. Abis disimpan, dashboard langsung ngitung ulang.</p>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
+
 /* ------------------------------------------------------------ uang */
-export function UangOwner({ saldo, margin, bep }: Pick<DataOwner, "saldo" | "margin" | "bep">) {
+export function UangOwner({ saldo, margin, bep, bolehAtur = false }: Pick<DataOwner, "saldo" | "margin" | "bep"> & { bolehAtur?: boolean }) {
   if (!saldo && !margin && !bep) return null;
   return (
     <div className="grid gap-2.5 md:grid-cols-3" data-testid="uang-owner">
@@ -46,10 +67,8 @@ export function UangOwner({ saldo, margin, bep }: Pick<DataOwner, "saldo" | "mar
         <div className="rounded-[22px] bg-white p-4" style={{ boxShadow: "0 1px 2px rgba(20,24,40,.06)" }}>
           <p className="text-[12.5px] font-medium" style={{ color: MUTED }}>Saldo perusahaan</p>
           <p className="mt-1.5 text-[24px] font-semibold tabular-nums tracking-tight" style={{ color: saldo.saldo < 0 ? MERAH : INK }}>{rp(saldo.saldo)}</p>
-          <p className="mt-1 text-[12px] leading-snug" style={{ color: MUTED }}>
-            Semua uang masuk {rp(saldo.masuk)}, keluar {rp(saldo.keluar)}{saldo.saldoAwal !== 0 ? `, saldo awal ${rp(saldo.saldoAwal)}` : ""}.
-            {saldo.terakhir ? ` Catatan kas terakhir ${waktu(saldo.terakhir).split(",")[0]}.` : ""}
-          </p>
+          <p className="mt-1 text-[12.5px] leading-snug" style={{ color: MUTED }}>Uang yg ada sekarang, dari semua uang masuk dikurang keluar.</p>
+          {bolehAtur && <div className="mt-2.5"><AturAngka kunci="saldo_awal_kas_rp" nilai={saldo.saldoAwal} judul="Saldo awal kas" label="Atur saldo awal" /></div>}
         </div>
       )}
       {margin && (
@@ -60,8 +79,8 @@ export function UangOwner({ saldo, margin, bep }: Pick<DataOwner, "saldo" | "mar
           </p>
           <p className="mt-1 text-[12px] leading-snug" style={{ color: MUTED }}>
             {margin.pendapatan > 0
-              ? `Laba kotor ${rp(margin.laba)} dari pendapatan ${rp(margin.pendapatan)}, ${margin.jumlahProyek} proyek yg udah ada penjualan.${margin.belumLaku > 0 ? ` ${margin.belumLaku} proyek belum ada penjualan, belum diitung.` : ""}`
-              : "Belum ada penjualan, margin muncul abis ada yg kejual."}
+              ? `${margin.laba < 0 ? "Rugi" : "Untung"} ${rp(Math.abs(margin.laba))} dari penjualan ${rp(margin.pendapatan)}.`
+              : "Muncul abis ada yg kejual."}
           </p>
         </div>
       )}
@@ -69,20 +88,20 @@ export function UangOwner({ saldo, margin, bep }: Pick<DataOwner, "saldo" | "mar
         <div className="rounded-[22px] bg-white p-4" style={{ boxShadow: "0 1px 2px rgba(20,24,40,.06)" }} data-testid="bep-owner">
           <p className="text-[12.5px] font-medium" style={{ color: MUTED }}>Balik modal (BEP)</p>
           {bep.pct === null ? (
-            <p className="mt-1.5 text-[13px] leading-snug" style={{ color: MUTED }}>Modal usaha belum diisi. Minta admin isi di Pengaturan, tab Dashboard owner.</p>
+            <p className="mt-1.5 text-[13px] leading-snug" style={{ color: MUTED }}>Modal usaha belum diisi. {bolehAtur ? "Pencet Atur modal buat ngisi." : "Minta admin isi di Pengaturan, tab Dashboard owner."}</p>
           ) : (
             <>
               <p className="mt-1.5 text-[24px] font-semibold tabular-nums tracking-tight" style={{ color: bep.lunas ? HIJAU : INK }}>{bep.lunas ? "Udah balik modal" : persen(bep.pct)}</p>
               <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#EEF0F5]" role="progressbar" aria-valuenow={bep.pct} aria-valuemin={0} aria-valuemax={100} aria-label="Persen balik modal">
                 <div className="h-full rounded-full" style={{ width: `${bep.pct}%`, background: HIJAU }} />
               </div>
-              <p className="mt-1.5 text-[12px] leading-snug" style={{ color: MUTED }}>
-                Laba {rp(bep.laba)} dari modal {rp(bep.modal)}.
-                {!bep.lunas && ` Kurang ${rp(bep.sisa)}.`}
-                {bep.bulanLagi !== null ? ` Kalo lajunya kayak 3 bulan terakhir (${rp(bep.perBulan ?? 0)} per bulan), kira kira ${bep.bulanLagi} bulan lagi.` : !bep.lunas ? " Perkiraan waktunya muncul abis ada laba 3 bulan terakhir." : ""}
+              <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: MUTED }}>
+                {bep.lunas ? `Modal ${rp(bep.modal)} udah balik.` : `Kurang ${rp(bep.sisa)} lagi dari modal ${rp(bep.modal)}.`}
+                {bep.bulanLagi !== null ? ` Kira kira ${bep.bulanLagi} bulan lagi.` : ""}
               </p>
             </>
           )}
+          {bolehAtur && <div className="mt-2.5"><AturAngka kunci="modal_usaha_rp" nilai={bep.modal} judul="Total modal usaha" label="Atur modal" /></div>}
         </div>
       )}
     </div>
@@ -102,19 +121,14 @@ export function KapasitasOwner({ ruangan }: { ruangan: Ruangan[] }) {
       <p className="text-[13px]" style={{ color: INK }}>
         <b className="text-[22px] font-semibold tabular-nums" style={{ color: sisa <= 0 ? MERAH : HIJAU }}>{kgT(Math.max(0, sisa) / 1000)}</b> masih kosong dari {kgT(kap / 1000)}
       </p>
-      <ul className="mt-3 space-y-2">
+      <ul className="mt-3 divide-y divide-[#EEF0F4] overflow-hidden rounded-2xl bg-white">
         {aktif.map((r) => {
-          const pct = r.kapasitas_kg > 0 ? Math.min(100, (r.isi_kg / r.kapasitas_kg) * 100) : 0;
+          const pct = r.kapasitas_kg > 0 ? Math.min(100, Math.round((r.isi_kg / r.kapasitas_kg) * 100)) : 0;
           const s = Math.max(0, g(r.kapasitas_kg) - g(r.isi_kg)) / 1000;
           return (
-            <li key={r.id} className="rounded-2xl bg-white px-3.5 py-2.5">
-              <div className="flex items-baseline justify-between gap-2 text-[13px]">
-                <span className="font-medium" style={{ color: INK }}>{r.nama}</span>
-                <span className="tabular-nums" style={{ color: s <= 0 ? MERAH : MUTED }}>sisa {kgT(s)}</span>
-              </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[#EEF0F5]">
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 90 ? MERAH : pct >= 70 ? "#C98A12" : HIJAU }} />
-              </div>
+            <li key={r.id} className="flex items-baseline justify-between gap-2 px-3.5 py-2 text-[13px]">
+              <span className="font-medium" style={{ color: INK }}>{r.nama}</span>
+              <span className="tabular-nums" style={{ color: pct >= 90 ? MERAH : MUTED }}>sisa {kgT(s)} · terisi {pct}%</span>
             </li>
           );
         })}
@@ -155,14 +169,21 @@ export function AbsensiOwner({ absensi }: Pick<DataOwner, "absensi">) {
 }
 
 /* ----------------------------------------------------------- CCTV */
-export function CctvOwner({ cctv }: Pick<DataOwner, "cctv">) {
+export function CctvOwner({ cctv, bolehAtur = false }: Pick<DataOwner, "cctv"> & { bolehAtur?: boolean }) {
+  const [atur, setAtur] = useState(false);
+  const aktif = cctv.filter((c) => c.aktif);
   return (
-    <Kotak judul="CCTV" testid="cctv-owner">
-      {cctv.length === 0 ? (
-        <Kosong>Link CCTV belum diisi. Minta admin isi di Pengaturan, tab Dashboard owner.</Kosong>
+    <Kotak judul="CCTV" testid="cctv-owner" kanan={bolehAtur ? <Btn size="sm" v="light" onClick={() => setAtur(true)}>Atur</Btn> : undefined}>
+      {atur && (
+        <Modal title="Atur link CCTV" onClose={() => setAtur(false)}>
+          <CctvKelola daftar={cctv} bolehAtur polos />
+        </Modal>
+      )}
+      {aktif.length === 0 ? (
+        <Kosong>Link CCTV belum diisi. {bolehAtur ? "Pencet Atur buat nambah kamera." : "Minta admin isi di Pengaturan, tab Dashboard owner."}</Kosong>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          {cctv.map((c) => (
+          {aktif.map((c) => (
             <a key={c.id} href={c.url} target="_blank" rel="noopener noreferrer"
               className="flex min-h-12 items-center justify-between gap-2 rounded-2xl bg-white px-3.5 py-2.5 text-[13.5px] font-medium transition active:scale-[0.98]" style={{ color: INK }}>
               <span className="min-w-0 truncate">{c.nama}</span><Icon n="arrow" s={14} c={MUTED} />

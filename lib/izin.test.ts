@@ -29,11 +29,12 @@ describe("boleh", () => {
     }
     expect(boleh(owner)).toBe(true);
   });
-  it("menu owner cuma Dashboard, Laporan, dan Akses; peran lain ngikut izin", () => {
+  it("menu owner: semua menu buat lihat kecuali Pengaturan; peran lain ngikut izin", () => {
     const owner = { ...dasar, roleId: "owner", semuaIzin: true, izin: [] };
     expect(bolehMenu(owner, "dashboard", null)).toBe(true);
     expect(bolehMenu(owner, "laporan", "laporan.read")).toBe(true);
-    expect(bolehMenu(owner, "produksi", "produksi.read")).toBe(false);
+    expect(bolehMenu(owner, "produksi", "produksi.read")).toBe(true);
+    expect(bolehMenu(owner, "absensi", "absensi.absen")).toBe(true);
     expect(bolehMenu(owner, "pengaturan", "master.read")).toBe(false);
     expect(bolehMenu(owner, "akses", "akses.kelola")).toBe(true);
     expect(bolehMenu(dasar, "pengaturan", "master.read")).toBe(true);

@@ -119,7 +119,8 @@ export function Modal({ title, onClose, children, footer, lebar }: { title: stri
           <h3 className="text-[18px] font-medium" style={{ color: INK }}>{title}</h3>
           <button type="button" aria-label="Tutup" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-white"><Icon n="close" s={16} /></button>
         </div>
-        <div className="space-y-4 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-4">{children}</div>
+        {/* min-h-0 biar isinya bisa di-scroll kalau lebih tinggi dari layar (anak flex nggak mau mengecil tanpa ini). */}
+        <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-4">{children}</div>
         {footer && <div className="flex gap-2.5 px-6 pb-7 pt-2">{footer}</div>}
       </div>
     </div>
