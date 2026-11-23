@@ -38,9 +38,8 @@ test("halaman laporan, siklus, dan dashboard terbuka tanpa galat", async ({ page
   }
 });
 
-test("Keuangan menampilkan kartu tutup buku per bulan (tanpa tombol tutup untuk non-Owner)", async ({ page }) => {
+test("Keuangan menampilkan kartu tutup buku per bulan", async ({ page }) => {
   await masuk(page, ADMIN);
   await page.goto("/keuangan");
   await expect(page.getByText("Tutup buku per bulan")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Tutup buku" })).toHaveCount(0);
 });

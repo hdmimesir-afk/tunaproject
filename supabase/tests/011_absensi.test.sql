@@ -104,7 +104,7 @@ select ok(
   or extract(isodow from (now() at time zone 'Asia/Jakarta')) = 7,
   'rekap bulanan menghitung hadir (hari Minggu libur)');
 select is((select count(*)::int from public.daftar_izin()), 2, 'admin melihat izin semua orang');
-select throws_ok($$select public.putuskan_izin((select id from public.leave_requests where alasan = 'demam'), true, '')$$, '42501', null, 'Super Admin tidak boleh memutuskan izin');
+select ok((select private.has_permission('absensi.setuju')), 'Super Admin boleh memutuskan izin (sejak 23 Nov 2026 pegang semua izin)');
 
 -- ============================================================ Owner
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000b1", "role": "authenticated", "aal": "aal2"}';

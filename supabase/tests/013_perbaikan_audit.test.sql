@@ -39,7 +39,7 @@ select throws_ok($$select public.tutup_siklus('c2000000-0000-0000-0000-000000000
 
 -- ============================================================ Super Admin
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-0000000000e3", "role": "authenticated", "aal": "aal1"}';
-select throws_ok($$select public.tutup_siklus('c2000000-0000-0000-0000-0000000000e2')$$, '42501', null, 'Super Admin tidak boleh menutup siklus');
+select ok((select private.has_permission('siklus.tutup')), 'Super Admin boleh menutup siklus (sejak 23 Nov 2026 pegang semua izin)');
 select throws_ok($$update public.cycles set status = 'ditutup' where id = 'c2000000-0000-0000-0000-0000000000e2'$$, '42501', null, 'status siklus tidak bisa diubah langsung');
 select lives_ok($$update public.cycles set catatan = 'kapal A' where id = 'c2000000-0000-0000-0000-0000000000e1'$$, 'keterangan siklus tetap bisa diubah');
 

@@ -71,7 +71,7 @@ select throws_ok(
   '42501', null, 'admin tidak boleh menyetujui');
 select throws_ok(
   $$select public.terima_po('a0000000-0000-0000-0000-000000000001', 10)$$,
-  '42501', null, 'admin tidak boleh menerima ikan');
+  'KT001', null, 'admin boleh terima ikan sejak 23 Nov 2026, tapi PO yg belum disetujui tetap nggak bisa nerima');
 
 -- ============================================================ Petugas Lapangan
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000025", "role": "authenticated", "aal": "aal1"}';
