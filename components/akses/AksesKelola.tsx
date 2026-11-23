@@ -128,7 +128,9 @@ function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwne
   const bolehEmail = p.u.role_id !== "owner" || p.bolehOwner;
   return (
     <div className="space-y-1">
-      <Baris {...p} />
+      {/* Key ikut peran dan status: abis Lepas peran atau Simpan, isian dipasang ulang dari data terbaru.
+          Tanpa ini pilihan lama nyangkut di layar, dan kalau Simpan dipencet, peran lamanya kepasang lagi. */}
+      <Baris key={`${p.u.role_id ?? "-"}:${p.u.aktif}`} {...p} />
       {(bolehTautan || bolehEmail) && (
         <div className="flex flex-wrap items-start gap-x-4 gap-y-1 px-4 pb-1">
           {bolehEmail && <UbahEmailForm u={p.u} />}
