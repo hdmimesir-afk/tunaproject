@@ -10,6 +10,8 @@ import { daftarInvoice, daftarPesanan, detailInvoice, detailPesanan, hasilBelumS
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { riwayatKoreksi } from "@/lib/data/koreksi";
+import { petaPengguna } from "@/lib/data/pembelian";
 import { PenjualanOwner } from "@/components/owner/PenjualanOwner";
 import { laporanPenjualanOwner } from "@/lib/data/laporanOwner";
 import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
@@ -53,8 +55,15 @@ async function PenjualanData({ searchParams }: { searchParams: PageProps<"/penju
     inv.success ? detailInvoice(inv.data) : Promise.resolve(null),
     bolehBuat && boleh(sesi, "produksi.read") ? hasilBelumSiapJual() : Promise.resolve([]),
   ]);
+  // Riwayat koreksi pesanan atau uang masuk yg lagi dibuka.
+  const [koreksi, pengguna] = detailP || detailI
+    ? await Promise.all([
+        detailP ? riwayatKoreksi(["sales_orders"], [detailP.pesanan.id]) : riwayatKoreksi(["customer_payments"], detailI!.pembayaran.map((x) => x.id)),
+        petaPengguna(),
+      ])
+    : [[], {}];
   return (
-    <PenjualanKelola
+    <PenjualanKelola koreksi={koreksi} pengguna={pengguna}
       pesanan={pesanan} invoice={invoice} unit={unit} pembeli={pembeli} siklus={siklus} jasa={jasa} detailP={detailP} detailI={detailI} tertunda={tertunda}
       bolehBuat={bolehBuat} bolehKirim={boleh(sesi, "pengiriman.write")} bolehInvoice={bolehInvoice} bolehBayar={boleh(sesi, "terima_bayar.write")}
       bolehDokumen={boleh(sesi, "dokumen.write")} hariIni={hariIni()}

@@ -5,19 +5,23 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
 import { Btn, Card, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
+import { HapusItem } from "@/components/ui/HapusItem";
+import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
+import type { Koreksi } from "@/lib/data/koreksi";
 import { DaftarInvoice, DaftarPesanan } from "./DaftarPenjualan";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import {
-  batalkanInvoice, batalkanPesanan, catatBeratDiterima, kirimPesanan, simpanPesanan, terbitkanInvoice, terbitkanInvoiceJasa, terimaPembayaran,
+  batalkanInvoice, batalkanPesanan, catatBeratDiterima, hapusPesanan, hapusUangMasuk, kirimPesanan, koreksiPesananTerkirim, koreksiUangMasuk,
+  simpanPesanan, terbitkanInvoice, terbitkanInvoiceJasa, terimaPembayaran,
 } from "@/lib/actions/penjualan";
 import type { DetailInvoice, DetailPesanan } from "@/lib/data/penjualan";
 import { rp, tanggal } from "@/lib/format";
 import { gramKeTeks, keGram, tampilKg } from "@/lib/logic/grid";
 import { jumlahBaris, LABEL_PESANAN, LABEL_TAGIHAN, linkWa, pesanPengingat, totalBaris } from "@/lib/logic/penjualan";
 import type { Opsi } from "@/lib/types/pembelian";
-import type { HasilTertunda, Invoice, JasaBelumDitagih, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
+import type { HasilTertunda, Invoice, JasaBelumDitagih, PembayaranPembeli, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
 
 type Props = {
   pesanan: Pesanan[];
@@ -35,6 +39,9 @@ type Props = {
   bolehBayar: boolean;
   bolehDokumen: boolean;
   hariIni: string;
+  /** Riwayat koreksi pesanan atau uang masuk yg lagi dibuka. */
+  koreksi: Koreksi[];
+  pengguna: Record<string, { nama: string }>;
 };
 
 const kgTeks = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
@@ -191,12 +198,65 @@ function BatalPesanan({ id }: { id: string }) {
   );
 }
 
-function DetailPesananModal({ d, unit, pembeli, siklus, hariIni, bolehBuat, bolehKirim, bolehInvoice, onTutup, onInvoice }: {
+/** Koreksi pesanan yg udah dikirim: berat kirim, berat diterima, harga, tanggal, catatan. Wajib alasan. */
+function KoreksiPesanan({ d, onSelesai }: { d: DetailPesanan; onSelesai: () => void }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(koreksiPesananTerkirim, undefined);
+  const [nilai, setNilai] = useState(() => d.baris.map((b) => ({ id: b.id, kirim: kgInput(b.kg_kirim), diterima: kgInput(b.kg_diterima), harga: String(b.harga_per_kg).replace(".", ",") })));
+  const ubah = (i: number, k: "kirim" | "diterima" | "harga", v: string) => setNilai((n) => n.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  useEffect(() => { if (state?.pesan && !state.error) onSelesai(); }, [state, onSelesai]);
+  return (
+    <form action={action} className="space-y-3" data-testid="form-koreksi-pesanan">
+      <input type="hidden" name="pesananId" value={d.pesanan.id} />
+      <input type="hidden" name="baris" value={JSON.stringify(nilai)} />
+      <PesanForm state={state?.error ? state : undefined} />
+      <p className="text-[12.5px]" style={{ color: MUTED }}>Berat yg dikurangin balik ke stok, yg ditambah diambil dari stok.{d.invoice ? ` Invoice ${d.invoice.kode} ikut dihitung ulang.` : ""}</p>
+      {d.baris.map((b, i) => (
+        <div key={b.id} className="space-y-1.5 rounded-2xl bg-white p-2.5 text-[13px]">
+          <p style={{ color: INK }}>{b.unit_kode} · {b.product_nama}{b.grade_kode ? ` ${b.grade_kode}` : ""}</p>
+          <div className="grid grid-cols-3 gap-2">
+            <label className="text-[11.5px]" style={{ color: MUTED }}>Kirim (kg)<input aria-label={`Koreksi berat kirim ${b.unit_kode}`} inputMode="decimal" className="mt-0.5 h-10 w-full rounded-xl border border-[#E2E4EA] px-2.5 text-right text-[13px]" style={{ color: INK }} value={nilai[i].kirim} onChange={(e) => ubah(i, "kirim", e.target.value)} /></label>
+            <label className="text-[11.5px]" style={{ color: MUTED }}>Diterima (kg)<input aria-label={`Koreksi berat diterima ${b.unit_kode}`} inputMode="decimal" placeholder="kosong" className="mt-0.5 h-10 w-full rounded-xl border border-[#E2E4EA] px-2.5 text-right text-[13px]" style={{ color: INK }} value={nilai[i].diterima} onChange={(e) => ubah(i, "diterima", e.target.value)} /></label>
+            <label className="text-[11.5px]" style={{ color: MUTED }}>Harga/kg<input aria-label={`Koreksi harga ${b.unit_kode}`} inputMode="decimal" className="mt-0.5 h-10 w-full rounded-xl border border-[#E2E4EA] px-2.5 text-right text-[13px]" style={{ color: INK }} value={nilai[i].harga} onChange={(e) => ubah(i, "harga", e.target.value)} /></label>
+          </div>
+        </div>
+      ))}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={d.pesanan.tanggal} required /></Field>
+        <Field label="Catatan"><TextIn name="catatan" maxLength={300} defaultValue={d.pesanan.catatan} /></Field>
+      </div>
+      <Field label="Alasan koreksi" hint="Wajib. Misalnya salah timbang atau salah harga." error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={500} required /></Field>
+      <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Simpan koreksi"}</Btn>
+    </form>
+  );
+}
+
+/** Satu uang masuk dari pembeli: koreksi (jumlah, tanggal, catatan) atau hapus kalau salah input/dobel. */
+function KoreksiUangMasuk({ b, onSelesai }: { b: PembayaranPembeli; onSelesai: () => void }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(koreksiUangMasuk, undefined);
+  useEffect(() => { if (state?.pesan && !state.error) onSelesai(); }, [state, onSelesai]);
+  return (
+    <form action={action} className="space-y-2.5 rounded-2xl p-3" style={{ background: "#F4F5F8" }} data-testid="form-koreksi-uang-masuk">
+      <input type="hidden" name="bayarId" value={b.id} />
+      <PesanForm state={state?.error ? state : undefined} />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Jumlah" error={state?.kolom?.jumlah?.[0]}><TextIn name="jumlah" inputMode="decimal" defaultValue={String(b.jumlah).replace(".", ",")} required /></Field>
+        <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={b.tanggal} required /></Field>
+      </div>
+      <Field label="Catatan"><TextIn name="catatan" maxLength={300} defaultValue={b.catatan} /></Field>
+      <Field label="Alasan koreksi" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={500} required /></Field>
+      <Btn type="submit" size="sm" full disabled={pending}>{pending ? "Menyimpan..." : "Simpan koreksi"}</Btn>
+      <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={onSelesai}>Nggak jadi</Btn></div>
+    </form>
+  );
+}
+
+function DetailPesananModal({ d, unit, pembeli, siklus, hariIni, bolehBuat, bolehKirim, bolehInvoice, koreksi, pengguna, onTutup, onInvoice }: {
   d: DetailPesanan; unit: UnitJual[]; pembeli: Pembeli[]; siklus: Opsi[]; hariIni: string; bolehBuat: boolean; bolehKirim: boolean; bolehInvoice: boolean;
-  onTutup: () => void; onInvoice: (id: string) => void;
+  koreksi: Koreksi[]; pengguna: Record<string, { nama: string }>; onTutup: () => void; onInvoice: (id: string) => void;
 }) {
   const p = d.pesanan;
   const [ubah, setUbah] = useState(false);
+  const [koreksiBuka, setKoreksiBuka] = useState(false);
   return (
     <Modal title={`${p.kode} · ${p.buyer_nama}`} onClose={onTutup}>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -206,6 +266,8 @@ function DetailPesananModal({ d, unit, pembeli, siklus, hariIni, bolehBuat, bole
       </div>
       {ubah && p.status === "draf" ? (
         <FormPesananJual unit={unit} pembeli={pembeli} siklus={siklus} hariIni={hariIni} awal={d} onSelesai={() => setUbah(false)} />
+      ) : koreksiBuka && p.status === "terkirim" ? (
+        <KoreksiPesanan d={d} onSelesai={() => setKoreksiBuka(false)} />
       ) : (
         <Inner className="!p-3.5">
           <div className="space-y-2">
@@ -235,7 +297,8 @@ function DetailPesananModal({ d, unit, pembeli, siklus, hariIni, bolehBuat, bole
         </div>
       )}
       {p.status === "dibatalkan" && <p className="text-[13px]" style={{ color: "#A8322B" }}>Dibatalkan: {p.alasan_batal}</p>}
-      {p.status === "terkirim" && (
+      {p.status === "terkirim" && bolehBuat && !koreksiBuka && <Btn size="sm" v="light" onClick={() => setKoreksiBuka(true)}>Koreksi pesanan</Btn>}
+      {p.status === "terkirim" && !koreksiBuka && (
         <div className="space-y-3">
           {d.invoice ? (
             <Btn full v="light" onClick={() => onInvoice(d.invoice!.id)}>Lihat invoice {d.invoice.kode} · {LABEL_TAGIHAN[d.invoice.status_tagihan]}</Btn>
@@ -246,6 +309,12 @@ function DetailPesananModal({ d, unit, pembeli, siklus, hariIni, bolehBuat, bole
             </>
           )}
         </div>
+      )}
+      <RiwayatKoreksi daftar={koreksi.filter((k) => k.ref_id === p.id)} pengguna={pengguna} />
+      {bolehBuat && p.status !== "terkirim" && !ubah && (
+        <HapusItem aksi={hapusPesanan} isian={{ pesananId: p.id }} tombol="Hapus pesanan" testId="form-hapus-pesanan"
+          keterangan={`${p.kode} bakal dihapus permanen dari daftar penjualan, kecatat di log hapus.`}
+          konfirmasi={`Yakin hapus ${p.kode}? Kalau cuma mau batal, pakai Batalkan pesanan aja.`} />
       )}
     </Modal>
   );
@@ -283,8 +352,11 @@ function BatalInvoice({ id }: { id: string }) {
   );
 }
 
-function InvoiceModal({ d, bolehInvoice, bolehBayar, bolehDokumen, hariIni, onTutup }: { d: DetailInvoice; bolehInvoice: boolean; bolehBayar: boolean; bolehDokumen: boolean; hariIni: string; onTutup: () => void }) {
+function InvoiceModal({ d, bolehInvoice, bolehBayar, bolehDokumen, hariIni, koreksi, pengguna, onTutup }: {
+  d: DetailInvoice; bolehInvoice: boolean; bolehBayar: boolean; bolehDokumen: boolean; hariIni: string; koreksi: Koreksi[]; pengguna: Record<string, { nama: string }>; onTutup: () => void;
+}) {
   const inv = d.invoice;
+  const [koreksiId, setKoreksiId] = useState<string | null>(null);
   const wa = inv.sisa > 0 ? linkWa(d.kontak, pesanPengingat({ pembeli: inv.buyer_nama, kode: inv.kode, sisa: inv.sisa, jatuhTempo: inv.jatuh_tempo, hariTelat: inv.hari_telat })) : null;
   return (
     <Modal title={`${inv.kode} · ${inv.buyer_nama}`} onClose={onTutup}>
@@ -315,6 +387,18 @@ function InvoiceModal({ d, bolehInvoice, bolehBayar, bolehDokumen, hariIni, onTu
         {d.pembayaran.map((b) => (
           <div key={b.id} className="rounded-2xl bg-white p-3.5">
             <div className="flex justify-between text-[13px]"><span style={{ color: INK }}>{b.kode} · {tanggal(b.tanggal)}{b.catatan ? ` · ${b.catatan}` : ""}</span><b style={{ color: INK }}>{rp(b.jumlah)}</b></div>
+            {bolehBayar && koreksiId !== b.id && (
+              <div className="mt-1.5 flex justify-end"><Btn size="sm" v="ghost" onClick={() => setKoreksiId(b.id)}>Koreksi</Btn></div>
+            )}
+            {bolehBayar && koreksiId === b.id && (
+              <div className="mt-2 space-y-2">
+                <KoreksiUangMasuk b={b} onSelesai={() => setKoreksiId(null)} />
+                <HapusItem aksi={hapusUangMasuk} isian={{ bayarId: b.id }} tombol="Hapus uang masuk" testId="form-hapus-uang-masuk"
+                  keterangan={`${b.kode} (${rp(b.jumlah)}) bakal dihapus permanen, termasuk baris buku kas sama bukti bayarnya.`}
+                  konfirmasi={`Yakin hapus ${b.kode}? Sisa tagihan ${inv.kode} bakal nambah lagi.`} onSelesai={() => setKoreksiId(null)} />
+              </div>
+            )}
+            <RiwayatKoreksi daftar={koreksi.filter((k) => k.ref_id === b.id)} pengguna={pengguna} />
             <div className="mt-2 space-y-2">
               <DaftarDokumen dokumen={d.dokumen.filter((x) => x.ref_tabel === "customer_payments" && x.ref_id === b.id)} kosong="Belum ada bukti transfer." />
               {bolehDokumen && (
@@ -379,7 +463,7 @@ function InvoiceJasa({ jasa }: { jasa: JasaBelumDitagih[] }) {
 }
 
 /* --------------------------------------------------------------- utama */
-export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda, bolehBuat, bolehKirim, bolehInvoice, bolehBayar, bolehDokumen, hariIni }: Props) {
+export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda, bolehBuat, bolehKirim, bolehInvoice, bolehBayar, bolehDokumen, hariIni, koreksi, pengguna }: Props) {
   const router = useRouter();
   const [baru, setBaru] = useState(false);
   const piutang = invoice.reduce((a, i) => a + Math.round(i.sisa * 100), 0) / 100;
@@ -414,10 +498,10 @@ export function PenjualanKelola({ pesanan, invoice, unit, pembeli, siklus, jasa,
       )}
       {detailP && (
         <DetailPesananModal key={detailP.pesanan.id + detailP.pesanan.status} d={detailP} unit={unit} pembeli={pembeli} siklus={siklus} hariIni={hariIni}
-          bolehBuat={bolehBuat} bolehKirim={bolehKirim} bolehInvoice={bolehInvoice} onTutup={() => router.push("/penjualan")} onInvoice={(id) => router.push(`/penjualan?inv=${id}`)} />
+          bolehBuat={bolehBuat} bolehKirim={bolehKirim} bolehInvoice={bolehInvoice} koreksi={koreksi} pengguna={pengguna} onTutup={() => router.push("/penjualan")} onInvoice={(id) => router.push(`/penjualan?inv=${id}`)} />
       )}
       {detailI && (
-        <InvoiceModal key={detailI.invoice.id} d={detailI} bolehInvoice={bolehInvoice} bolehBayar={bolehBayar} bolehDokumen={bolehDokumen} hariIni={hariIni} onTutup={() => router.push("/penjualan")} />
+        <InvoiceModal key={detailI.invoice.id} d={detailI} bolehInvoice={bolehInvoice} bolehBayar={bolehBayar} bolehDokumen={bolehDokumen} hariIni={hariIni} koreksi={koreksi} pengguna={pengguna} onTutup={() => router.push("/penjualan")} />
       )}
     </div>
   );

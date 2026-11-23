@@ -12,6 +12,8 @@ import { daftarBooking, daftarRuangan, daftarTagihan, daftarTarif, daftarUnit, g
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh } from "@/lib/izin";
+import { riwayatKoreksi } from "@/lib/data/koreksi";
+import { petaPengguna } from "@/lib/data/pembelian";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Gudang Dingin" };
 
@@ -53,11 +55,16 @@ async function GudangData({ searchParams }: { searchParams: PageProps<"/gudang">
   const sendiri = units.filter((u) => u.buyer_id === null && u.status === "aktif" && !u.langsung_kirim);
   const titipan = units.filter((u) => u.buyer_id !== null);
   const bolehLampiran = boleh(sesi, "dokumen.read");
-  const dokumen = bolehLampiran ? await dokumenDari("storage_units", titipan.filter((u) => u.status === "aktif").map((u) => u.id)) : [];
+  const idAktif = titipan.filter((u) => u.status === "aktif").map((u) => u.id);
+  const [dokumen, koreksi, pengguna] = await Promise.all([
+    bolehLampiran ? dokumenDari("storage_units", idAktif) : Promise.resolve([]),
+    bolehTulis ? riwayatKoreksi(["storage_units"], idAktif) : Promise.resolve([]),
+    bolehTulis ? petaPengguna() : Promise.resolve({}),
+  ]);
   return (
     <GudangKelola titipan={titipan} sendiri={sendiri} bolehStok={boleh(sesi, "stok.write")} isi={isi} ruangan={ruangan} tagihan={tagihan} tarif={tarif} booking={booking}
       pelanggan={pelanggan} produk={produk} grade={grade} mitra={mitra} bolehTulis={bolehTulis}
-      proyekTitip={proyek.filter((x) => x.lini_bisnis === "titip")} titipAwal={titipAwal.success ? titipAwal.data : null} bolehTarif={boleh(sesi, "pengaturan.write")} hariIni={hariIni()}
+      proyekTitip={proyek.filter((x) => x.lini_bisnis === "titip")} titipAwal={titipAwal.success ? titipAwal.data : null} koreksi={koreksi} pengguna={pengguna} bolehTarif={boleh(sesi, "pengaturan.write")} hariIni={hariIni()}
       lampiran={bolehLampiran ? { dokumen, bolehTulis: boleh(sesi, "dokumen.write") } : null} />
   );
 }

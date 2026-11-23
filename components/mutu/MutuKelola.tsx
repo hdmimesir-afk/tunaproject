@@ -5,10 +5,11 @@ import { Btn, Card, Field, Inner, Modal, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PilihGrade } from "@/components/ui/PilihGrade";
 import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
+import { HapusItem } from "@/components/ui/HapusItem";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { PemasokBaru } from "@/components/pembelian/PemasokBaru";
 import type { HasilForm } from "@/lib/actions/auth";
-import { ajukanPembelian, cekMutuLot, koreksiLot, terimaIkan } from "@/lib/actions/mutu";
+import { ajukanPembelian, cekMutuLot, hapusLot, koreksiLot, terimaIkan } from "@/lib/actions/mutu";
 import type { Koreksi } from "@/lib/data/koreksi";
 import { rp } from "@/lib/format";
 import { keGram } from "@/lib/logic/grid";
@@ -323,6 +324,12 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
         <Btn type="submit" full disabled={pending || (perEkor && (r.jumlah === 0 || r.salah.size > 0))}>{pending ? "Menyimpan..." : "Simpan koreksi"}</Btn>
         <RiwayatKoreksi daftar={koreksi} pengguna={pengguna} nama={nama} />
       </form>
+      {/* Lot dobel yg belum diajukan dan belum diolah bisa dihapus (23 Nov 2026). */}
+      {!lot.po_id && lot.sisa_kg >= lot.kg && (
+        <HapusItem aksi={hapusLot} isian={{ lotId: lot.id }} tombol="Hapus lot" testId="form-hapus-lot" onSelesai={onTutup}
+          keterangan={`${lot.kode} (${formatKg(lot.kg)} kg) bakal dihapus permanen, termasuk ekor, grading, sama lampirannya.`}
+          konfirmasi={`Yakin hapus ${lot.kode}? Cuma buat lot yg kecatat dobel atau salah input.`} />
+      )}
     </Modal>
   );
 }

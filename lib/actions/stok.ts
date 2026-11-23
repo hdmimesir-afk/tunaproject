@@ -257,3 +257,36 @@ export async function batalkanBooking(_: HasilForm, fd: FormData): Promise<Hasil
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   return panggil("gudang.write", "batalkan_booking", { p_id: p.data.bookingId, p_alasan: p.data.alasan }, "Jadwal dibatalkan.");
 }
+
+/* ----------------------------------------------------- koreksi dan hapus titipan (23 Nov 2026) */
+const Alasan = z.string().trim().min(1, "Tulis alasannya").max(500, "Maksimal 500 huruf");
+
+const FormKoreksiTitipan = z.object({
+  unitId: z.uuid(),
+  buyerId: z.uuid("Pilih pelanggan"),
+  productId: z.uuid("Pilih produk"),
+  gradeId: Opsional.pipe(z.uuid().nullable()),
+  kondisi: z.enum(["fresh", "beku"]),
+  kg: Kg,
+  // Proyek nggak selalu dikirim (kalau nggak ada proyek titip yg bisa dipilih): kosong = tanpa proyek.
+  siklusId: z.string().trim().optional().transform((s) => (s ? s : null)).pipe(z.uuid().nullable()),
+  catatan: z.string().trim().max(300),
+  alasan: Alasan,
+});
+
+/** Koreksi titipan: pemilik, produk, grade, kondisi, berat masuk, proyek, catatan. Wajib alasan, kecatat. */
+export async function koreksiTitipan(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = FormKoreksiTitipan.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("gudang.write", "koreksi_titipan", {
+    p_unit: p.data.unitId, p_buyer: p.data.buyerId, p_product: p.data.productId, p_grade: p.data.gradeId, p_kondisi: p.data.kondisi,
+    p_kg_masuk: p.data.kg, p_cycle: p.data.siklusId, p_catatan: p.data.catatan, p_alasan: p.data.alasan,
+  }, "Koreksi titipan udah kesimpan.");
+}
+
+/** Hapus titipan dobel yg masih utuh (belum ada yg keluar, belum ditagih). */
+export async function hapusTitipan(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ unitId: z.uuid(), alasan: Alasan }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("gudang.write", "hapus_titipan", { p_unit: p.data.unitId, p_alasan: p.data.alasan }, "Titipannya udah dihapus.");
+}

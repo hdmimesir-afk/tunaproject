@@ -18,6 +18,8 @@ import type { AturanTarif, Booking, IsiGudang, Ruangan, Tagihan, UnitStok } from
 import type { ProyekOpsi } from "@/lib/types/produksi";
 import { jamWib, keInputWib, sekarangInputWib } from "@/lib/waktu";
 import { FormAmbil, FormPindah } from "./AksiUnit";
+import { KoreksiTitipan } from "./KoreksiTitipan";
+import type { Koreksi } from "@/lib/data/koreksi";
 import { PilihRuangan, RuanganPanel } from "./Ruangan";
 
 type Props = {
@@ -42,6 +44,9 @@ type Props = {
   proyekTitip: ProyekOpsi[];
   /** Proyek titip yang baru dibikin dari form produksi: form Terima titipan langsung kebuka. */
   titipAwal: string | null;
+  /** Riwayat koreksi titipan + nama pengguna (23 Nov 2026). */
+  koreksi: Koreksi[];
+  pengguna: Record<string, { nama: string }>;
   /** Lampiran titipan (tanda terima, tagihan dari admin). Null bila pengguna tidak boleh melihat berkas. */
   lampiran: { dokumen: Dokumen[]; bolehTulis: boolean } | null;
 };
@@ -246,7 +251,8 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
 }
 
 /* --------------------------------------------------------------- utama */
-export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehStok, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal }: Props) {
+export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehStok, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal, koreksi, pengguna }: Props) {
+  const [koreksiUnit, setKoreksiUnit] = useState<UnitStok | null>(null);
   const [terima, setTerima] = useState(!!titipAwal && bolehTulis);
   const [ambil, setAmbil] = useState<UnitStok | null>(null);
   const [pindah, setPindah] = useState<UnitStok | null>(null);
@@ -295,6 +301,7 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
             <>
               {bolehTulis && <Btn size="sm" v="light" onClick={() => setAmbil(u)}>Ambil</Btn>}
               {bolehTulis && ruangan.length > 0 && <Btn size="sm" v="ghost" onClick={() => setPindah(u)}>Pindah</Btn>}
+              {bolehTulis && <Btn size="sm" v="ghost" onClick={() => setKoreksiUnit(u)}>Koreksi</Btn>}
               {lampiran && (
                 <TombolLampiran judul={`Lampiran ${u.kode} · ${u.pemilik_nama}`} refTabel="storage_units" refId={u.id}
                   dokumen={lampiran.dokumen.filter((d) => d.ref_id === u.id)} unggah={UNGGAH_TITIPAN} bolehTulis={lampiran.bolehTulis} />
@@ -376,6 +383,10 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
       {pindah && <Modal title={`Pindah ${pindah.kode}`} onClose={() => setPindah(null)}><FormPindah unit={pindah} ruangan={ruangan} onTutup={() => setPindah(null)} /></Modal>}
       {aturRuangan && <Modal title={`Atur ${aturRuangan.nama}`} onClose={() => setAturRuangan(null)}><FormRuangan r={aturRuangan} onTutup={() => setAturRuangan(null)} /></Modal>}
       {rincian && <RincianTagihan t={rincian} onTutup={() => setRincian(null)} />}
+      {koreksiUnit && (
+        <KoreksiTitipan key={koreksiUnit.id} unit={koreksiUnit} pelanggan={pelanggan} produk={produk} grade={grade}
+          proyek={proyekTitip.map((x) => ({ id: x.id, label: x.label }))} koreksi={koreksi} pengguna={pengguna} onTutup={() => setKoreksiUnit(null)} />
+      )}
       {ubah && <Modal title={`Ubah tarif ${LABEL_JASA[ubah.jenis]}`} onClose={() => setUbah(null)}><FormTarif aturan={ubah} hariIni={hariIni} onTutup={() => setUbah(null)} /></Modal>}
       {jadwalBaru && <Modal title="Tambah jadwal" onClose={() => setJadwalBaru(false)}><FormBooking booking={booking} mitra={mitra} onTutup={() => setJadwalBaru(false)} /></Modal>}
       {aksi && <Modal title="Atur jadwal" onClose={() => setAksi(null)}><AksiBooking b={aksi} booking={booking} onTutup={() => setAksi(null)} /></Modal>}

@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
 import { keGram } from "@/lib/logic/grid";
@@ -162,4 +163,59 @@ export async function terimaPembayaran(_: HasilForm, fd: FormData): Promise<Hasi
   const p = z.object({ invoiceId: z.uuid(), jumlah: Harga, tanggal: z.iso.date("Isi tanggal"), catatan: z.string().trim().max(300) }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   return panggil("terima_bayar.write", "terima_pembayaran", { p_invoice: p.data.invoiceId, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan }, "Pembayaran udah dicatat. Kalau ada bukti transfer, lampirkan sekalian.");
+}
+
+/* ------------------------------------------------------------ koreksi dan hapus (23 Nov 2026) */
+const Alasan = z.string().trim().min(1, "Tulis alasannya").max(500, "Maksimal 500 huruf");
+
+const FormKoreksiPesanan = z.object({
+  pesananId: z.uuid(),
+  tanggal: z.iso.date("Isi tanggal"),
+  catatan: z.string().trim().max(300),
+  alasan: Alasan,
+  baris: dariJson(z.array(z.object({ id: z.uuid(), kirim: z.string(), diterima: z.string(), harga: z.string() })).min(1), "Isi baris pesanan"),
+});
+
+/** Koreksi pesanan yg udah dikirim: berat kirim, berat diterima, harga, tanggal, catatan. Stok dan invoice ikut disesuaikan. */
+export async function koreksiPesananTerkirim(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = FormKoreksiPesanan.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const baris = [];
+  for (const [i, b] of p.data.baris.entries()) {
+    const kirim = Kg.safeParse(b.kirim);
+    const diterima = KgOpsional.safeParse(b.diterima);
+    const harga = Harga.safeParse(b.harga);
+    if (!kirim.success || !diterima.success || !harga.success) return { error: `Baris ${i + 1}: cek lagi berat kirim, berat diterima (boleh kosong), sama harganya.` };
+    baris.push({ id: b.id, kg_kirim: kirim.data, kg_diterima: diterima.data, harga_per_kg: harga.data });
+  }
+  return panggil("penjualan.write", "koreksi_pesanan_terkirim", {
+    p_order: p.data.pesananId, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan, p_baris: baris, p_alasan: p.data.alasan,
+  }, "Koreksi pesanan udah kesimpan. Stok sama invoice-nya ikut disesuaikan.");
+}
+
+/** Hapus pesanan dobel (draf atau batal). Abis itu balik ke daftar penjualan. */
+export async function hapusPesanan(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ pesananId: z.uuid(), alasan: Alasan }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const tolak = await izin("penjualan.write");
+  if (tolak) return tolak;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("hapus_pesanan", { p_order: p.data.pesananId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  redirect("/penjualan");
+}
+
+export async function koreksiUangMasuk(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ bayarId: z.uuid(), jumlah: Harga, tanggal: z.iso.date("Isi tanggal"), catatan: z.string().trim().max(300), alasan: Alasan })
+    .safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("terima_bayar.write", "koreksi_uang_masuk", {
+    p_payment: p.data.bayarId, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_catatan: p.data.catatan, p_alasan: p.data.alasan,
+  }, "Koreksi uang masuk udah kesimpan, buku kasnya ikut dibenerin.");
+}
+
+export async function hapusUangMasuk(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ bayarId: z.uuid(), alasan: Alasan }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("terima_bayar.write", "hapus_uang_masuk", { p_payment: p.data.bayarId, p_alasan: p.data.alasan }, "Uang masuknya udah dihapus.");
 }

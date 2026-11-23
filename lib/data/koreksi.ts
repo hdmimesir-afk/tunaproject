@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 /** Satu koreksi data: alasan, siapa, kapan, dan isian sebelum/sesudahnya. */
 export type Koreksi = {
   id: string;
-  tabel: "lots" | "purchase_orders" | "payments" | "productions" | "cycles" | "expenses";
+  tabel: "lots" | "purchase_orders" | "payments" | "productions" | "cycles" | "expenses" | "sales_orders" | "customer_payments" | "storage_units";
   ref_id: string;
   kode: string;
   alasan: string;

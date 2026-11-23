@@ -234,3 +234,16 @@ export async function ajukanPembelian(input: z.input<typeof FormAjukan>): Promis
   refresh();
   return { id: data as string, pesan: "Pembelian udah diajukan. Tinggal nunggu disetujui, PO-nya terbit habis itu." };
 }
+
+/** Hapus lot dobel (23 Nov 2026): cuma lot yg belum diajukan pembeliannya dan belum dipakai produksi. Kecatat di log hapus. */
+export async function hapusLot(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ lotId: z.uuid(), alasan: z.string().trim().min(1, "Tulis alasannya").max(500) }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const tolak = await izin("penerimaan.write");
+  if (tolak) return tolak;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("hapus_lot", { p_lot: p.data.lotId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Lotnya udah dihapus." };
+}

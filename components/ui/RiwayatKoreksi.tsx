@@ -9,6 +9,7 @@ const LABEL: Record<string, string> = {
   total: "Total", batal: "Dibatalkan", jumlah: "Jumlah", kg_masuk_pt: "Berat ikan dari PT", status: "Status", lot: "Lot",
   qc: "Status mutu", grade: "Grading", nama: "Nama proyek", lini_bisnis: "Lini bisnis", pt_id: "PT",
   kategori: "Kategori", uraian: "Uraian", po_id: "PO", production_id: "Produksi",
+  baris: "Isi pesanan", pemilik: "Pemilik", produk: "Produk", kondisi: "Kondisi", kg_kirim: "kirim", kg_diterima: "diterima", unit: "",
 };
 
 function teks(v: unknown, nama: Record<string, string>): string {
@@ -16,7 +17,9 @@ function teks(v: unknown, nama: Record<string, string>): string {
   if (typeof v === "boolean") return v ? "ya" : "nggak";
   if (typeof v === "number") return v.toLocaleString("id-ID");
   if (typeof v === "string") return nama[v] ?? (/^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : v);
-  if (typeof v === "object") return Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k} ${teks(x, nama)}`).join(", ") || "-";
+  // Daftar (misalnya isi pesanan): tiap baris dipisah titik koma.
+  if (Array.isArray(v)) return v.map((x) => teks(x, nama)).join("; ") || "-";
+  if (typeof v === "object") return Object.entries(v as Record<string, unknown>).map(([k, x]) => `${LABEL[k] ?? k} ${teks(x, nama)}`.trim()).join(", ") || "-";
   return String(v);
 }
 
