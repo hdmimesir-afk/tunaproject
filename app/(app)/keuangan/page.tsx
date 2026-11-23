@@ -10,7 +10,10 @@ import { berkasBiaya, bukuBulanan, bukuKas, daftarBiaya, kategoriBiaya, rujukanB
 import { siklusTerbuka } from "@/lib/data/penjualan";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { KeuanganOwner } from "@/components/owner/KeuanganOwner";
+import { laporanKeuanganOwner } from "@/lib/data/laporanOwner";
+import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Keuangan" };
 
@@ -34,6 +37,10 @@ async function KeuanganData({ searchParams }: { searchParams: PageProps<"/keuang
   if (!boleh(sesi, "keuangan.read")) return <TanpaIzin />;
   const sp = await searchParams;
   const b = z.uuid().safeParse(typeof sp.b === "string" ? sp.b : "");
+  if (sesi.roleId === PERAN_OWNER && sp.lengkap !== "1" && !b.success) {
+    const [lap, buku] = await Promise.all([laporanKeuanganOwner(isPeriodeOwner(sp.periode) ? sp.periode : "30"), bukuBulanan()]);
+    return <KeuanganOwner lap={lap} buku={buku} />;
+  }
   const bolehTulis = boleh(sesi, "keuangan.write");
   const [biaya, kategori, siklus, rujukan, kas, buku] = await Promise.all([
     daftarBiaya(), kategoriBiaya(), bolehTulis ? siklusTerbuka() : Promise.resolve([]),

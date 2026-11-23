@@ -3,7 +3,7 @@
    jangan kaku). Jumlah tes dan catatan kas yang diimpor diambil dari pemeriksaan lengkap per 26 Oktober 2026 (PERIKSA_LENGKAP), jumlah menu
    dan jabatan dihitung ulang per 11 November 2026. Tidak ada angka perkiraan. Pembaruan sesudah 26 Oktober dicatat di PERJALANAN dan TERBARU. */
 
-export const TANGGAL = "22 November 2026";
+export const TANGGAL = "23 November 2026";
 export const PERIKSA_LENGKAP = "26 Oktober 2026";
 
 /* ---------------------------------------------------------------- angka */
@@ -32,6 +32,7 @@ export const PERJALANAN = [
   { tanggal: "19 November", judul: "Jawaban tim soal bayar dan titipan", isi: "Nelayan sekarang dibayar 2 termin, 50% dulu trus sisanya paling lambat 10 hari kerja. Ada pilihan harga cong (satu harga per kg). Titipan gak ada transit lagi, minimal 10 hari." },
   { tanggal: "21 November", judul: "Stok jadi dashboard, proyek di produksi", isi: "Hasil produksi yg udah disetujui Owner sekarang masuk stok sendiri, gak perlu diinput lagi. Halaman Stok jadi dashboard buat orang produksi. Proyek cuma dipilih pas mulai produksi, pas terima ikan gak perlu lagi." },
   { tanggal: "22 November", judul: "Pengaman data dan jenis ikan", isi: "Kirim barang gak bisa lebih dari pesanan dan gak bisa makan jatah pesanan lain. Terima ikan gak bisa kecatet dobel walaupun tombolnya keteken dua kali. Ada isian jenis ikan, Mulai Produksi bisa langsung dari Stok, dan jalur input stok yg lama saya tutup." },
+  { tanggal: "23 November", judul: "Halaman khusus owner", isi: "Owner sekarang punya beranda sendiri isinya saldo, untung, modal balik, grafik 30 hari, sama ringkasan tiap bagian. Halaman Mutu, Produksi, Stok, Penjualan, Keuangan sama Absensi buat owner tampil jadi laporan yg gampang dibaca, gak kayak layar kerja. Kalo mau liat data lengkapnya tinggal pencet Buka halaman lengkap." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */

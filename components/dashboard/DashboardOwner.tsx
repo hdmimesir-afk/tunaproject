@@ -30,7 +30,7 @@ const persen = (n: number) => `${n.toLocaleString("id-ID", { minimumFractionDigi
 const KARTU = "rounded-[26px] p-4 md:p-5";
 const GAYA_KARTU = { background: "rgba(248,249,252,.82)", border: "1px solid rgba(255,255,255,.95)", boxShadow: "0 6px 24px rgba(40,50,80,.05)" } as const;
 
-function Bagian({ judul, kanan, children, className = "" }: { judul: string; kanan?: React.ReactNode; children: React.ReactNode; className?: string }) {
+export function Bagian({ judul, kanan, children, className = "" }: { judul: string; kanan?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
     <section className={`${KARTU} ${className}`} style={GAYA_KARTU}>
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -66,7 +66,7 @@ function BarisTindakan({ t }: { t: ItemTindakan }) {
   );
 }
 
-function Tindakan({ daftar, judul = "Perlu tindakan Anda" }: { daftar: ItemTindakan[]; judul?: string }) {
+export function Tindakan({ daftar, judul = "Perlu tindakan Anda" }: { daftar: ItemTindakan[]; judul?: string }) {
   const mendesak = daftar.filter((t) => t.mendesak).length;
   const awal = daftar.slice(0, TAMPIL_AWAL);
   const sisa = daftar.slice(TAMPIL_AWAL);
@@ -281,7 +281,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
 }
 
 /** Buat owner, rincian (kas bulanan, grafik, proyek, foto, lampiran, dokumen) dilipat biar dashboard-nya simpel. */
-function Lipat({ aktif, children }: { aktif: boolean; children: React.ReactNode }) {
+export function Lipat({ aktif, children }: { aktif: boolean; children: React.ReactNode }) {
   if (!aktif) return <>{children}</>;
   return (
     <details className="group" data-testid="rincian-owner">

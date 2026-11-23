@@ -10,7 +10,10 @@ import { petaPengguna } from "@/lib/data/pembelian";
 import { batasHasil, daftarProduksi, daftarPT, detailProduksi, gradeProduksi, jenisHasilSamping, lotSiapProduksi, proyekTerbuka, ringkasGradeProduksi } from "@/lib/data/produksi";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { ProduksiOwner } from "@/components/owner/ProduksiOwner";
+import { laporanProduksiOwner } from "@/lib/data/laporanOwner";
+import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Produksi" };
 
@@ -34,6 +37,10 @@ async function ProduksiData({ searchParams }: { searchParams: PageProps<"/produk
   if (!boleh(sesi, "produksi.read")) return <TanpaIzin />;
   const sp = await searchParams;
   const id = z.uuid().safeParse(typeof sp.p === "string" ? sp.p : "");
+  // Owner: halaman laporan produksi sendiri. Buka satu produksi (?p=) tetap pakai rincian biasa (ada tombol Setujui).
+  if (sesi.roleId === PERAN_OWNER && sp.lengkap !== "1" && !id.success) {
+    return <ProduksiOwner lap={await laporanProduksiOwner(isPeriodeOwner(sp.periode) ? sp.periode : "7")} />;
+  }
   const bolehTulis = boleh(sesi, "produksi.write");
   const [daftar, lot, grade, samping, pengguna, batas, detail, proyek, pt] = await Promise.all([
     daftarProduksi(),

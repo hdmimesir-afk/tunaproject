@@ -11,17 +11,20 @@ import { daftarLot, gradeAktif, potonganGancu } from "@/lib/data/mutu";
 import { aturanLampiran, daftarSiklus, pemasokAktif, petaPengguna } from "@/lib/data/pembelian";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { MutuOwner } from "@/components/owner/MutuOwner";
+import { laporanMutuOwner } from "@/lib/data/laporanOwner";
+import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Mutu dan Penerimaan" };
 
-export default function MutuPage() {
+export default function MutuPage(props: PageProps<"/mutu">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
       <Judul kicker="Ikan datang ditimbang, digrading, terus diajukan pembeliannya" judul="Mutu dan Penerimaan" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
-          <MutuData />
+          <MutuData searchParams={props.searchParams} />
         </Suspense>
       ) : (
         <Belum />
@@ -30,9 +33,12 @@ export default function MutuPage() {
   );
 }
 
-async function MutuData() {
+async function MutuData({ searchParams }: { searchParams: PageProps<"/mutu">["searchParams"] }) {
   const sesi = await requireSesi();
   if (!boleh(sesi, "mutu.read")) return <TanpaIzin />;
+  const sp = await searchParams;
+  // Owner dapet laporan ringkas; halaman kerja tim tetap bisa dibuka lewat ?lengkap=1.
+  if (sesi.roleId === PERAN_OWNER && sp.lengkap !== "1") return <MutuOwner lap={await laporanMutuOwner(isPeriodeOwner(sp.periode) ? sp.periode : "7")} />;
   const bolehTerima = boleh(sesi, "penerimaan.write");
   const bolehLampiran = boleh(sesi, "dokumen.read");
   const [lots, grade, aturan, pemasok, siklus, pengguna, potonganKg] = await Promise.all([

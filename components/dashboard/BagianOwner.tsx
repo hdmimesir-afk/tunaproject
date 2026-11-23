@@ -41,7 +41,7 @@ const Kosong = ({ children }: { children: React.ReactNode }) => (
 );
 
 /** Tombol kecil "Atur" yg buka isian satu angka pengaturan (saldo awal atau modal). */
-function AturAngka({ kunci, nilai, judul, label }: { kunci: KunciPengaturan; nilai: number; judul: string; label: string }) {
+export function AturAngka({ kunci, nilai, judul, label }: { kunci: KunciPengaturan; nilai: number; judul: string; label: string }) {
   const [buka, setBuka] = useState(false);
   return (
     <>

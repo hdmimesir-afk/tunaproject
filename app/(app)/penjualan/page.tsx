@@ -9,7 +9,10 @@ import { requireSesi } from "@/lib/data/auth";
 import { daftarInvoice, daftarPesanan, detailInvoice, detailPesanan, hasilBelumSiapJual, jasaBelumDitagih, pembeliAktif, siklusTerbuka, unitDijual } from "@/lib/data/penjualan";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { PenjualanOwner } from "@/components/owner/PenjualanOwner";
+import { laporanPenjualanOwner } from "@/lib/data/laporanOwner";
+import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Penjualan" };
 
@@ -34,6 +37,9 @@ async function PenjualanData({ searchParams }: { searchParams: PageProps<"/penju
   const sp = await searchParams;
   const p = z.uuid().safeParse(typeof sp.p === "string" ? sp.p : "");
   const inv = z.uuid().safeParse(typeof sp.inv === "string" ? sp.inv : "");
+  if (sesi.roleId === PERAN_OWNER && sp.lengkap !== "1" && !p.success && !inv.success) {
+    return <PenjualanOwner lap={await laporanPenjualanOwner(isPeriodeOwner(sp.periode) ? sp.periode : "30")} />;
+  }
   const bolehBuat = boleh(sesi, "penjualan.write");
   const bolehInvoice = boleh(sesi, "invoice.write");
   const [pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda] = await Promise.all([

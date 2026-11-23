@@ -9,7 +9,8 @@ import { requireSesi } from "@/lib/data/auth";
 import { absenSaya, absensiHarian, daftarIzin, lokasiKerja, rekapKehadiran } from "@/lib/data/absensi";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { AbsensiOwner } from "@/components/owner/AbsensiOwner";
 import { bulanSah } from "@/lib/logic/absensi";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Absensi" };
@@ -40,6 +41,10 @@ async function AbsensiData({ searchParams }: { searchParams: PageProps<"/absensi
   const tgl = z.iso.date().safeParse(typeof sp.tanggal === "string" ? sp.tanggal : "");
   const tanggalHarian = tgl.success ? tgl.data : hari;
   const bolehRekap = boleh(sesi, "absensi.rekap");
+  if (sesi.roleId === PERAN_OWNER && sp.lengkap !== "1" && bolehRekap) {
+    const [izinOwner, rekapOwner, hariIniOwner] = await Promise.all([daftarIzin(), rekapKehadiran(bulan), absensiHarian(hari)]);
+    return <AbsensiOwner hari={hari} bulan={bulan} rekap={rekapOwner} harian={hariIniOwner} izin={izinOwner} />;
+  }
   const [lokasi, saya, izin, rekap, harian] = await Promise.all([
     lokasiKerja(),
     absenSaya(sesi.userId),
