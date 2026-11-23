@@ -717,6 +717,11 @@ export const BAB: Bab[] = [
         keterangan: "Form Buat akun pengguna.",
       },
       {
+        judul: "Menghapus akun",
+        langkah: ["Tekan Lepas peran di akun itu dulu, terus Ya, lepas peran dan nonaktifkan.", "Tekan Hapus akun, isi alasannya (misalnya akun uji).", "Tekan Hapus akun, terus Ya, hapus permanen."],
+        catatan: "Hapus akun nggak bisa dibalikin, emailnya bisa dipakai lagi buat bikin akun baru. Akun sendiri, akun Owner, dan akun yg punya catatan absen atau izin nggak bisa dihapus, cukup dinonaktifin. Tiap hapus kecatat di log hapus.",
+      },
+      {
         judul: "Mengirim tautan aktivasi",
         langkah: ["Habis akun dibikin, tautannya muncul di layar.", "Tekan Kirim lewat WhatsApp atau Salin tautan.", "Pastiin orangnya buka tautan itu dalam 24 jam."],
         gambar: "14-akses-tautan",

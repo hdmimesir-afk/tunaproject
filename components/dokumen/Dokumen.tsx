@@ -5,6 +5,7 @@ import { Btn, Icon, Modal } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { catatDokumen, urlDokumen } from "@/lib/actions/pembelian";
 import { ukuranBerkas, waktu } from "@/lib/format";
+import { BISA_DIKOMPRES, kompresFoto } from "@/lib/kompresFoto";
 import type { Dokumen, JenisDokumen, RefDokumen } from "@/lib/types/pembelian";
 
 /* Berkas diunggah langsung dari browser ke bucket privat (dengan sesi pengguna, jadi kebijakan Storage berlaku),
@@ -45,6 +46,14 @@ export function Unggah({ refTabel, refId, jenis, label = "Lampirkan berkas" }: {
           file = await keJpeg(asli);
         } catch {
           return setGalat("Foto HEIC-nya nggak bisa dibaca. Coba foto ulang, atau kirim sebagai JPEG.");
+        }
+      }
+      // Foto dikompres jadi WebP dulu (sisi terpanjang 2000 px, angka timbangan dan tulisan nota tetap kebaca). PDF nggak disentuh.
+      if ((BISA_DIKOMPRES as readonly string[]).includes(file.type)) {
+        try {
+          file = await kompresFoto(file);
+        } catch {
+          // Kalau gagal dikompres, foto aslinya tetap diunggah (asal jenisnya boleh).
         }
       }
       const tipe = TIPE.find((t) => t === file.type);

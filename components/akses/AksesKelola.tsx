@@ -5,7 +5,7 @@ import { KotakCari, useCari } from "@/components/ui/Cari";
 import { Btn, Card, Field, Inner, Pill, TextIn } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
-import { aturTugas, lepasPeran, tautanAturSandi, ubahEmail, ubahPengguna, undangPengguna } from "@/lib/actions/akses";
+import { aturTugas, hapusAkun, lepasPeran, tautanAturSandi, ubahEmail, ubahPengguna, undangPengguna } from "@/lib/actions/akses";
 import type { HasilForm } from "@/lib/actions/auth";
 
 export type Pengguna = { user_id: string; nama: string; email: string; role_id: string | null; aktif: boolean };
@@ -120,6 +120,24 @@ function TombolLepasPeran({ u, namaPeran }: { u: Pengguna; namaPeran: string }) 
   );
 }
 
+/** Hapus akun permanen: cuma buat akun yg udah dilepas perannya (nonaktif, tanpa peran). Wajib alasan, dua langkah. */
+function TombolHapusAkun({ u }: { u: Pengguna }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(hapusAkun, undefined);
+  const [buka, setBuka] = useState(false);
+  if (!buka) return <Btn size="sm" v="ghost" onClick={() => setBuka(true)}>Hapus akun</Btn>;
+  return (
+    <form action={action} className="w-full max-w-[460px] space-y-2 rounded-2xl p-3" style={{ background: "#FBE5E3" }} data-testid="form-hapus-akun">
+      <input type="hidden" name="userId" value={u.user_id} />
+      <p className="text-[12.5px]" style={{ color: "#A8322B" }}>Akun {u.nama || u.email} bakal dihapus permanen dan nggak bisa dibalikin. Emailnya bisa dipakai lagi buat bikin akun baru. Kecatat di log hapus.</p>
+      <input name="alasan" required maxLength={500} placeholder="Alasan, misalnya akun uji" aria-label={`Alasan hapus ${u.email}`}
+        className="h-9 w-full rounded-xl border border-[#E8B4AE] bg-white px-3 text-[13px] outline-none focus:border-[#A8322B]" />
+      <KonfirmasiDua size="sm" v="danger" label="Hapus akun" labelYa="Ya, hapus permanen" pending={pending} pesan={`Hapus ${u.email} permanen?`} />
+      <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={() => setBuka(false)}>Batal</Btn></div>
+      <Galat state={state} />
+    </form>
+  );
+}
+
 /** Baris pengguna beserta tombol tautan atur sandi dan lepas peran (di luar form ubah peran supaya form tidak bersarang). */
 function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwner: boolean; terisi: Set<string> }) {
   const bolehTautan = p.u.user_id !== p.saya && (p.u.role_id !== "owner" || p.bolehOwner);
@@ -136,6 +154,7 @@ function BarisPengguna(p: { u: Pengguna; peran: Peran[]; saya: string; bolehOwne
           {bolehEmail && <UbahEmailForm u={p.u} />}
           {bolehTautan && <TombolTautanSandi userId={p.u.user_id} />}
           {bolehTautan && p.u.role_id && namaPeran && <TombolLepasPeran u={p.u} namaPeran={namaPeran} />}
+          {bolehTautan && !p.u.role_id && !p.u.aktif && <TombolHapusAkun u={p.u} />}
         </div>
       )}
     </div>

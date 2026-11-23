@@ -5,6 +5,7 @@ import { Btn, Modal } from "@/components/ui";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { catatAbsen, type HasilAbsen } from "@/lib/actions/absensi";
 import { hariIni } from "@/lib/format";
+import { kanvasKeFoto } from "@/lib/kompresFoto";
 import { tampilJarak, ukuranFoto } from "@/lib/logic/absensi";
 
 /* Absen = lokasi GPS + foto langsung dari kamera. Foto diambil dari aliran kamera (bukan dari galeri), diperkecil,
@@ -62,12 +63,13 @@ export function DialogAbsen({ jenis, userId, onTutup }: { jenis: "masuk" | "pula
       kanvas.width = lebar;
       kanvas.height = tinggi;
       kanvas.getContext("2d")?.drawImage(v, 0, 0, lebar, tinggi);
-      const blob = await new Promise<Blob | null>((ok) => kanvas.toBlob(ok, "image/jpeg", 0.72));
+      // Selfie disimpan WebP (lebih kecil); browser yg belum bisa bikin WebP otomatis pakai JPEG.
+      const blob = await kanvasKeFoto(kanvas, 0.72);
       if (!blob) return setHasil({ error: "Fotonya gagal diambil. Coba lagi ya." });
-      const path = `${userId}/${hariIni()}-${jenis}-${crypto.randomUUID()}.jpg`;
+      const path = `${userId}/${hariIni()}-${jenis}-${crypto.randomUUID()}.${blob.type === "image/webp" ? "webp" : "jpg"}`;
       // Klien Supabase baru dimuat pas fotonya dikirim, biar halaman Absensi ringan dari awal.
       const { createClient } = await import("@/lib/supabase/client");
-      const { error } = await createClient().storage.from("absensi").upload(path, blob, { contentType: "image/jpeg", upsert: false });
+      const { error } = await createClient().storage.from("absensi").upload(path, blob, { contentType: blob.type, upsert: false });
       if (error) return setHasil({ error: "Fotonya gagal diunggah. Cek sinyal dulu, terus coba lagi." });
       setHasil(await catatAbsen({ jenis, lat: posisi.lat, lng: posisi.lng, akurasi: posisi.akurasi, foto: path }));
     });

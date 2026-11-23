@@ -148,6 +148,26 @@ export async function lepasPeran(_: HasilForm, fd: FormData): Promise<HasilForm>
   return { pesan: "Peran udah dilepas, akunnya juga udah dinonaktifkan." };
 }
 
+const Hapus = z.object({
+  userId: z.uuid(),
+  alasan: z.string().trim().min(1, "Tulis alasan hapusnya").max(500, "Alasannya kepanjangan"),
+});
+
+/** Hapus akun permanen (profil + akun login). Cuma akun yg udah nonaktif dan tanpa peran, bukan akun sendiri atau Owner,
+   dan nggak punya catatan absen. Semua dicek ulang di database (public.hapus_akun) dan kecatat di log hapus. */
+export async function hapusAkun(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const a = await izinAkses();
+  if ("error" in a) return a;
+  const p = Hapus.safeParse({ userId: fd.get("userId"), alasan: fd.get("alasan") });
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors, error: p.error.issues[0]?.message };
+  if (p.data.userId === a.sesi.userId) return { error: "Akun sendiri nggak bisa dihapus." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("hapus_akun", { p_user: p.data.userId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Akunnya udah dihapus." };
+}
+
 const Ubah = z.object({
   userId: z.uuid(),
   roleId: z.enum(PERAN),
