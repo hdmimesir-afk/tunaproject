@@ -3,16 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
+import { BiayaTetap } from "./BiayaTetap";
 import { BukuKas } from "./BukuKas";
+import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
+import type { Koreksi } from "@/lib/data/koreksi";
 import { Periode } from "./Periode";
 import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { ajukanBiaya, putuskanBiaya, simpanBiaya } from "@/lib/actions/keuangan";
+import { ajukanBiaya, hapusBiaya, koreksiBiaya, putuskanBiaya, simpanBiaya } from "@/lib/actions/keuangan";
 import { rp, tanggal } from "@/lib/format";
-import type { Biaya, BarisKas, BukuBulanan, KategoriBiaya } from "@/lib/types/keuangan";
+import type { Biaya, BiayaTetap as TipeBiayaTetap, BarisKas, BukuBulanan, KategoriBiaya } from "@/lib/types/keuangan";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
 
 type Props = {
@@ -23,7 +26,9 @@ type Props = {
   kas: BarisKas[];
   buku: BukuBulanan[];
   bolehTutup: boolean;
-  detail: { biaya: Biaya; berkas: Dokumen[] } | null;
+  detail: { biaya: Biaya; berkas: Dokumen[]; koreksi: Koreksi[] } | null;
+  biayaTetap: TipeBiayaTetap[];
+  pengguna: Record<string, { nama: string }>;
   bolehTulis: boolean;
   bolehSetuju: boolean;
   bolehDokumen: boolean;
@@ -35,10 +40,17 @@ type Rujukan = { po: Opsi[]; produksi: Opsi[] };
 /** "PO-0003 · SIK-0001" dari kolom rujukan yang terisi. */
 const rujukanTeks = (b: Biaya) => [b.po_kode, b.produksi_kode, b.siklus_kode].filter(Boolean).join(" · ") || "-";
 
-function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai }: { kategori: KategoriBiaya[]; siklus: Opsi[]; rujukan: Rujukan; hariIni: string; awal: Biaya | null; onSelesai: (id: string) => void }) {
-  const [state, action, pending] = useActionState<HasilForm, FormData>(simpanBiaya, undefined);
+/** Form biaya. `koreksi`: buat biaya yg udah diajukan atau disetujui, wajib alasan dan langsung berlaku (buku kas ikut dibenerin). */
+function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai, koreksi = false }: {
+  kategori: KategoriBiaya[]; siklus: Opsi[]; rujukan: Rujukan; hariIni: string; awal: Biaya | null; onSelesai: (id: string) => void; koreksi?: boolean;
+}) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(koreksi ? koreksiBiaya : simpanBiaya, undefined);
   const [kat, setKat] = useState(awal?.category_id ?? "");
-  useEffect(() => { if (state?.id && !state.error) onSelesai(state.id); }, [state, onSelesai]);
+  useEffect(() => {
+    if (state?.error || state?.kolom) return;
+    if (state?.id) onSelesai(state.id);
+    else if (koreksi && state?.pesan && awal) onSelesai(awal.id);
+  }, [state, onSelesai, koreksi, awal]);
   const k = kategori.find((x) => x.id === kat);
   return (
     <form action={action} className="space-y-3">
@@ -66,7 +78,39 @@ function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai }: { ka
       <Field label="Proyek" hint="Biar masuk laba rugi proyek itu. Kalau dikosongin, ikut proyek PO atau produksinya.">
         <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Ikut PO/produksi, atau tanpa proyek</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
-      <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : awal ? "Simpan perubahan" : "Simpan draf biaya"}</Btn>
+      {koreksi && (
+        <>
+          <Field label="Alasan koreksi" hint="Wajib. Misalnya salah ketik jumlah atau salah kategori." error={state?.kolom?.alasan?.[0]}>
+            <TextIn name="alasan" maxLength={500} required />
+          </Field>
+          <p className="text-[12px]" style={{ color: "#8A5A00" }}>
+            {awal?.status === "disetujui" ? "Biaya ini udah disetujui, jadi buku kasnya ikut dibenerin. " : ""}Koreksinya langsung berlaku dan kecatat di riwayat.
+          </p>
+        </>
+      )}
+      <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : koreksi ? "Simpan koreksi" : awal ? "Simpan perubahan" : "Simpan draf biaya"}</Btn>
+    </form>
+  );
+}
+
+/** Hapus biaya permanen (buat yg kecatat dobel). Wajib alasan, dua langkah, kecatat di log hapus. */
+function HapusBiaya({ b, onSelesai }: { b: Biaya; onSelesai: () => void }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(hapusBiaya, undefined);
+  const [buka, setBuka] = useState(false);
+  useEffect(() => { if (state?.pesan && !state.error) onSelesai(); }, [state, onSelesai]);
+  if (!buka) return <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={() => setBuka(true)}>Hapus biaya...</Btn></div>;
+  return (
+    <form action={action} className="space-y-2.5 rounded-2xl p-3.5" style={{ background: "#FBE5E3" }} data-testid="form-hapus-biaya">
+      <input type="hidden" name="biayaId" value={b.id} />
+      <PesanForm state={state?.error ? state : undefined} />
+      <p className="text-[12.5px]" style={{ color: "#A8322B" }}>
+        {b.kode} ({rp(b.jumlah)}) bakal dihapus permanen{b.status === "disetujui" ? ", termasuk baris buku kasnya" : ""}{b.jml_nota > 0 ? " dan notanya" : ""}. Nggak bisa dibalikin.
+      </p>
+      <Field label="Alasan hapus" hint="Misalnya kecatat dobel sama BYA lain." error={state?.kolom?.alasan?.[0]}>
+        <TextIn name="alasan" maxLength={500} required />
+      </Field>
+      <KonfirmasiDua full v="danger" label="Hapus biaya ini" labelYa="Ya, hapus permanen" pending={pending} pesan={`Yakin hapus ${b.kode}? Datanya ilang dari daftar dan buku kas, cuma kecatat di log hapus.`} />
+      <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={() => setBuka(false)}>Nggak jadi</Btn></div>
     </form>
   );
 }
@@ -109,10 +153,14 @@ function Putusan({ b }: { b: Biaya }) {
   );
 }
 
-export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni }: Props) {
+export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni, biayaTetap, pengguna }: Props) {
   const router = useRouter();
   const [baru, setBaru] = useState(false);
   const [ubah, setUbah] = useState(false);
+  const [koreksi, setKoreksi] = useState(false);
+  // Nama buat riwayat koreksi (proyek, PO, produksi ditulis kodenya, bukan id).
+  const namaRujukan = Object.fromEntries([...siklus, ...rujukan.po, ...rujukan.produksi].map((x) => [x.id, x.label]));
+  const tutupDetail = () => { setUbah(false); setKoreksi(false); router.push("/keuangan"); };
   const menunggu = biaya.filter((b) => b.status === "diajukan");
   const bulan = hariIni.slice(0, 7);
   const masukBulan = kas.filter((k) => k.arah === "masuk" && k.tanggal.startsWith(bulan)).reduce((a, k) => a + Math.round(k.jumlah * 100), 0) / 100;
@@ -144,6 +192,8 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
         />
       </Card>
 
+      <BiayaTetap daftar={biayaTetap} kategori={kategori} biaya={biaya} bolehTulis={bolehTulis} hariIni={hariIni} />
+
       <BukuKas kas={kas} hariIni={hariIni} />
 
       <Periode buku={buku} bolehTutup={bolehTutup} />
@@ -154,13 +204,15 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
         </Modal>
       )}
       {detail && (
-        <Modal title={`${detail.biaya.kode} · ${detail.biaya.kategori_nama}`} onClose={() => { setUbah(false); router.push("/keuangan"); }}>
+        <Modal title={`${detail.biaya.kode} · ${detail.biaya.kategori_nama}`} onClose={tutupDetail}>
           <div className="flex flex-wrap items-center gap-1.5">
             <Pill t={LABEL[detail.biaya.status]} />
             {[detail.biaya.po_kode, detail.biaya.produksi_kode, detail.biaya.siklus_kode].filter((x): x is string => Boolean(x)).map((x) => <Pill key={x} t={x} />)}
           </div>
           {ubah && bolehTulis && (detail.biaya.status === "draf" || detail.biaya.status === "ditolak") ? (
             <FormBiaya kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setUbah(false)} />
+          ) : koreksi && bolehTulis ? (
+            <FormBiaya koreksi kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setKoreksi(false)} />
           ) : (
             <Inner className="!p-3.5">
               <div className="flex justify-between text-[13px]"><span>{detail.biaya.uraian}</span><b>{rp(detail.biaya.jumlah)}</b></div>
@@ -179,7 +231,12 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
               {detail.biaya.status === "draf" && !ubah && <Ajukan b={detail.biaya} />}
             </div>
           )}
-          {bolehSetuju && detail.biaya.status === "diajukan" && <Putusan b={detail.biaya} />}
+          {bolehSetuju && detail.biaya.status === "diajukan" && !koreksi && <Putusan b={detail.biaya} />}
+          {bolehTulis && (detail.biaya.status === "diajukan" || detail.biaya.status === "disetujui") && !koreksi && (
+            <Btn size="sm" v="light" onClick={() => setKoreksi(true)}>Koreksi biaya</Btn>
+          )}
+          <RiwayatKoreksi daftar={detail.koreksi} pengguna={pengguna} nama={namaRujukan} />
+          {bolehTulis && !ubah && !koreksi && <HapusBiaya b={detail.biaya} onSelesai={tutupDetail} />}
         </Modal>
       )}
     </div>

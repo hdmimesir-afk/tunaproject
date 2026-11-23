@@ -20,7 +20,13 @@ export type Biaya = {
   diputuskan_pada: string | null;
   jml_nota: number;
   nota_wajib: boolean;
+  /** Biaya tetap asalnya (kalau biaya ini dicatat dari daftar biaya tetap) dan bulannya. */
+  fixed_cost_id?: string | null;
+  bulan_tetap?: string | null;
 };
+
+/** Biaya tetap bulanan (gaji, sewa, listrik). Tiap bulan dicatat jadi biaya lewat tombol catat bulan ini. */
+export type BiayaTetap = { id: string; nama: string; category_id: string; jumlah: number; aktif: boolean; catatan: string };
 
 export type KategoriBiaya = { id: string; nama: string; nota_wajib: boolean };
 

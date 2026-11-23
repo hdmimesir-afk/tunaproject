@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -72,6 +73,63 @@ export async function putuskanBiaya(_: HasilForm, fd: FormData): Promise<HasilFo
     p.data.setuju === "ya" ? "Biaya disetujui dan udah masuk buku kas." : "Biaya ditolak.");
 }
 
+const Alasan = z.string().trim().min(1, "Tulis alasannya").max(500, "Maksimal 500 huruf");
+
+/** Koreksi biaya di status apa pun (permintaan finance 23 Nov 2026). Langsung berlaku: yg udah disetujui buku kasnya ikut dibenerin. */
+export async function koreksiBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = FormBiaya.extend({ biayaId: z.uuid(), alasan: Alasan }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("keuangan.write", "koreksi_biaya", {
+    p_id: p.data.biayaId, p_category: p.data.kategoriId, p_uraian: p.data.uraian, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_cycle: p.data.siklusId,
+    p_po: p.data.poId, p_production: p.data.produksiId, p_alasan: p.data.alasan,
+  }, "Koreksi biaya udah kesimpan dan langsung berlaku.");
+}
+
+/** Hapus biaya permanen (misalnya kecatat dobel). Nota dan baris buku kasnya ikut kehapus, kecatat di log hapus. */
+export async function hapusBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ biayaId: z.uuid(), alasan: Alasan }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const tolak = await izin("keuangan.write");
+  if (tolak) return tolak;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("hapus_biaya", { p_id: p.data.biayaId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  // Rinciannya udah nggak ada: balik ke daftar biaya (redirect juga nyegarin datanya).
+  redirect("/keuangan");
+}
+
+/* ---------------------------------------------------------- biaya tetap */
+const FormBiayaTetap = z.object({
+  tetapId: Opsional.pipe(z.uuid().nullable()),
+  nama: z.string().trim().min(1, "Tulis namanya").max(120),
+  kategoriId: z.uuid("Pilih kategori"),
+  jumlah: FormBiaya.shape.jumlah,
+  aktif: z.enum(["ya", "tidak"]).default("ya"),
+  catatan: z.string().trim().max(300).default(""),
+});
+
+export async function simpanBiayaTetap(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = FormBiayaTetap.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("keuangan.write", "simpan_biaya_tetap", {
+    p_id: p.data.tetapId, p_nama: p.data.nama, p_category: p.data.kategoriId, p_jumlah: p.data.jumlah, p_aktif: p.data.aktif === "ya", p_catatan: p.data.catatan,
+  }, p.data.tetapId ? "Biaya tetap udah diubah." : "Biaya tetap udah ditambah.");
+}
+
+/** Catat semua biaya tetap yg aktif buat satu bulan. Yg udah kecatat bulan itu dilewatin. */
+export async function catatBiayaTetap(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ bulan: z.string().regex(/^\d{4}-\d{2}$/, "Bulannya nggak valid"), tanggal: z.iso.date("Isi tanggal") })
+    .refine((d) => d.tanggal.startsWith(d.bulan), { message: "Tanggalnya harus di bulan yg dicatat", path: ["tanggal"] })
+    .safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const tolak = await izin("keuangan.write");
+  if (tolak) return tolak;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("catat_biaya_tetap", { p_bulan: `${p.data.bulan}-01`, p_tanggal: p.data.tanggal });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: `${Number(data)} biaya tetap udah dicatat. Yg kategorinya wajib nota masih draf, lampirkan notanya dulu terus ajukan.` };
+}
 /* ---------------------------------------------------------- tutup buku */
 const Bulan = z.string().regex(/^\d{4}-\d{2}$/, "Bulannya nggak valid").transform((s) => `${s}-01`);
 

@@ -8,6 +8,7 @@ const LABEL: Record<string, string> = {
   kg: "Berat", tanggal: "Tanggal", supplier_id: "Pemasok", cycle_id: "Proyek", catatan: "Catatan", harga: "Harga per kg",
   total: "Total", batal: "Dibatalkan", jumlah: "Jumlah", kg_masuk_pt: "Berat ikan dari PT", status: "Status", lot: "Lot",
   qc: "Status mutu", grade: "Grading", nama: "Nama proyek", lini_bisnis: "Lini bisnis", pt_id: "PT",
+  kategori: "Kategori", uraian: "Uraian", po_id: "PO", production_id: "Produksi",
 };
 
 function teks(v: unknown, nama: Record<string, string>): string {

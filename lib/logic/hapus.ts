@@ -13,7 +13,8 @@ export const BAGIAN_HAPUS: { id: BagianHapus; label: string; isi: string }[] = [
   { id: "proyek", label: "Proyek yg udah kosong", isi: "Proyek yg udah nggak dipakai data mana pun." },
 ];
 
-export const namaBagian = (id: string) => (id === "semua" ? "Semua data transaksi" : id === "akun" ? "Akun pengguna" : BAGIAN_HAPUS.find((b) => b.id === id)?.label ?? id);
+export const namaBagian = (id: string) =>
+  id === "semua" ? "Semua data transaksi" : id === "akun" ? "Akun pengguna" : id === "biaya" ? "Satu biaya (dari Keuangan)" : BAGIAN_HAPUS.find((b) => b.id === id)?.label ?? id;
 
 /** Satu jenis data di pratinjau atau di log hapus. Kode dibatasi 300 per jenis. */
 export type RincianHapus = { tabel: string; label: string; jumlah: number; kode: string[] };

@@ -6,7 +6,9 @@ import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
-import { berkasBiaya, bukuBulanan, bukuKas, daftarBiaya, kategoriBiaya, rujukanBiaya } from "@/lib/data/keuangan";
+import { berkasBiaya, bukuBulanan, bukuKas, daftarBiaya, daftarBiayaTetap, kategoriBiaya, rujukanBiaya } from "@/lib/data/keuangan";
+import { riwayatKoreksi } from "@/lib/data/koreksi";
+import { petaPengguna } from "@/lib/data/pembelian";
 import { siklusTerbuka } from "@/lib/data/penjualan";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
@@ -42,15 +44,17 @@ async function KeuanganData({ searchParams }: { searchParams: PageProps<"/keuang
     return <KeuanganOwner lap={lap} buku={buku} />;
   }
   const bolehTulis = boleh(sesi, "keuangan.write");
-  const [biaya, kategori, siklus, rujukan, kas, buku] = await Promise.all([
+  const [biaya, kategori, siklus, rujukan, kas, buku, biayaTetap] = await Promise.all([
     daftarBiaya(), kategoriBiaya(), bolehTulis ? siklusTerbuka() : Promise.resolve([]),
-    bolehTulis ? rujukanBiaya() : Promise.resolve({ po: [], produksi: [] }), bukuKas(), bukuBulanan(),
+    bolehTulis ? rujukanBiaya() : Promise.resolve({ po: [], produksi: [] }), bukuKas(), bukuBulanan(), daftarBiayaTetap(),
   ]);
   const terpilih = b.success ? biaya.find((x) => x.id === b.data) : undefined;
-  const berkas = terpilih ? await berkasBiaya(terpilih.id) : [];
+  const [berkas, koreksi, pengguna] = terpilih
+    ? await Promise.all([berkasBiaya(terpilih.id), riwayatKoreksi(["expenses"], [terpilih.id]), petaPengguna()])
+    : [[], [], {}];
   return (
     <KeuanganKelola
-      biaya={biaya} kategori={kategori} siklus={siklus} rujukan={rujukan} kas={kas} buku={buku} bolehTutup={boleh(sesi, "periode.tutup")} detail={terpilih ? { biaya: terpilih, berkas } : null}
+      biaya={biaya} kategori={kategori} siklus={siklus} rujukan={rujukan} kas={kas} buku={buku} bolehTutup={boleh(sesi, "periode.tutup")} detail={terpilih ? { biaya: terpilih, berkas, koreksi } : null} biayaTetap={biayaTetap} pengguna={pengguna}
       bolehTulis={bolehTulis} bolehSetuju={boleh(sesi, "biaya.setuju")} bolehDokumen={boleh(sesi, "dokumen.write")} hariIni={hariIni()}
     />
   );

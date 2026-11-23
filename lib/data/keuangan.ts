@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
-import type { BarisKas, Biaya, Dashboard, KategoriBiaya } from "@/lib/types/keuangan";
+import type { BarisKas, Biaya, BiayaTetap, Dashboard, KategoriBiaya } from "@/lib/types/keuangan";
 
 function gagal(apa: string): never {
   throw new Error(`Gagal memuat ${apa}. Coba muat ulang halaman.`);
@@ -12,6 +12,15 @@ export async function daftarBiaya(): Promise<Biaya[]> {
   const { data, error } = await sb.from("v_expenses").select("*").order("kode", { ascending: false }).limit(300);
   if (error) gagal("daftar biaya");
   return (data ?? []) as Biaya[];
+}
+
+/** Daftar biaya tetap, yg aktif dulu. */
+export async function daftarBiayaTetap(): Promise<BiayaTetap[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("fixed_costs").select("id, nama, category_id, jumlah, aktif, catatan").order("aktif", { ascending: false }).order("nama");
+  // Sebelum migrasi 20261123000400 tabelnya belum ada: daftarnya kosong aja, halaman tetap jalan.
+  if (error) return [];
+  return (data ?? []).map((x) => ({ ...x, jumlah: Number(x.jumlah) })) as BiayaTetap[];
 }
 
 export async function kategoriBiaya(): Promise<KategoriBiaya[]> {
