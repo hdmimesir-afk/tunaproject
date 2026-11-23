@@ -27,7 +27,15 @@ export async function potonganGancu(): Promise<number> {
 
 export async function gradeAktif(): Promise<Opsi[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("grades").select("id, kode, nama").eq("aktif", true).eq("jenis", "utuh").order("urutan");
+  // CONG grade khusus buat lot sistem cong (nggak digrading), jadi nggak ikut tombol AB/C/D.
+  const { data, error } = await sb.from("grades").select("id, kode, nama").eq("aktif", true).eq("jenis", "utuh").neq("kode", "CONG").order("urutan");
   if (error) gagal("daftar kelas mutu");
   return (data ?? []).map((g) => ({ id: g.id as string, label: g.nama ? `${g.kode} · ${g.nama}` : (g.kode as string) }));
+}
+
+/** Id grade CONG (lot sistem cong). Null kalau migrasi 20261123001000 belum jalan atau grade-nya dimatiin. */
+export async function idGradeCong(): Promise<string | null> {
+  const sb = await createClient();
+  const { data } = await sb.from("grades").select("id").eq("kode", "CONG").eq("aktif", true).maybeSingle();
+  return (data?.id as string | undefined) ?? null;
 }

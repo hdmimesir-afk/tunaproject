@@ -176,6 +176,11 @@ const FormKoreksiLot = z.object({
   baris: z.string().max(10_000).optional(),
   /** "1" kalau lot ini sebelumnya dicatat per ekor. */
   asalPerEkor: z.string().optional(),
+  /** Sistem grading (23 Nov 2026): "cong" = nggak digrading, semua berat jadi satu kelas CONG. */
+  sistem: z.enum(["grade", "cong"]).optional(),
+  congId: z.string().optional(),
+  /** Harga cong per kg buat lot yg udah masuk pembelian (kosong = pakai harga rata-rata PO sekarang). */
+  hargaCong: z.string().max(20).optional(),
 });
 
 /** Koreksi data penerimaan. Lot per ekor: ekornya dikoreksi dulu, beratnya ngikut. Kalau udah masuk pembelian, harga PO dihitung ulang. */
@@ -186,6 +191,36 @@ export async function koreksiLot(_: HasilForm, fd: FormData): Promise<HasilForm>
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   const d = p.data;
   const supabase = await createClient();
+
+  // Sistem cong: lot nggak digrading, semua beratnya jadi satu kelas CONG.
+  if (d.sistem === "cong") {
+    const harga = (d.hargaCong ?? "").trim() === "" ? null : Number(d.hargaCong!.replace(/\./g, "").replace(",", "."));
+    if (harga !== null && !(harga > 0)) return { kolom: { hargaCong: ["Isi harga cong lebih dari nol, atau kosongin"] } };
+    if (d.cara === "total") {
+      if (d.asalPerEkor === "1") {
+        // Per ekor jadi berat total sekaligus cong (butuh izin grading).
+        const t = d.jumlahEkor?.trim() ?? "";
+        const n = t === "" ? null : Number(t);
+        if (n !== null && (!Number.isInteger(n) || n <= 0)) return { kolom: { jumlahEkor: ["Isi angka bulat, atau kosongin"] } };
+        if (!d.congId) return { error: "Grade CONG belum ada. Jalanin dulu SQL sistem grading cong." };
+        const { error } = await supabase.rpc("koreksi_berat_grading", { p_lot: d.lotId, p_kg: d.kg, p_jumlah_ekor: n, p_baris: [{ grade_id: d.congId, kg: d.kg }], p_alasan: d.alasan });
+        if (error) return { error: pesanDb(error) };
+        const { error: e2 } = await supabase.rpc("jadikan_cong", { p_lot: d.lotId, p_harga: harga, p_alasan: d.alasan });
+        if (e2) return { error: pesanDb(e2) };
+      } else {
+        const { error } = await supabase.rpc("jadikan_cong", { p_lot: d.lotId, p_harga: harga, p_alasan: d.alasan, p_kg: d.kg });
+        if (error) return { error: pesanDb(error) };
+      }
+      const { error: e3 } = await supabase.rpc("koreksi_lot", {
+        p_lot: d.lotId, p_kg: d.kg, p_tanggal: d.tanggal, p_supplier: d.supplierId,
+        p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan, p_jenis: d.jenis ?? null,
+      });
+      if (e3) return { error: `Lotnya udah jadi cong, tapi data lainnya gagal: ${pesanDb(e3)}` };
+      refresh();
+      return { pesan: "Koreksi udah disimpan. Lot ini sekarang sistem cong." };
+    }
+    // Per ekor: ekornya udah dikirim dengan grade CONG; koreksi ekornya lewat jalur biasa di bawah, terus dijadiin cong.
+  }
 
   // Berat total: ganti dari per ekor, atau koreksi berat + grading sekaligus (satu transaksi di database).
   if (d.cara === "total" && (d.asalPerEkor === "1" || d.baris !== undefined)) {
@@ -217,6 +252,11 @@ export async function koreksiLot(_: HasilForm, fd: FormData): Promise<HasilForm>
       p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan, p_jenis: null,
     });
     if (e2) return { error: `Ekornya udah dikoreksi, tapi data lainnya gagal: ${pesanDb(e2)}` };
+    if (d.sistem === "cong") {
+      const harga = (d.hargaCong ?? "").trim() === "" ? null : Number(d.hargaCong!.replace(/\./g, "").replace(",", "."));
+      const { error: e3 } = await supabase.rpc("jadikan_cong", { p_lot: d.lotId, p_harga: harga && harga > 0 ? harga : null, p_alasan: d.alasan });
+      if (e3) return { error: `Ekornya udah dikoreksi, tapi gagal dijadiin cong: ${pesanDb(e3)}` };
+    }
   } else {
     const t = d.jumlahEkor?.trim() ?? "";
     const n = t === "" ? null : Number(t);

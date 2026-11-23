@@ -8,7 +8,7 @@ update public.profiles set role_id = 'kepala_produksi', aktif = true, nama = 'QC
 insert into public.suppliers (id, nama) values ('10000000-0000-0000-0000-000000000211', 'Nelayan Uji 21');
 
 select has_column('public', 'grades', 'jenis', 'grade punya kolom jenis');
-select results_eq($$select string_agg(kode, ',' order by urutan) from public.grades where jenis = 'utuh'$$, array['AB,C,D'], 'grade tuna utuh AB, C, D tersedia');
+select results_eq($$select string_agg(kode, ',' order by urutan) from public.grades where jenis = 'utuh'$$, array['AB,C,D,CONG'], 'grade tuna utuh AB, C, D tersedia (plus CONG buat lot cong)');
 select results_eq($$select count(*)::int from public.grades where jenis = 'loin' and kode = 'A-SO'$$, array[1], 'grade lama tetap jadi grade loin');
 
 set local role authenticated;

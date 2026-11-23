@@ -18,7 +18,7 @@ select throws_ok($$select * from public.suppliers$$, '42501', null, 'anon tidak 
 -- Petugas Lapangan: baca saja.
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000015", "role": "authenticated", "aal": "aal1"}';
-select results_eq($$select count(*)::int from public.grades$$, array[9], 'petugas membaca 9 grade awal (6 loin, 3 tuna utuh)');
+select results_eq($$select count(*)::int from public.grades$$, array[10], 'petugas membaca 10 grade awal (6 loin, 3 tuna utuh, CONG)');
 select throws_ok(
   $$insert into public.suppliers (nama) values ('Pemasok Uji')$$,
   '42501', null, 'petugas tidak bisa menambah pemasok');

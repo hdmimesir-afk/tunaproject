@@ -253,9 +253,9 @@ function Grading({ lot, grade, onTutup }: { lot: LotBaris; grade: Opsi[]; onTutu
 }
 
 /* ----------------------------------------------------------------- koreksi */
-function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu, potonganKg, onTutup }: {
+function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu, potonganKg, congId, onTutup }: {
   lot: LotBaris; pemasok: Opsi[]; siklus: Opsi[]; koreksi: Koreksi[]; pengguna: Record<string, Pengguna>;
-  grade: Opsi[]; bolehMutu: boolean; potonganKg: number; onTutup: () => void;
+  grade: Opsi[]; bolehMutu: boolean; potonganKg: number; congId: string | null; onTutup: () => void;
 }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(koreksiLot, undefined);
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
@@ -269,7 +269,19 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
   const r = ringkasEkor(ekor, potonganKg);
   const terpakai = Math.max(0, lot.kg - lot.sisa_kg);
   const kgAngka = Number(kgTotal.replace(",", ".")) || 0;
-  const tampilGrading = !perEkor && bolehMutu && ubahGrading;
+  // Sistem grading (23 Nov 2026): per grade (AB/C/D) atau cong (nggak digrading, semua berat satu kelas CONG).
+  const asalCong = !!congId && (lot.lot_grades ?? []).some((g) => g.grade_id === congId && g.kg > 0);
+  const [sistem, setSistem] = useState<"grade" | "cong">(asalCong ? "cong" : "grade");
+  const cong = sistem === "cong";
+  const gantiSistem = (s: "grade" | "cong") => {
+    setSistem(s);
+    // Ekor ikut sistemnya: cong = semua CONG, balik ke per grade = grade-nya dikosongin biar dipilih ulang.
+    setEkor((e) => e.map((x) => (s === "cong" ? { ...x, gradeId: congId ?? "" } : x.gradeId === congId ? { ...x, gradeId: "" } : x)));
+    if (s === "grade" && asalCong) setUbahGrading(true);
+  };
+  // Lot cong yg dibalikin ke per grade: isian grading-nya mulai kosong (baris CONG nggak ikut).
+  const lotTanpaCong = { ...lot, lot_grades: (lot.lot_grades ?? []).filter((g) => g.grade_id !== congId) };
+  const tampilGrading = !perEkor && bolehMutu && ubahGrading && !cong;
   const proyekAda = lot.cycle_id && !siklus.some((s) => s.id === lot.cycle_id) ? [{ id: lot.cycle_id, label: lot.cycles?.kode ?? "Proyek lama" }] : [];
   const nama = Object.fromEntries([...pemasok, ...siklus, ...proyekAda].map((o) => [o.id, o.label]));
   return (
@@ -277,6 +289,8 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
       <form action={action} className="space-y-4">
         <input type="hidden" name="lotId" value={lot.id} />
         <input type="hidden" name="cara" value={cara} />
+        <input type="hidden" name="sistem" value={sistem} />
+        {congId && <input type="hidden" name="congId" value={congId} />}
         {asalPerEkor && <input type="hidden" name="asalPerEkor" value="1" />}
         <Pesan state={state} />
         <div className="space-y-1.5" data-testid="cara-catat">
@@ -295,13 +309,35 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
             </p>
           )}
         </div>
+        {congId && (
+          <div className="space-y-1.5" data-testid="sistem-grading">
+            <p className="text-[13px] font-medium" style={{ color: INK }}>Sistem grading</p>
+            <div role="radiogroup" aria-label="Sistem grading" className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-1">
+              {([["grade", "Per grade (AB/C/D)"], ["cong", "Cong (nggak digrading)"]] as const).map(([id, label]) => (
+                <button key={id} type="button" role="radio" aria-checked={sistem === id} onClick={() => gantiSistem(id)}
+                  className="h-10 rounded-xl text-[13px] font-medium" style={sistem === id ? { background: INK, color: "#fff" } : { color: MUTED }}>{label}</button>
+              ))}
+            </div>
+            {cong && (
+              <p className="text-[12px]" style={{ color: MUTED }}>
+                Lot cong nggak digrading: semua beratnya {perEkor ? "(berat dibayar tiap ekor)" : ""} dihitung satu kelas CONG, terus pas diajukan pakai satu harga per kg.
+              </p>
+            )}
+            {!cong && asalCong && <p className="text-[12px]" style={{ color: "#8A5A00" }}>Lot ini bakal dibalikin ke per grade. Pilih grade {perEkor ? "tiap ekor" : "sama beratnya"} di bawah.</p>}
+            {cong && lot.po_id && (
+              <Field label="Harga cong per kg" hint="Lot ini udah masuk pembelian. Kosongin kalau mau pakai harga rata-rata PO sekarang." error={state?.kolom?.hargaCong?.[0]}>
+                <TextIn name="hargaCong" inputMode="decimal" placeholder="Rp" />
+              </Field>
+            )}
+          </div>
+        )}
         {perEkor ? (
           <>
             <input type="hidden" name="kg" value={lot.kg} />
             <Field label="Tanggal terima" error={state?.kolom?.tanggal?.[0]}>
               <TextIn name="tanggal" type="date" defaultValue={lot.tanggal_terima} required />
             </Field>
-            <IsianEkor baris={ekor} onUbah={setEkor} grade={grade} bolehGrade={bolehMutu} potonganKg={potonganKg} error={state?.kolom?.ekor?.[0]} />
+            <IsianEkor baris={ekor} onUbah={setEkor} grade={grade} bolehGrade={bolehMutu && !cong} potonganKg={potonganKg} error={state?.kolom?.ekor?.[0]} />
             {terpakai > 0 && <p className="text-[12px]" style={{ color: MUTED }}>Udah dipakai produksi {formatKg(terpakai)} kg, jadi total beratnya minimal segitu.</p>}
           </>
         ) : (
@@ -317,11 +353,11 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
             </Field>
           </div>
         )}
-        {!perEkor && bolehMutu && !asalPerEkor && !ubahGrading && (
+        {!perEkor && bolehMutu && !asalPerEkor && !ubahGrading && !cong && (
           <Btn type="button" size="sm" v="light" onClick={() => setUbahGrading(true)}>Koreksi grading juga</Btn>
         )}
-        {tampilGrading && <IsianGrade lot={lot} kgLot={kgAngka} grade={grade} error={state?.kolom?.baris?.[0]} />}
-        {!perEkor && asalPerEkor && !bolehMutu && (
+        {tampilGrading && <IsianGrade key={sistem} lot={asalCong ? lotTanpaCong : lot} kgLot={kgAngka} grade={grade} error={state?.kolom?.baris?.[0]} />}
+        {!perEkor && asalPerEkor && !bolehMutu && !cong && (
           <p className="text-[12px]" style={{ color: MUTED }}>Grading per kg-nya nanti diisi QC lewat tombol Grading.</p>
         )}
         {lot.po_id ? (
@@ -558,9 +594,11 @@ function TerimaHariIni({ lots, hariIni }: { lots: LotBaris[]; hariIni: string })
 }
 
 /* ---------------------------------------------------------------- halaman */
-export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg }: {
+export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, hariIni, bolehTerima, bolehMutu, bolehAjukan, bolehPemasokBaru, lampiran, potonganKg, congId }: {
   lots: LotBaris[]; grade: Opsi[]; pemasok: Opsi[]; siklus: Opsi[]; pengguna: Record<string, Pengguna>; koreksi: Koreksi[]; hariIni: string;
   bolehTerima: boolean; bolehMutu: boolean; bolehAjukan: boolean; bolehPemasokBaru: boolean; lampiran: LampiranLot | null; potonganKg: number;
+  /** Id grade CONG (lot sistem cong). Null kalau belum ada. */
+  congId: string | null;
 }) {
   const [grading, setGrading] = useState<LotBaris | null>(null);
   const [koreksiLot, setKoreksiLot] = useState<LotBaris | null>(null);
@@ -584,7 +622,7 @@ export function MutuKelola({ lots, grade, pemasok, siklus, pengguna, koreksi, ha
       <DaftarLot lots={lots} bolehMutu={bolehMutu} bolehKoreksi={bolehTerima} onGrading={setGrading} onKoreksi={setKoreksiLot} lampiran={lampiran}
         kanan={bolehAjukan && <Btn size="sm" onClick={() => setAjukan(true)}>Ajukan pembelian{siapAjukan > 0 ? ` (${siapAjukan})` : ""}</Btn>} />
       {grading && <Grading key={grading.id} lot={grading} grade={grade} onTutup={() => setGrading(null)} />}
-      {koreksiLot && <KoreksiLot key={koreksiLot.id} lot={koreksiLot} pemasok={pemasok} siklus={siklus} pengguna={pengguna} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg}
+      {koreksiLot && <KoreksiLot key={koreksiLot.id} lot={koreksiLot} pemasok={pemasok} siklus={siklus} pengguna={pengguna} grade={grade} bolehMutu={bolehMutu} potonganKg={potonganKg} congId={congId}
         koreksi={koreksi.filter((k) => k.ref_id === koreksiLot.id)} onTutup={() => setKoreksiLot(null)} />}
       {ajukan && <AjukanPembelian lots={lots} lampiran={lampiran} onTutup={() => setAjukan(false)} />}
       <Inner className="!p-3.5"><p className="text-[12.5px]" style={{ color: MUTED }}>Alurnya: terima ikan (per ekor atau berat total), grading tuna utuh buat harga ke nelayan (bisa sekalian waktu terima), ajukan pembelian, disetujui (PO terbit), baru dibayar. Lot yang belum digrading tetap boleh langsung diolah. Yang ditahan cuma ikan gugur atau bau.</p></Inner>
