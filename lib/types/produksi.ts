@@ -39,6 +39,9 @@ export type ProduksiBaris = {
   sudah_stok?: boolean;
   /** Jumlah ekor yang masuk produksi (boleh kosong). */
   jumlah_ekor?: number | null;
+  /** Total berat loin dan jumlah potong loin sebelum digrading (24 Nov 2026, boleh kosong). */
+  loin_berat_total?: number | null;
+  loin_jumlah_total?: number | null;
 };
 
 /** Lot asal produksi: berat lot, jumlah ekor, dan grade tuna utuhnya (berat dibayar per grade). */

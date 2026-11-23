@@ -427,3 +427,30 @@ export async function mintaPerbaikan(_: HasilForm, fd: FormData): Promise<HasilF
   const aksi = (await izin("produksi.periksa")) ? "produksi.setuju" : "produksi.periksa";
   return panggil(aksi, "minta_perbaikan_produksi", { p_production: p.data.produksiId, p_alasan: p.data.alasan }, "Produksi dibalikin buat diperbaiki.");
 }
+
+/** Total berat loin + total jumlah loin sebelum digrading (24 Nov 2026). Produksi yg udah selesai wajib alasan (kecatat koreksi). */
+export async function simpanTotalLoin(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("produksi.write");
+  if (tolak) return tolak;
+  const p = z.object({
+    produksiId: z.uuid(),
+    kg: z.string().trim().max(20),
+    jumlah: z.string().trim().max(7),
+    alasan: z.string().trim().max(500).optional(),
+  }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { error: "Datanya nggak valid." };
+  let kg: number | null = null;
+  if (p.data.kg !== "") {
+    const g = keGram(p.data.kg);
+    if (g === null) return { kolom: { kg: ["Isi berat lebih dari nol, maksimal 3 angka di belakang koma"] } };
+    kg = kgDariGram(g);
+  }
+  const n = p.data.jumlah === "" ? null : Number(p.data.jumlah);
+  if (n !== null && (!Number.isInteger(n) || n <= 0)) return { kolom: { jumlah: ["Isi angka bulat lebih dari nol"] } };
+  if (kg === null && n === null) return { error: "Isi total berat loin atau jumlah loinnya." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("simpan_total_loin", { p_production: p.data.produksiId, p_kg: kg, p_jumlah: n, p_alasan: p.data.alasan ?? "" });
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Total loin udah kesimpan." };
+}

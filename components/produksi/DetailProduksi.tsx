@@ -5,7 +5,7 @@ import { Btn, Field, Inner, Modal, Pill, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { aturKondisiHasil, mintaPerbaikan, periksaProduksi, selesaikanProduksi, setujuiProduksi, simpanEkor, simpanKomponen, simpanLoinTotal } from "@/lib/actions/produksi";
+import { aturKondisiHasil, mintaPerbaikan, periksaProduksi, selesaikanProduksi, setujuiProduksi, simpanEkor, simpanKomponen, simpanLoinTotal, simpanTotalLoin } from "@/lib/actions/produksi";
 import type { DetailProduksi as Detail } from "@/lib/data/produksi";
 import { tanggal, waktu } from "@/lib/format";
 import { gramKeTeks, keGram, tampilKg } from "@/lib/logic/grid";
@@ -112,6 +112,62 @@ function Neraca({ p, batas }: { p: Detail["produksi"]; batas: BatasHasil }) {
       )}
       {p.loin_kg > 0 && <p className="mt-1.5 text-[12px]" style={{ color: MUTED }}>Rencana hasil {batas.rencanaPct}%: {n.diAtasRencana ? "tercapai" : "belum tercapai"}.</p>}
     </Inner>
+  );
+}
+
+/* ---------------------------------------- total loin sebelum grading (24 Nov 2026) */
+/** Total berat loin + jumlah keping loin habis fillet, sebelum retouching (suntik gas CO) dan grading loin.
+    Grade asli baru ketahuan abis dibekuin, jadi total per grade bisa beda sama total ini; selisihnya cuma diinfoin. */
+function TotalLoin({ p, bolehTulis }: { p: Detail["produksi"]; bolehTulis: boolean }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(simpanTotalLoin, undefined);
+  const berjalan = p.status === "berjalan";
+  const [ubah, setUbah] = useState(false);
+  // Abis kesimpan, angkanya berubah dan komponen ini dipasang ulang (key di pemanggil), jadi form koreksinya ketutup sendiri.
+  const bisaIsi = bolehTulis && (berjalan || ubah);
+  const total = p.loin_berat_total ?? null;
+  const perGrade = p.loin_kg ?? 0;
+  const selisih = total !== null && perGrade > 0 ? Math.round((total - perGrade) * 1000) / 1000 : null;
+  const ringkas = (
+    <div className="space-y-1 text-[13px] tabular-nums" data-testid="total-loin-fillet">
+      <Baris k="Total berat loin" v={total !== null ? `${kgTeks(total)} kg` : "belum diisi"} />
+      <Baris k="Jumlah loin" v={p.loin_jumlah_total ? `${p.loin_jumlah_total} keping` : "belum diisi"} />
+      {perGrade > 0 && <Baris k="Total per grade" v={`${kgTeks(perGrade)} kg`} />}
+      {selisih !== null && selisih !== 0 && (
+        <p className="text-[12px]" style={{ color: MUTED }}>Beda {kgTeks(Math.abs(selisih))} kg sama total per grade ({selisih > 0 ? "total habis fillet lebih berat" : "total per grade lebih berat"}).</p>
+      )}
+    </div>
+  );
+  if (!bisaIsi) {
+    return (
+      <div className="space-y-2">
+        <Inner className="!p-3.5">{ringkas}</Inner>
+        {bolehTulis && !berjalan && <Btn size="sm" v="light" onClick={() => setUbah(true)}>Koreksi total loin</Btn>}
+      </div>
+    );
+  }
+  return (
+    <form action={action} className="space-y-3" data-testid="form-total-loin">
+      <input type="hidden" name="produksiId" value={p.id} />
+      <Pesan state={state} />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Total berat loin (kg)" error={state?.kolom?.kg?.[0]}>
+          <TextIn name="kg" inputMode="decimal" placeholder="0" defaultValue={total !== null ? inputKg(total) : ""} />
+        </Field>
+        <Field label="Jumlah loin (keping)" error={state?.kolom?.jumlah?.[0]}>
+          <TextIn name="jumlah" inputMode="numeric" placeholder="0" defaultValue={p.loin_jumlah_total ?? ""} />
+        </Field>
+      </div>
+      {!berjalan && (
+        <Field label="Alasan koreksi" hint="Produksi ini udah selesai, jadi perubahannya kecatat sebagai koreksi.">
+          <TextIn name="alasan" maxLength={500} required />
+        </Field>
+      )}
+      <p className="text-[12px]" style={{ color: MUTED }}>Isi abis fillet, sebelum retouching dan grading loin.{perGrade > 0 ? ` Total per grade sekarang ${kgTeks(perGrade)} kg.` : ""}</p>
+      <div className="flex flex-wrap gap-2">
+        <Btn type="submit" size="sm" disabled={pending}>{pending ? "Menyimpan..." : "Simpan total loin"}</Btn>
+        {!berjalan && <Btn size="sm" v="ghost" onClick={() => setUbah(false)}>Batal</Btn>}
+      </div>
+    </form>
   );
 }
 
@@ -352,6 +408,10 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
           </ul>
         </Bagian>
       )}
+
+      <Bagian judul="Total loin habis fillet">
+        <TotalLoin key={`${p.id}:${p.status}:${p.loin_berat_total ?? ""}:${p.loin_jumlah_total ?? ""}`} p={p} bolehTulis={bolehTulis} />
+      </Bagian>
 
       {caraAktif === "total" ? (
         <Bagian judul="Loin total per grade" kanan={bolehEdit && !adaTotal && <Btn size="sm" v="ghost" onClick={() => setCara("potong")}>Timbang per potong</Btn>}>
