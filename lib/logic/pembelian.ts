@@ -122,3 +122,16 @@ export function jatuhTempoTermin2(bayar: { tanggal: string; batal?: boolean }[],
   const pertama = bayar.filter((b) => !b.batal).map((b) => b.tanggal).sort()[0];
   return pertama ? tambahHariKerja(pertama, HARI_KERJA_TERMIN) : null;
 }
+
+/** Kenapa lot ini belum bisa diajukan pembeliannya (null = siap). Dipakai biar tim nggak bingung pas daftar ajukan kosong. */
+export function alasanBelumSiap(l: Pick<LotBaris, "kg" | "qc" | "grade_id" | "grades" | "lot_grades" | "po_id" | "po_kode" | "purchase_orders">): string | null {
+  if (l.po_id) {
+    const status = l.purchase_orders?.status_persetujuan;
+    if (l.po_kode) return `Udah diajukan, ${l.po_kode}${status && status !== "disetujui" ? ` (${LABEL_PO[status].toLowerCase()})` : ""}`;
+    return `Udah diajukan, nunggu persetujuan${status && status !== "diajukan" ? ` (${LABEL_PO[status].toLowerCase()})` : ""}`;
+  }
+  if (l.qc === "ditahan") return "Ditahan (gugur atau bau)";
+  if (l.qc === "menunggu") return "Belum digrading";
+  if (gradeLot(l).length === 0) return "Grade-nya belum diisi";
+  return null;
+}

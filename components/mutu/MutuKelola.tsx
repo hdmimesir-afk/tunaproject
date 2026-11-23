@@ -13,7 +13,7 @@ import type { Koreksi } from "@/lib/data/koreksi";
 import { rp } from "@/lib/format";
 import { keGram } from "@/lib/logic/grid";
 import { formatKg } from "@/lib/logic/neraca";
-import { gradeLot, lampiranWajib, rincianAjukan } from "@/lib/logic/pembelian";
+import { alasanBelumSiap, gradeLot, lampiranWajib, rincianAjukan } from "@/lib/logic/pembelian";
 import { ringkasEkor } from "@/lib/logic/ekor";
 import { DaftarLot, type LampiranLot } from "./DaftarLot";
 import { dariLot, ekorBaru, IsianEkor } from "./IsianEkor";
@@ -379,7 +379,27 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
   return (
     <Modal title="Ajukan pembelian" onClose={onTutup}>
       {siap.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada lot yang siap diajukan. Lot harus udah digrading, nggak ditahan, dan belum masuk pembelian lain.</p>
+        <div className="space-y-3" data-testid="ajukan-kosong">
+          <p className="text-[13px]" style={{ color: INK }}>
+            {lots.length > 0 && lots.every((l) => l.po_id)
+              ? "Semua lot udah diajukan pembeliannya, jadi belum ada yg bisa diajukan lagi."
+              : "Belum ada lot yg bisa diajukan. Ini alasannya per lot:"}
+          </p>
+          {lots.length > 0 && (
+            <ul className="space-y-1.5">
+              {lots.slice(0, 8).map((l) => (
+                <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
+                  <span className="font-semibold" style={{ color: INK }}>{l.kode}</span>
+                  <span className="text-right" style={{ color: MUTED }}>{alasanBelumSiap(l)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-[12.5px]" style={{ color: MUTED }}>
+            Lot baru bisa diajukan abis ikan diterima dan digrading. Pembelian yg udah diajukan dicek, disetujui, dan dibayar di menu Pembelian.
+          </p>
+          <a href="/pembelian" className="flex h-10 items-center justify-center rounded-full text-[13px] font-medium text-white" style={{ background: INK }}>Buka menu Pembelian</a>
+        </div>
       ) : (
         <form onSubmit={kirim} className="space-y-4">
           <Pesan state={state} />
