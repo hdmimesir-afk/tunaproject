@@ -45,10 +45,11 @@ export const perluMfa = (s: Pick<Sesi, "wajibMfa" | "aal">) => s.wajibMfa && s.a
    tutup buku/proyek (.tutup), Asisten AI (cuma baca), dan kelola akun karyawan di Akses (permintaan tim 23 Nov 2026,
    biar owner tetap bisa ngundang akun walau belum ada Super Admin). Database tetap ngasih owner semua izin; batasan ini di aplikasi. */
 export const PERAN_OWNER = "owner";
-/** Owner bisa buka semua menu buat lihat laporan lengkap (tombol input otomatis ilang lewat boleh()), kecuali Pengaturan
-    yg isinya cuma data master dan setelan. Menu Absensi buat owner pakai izin rekap (owner nggak absen). */
-export const MENU_OWNER_TERSEMBUNYI = new Set(["pengaturan"]);
-export const izinOwner = (aksi: string) => /\.(read|rekap|setuju|periksa|tutup)$/.test(aksi) || aksi === "asisten.use" || aksi === "akses.kelola";
+/** Owner bisa buka semua menu buat lihat laporan lengkap (tombol input otomatis ilang lewat boleh()). Pengaturan buat owner
+    isinya cuma Hapus data (koreksi data demo, permintaan tim 23 Nov 2026). Menu Absensi buat owner pakai izin rekap (owner nggak absen). */
+export const MENU_OWNER_TERSEMBUNYI = new Set<string>();
+export const izinOwner = (aksi: string) =>
+  /\.(read|rekap|setuju|periksa|tutup)$/.test(aksi) || aksi === "asisten.use" || aksi === "akses.kelola" || aksi === "data.hapus";
 
 /** Boleh melakukan aksi? Aksi kosong berarti cukup masuk dan aktif. Sama dengan aturan di database (kecuali owner, lihat di atas). */
 export function boleh(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, aksi?: string | null) {
@@ -57,7 +58,7 @@ export function boleh(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | 
   return !aksi || s.semuaIzin || s.izin.includes(aksi);
 }
 
-/** Menu buat sesi ini: owner semua menu (cuma lihat) kecuali Pengaturan; peran lain ngikut izin tiap modul. */
+/** Menu buat sesi ini: owner semua menu (cuma lihat, Pengaturan cuma Hapus data); peran lain ngikut izin tiap modul. */
 export function bolehMenu(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, slug: string, izinModul: string | null) {
   if (s.roleId === PERAN_OWNER) {
     if (MENU_OWNER_TERSEMBUNYI.has(slug)) return false;

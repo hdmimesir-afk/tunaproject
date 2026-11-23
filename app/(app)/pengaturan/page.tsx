@@ -6,7 +6,8 @@ import { Judul } from "@/components/shell/Judul";
 import { requireIzin } from "@/lib/data/auth";
 import { aturanLampiran } from "@/lib/data/pembelian";
 import { supabaseConfigured } from "@/lib/env";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { HapusData } from "@/components/pengaturan/HapusData";
 import { TABEL_MASTER, type TabelMaster } from "@/lib/master";
 import { IMPOR, JENIS_IMPOR } from "@/lib/imporMaster";
 import type { LogImpor } from "@/components/pengaturan/UploadExcel";
@@ -36,6 +37,12 @@ async function PengaturanData() {
   const supabase = await createClient();
   // Hapus data cuma buat pemegang izin data.hapus (Owner).
   const bolehHapus = boleh(sesi, "data.hapus");
+  // Owner nggak ngatur data master; di Pengaturan dia cuma dapet Hapus data (buat bersihin data demo atau salah input).
+  if (sesi.roleId === PERAN_OWNER) {
+    if (!bolehHapus) return null;
+    const { data } = await supabase.from("hapus_data_log").select("id, waktu, oleh_nama, bagian, alasan, rincian, total").order("waktu", { ascending: false }).limit(100);
+    return <HapusData log={(data ?? []) as LogHapus[]} />;
+  }
   // Upload Excel: pemasok, pembeli, produk butuh master.write; barang penunjang butuh stok.write.
   const jenisImpor = JENIS_IMPOR.filter((j) => boleh(sesi, IMPOR[j].izin));
   // Dashboard owner (saldo awal, modal, CCTV) diatur admin yg pegang pengaturan.write.
