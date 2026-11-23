@@ -105,19 +105,48 @@ function BatalBayar({ b }: { b: BayarBaris }) {
   );
 }
 
-/** Koreksi pembelian: harga per grade, pemasok, proyek, catatan, plus alasan. */
+/** Tulisan "Harga cong RpX/kg." di depan catatan PO (dari Ajukan pembelian atau koreksi). */
+const AWALAN_CONG = /^Harga cong Rp[\d.,]+\/kg\.?\s*/;
+
+/** Koreksi pembelian: cara harga (per grade atau cong), harga, pemasok, proyek, catatan, plus alasan. */
 function KoreksiPO({ detail, pemasok, siklus, onSelesai }: { detail: Detail; pemasok: Opsi[]; siklus: Opsi[]; onSelesai: () => void }) {
   const { po, baris } = detail;
   const [state, action, pending] = useActionState<HasilForm, FormData>(koreksiPembelian, undefined);
   const [harga, setHarga] = useState<Record<string, string>>(() => Object.fromEntries(baris.map((b) => [b.grade_id, String(b.harga_per_kg)])));
+  // Cong (satu harga per kg buat semua grade): ketahuan dari catatan PO-nya. Bisa diganti di sini (23 Nov 2026).
+  const [caraHarga, setCaraHarga] = useState<"grade" | "cong">(() => (AWALAN_CONG.test(po.catatan ?? "") ? "cong" : "grade"));
+  const [hargaCong, setHargaCong] = useState(() => String(baris[0]?.harga_per_kg ?? ""));
+  const [catatan, setCatatan] = useState(() => (po.catatan ?? "").replace(AWALAN_CONG, ""));
   useEffect(() => { if (state?.pesan) onSelesai(); }, [state, onSelesai]);
-  const isiHarga = JSON.stringify(baris.map((b) => ({ grade_id: b.grade_id, harga_per_kg: (harga[b.grade_id] ?? "").replace(",", ".") })));
+  const angkaCong = Number(hargaCong.replace(/\./g, "").replace(",", ".")) || 0;
+  const isiHarga = JSON.stringify(baris.map((b) => ({
+    grade_id: b.grade_id,
+    harga_per_kg: caraHarga === "cong" ? String(angkaCong) : (harga[b.grade_id] ?? "").replace(",", "."),
+  })));
+  const catatanKirim = caraHarga === "cong" ? [`Harga cong ${rp(angkaCong)}/kg`, catatan.trim()].filter(Boolean).join(". ") : catatan.trim();
   const proyekAda = po.cycle_id && !siklus.some((s) => s.id === po.cycle_id) ? [{ id: po.cycle_id, label: po.siklus_kode ?? "Proyek lama" }] : [];
   return (
     <form action={action} className="space-y-3 rounded-2xl bg-white p-3.5">
       <input type="hidden" name="poId" value={po.id} />
       <input type="hidden" name="harga" value={isiHarga} />
+      <input type="hidden" name="catatan" value={catatanKirim} />
       <Pesan state={state} />
+      {baris.length > 0 && (
+        <div className="space-y-1.5" data-testid="cara-harga">
+          <p className="text-[13px] font-medium" style={{ color: INK }}>Cara harga</p>
+          <div role="radiogroup" aria-label="Cara harga" className="grid grid-cols-2 gap-1 rounded-2xl bg-[#F4F5F8] p-1">
+            {([["grade", "Per grade"], ["cong", "Cong (satu harga)"]] as const).map(([id, label]) => (
+              <button key={id} type="button" role="radio" aria-checked={caraHarga === id} onClick={() => setCaraHarga(id)}
+                className="h-10 rounded-xl text-[13.5px] font-medium" style={caraHarga === id ? { background: INK, color: "#fff" } : { color: MUTED }}>{label}</button>
+            ))}
+          </div>
+          {caraHarga === "cong" && (
+            <Field label="Harga cong per kg" hint="Satu harga per kg buat semua grade di pembelian ini.">
+              <TextIn inputMode="decimal" value={hargaCong} onChange={(e) => setHargaCong(e.target.value)} aria-label="Harga cong per kg" />
+            </Field>
+          )}
+        </div>
+      )}
       {baris.length > 0 && (
         <div className="space-y-2">
           <p className="text-[13px] font-medium" style={{ color: INK }}>Harga per kg</p>
@@ -125,7 +154,8 @@ function KoreksiPO({ detail, pemasok, siklus, onSelesai }: { detail: Detail; pem
             <div key={b.grade_id} className="grid grid-cols-[4.5rem_minmax(0,1fr)_8rem] items-center gap-2 text-[13px] tabular-nums">
               <b style={{ color: INK }}>{b.grades?.kode ?? "-"}</b>
               <span style={{ color: MUTED }}>{formatKg(b.kg)} kg</span>
-              <input aria-label={`Harga per kg ${b.grades?.kode ?? ""}`} inputMode="decimal" value={harga[b.grade_id] ?? ""}
+              <input aria-label={`Harga per kg ${b.grades?.kode ?? ""}`} inputMode="decimal" readOnly={caraHarga === "cong"}
+                value={caraHarga === "cong" ? hargaCong : harga[b.grade_id] ?? ""}
                 onChange={(e) => setHarga((h) => ({ ...h, [b.grade_id]: e.target.value }))}
                 className="h-10 w-full rounded-xl border border-[#E2E4EA] px-2.5 text-right outline-none focus:border-[#00171F]" />
             </div>
@@ -138,13 +168,15 @@ function KoreksiPO({ detail, pemasok, siklus, onSelesai }: { detail: Detail; pem
           {pemasok.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
         </select>
       </Field>
-      <Field label="Proyek" error={state?.kolom?.siklusId?.[0]} hint="Lot di pembelian ini ikut pindah ke proyek yang dipilih.">
-        <select name="siklusId" defaultValue={po.cycle_id ?? ""} className={selectCls} required>
-          <option value="" disabled>Pilih proyek</option>
+      <Field label="Proyek" error={state?.kolom?.siklusId?.[0]} hint="Boleh kosong, nanti ngikut produksi yg pakai lotnya. Kalau dipilih, lot di pembelian ini ikut pindah ke proyek itu.">
+        <select name="siklusId" defaultValue={po.cycle_id ?? ""} className={selectCls}>
+          <option value="">Tanpa proyek (dipilih pas produksi)</option>
           {[...proyekAda, ...siklus].map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
         </select>
       </Field>
-      <Field label="Catatan" hint="Boleh kosong."><TextIn name="catatan" defaultValue={po.catatan} maxLength={500} /></Field>
+      <Field label="Catatan" hint={caraHarga === "cong" ? "Boleh kosong. Tulisan harga cong ditambahin otomatis." : "Boleh kosong."}>
+        <TextIn value={catatan} onChange={(e) => setCatatan(e.target.value)} maxLength={440} />
+      </Field>
       <Field label="Alasan koreksi" error={state?.kolom?.alasan?.[0]}><TextIn name="alasan" maxLength={500} required placeholder="Misalnya salah ketik harga" /></Field>
       {po.status_persetujuan === "disetujui" && (
         <p className="rounded-2xl px-3.5 py-2.5 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>PO ini udah disetujui. Kalau totalnya berubah, PO balik ke antrean persetujuan dan belum bisa dibayar sampai disetujui lagi.</p>

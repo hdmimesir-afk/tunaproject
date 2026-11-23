@@ -259,17 +259,42 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
 }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(koreksiLot, undefined);
   useEffect(() => { if (state?.pesan) onTutup(); }, [state, onTutup]);
-  const perEkor = (lot.lot_ekor ?? []).length > 0;
-  const [ekor, setEkor] = useState(() => dariLot(lot.lot_ekor ?? []));
+  const asalPerEkor = (lot.lot_ekor ?? []).length > 0;
+  // Cara catat bisa diganti di koreksi (23 Nov 2026): per ekor atau berat total (grading per kg).
+  const [cara, setCara] = useState<"ekor" | "total">(asalPerEkor ? "ekor" : "total");
+  const perEkor = cara === "ekor";
+  const [ekor, setEkor] = useState(() => (asalPerEkor ? dariLot(lot.lot_ekor ?? []) : [ekorBaru("001")]));
+  const [kgTotal, setKgTotal] = useState(() => String(lot.kg));
+  const [ubahGrading, setUbahGrading] = useState(asalPerEkor);
   const r = ringkasEkor(ekor, potonganKg);
   const terpakai = Math.max(0, lot.kg - lot.sisa_kg);
+  const kgAngka = Number(kgTotal.replace(",", ".")) || 0;
+  const tampilGrading = !perEkor && bolehMutu && ubahGrading;
   const proyekAda = lot.cycle_id && !siklus.some((s) => s.id === lot.cycle_id) ? [{ id: lot.cycle_id, label: lot.cycles?.kode ?? "Proyek lama" }] : [];
   const nama = Object.fromEntries([...pemasok, ...siklus, ...proyekAda].map((o) => [o.id, o.label]));
   return (
     <Modal title={`Koreksi ${lot.kode}`} onClose={onTutup} lebar={perEkor}>
       <form action={action} className="space-y-4">
         <input type="hidden" name="lotId" value={lot.id} />
+        <input type="hidden" name="cara" value={cara} />
+        {asalPerEkor && <input type="hidden" name="asalPerEkor" value="1" />}
         <Pesan state={state} />
+        <div className="space-y-1.5" data-testid="cara-catat">
+          <p className="text-[13px] font-medium" style={{ color: INK }}>Cara catat</p>
+          <div role="radiogroup" aria-label="Cara catat" className="grid grid-cols-2 gap-1 rounded-2xl bg-white p-1">
+            {([["ekor", "Per ekor"], ["total", "Berat total"]] as const).map(([id, label]) => (
+              <button key={id} type="button" role="radio" aria-checked={cara === id} onClick={() => setCara(id)}
+                className="h-10 rounded-xl text-[13.5px] font-medium" style={cara === id ? { background: INK, color: "#fff" } : { color: MUTED }}>{label}</button>
+            ))}
+          </div>
+          {cara !== (asalPerEkor ? "ekor" : "total") && (
+            <p className="text-[12px]" style={{ color: "#8A5A00" }}>
+              {asalPerEkor
+                ? "Lot ini bakal diganti jadi berat total. Data ekornya dibatalin (tetap kecatat), grading-nya diisi per kg di bawah."
+                : "Lot ini bakal diganti jadi per ekor. Isi tiap ekor beserta grade-nya, beratnya ngikut total ekor."}
+            </p>
+          )}
+        </div>
         {perEkor ? (
           <>
             <input type="hidden" name="kg" value={lot.kg} />
@@ -282,15 +307,22 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Field label="Berat (kg)" hint={terpakai > 0 ? `Minimal ${formatKg(terpakai)} kg, udah dipakai produksi.` : undefined} error={state?.kolom?.kg?.[0]}>
-              <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" defaultValue={lot.kg} required />
+              <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" value={kgTotal} onChange={(e) => setKgTotal(e.target.value)} required />
             </Field>
             <Field label="Tanggal terima" error={state?.kolom?.tanggal?.[0]}>
               <TextIn name="tanggal" type="date" defaultValue={lot.tanggal_terima} required />
             </Field>
             <Field label="Jumlah ekor" hint="Boleh kosong." error={state?.kolom?.jumlahEkor?.[0]}>
-              <TextIn name="jumlahEkor" inputMode="numeric" defaultValue={lot.jumlah_ekor ?? ""} />
+              <TextIn name="jumlahEkor" inputMode="numeric" defaultValue={lot.jumlah_ekor ?? (asalPerEkor ? (lot.lot_ekor ?? []).filter((e) => !e.batal).length : "")} />
             </Field>
           </div>
+        )}
+        {!perEkor && bolehMutu && !asalPerEkor && !ubahGrading && (
+          <Btn type="button" size="sm" v="light" onClick={() => setUbahGrading(true)}>Koreksi grading juga</Btn>
+        )}
+        {tampilGrading && <IsianGrade lot={lot} kgLot={kgAngka} grade={grade} error={state?.kolom?.baris?.[0]} />}
+        {!perEkor && asalPerEkor && !bolehMutu && (
+          <p className="text-[12px]" style={{ color: MUTED }}>Grading per kg-nya nanti diisi QC lewat tombol Grading.</p>
         )}
         {lot.po_id ? (
           <>

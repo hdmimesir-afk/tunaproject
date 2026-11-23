@@ -170,6 +170,12 @@ const FormKoreksiLot = z.object({
   /** Lot per ekor: JSON isian ekor yang baru. Berat lot ngikut ekornya. */
   ekor: z.string().max(200_000).optional(),
   jenis: z.string().trim().max(40, "Jenis ikan maksimal 40 huruf").optional(),
+  /** Cara catat yg dipilih di koreksi (23 Nov 2026): "total" = berat total, bisa sekalian grading per kg. */
+  cara: z.enum(["ekor", "total"]).optional(),
+  /** Mode berat total: grading per kg (JSON dari IsianGrade). Kosong = grading nggak diubah. */
+  baris: z.string().max(10_000).optional(),
+  /** "1" kalau lot ini sebelumnya dicatat per ekor. */
+  asalPerEkor: z.string().optional(),
 });
 
 /** Koreksi data penerimaan. Lot per ekor: ekornya dikoreksi dulu, beratnya ngikut. Kalau udah masuk pembelian, harga PO dihitung ulang. */
@@ -180,6 +186,24 @@ export async function koreksiLot(_: HasilForm, fd: FormData): Promise<HasilForm>
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   const d = p.data;
   const supabase = await createClient();
+
+  // Berat total: ganti dari per ekor, atau koreksi berat + grading sekaligus (satu transaksi di database).
+  if (d.cara === "total" && (d.asalPerEkor === "1" || d.baris !== undefined)) {
+    const g = d.baris !== undefined ? bacaGrade(d.baris) : { baris: [] as { grade_id: string; kg: number }[] };
+    if (g.error) return { kolom: { baris: [g.error] } };
+    const t = d.jumlahEkor?.trim() ?? "";
+    const n = t === "" ? null : Number(t);
+    if (n !== null && (!Number.isInteger(n) || n <= 0)) return { kolom: { jumlahEkor: ["Isi angka bulat, atau kosongin"] } };
+    const { error } = await supabase.rpc("koreksi_berat_grading", { p_lot: d.lotId, p_kg: d.kg, p_jumlah_ekor: n, p_baris: g.baris, p_alasan: d.alasan });
+    if (error) return { error: pesanDb(error) };
+    const { error: e2 } = await supabase.rpc("koreksi_lot", {
+      p_lot: d.lotId, p_kg: d.kg, p_tanggal: d.tanggal, p_supplier: d.supplierId,
+      p_cycle: d.siklusId || null, p_catatan: d.catatan, p_alasan: d.alasan, p_jenis: d.jenis ?? null,
+    });
+    if (e2) return { error: `Berat dan grading-nya udah dikoreksi, tapi data lainnya gagal: ${pesanDb(e2)}` };
+    refresh();
+    return { pesan: "Koreksi udah disimpan." };
+  }
 
   if (d.ekor) {
     const b = bacaEkor(d.ekor);

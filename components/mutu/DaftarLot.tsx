@@ -20,11 +20,12 @@ const teksLot = (l: LotBaris) => `${l.kode} ${(l.lot_ekor ?? []).map((e) => e.no
 
 /** Lampiran lot (nota nelayan, foto timbangan) beserta aturan wajibnya dari admin. Null bila pengguna tidak boleh melihat berkas. */
 export type LampiranLot = { dokumen: Dokumen[]; bolehTulis: boolean; aturan: AturanLampiran[] };
+/* Permintaan tim 23 Nov 2026: nota dan invoice dipegang finance (dilampirin di menu Pembelian), jadi di Mutu operator cuma
+   ngelampirin foto timbangan (dipakai di dashboard owner). Lampiran lama tetap kelihatan di daftar. */
 const UNGGAH_LOT: { jenis: JenisDokumen; label: string }[] = [
-  { jenis: "nota", label: "Lampirkan nota nelayan" },
   { jenis: "foto_timbangan", label: "Lampirkan foto timbangan" },
-  { jenis: "lainnya", label: "Lampirkan berkas lain" },
 ];
+const JENIS_DI_MUTU = new Set<JenisDokumen>(UNGGAH_LOT.map((u) => u.jenis));
 
 /** Daftar lot: filter mutu, pemakaian lot sebagai batang, kelas sebagai label (beberapa grade tampil dengan beratnya). Tabel di desktop, kartu di HP. */
 export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi, lampiran, kanan }: {
@@ -67,7 +68,7 @@ export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi,
             </div>
             <ul>
               {tampil.map((l) => (
-                <BarisLot key={l.id} l={l} kurang={lampiran ? lampiranKurang(lampiran.aturan, "lots", l.id, lampiran.dokumen) : []} aksi={<>
+                <BarisLot key={l.id} l={l} kurang={lampiran ? lampiranKurang(lampiran.aturan, "lots", l.id, lampiran.dokumen).filter((j) => JENIS_DI_MUTU.has(j)) : []} aksi={<>
                   {bolehMutu && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onGrading(l)}>{l.qc === "menunggu" ? "Grading" : "Grading ulang"}</Btn>}
                   {bolehKoreksi && <Btn size="sm" v="light" onClick={() => onKoreksi(l)}>Koreksi</Btn>}
                   {lampiran && <TombolLampiran judul={`Lampiran ${l.kode}`} refTabel="lots" refId={l.id} dokumen={lampiran.dokumen.filter((d) => d.ref_id === l.id)} bolehTulis={lampiran.bolehTulis}

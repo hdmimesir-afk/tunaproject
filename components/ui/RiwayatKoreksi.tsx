@@ -9,6 +9,7 @@ const LABEL: Record<string, string> = {
   total: "Total", batal: "Dibatalkan", jumlah: "Jumlah", kg_masuk_pt: "Berat ikan dari PT", status: "Status", lot: "Lot",
   qc: "Status mutu", grade: "Grading", nama: "Nama proyek", lini_bisnis: "Lini bisnis", pt_id: "PT",
   kategori: "Kategori", uraian: "Uraian", po_id: "PO", production_id: "Produksi",
+  cara_catat: "Cara catat", jumlah_ekor: "Jumlah ekor", ekor: "Ekor",
   baris: "Isi pesanan", pemilik: "Pemilik", produk: "Produk", kondisi: "Kondisi", kg_kirim: "kirim", kg_diterima: "diterima", unit: "",
 };
 
