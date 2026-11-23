@@ -20,7 +20,8 @@ test("biaya: draf, nota wajib, lalu diajukan dengan konfirmasi kedua", async ({ 
   await expect(detail.getByRole("button", { name: "Ajukan ke Owner" })).toBeDisabled();
 
   await detail.getByLabel("Lampirkan nota").setInputFiles({ name: "nota-biaya.png", mimeType: "image/png", buffer: PNG });
-  await expect(detail.getByText("Nota · nota-biaya.png")).toBeVisible();
+  // Foto dikompres di browser sebelum diunggah, jadi namanya berakhiran .webp (atau .jpg kalau browser nggak bisa WebP).
+  await expect(detail.getByText(/Nota · nota-biaya\.(webp|jpg)/)).toBeVisible();
 
   await detail.getByRole("button", { name: "Ajukan ke Owner" }).click();
   await expect(detail.getByRole("alertdialog")).toBeVisible();
