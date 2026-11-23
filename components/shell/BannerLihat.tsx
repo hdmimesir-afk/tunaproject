@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 /* Owner bisa buka semua halaman tim buat lihat laporan lengkap, tapi nggak bisa ngisi data. Keterangan ini biar owner
    langsung paham kenapa nggak ada tombol isi. Nggak muncul di Dashboard, Akses, dan Pengaturan (di sana owner emang punya tombol). */
-const TANPA_BANNER = ["/dashboard", "/akses", "/pengaturan"];
+const TANPA_BANNER = ["/dashboard", "/akses", "/pengaturan", "/akun"];
 /** Halaman yg udah punya tampilan laporan khusus owner (selama nggak lagi buka rincian atau halaman lengkap). */
 const LAPORAN_OWNER = ["/produksi", "/mutu", "/stok", "/penjualan", "/keuangan", "/absensi"];
 /** Parameter yg berarti owner lagi buka halaman kerja tim / rincian, bukan laporannya. */

@@ -5,6 +5,8 @@ import { z } from "zod";
 import { supabaseConfigured } from "@/lib/env";
 import { parseSesi, tujuanAman } from "@/lib/izin";
 import { createClient } from "@/lib/supabase/server";
+import { requireSesi } from "@/lib/data/auth";
+import { GantiSandi } from "@/lib/logic/sandi";
 
 export type HasilForm = { error?: string; kolom?: Record<string, string[] | undefined>; pesan?: string; id?: string; tautan?: string; emailMasuk?: string; tokenTerpakai?: boolean } | undefined;
 
@@ -65,6 +67,35 @@ export async function aturSandiBaru(_: HasilForm, fd: FormData): Promise<HasilFo
     return { error: "Kata sandinya gagal disimpan. Coba lagi, atau minta tautan baru ke pengelola akses.", tokenTerpakai };
   }
   redirect("/dashboard");
+}
+
+/** Ganti kata sandi akun sendiri dari menu Akun. Sandi lama dicek dulu (masuk ulang pakai email akun ini),
+   baru sandi baru disimpan. Sesi yg lagi dipakai tetap jalan, jadi nggak perlu masuk lagi. */
+export async function gantiSandi(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  if (!supabaseConfigured) return { error: "Database belum nyambung." };
+  const sesi = await requireSesi();
+  const p = GantiSandi.safeParse({ lama: fd.get("lama"), sandi: fd.get("sandi"), ulangi: fd.get("ulangi") });
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  const email = typeof claims?.claims?.email === "string" ? claims.claims.email : "";
+  // Akun yg dicek harus akun yg lagi login (bukan email dari form).
+  if (!email || claims?.claims?.sub !== sesi.userId) return { error: "Sesinya udah habis. Coba keluar terus masuk lagi." };
+
+  const { error: salahLama } = await supabase.auth.signInWithPassword({ email, password: p.data.lama });
+  if (salahLama) {
+    if (salahLama.code === "over_request_rate_limit" || salahLama.status === 429) return { error: "Kebanyakan percobaan. Tunggu beberapa menit terus coba lagi." };
+    return { kolom: { lama: ["Kata sandi yg sekarang salah"] } };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: p.data.sandi });
+  if (error) {
+    if (error.code === "same_password") return { kolom: { sandi: ["Kata sandi baru harus beda dari yg sekarang"] } };
+    if (error.code === "weak_password") return { kolom: { sandi: ["Terlalu gampang ditebak. Pakai gabungan huruf sama angka yg lebih panjang."] } };
+    return { error: "Kata sandinya gagal disimpan. Coba lagi bentar." };
+  }
+  return { pesan: "Kata sandi udah diganti. Lain kali masuk pakai kata sandi yg baru ya." };
 }
 
 export async function keluar() {

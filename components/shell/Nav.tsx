@@ -121,13 +121,17 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
 
         {pengguna && (
           <form action={keluar} className={`m-3 rounded-2xl ${ringkas ? "flex flex-col items-center gap-2 px-1 py-2" : "flex items-center gap-2.5 px-3 py-2.5"}`} style={{ background: "#1B1D21" }}>
-            <span title={ringkas ? `${pengguna.nama} · ${pengguna.peran}` : undefined} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF0F5] text-[12.5px] font-semibold" style={{ color: INK }}>{inisial(pengguna.nama)}</span>
-            {!ringkas && (
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] text-white">{pengguna.nama}</div>
-                <div className="truncate text-[11.5px] text-[#8A9199]">{pengguna.peran}</div>
-              </div>
-            )}
+            {/* Avatar sama nama dipencet buka Akun saya (ganti kata sandi). */}
+            <Link href="/akun" title={ringkas ? `${pengguna.nama} · ${pengguna.peran} · Akun saya` : "Akun saya, ganti kata sandi"} aria-label="Akun saya"
+              className={`flex min-w-0 items-center gap-2.5 rounded-xl transition hover:bg-white/[0.07] ${ringkas ? "" : "-m-1 flex-1 p-1"}`}>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF0F5] text-[12.5px] font-semibold" style={{ color: INK }}>{inisial(pengguna.nama)}</span>
+              {!ringkas && (
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] text-white">{pengguna.nama}</span>
+                  <span className="block truncate text-[11.5px] text-[#8A9199]">{pengguna.peran}</span>
+                </span>
+              )}
+            </Link>
             <button type="submit" title="Keluar" className={`shrink-0 rounded-full text-[12px] text-[#C6CCD3] hover:bg-white/10 ${ringkas ? "px-2 py-1" : "px-3 py-1.5"}`}>Keluar</button>
           </form>
         )}
@@ -138,7 +142,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
         <Link href="/dashboard" aria-label="Beranda" className="shrink-0"><Image src="/brand/katalis-mark-white.png" alt="" width={28} height={28} priority className="h-7 w-7" /></Link>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[11px] leading-tight text-[#8A9199]">KATALIS ERP</div>
-          <div className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">{modulAktif?.label ?? "Beranda"}</div>
+          <div className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">{modulAktif?.label ?? (path.startsWith("/akun") ? "Akun saya" : "Beranda")}</div>
         </div>
         {pengguna && (
           <button type="button" onClick={() => setBuka(true)} aria-label={`Akun ${pengguna.nama}`} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF0F5] text-[12.5px] font-semibold" style={{ color: INK }}>{inisial(pengguna.nama)}</button>
@@ -185,6 +189,11 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
                 </div>
                 <form action={keluar}><button type="submit" className="h-10 rounded-full bg-[#FBE5E3] px-4 text-[13px] font-medium text-[#A8322B]">Keluar</button></form>
               </div>
+            )}
+            {pengguna && (
+              <Link href="/akun" onClick={() => setBuka(false)} className="-mt-1 mb-3 flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-white text-[13px] font-medium" style={{ color: INK }}>
+                <Icon n="lock" s={17} c={INK} />Akun saya, ganti kata sandi
+              </Link>
             )}
             <PasangAplikasi varian="hp" />
             <label className="mb-4 flex h-11 items-center gap-2.5 rounded-2xl bg-white px-3.5">
