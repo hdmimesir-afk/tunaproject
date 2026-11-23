@@ -266,6 +266,7 @@ export function DetailPO({ detail, kelengkapan, pengguna, pemasok, siklus, boleh
                     <DaftarDokumen dokumen={dokumen.filter((d) => d.ref_tabel === "payments" && d.ref_id === b.id)} kosong={buktiWajib ? "Bukti transfer belum ada, padahal wajib." : "Belum ada bukti transfer."} />
                     <div className="flex flex-wrap gap-2">
                       {bolehDokumen && <Unggah refTabel="payments" refId={b.id} jenis="bukti_transfer" label="Lampirkan bukti transfer" />}
+                      {bolehDokumen && <Unggah refTabel="payments" refId={b.id} jenis="kwitansi" label="Lampirkan kwitansi" />}
                       {bolehBayar && <BatalBayar b={b} />}
                     </div>
                   </div>

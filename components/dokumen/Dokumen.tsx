@@ -14,7 +14,7 @@ const TIPE = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as con
 const BATAS = 10 * 1024 * 1024;
 export const LABEL_JENIS: Record<JenisDokumen, string> = {
   nota: "Nota", bukti_transfer: "Bukti transfer", surat_jalan: "Surat jalan", foto_timbangan: "Foto timbangan",
-  tanda_terima: "Tanda terima", tagihan: "Tagihan", lainnya: "Lainnya",
+  tanda_terima: "Tanda terima", tagihan: "Tagihan", invoice: "Invoice", kwitansi: "Kwitansi", lainnya: "Lainnya",
 };
 
 /** Foto iPhone format HEIC diubah jadi JPEG di browser sebelum diunggah (pustaka dimuat hanya saat dibutuhkan). */

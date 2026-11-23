@@ -10,6 +10,7 @@ import { boleh } from "@/lib/izin";
 import { TABEL_MASTER, type TabelMaster } from "@/lib/master";
 import { IMPOR, JENIS_IMPOR } from "@/lib/imporMaster";
 import type { LogImpor } from "@/components/pengaturan/UploadExcel";
+import type { Cctv } from "@/components/pengaturan/CctvKelola";
 import type { LogHapus } from "@/lib/logic/hapus";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,7 +38,9 @@ async function PengaturanData() {
   const bolehHapus = boleh(sesi, "data.hapus");
   // Upload Excel: pemasok, pembeli, produk butuh master.write; barang penunjang butuh stok.write.
   const jenisImpor = JENIS_IMPOR.filter((j) => boleh(sesi, IMPOR[j].izin));
-  const [tabel, { data: pengaturan }, aturan, log, logImpor] = await Promise.all([
+  // Dashboard owner (saldo awal, modal, CCTV) diatur admin yg pegang pengaturan.write.
+  const bolehAturOwner = boleh(sesi, "pengaturan.write");
+  const [tabel, { data: pengaturan }, aturan, log, logImpor, cctv] = await Promise.all([
     Promise.all(TABEL_MASTER.map(async (t) => {
       const { data } = await supabase.from(t).select("*").order("aktif", { ascending: false }).order(t === "grades" || t === "component_categories" || t === "expense_categories" ? "urutan" : "nama");
       return [t, (data ?? []) as BarisMaster[]] as const;
@@ -50,6 +53,9 @@ async function PengaturanData() {
     jenisImpor.length > 0
       ? supabase.from("impor_master_log").select("id, jenis, nama_file, baru, ubah, sama, oleh_nama, dibuat_pada").order("dibuat_pada", { ascending: false }).limit(30)
       : Promise.resolve({ data: [] }),
+    bolehAturOwner
+      ? supabase.from("cctv_links").select("id, nama, url, urutan, aktif").order("aktif", { ascending: false }).order("urutan").order("nama")
+      : Promise.resolve({ data: null }),
   ]);
   return (
     <PengaturanKelola
@@ -61,6 +67,7 @@ async function PengaturanData() {
       logHapus={bolehHapus ? ((log.data ?? []) as LogHapus[]) : null}
       jenisImpor={jenisImpor}
       logImpor={(logImpor.data ?? []) as LogImpor[]}
+      cctv={bolehAturOwner ? ((cctv.data ?? []) as Cctv[]) : null}
     />
   );
 }

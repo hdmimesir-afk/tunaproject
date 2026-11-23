@@ -4,7 +4,7 @@ export type StatusPO = "draf" | "diajukan" | "perlu_revisi" | "disetujui" | "dit
 export type StatusApv = "diajukan" | "diperiksa" | "perlu_revisi" | "disetujui" | "ditolak";
 export type StatusTerima = "belum" | "sebagian" | "selesai";
 export type StatusBayar = "belum" | "sebagian" | "lunas";
-export type JenisDokumen = "nota" | "bukti_transfer" | "surat_jalan" | "foto_timbangan" | "tanda_terima" | "tagihan" | "lainnya";
+export type JenisDokumen = "nota" | "bukti_transfer" | "surat_jalan" | "foto_timbangan" | "tanda_terima" | "tagihan" | "invoice" | "kwitansi" | "lainnya";
 export type RefDokumen = "purchase_orders" | "payments" | "lots" | "sales_orders" | "invoices" | "customer_payments" | "expenses" | "storage_units";
 
 export type POBaris = {

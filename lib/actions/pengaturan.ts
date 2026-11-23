@@ -55,13 +55,46 @@ export async function simpanPengaturan(_: HasilForm, fd: FormData): Promise<Hasi
   const kunci = fd.get("kunci");
   if (!isKunciPengaturan(kunci)) return { error: "Pengaturannya nggak dikenal." };
   const batas = PENGATURAN[kunci];
-  const nilai = z.coerce.number().min(batas.min).max(batas.max).safeParse(fd.get("nilai"));
+  const nilai = z.coerce.number().min(batas.min).max(batas.max).transform((n) => Math.round(n * 1000) / 1000).safeParse(fd.get("nilai"));
   if (!nilai.success) return { error: `${batas.label}: isi angka ${batas.min} sampai ${batas.max}.` };
   const supabase = await createClient();
   const { error } = await supabase.from("settings").update({ nilai: nilai.data }).eq("kunci", kunci);
   if (error) return { error: pesanDb(error) };
   refresh();
   return undefined;
+}
+
+/* -------------------------------------------------------- link CCTV */
+const FormCctv = z.object({
+  id: z.union([z.literal(""), z.uuid()]).optional(),
+  nama: z.string().trim().min(1, "Isi nama kameranya, misalnya Gudang").max(60, "Nama maksimal 60 huruf"),
+  url: z.string().trim().max(500, "Link kepanjangan").refine((u) => /^https?:\/\/\S+$/i.test(u), "Link harus diawali http:// atau https://"),
+  urutan: z.coerce.number().int().min(0).max(999).default(0),
+});
+
+/** Tambah (tanpa id) atau ubah link CCTV. Cuma admin (pengaturan.write); owner lihat di dashboard. */
+export async function simpanCctv(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const tolak = await izin("pengaturan.write");
+  if (tolak) return tolak;
+  const p = FormCctv.safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const supabase = await createClient();
+  const isi = { nama: p.data.nama, url: p.data.url, urutan: p.data.urutan };
+  const { error } = p.data.id ? await supabase.from("cctv_links").update(isi).eq("id", p.data.id) : await supabase.from("cctv_links").insert(isi);
+  if (error) return { error: pesanDb(error) };
+  refresh();
+  return { pesan: "Link CCTV udah disimpan." };
+}
+
+/** Nonaktifkan atau aktifkan lagi link CCTV (nggak dihapus). */
+export async function setAktifCctv(fd: FormData) {
+  const tolak = await izin("pengaturan.write");
+  if (tolak) return;
+  const id = z.uuid().safeParse(fd.get("id"));
+  if (!id.success) return;
+  const supabase = await createClient();
+  await supabase.from("cctv_links").update({ aktif: fd.get("aktif") === "true" }).eq("id", id.data);
+  refresh();
 }
 
 const AturanLampiranForm = z.object({

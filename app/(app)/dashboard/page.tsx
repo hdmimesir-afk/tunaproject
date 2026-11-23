@@ -11,7 +11,8 @@ import { daftarTindakan } from "@/lib/data/tindakan";
 import { laporanHarian, type Periode } from "@/lib/data/laporanHarian";
 import { teksLaporan } from "@/lib/logic/laporanHarian";
 import { supabaseConfigured } from "@/lib/env";
-import { boleh } from "@/lib/izin";
+import { boleh, PERAN_OWNER } from "@/lib/izin";
+import { dataOwner } from "@/lib/data/dashboardOwner";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Dashboard" };
 
@@ -64,12 +65,18 @@ async function DashboardData({ searchParams }: { searchParams: PageProps<"/dashb
     laporanHarian(periode, izin),
   ]);
   // Siklus terbaru yang sudah punya penjualan; bila belum ada, siklus terbaru apa pun.
-  const tindakan = await daftarTindakan(sesi, buku);
+  const modeOwner = sesi.roleId === PERAN_OWNER;
+  const [tindakan, owner] = await Promise.all([
+    daftarTindakan(sesi, buku),
+    modeOwner
+      ? dataOwner({ keuangan: izin.keuangan, laporan: izin.laporan, dokumen: boleh(sesi, "dokumen.read"), absensi: boleh(sesi, "absensi.rekap"), cctv: boleh(sesi, "cctv.read") }, tren)
+      : Promise.resolve(null),
+  ]);
   const siklus = tren.filter((t) => t.pendapatan_total > 0).at(-1) ?? tren.at(-1) ?? null;
   const { salam, tanggal } = salamDanTanggal();
   const namaDepan = (sesi.nama || "").trim().split(/\s+/)[0] ?? "";
   const judulTanggal = judulRentang(lap.dari, lap.sampai);
   const teks = teksLaporan(lap, judulTanggal, { jumlah: tindakan.length, mendesak: tindakan.filter((t) => t.mendesak).length });
   return <DashboardOwner d={d} izin={izin} nama={namaDepan} salam={salam} tanggal={tanggal} buku={[...buku].reverse()} siklus={siklus} tindakan={tindakan} ruangan={ruangan} isiGudang={isi}
-    laporan={{ data: lap, judulTanggal, teks }} />;
+    laporan={{ data: lap, judulTanggal, teks }} modeOwner={modeOwner} owner={owner} />;
 }

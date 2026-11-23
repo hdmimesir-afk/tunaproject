@@ -1,6 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DashboardOwner } from "@/components/dashboard/DashboardOwner";
+import type { DataOwner } from "@/lib/data/dashboardOwner";
+
+// Server action buat buka lampiran nggak dijalanin di tes render.
+vi.mock("@/lib/actions/pembelian", () => ({ urlDokumen: async () => ({}), catatDokumen: async () => ({}) }));
 import type { LaporanHarian } from "@/lib/data/laporanHarian";
 import type { Tindakan } from "@/lib/data/tindakan";
 import type { Dashboard } from "@/lib/types/keuangan";
@@ -61,5 +65,42 @@ describe("dashboard: laporan harian", () => {
     expect(html).toContain('href="/dashboard?periode=7hari"');
     expect(html).toContain('aria-current="page"');
     expect(html).not.toContain("Terjual");
+  });
+});
+
+const owner: DataOwner = {
+  saldo: { saldo: 125_000_000, saldoAwal: 100_000_000, masuk: 40_000_000, keluar: 15_000_000, terakhir: "2026-11-22" },
+  margin: { pendapatan: 200_000_000, biaya: 150_000_000, laba: 50_000_000, marginPct: 25, jumlahProyek: 3, belumLaku: 0 },
+  bep: { modal: 500_000_000, laba: 50_000_000, pct: 10, sisa: 450_000_000, lunas: false, perBulan: 15_000_000, bulanLagi: 30 },
+  absensi: { tanggal: "2026-11-23", hadir: 2, terlambat: 1, udahPulang: 0, orang: [{ nama: "Andi", masuk: "2026-11-23T01:10:00Z", pulang: null, terlambat: 10 }] },
+  cctv: [{ id: "c1", nama: "Gudang", url: "https://cctv.contoh.test/gudang" }],
+  foto: [],
+  lampiran: [{ id: "l1", jenis: "kwitansi", nama: "kwitansi-pt-a.pdf", ref: "Bayar dari pembeli", waktu: "2026-11-22T03:00:00Z" }],
+};
+
+describe("dashboard: mode owner", () => {
+  const html = renderToStaticMarkup(<DashboardOwner d={d} izin={izin} nama="Abay" salam="Selamat pagi" tanggal="Senin, 23 November 2026" buku={[]} siklus={null}
+    tindakan={[item(1)]} ruangan={[{ id: "r1", kode: "CS1", nama: "Cold Storage 1", jenis: "cs", kapasitas_kg: 10000, urutan: 1, dikonfirmasi: true, catatan: "", aktif: true, isi_sendiri_kg: 3000, isi_titipan_kg: 1000, isi_kg: 4000, jumlah_unit: 3 }]}
+    modeOwner owner={owner} />);
+
+  it("nampilin saldo, margin, balik modal, kapasitas, absensi, CCTV, lampiran", () => {
+    expect(html).toContain("Saldo perusahaan");
+    expect(html).toContain("Rp125.000.000");
+    expect(html).toContain("Margin profit");
+    expect(html).toContain("Balik modal (BEP)");
+    expect(html).toContain("kira kira 30 bulan lagi");
+    expect(html).toContain("Sisa kapasitas gudang dingin");
+    expect(html).toContain("6.000,000 kg");
+    expect(html).toContain("Absensi hari ini");
+    expect(html).toContain("https://cctv.contoh.test/gudang");
+    expect(html).toContain("kwitansi-pt-a.pdf");
+  });
+
+  it("judulnya Perlu persetujuan, kotak angka nggak nautin ke menu yg disembunyiin", () => {
+    expect(html).toContain("Perlu persetujuan Anda");
+    expect(html).toContain('href="/persetujuan?x=1"');
+    expect(html).not.toContain('href="/keuangan"');
+    expect(html).not.toContain('href="/penjualan"');
+    expect(html).not.toContain('href="/gudang"');
   });
 });

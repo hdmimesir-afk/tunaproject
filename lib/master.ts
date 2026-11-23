@@ -64,12 +64,15 @@ export function skemaMaster(tabel: TabelMaster) {
   return z.object(bentuk);
 }
 
-/** Pengaturan angka yang boleh diubah dari aplikasi. */
+/** Pengaturan angka yang boleh diubah dari aplikasi. grup = tab tempat isiannya di Pengaturan. */
 export const PENGATURAN = {
-  rencana_hasil_pct: { label: "Rencana hasil olahan (%)", min: 1, max: 100 },
-  batas_hasil_min_pct: { label: "Batas bawah hasil wajar (%)", min: 0, max: 100 },
-  batas_hasil_max_pct: { label: "Batas atas hasil wajar (%)", min: 0, max: 100 },
-  potongan_gancu_kg: { label: "Potongan per tusukan gancu (kg)", min: 0, max: 5 },
+  rencana_hasil_pct: { label: "Rencana hasil olahan (%)", min: 1, max: 100, grup: "target", step: "0.1" },
+  batas_hasil_min_pct: { label: "Batas bawah hasil wajar (%)", min: 0, max: 100, grup: "target", step: "0.1" },
+  batas_hasil_max_pct: { label: "Batas atas hasil wajar (%)", min: 0, max: 100, grup: "target", step: "0.1" },
+  potongan_gancu_kg: { label: "Potongan per tusukan gancu (kg)", min: 0, max: 5, grup: "target", step: "0.1" },
+  // Dashboard owner (23 Nov 2026): saldo perusahaan = saldo awal + buku kas; balik modal = laba proyek dibanding modal.
+  saldo_awal_kas_rp: { label: "Saldo awal kas sebelum pakai sistem (Rp)", min: -10_000_000_000_000, max: 10_000_000_000_000, grup: "owner", step: "1" },
+  modal_usaha_rp: { label: "Total modal usaha (Rp)", min: 0, max: 10_000_000_000_000, grup: "owner", step: "1" },
 } as const;
 export type KunciPengaturan = keyof typeof PENGATURAN;
 export const isKunciPengaturan = (k: unknown): k is KunciPengaturan => typeof k === "string" && k in PENGATURAN;

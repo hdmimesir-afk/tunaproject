@@ -317,7 +317,12 @@ function InvoiceModal({ d, bolehInvoice, bolehBayar, bolehDokumen, hariIni, onTu
             <div className="flex justify-between text-[13px]"><span style={{ color: INK }}>{b.kode} · {tanggal(b.tanggal)}{b.catatan ? ` · ${b.catatan}` : ""}</span><b style={{ color: INK }}>{rp(b.jumlah)}</b></div>
             <div className="mt-2 space-y-2">
               <DaftarDokumen dokumen={d.dokumen.filter((x) => x.ref_tabel === "customer_payments" && x.ref_id === b.id)} kosong="Belum ada bukti transfer." />
-              {bolehDokumen && <Unggah refTabel="customer_payments" refId={b.id} jenis="bukti_transfer" label="Lampirkan bukti transfer" />}
+              {bolehDokumen && (
+                <div className="flex flex-wrap gap-2">
+                  <Unggah refTabel="customer_payments" refId={b.id} jenis="bukti_transfer" label="Lampirkan bukti transfer" />
+                  <Unggah refTabel="customer_payments" refId={b.id} jenis="kwitansi" label="Lampirkan kwitansi" />
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -327,7 +332,12 @@ function InvoiceModal({ d, bolehInvoice, bolehBayar, bolehDokumen, hariIni, onTu
       <div className="space-y-2">
         <h4 className="text-[13px] font-semibold" style={{ color: INK }}>Berkas invoice</h4>
         <DaftarDokumen dokumen={d.dokumen.filter((x) => x.ref_tabel === "invoices")} kosong="Belum ada berkas (misalnya surat jalan atau tanda terima)." />
-        {bolehDokumen && <Unggah refTabel="invoices" refId={inv.id} jenis="surat_jalan" label="Lampirkan surat jalan / tanda terima" />}
+        {bolehDokumen && (
+          <div className="flex flex-wrap gap-2">
+            <Unggah refTabel="invoices" refId={inv.id} jenis="invoice" label="Lampirkan invoice" />
+            <Unggah refTabel="invoices" refId={inv.id} jenis="surat_jalan" label="Lampirkan surat jalan / tanda terima" />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

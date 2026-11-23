@@ -150,6 +150,17 @@ export const BAB: Bab[] = [
     menu: "/dashboard",
     tugas: [
       {
+        judul: "Dashboard owner",
+        peran: ["owner"],
+        pengantar: "Akun owner cuma buat lihat dan nyetujuin, nggak ada isian. Menunya Dashboard sama Laporan. Isinya: laporan harian, Perlu persetujuan Anda, saldo perusahaan, margin profit, balik modal (BEP), sisa kapasitas gudang dingin, absensi hari ini, CCTV, foto timbangan terbaru, sama invoice, kwitansi, dan bukti bayar.",
+        langkah: [
+          "Di Perlu persetujuan Anda, tekan tombolnya (misalnya Periksa atau Putuskan). Halamannya kebuka cuma buat nyetujuin atau nolak.",
+          "Tekan link CCTV buat buka kameranya.",
+          "Tekan foto timbangan buat liat ukuran penuhnya, atau Buka di invoice, kwitansi, bukti bayar buat liat berkasnya.",
+        ],
+        catatan: "Margin profit diitung dari proyek yg udah ada penjualannya. Balik modal diitung dari laba kotor semua proyek dibanding modal yg diisi admin. Saldo awal, modal, sama link CCTV diisi admin di Pengaturan, tab Dashboard owner.",
+      },
+      {
         judul: "Baca laporan harian",
         pengantar: "Paling atas ada laporan: ikan masuk, loin hasil produksi (plus persen hasilnya), stok siap jual, yg terjual, sama uang masuk. Yg muncul ikut izin jabatan masing-masing.",
         langkah: [
@@ -772,8 +783,19 @@ export const BAB: Bab[] = [
         keterangan: "Tab Pembeli.",
       },
       {
+        judul: "Isi saldo awal, modal, dan link CCTV buat dashboard owner",
+        peran: ["admin"],
+        langkah: [
+          "Buka tab Dashboard owner.",
+          "Isi Saldo awal kas sebelum pakai sistem, terus tekan Simpan. Saldo perusahaan di dashboard owner = ini + uang masuk - uang keluar di buku kas.",
+          "Isi Total modal usaha, terus tekan Simpan. Ini dipakai buat ngitung balik modal (BEP).",
+          "Di Link CCTV, tekan Tambah, isi nama kamera (misalnya Gudang) sama linknya (diawali https://), terus Simpan. Bisa beberapa kamera.",
+        ],
+        catatan: "Link CCTV cuma keliatan sama owner dan admin. Link yg udah nggak dipakai dinonaktifin, nggak dihapus.",
+      },
+      {
         judul: "Upload data master dari Excel",
-        peran: ["owner", "admin", "qc", "petugas"],
+        peran: ["admin", "qc", "petugas"],
         langkah: [
           "Buka tab Upload Excel.",
           "Pilih datanya: Pemasok, Pembeli, Produk, atau Barang penunjang.",
@@ -782,7 +804,7 @@ export const BAB: Bab[] = [
           "Kalau ada yg salah, benerin di file sesuai nomor barisnya, terus pilih filenya lagi.",
           "Kalau udah bener semua, tekan Simpan, terus Ya, simpan sekarang.",
         ],
-        catatan: "Nama yg udah ada nggak dibikin dobel, datanya diperbarui. Sel yg dikosongin di file nggak ngapus data yg udah ada. Kalau ada satu baris salah, nggak ada yg disimpan. Pemasok, pembeli, dan produk cuma bisa diupload Owner dan Admin; barang penunjang juga bisa sama petugas. Tiap upload kecatat di Riwayat upload.",
+        catatan: "Nama yg udah ada nggak dibikin dobel, datanya diperbarui. Sel yg dikosongin di file nggak ngapus data yg udah ada. Kalau ada satu baris salah, nggak ada yg disimpan. Pemasok, pembeli, dan produk cuma bisa diupload Admin; barang penunjang juga bisa sama petugas. Tiap upload kecatat di Riwayat upload.",
       },
       {
         judul: "Grade dan kategori biaya",

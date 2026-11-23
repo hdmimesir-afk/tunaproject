@@ -10,6 +10,8 @@ import type { AturanLampiran } from "@/lib/types/pembelian";
 import type { LogHapus } from "@/lib/logic/hapus";
 import { HapusData } from "./HapusData";
 import { UploadExcel, type LogImpor } from "./UploadExcel";
+import { CctvKelola, type Cctv } from "./CctvKelola";
+import { rp } from "@/lib/format";
 import type { JenisImpor } from "@/lib/imporMaster";
 import { MASTER, PENGATURAN, TABEL_MASTER, type Kolom, type KunciPengaturan, type TabelMaster } from "@/lib/master";
 
@@ -100,7 +102,7 @@ function FormPengaturan({ kunci, nilai, bolehAtur }: { kunci: KunciPengaturan; n
   return (
     <form action={action} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="kunci" value={kunci} />
-      <div className="w-[220px]"><Field label={p.label}><TextIn name="nilai" type="number" min={p.min} max={p.max} step="0.1" defaultValue={nilai ?? ""} disabled={!bolehAtur} /></Field></div>
+      <div className={p.grup === "owner" ? "w-full max-w-[320px]" : "w-[220px]"}><Field label={p.label}><TextIn name="nilai" type="number" min={p.min} max={p.max} step={p.step} defaultValue={nilai ?? ""} disabled={!bolehAtur} /></Field></div>
       {bolehAtur && <Btn type="submit" size="sm" disabled={pending}>{pending ? "..." : "Simpan"}</Btn>}
       <div className="w-full"><Galat state={state} /></div>
     </form>
@@ -150,12 +152,14 @@ function AturanLampiranKelola({ aturan, bolehAtur }: { aturan: AturanLampiran[];
   );
 }
 
-type TabPengaturan = TabelMaster | "target" | "lampiran" | "hapus" | "upload";
+type TabPengaturan = TabelMaster | "target" | "lampiran" | "hapus" | "upload" | "owner";
 
-export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtur, logHapus, jenisImpor, logImpor }: {
+export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtur, logHapus, jenisImpor, logImpor, cctv }: {
   data: Record<TabelMaster, BarisMaster[]>; pengaturan: NilaiPengaturan[]; aturan: AturanLampiran[]; bolehUbah: boolean; bolehAtur: boolean; logHapus: LogHapus[] | null;
   /** Data yg boleh diupload lewat Excel sama pengguna ini (kosong = tab Upload Excel nggak muncul). */
   jenisImpor: JenisImpor[]; logImpor: LogImpor[];
+  /** Link CCTV buat dashboard owner (null = peran ini nggak ngatur). */
+  cctv: Cctv[] | null;
 }) {
   const [aktif, setAktif] = useState<TabPengaturan>("target");
   const tab = (id: TabPengaturan, label: string) => (
@@ -169,13 +173,14 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
         {tab("lampiran", "Lampiran wajib")}
         {TABEL_MASTER.map((t) => tab(t, MASTER[t].label))}
         {jenisImpor.length > 0 && tab("upload", "Upload Excel")}
+        {cctv && tab("owner", "Dashboard owner")}
         {logHapus && tab("hapus", "Hapus data")}
       </div>
       {aktif === "target" ? (
         <Card title="Target hasil olahan">
           <Inner className="space-y-3">
             <p className="text-[13px]" style={{ color: MUTED }}>Dipakai buat nandain produksi yang hasilnya di bawah rencana atau di luar batas wajar.</p>
-            {(Object.keys(PENGATURAN) as KunciPengaturan[]).map((k) => (
+            {(Object.keys(PENGATURAN) as KunciPengaturan[]).filter((k) => PENGATURAN[k].grup === "target").map((k) => (
               <FormPengaturan key={k} kunci={k} nilai={pengaturan.find((x) => x.kunci === k)?.nilai} bolehAtur={bolehAtur} />
             ))}
           </Inner>
@@ -186,6 +191,24 @@ export function PengaturanKelola({ data, pengaturan, aturan, bolehUbah, bolehAtu
         logHapus && <HapusData log={logHapus} />
       ) : aktif === "upload" ? (
         <UploadExcel jenisBoleh={jenisImpor} log={logImpor} />
+      ) : aktif === "owner" ? (
+        <div className="space-y-3">
+          <Card title="Saldo dan modal buat dashboard owner">
+            <Inner className="space-y-3">
+              <p className="text-[13px]" style={{ color: MUTED }}>Saldo perusahaan di dashboard owner = saldo awal di bawah + semua uang masuk dikurang uang keluar di buku kas. Balik modal diitung dari laba kotor semua proyek dibanding total modal.</p>
+              {(Object.keys(PENGATURAN) as KunciPengaturan[]).filter((k) => PENGATURAN[k].grup === "owner").map((k) => {
+                const n = pengaturan.find((x) => x.kunci === k)?.nilai;
+                return (
+                  <div key={k}>
+                    <FormPengaturan kunci={k} nilai={n} bolehAtur={bolehAtur} />
+                    {typeof n === "number" && n !== 0 && <p className="mt-1 text-[12px]" style={{ color: MUTED }}>Sekarang: {rp(n)}</p>}
+                  </div>
+                );
+              })}
+            </Inner>
+          </Card>
+          {cctv && <CctvKelola daftar={cctv} bolehAtur={bolehAtur} />}
+        </div>
       ) : (
         <TabelData key={aktif} tabel={aktif} rows={data[aktif]} bolehUbah={bolehUbah} />
       )}

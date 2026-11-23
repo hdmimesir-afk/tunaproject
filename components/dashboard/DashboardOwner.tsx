@@ -7,6 +7,8 @@ import type { Tindakan as ItemTindakan } from "@/lib/data/tindakan";
 import { RuanganPanel } from "@/components/gudang/Ruangan";
 import type { LaporanHarian as DataLaporan } from "@/lib/data/laporanHarian";
 import { LaporanHarian } from "./LaporanHarian";
+import { AbsensiOwner, CctvOwner, FotoTimbanganOwner, KapasitasOwner, LampiranOwner, UangOwner } from "./BagianOwner";
+import type { DataOwner } from "@/lib/data/dashboardOwner";
 import type { BarisLabaSiklus, BukuBulanan, Dashboard } from "@/lib/types/keuangan";
 import type { IsiGudang, Ruangan } from "@/lib/types/stok";
 
@@ -18,6 +20,9 @@ type Props = {
   ruangan?: Ruangan[]; isiGudang?: IsiGudang;
   /** Laporan harian (ikan masuk, produksi, stok, terjual, uang) plus teks siap bagikan. */
   laporan?: { data: DataLaporan; judulTanggal: string; teks: string };
+  /** Akun owner: cuma lihat dan setuju. Bagian tambahan owner muncul, kotak angka nggak nautin ke menu yg disembunyiin. */
+  modeOwner?: boolean;
+  owner?: DataOwner | null;
 };
 
 const kgT = (n: number) => `${tampilKg(Math.round(n * 1000))} kg`;
@@ -61,12 +66,12 @@ function BarisTindakan({ t }: { t: ItemTindakan }) {
   );
 }
 
-function Tindakan({ daftar }: { daftar: ItemTindakan[] }) {
+function Tindakan({ daftar, judul = "Perlu tindakan Anda" }: { daftar: ItemTindakan[]; judul?: string }) {
   const mendesak = daftar.filter((t) => t.mendesak).length;
   const awal = daftar.slice(0, TAMPIL_AWAL);
   const sisa = daftar.slice(TAMPIL_AWAL);
   return (
-    <Bagian judul="Perlu tindakan Anda" kanan={daftar.length > 0 ? (
+    <Bagian judul={judul} kanan={daftar.length > 0 ? (
       <span className="flex gap-1.5">
         {mendesak > 0 && <span className="rounded-full bg-[#FBE5E3] px-2.5 py-1 text-[11.5px] font-semibold text-[#A8322B]">{mendesak} mendesak</span>}
         <span className="rounded-full bg-[#FBF0D5] px-2.5 py-1 text-[11.5px] font-semibold text-[#8A5A00]">{daftar.length} hal</span>
@@ -94,18 +99,26 @@ function Tindakan({ daftar }: { daftar: ItemTindakan[] }) {
   );
 }
 /* --------------------------------------------------------------- angka */
-function Angka({ href, label, nilai, catatan, tone, icon }: { href: string; label: string; nilai: string; catatan?: string; tone?: "warn" | "ok"; icon: IconName }) {
+function Angka({ href, label, nilai, catatan, tone, icon }: { href?: string | null; label: string; nilai: string; catatan?: string; tone?: "warn" | "ok"; icon: IconName }) {
   const warna = tone === "warn" ? "#B4443C" : tone === "ok" ? "#0B6B4A" : INK;
   return (
-    <Link href={href} className="group block min-w-0 rounded-[22px] bg-white p-3.5 transition active:scale-[0.98] md:p-4" style={{ boxShadow: "0 1px 2px rgba(20,24,40,.06)" }} aria-label={`${label}: ${nilai}`}>
+    <BungkusAngka href={href} aria={`${label}: ${nilai}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-[12px] font-medium md:text-[12.5px]" style={{ color: MUTED }}>{label}</span>
         <Icon n={icon} s={16} c="#9AA2AB" />
       </div>
       <div className="mt-2"><AngkaMuat teks={nilai} desktop={24} className="font-medium" style={{ color: warna }} /></div>
       {catatan && <div className="mt-1.5 text-[11.5px] leading-snug md:text-[12px]" style={{ color: tone === "warn" ? "#B4443C" : MUTED }}>{catatan}</div>}
-    </Link>
+    </BungkusAngka>
   );
+}
+
+/** Kotak angka bisa diketuk (ke halamannya) atau cuma dilihat (owner, menunya disembunyiin). */
+function BungkusAngka({ href, aria, children }: { href?: string | null; aria: string; children: React.ReactNode }) {
+  const gaya = { boxShadow: "0 1px 2px rgba(20,24,40,.06)" };
+  return href
+    ? <Link href={href} className="group block min-w-0 rounded-[22px] bg-white p-3.5 transition active:scale-[0.98] md:p-4" style={gaya} aria-label={aria}>{children}</Link>
+    : <div className="block min-w-0 rounded-[22px] bg-white p-3.5 md:p-4" style={gaya}>{children}</div>;
 }
 
 /* ------------------------------------------------------------ arus kas */
@@ -147,7 +160,10 @@ function ArusKas({ buku }: { buku: BukuBulanan[] }) {
 }
 
 /* ---------------------------------------------------------------- utama */
-export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan, ruangan = [], isiGudang, laporan }: Props) {
+export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, tindakan, ruangan = [], isiGudang, laporan, modeOwner = false, owner }: Props) {
+  // Owner nggak punya menu kerja harian, jadi kotak angka cuma buat dilihat (Laporan tetap boleh).
+  const ke = (href: string) => (modeOwner && !href.startsWith("/laporan") ? null : href);
+  const lagi = (href: string, label: string) => (ke(href) ? <Selengkapnya href={href} label={label} /> : undefined);
   const selisih = d.kas_masuk_bulan_ini - d.kas_keluar_bulan_ini;
   const adaKas = buku.length > 0;
   const isiRuangan = ruangan.reduce((a, r) => a + Math.round(r.isi_kg * 1000), 0) / 1000;
@@ -163,29 +179,40 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
 
       {laporan && <LaporanHarian lap={laporan.data} judulTanggal={laporan.judulTanggal} teks={laporan.teks} />}
 
-      <Tindakan daftar={tindakan} />
+      <Tindakan daftar={tindakan} judul={modeOwner ? "Perlu persetujuan Anda" : undefined} />
+
+      {modeOwner && owner && (
+        <>
+          <UangOwner saldo={owner.saldo} margin={owner.margin} bep={owner.bep} />
+          <div className="grid items-start gap-4 md:grid-cols-3">
+            {izin.stok && <KapasitasOwner ruangan={ruangan} />}
+            <AbsensiOwner absensi={owner.absensi} />
+            <CctvOwner cctv={owner.cctv} />
+          </div>
+        </>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           {(izin.keuangan || izin.penjualan || izin.pembelian || izin.stok) && (
             <div className="grid grid-cols-2 gap-2.5">
-              {izin.keuangan && <Angka href="/keuangan" icon="cash" label="Kas bulan ini" nilai={rp(selisih)} tone={selisih < 0 ? "warn" : selisih > 0 ? "ok" : undefined}
+              {izin.keuangan && <Angka href={ke("/keuangan")} icon="cash" label="Kas bulan ini" nilai={rp(selisih)} tone={selisih < 0 ? "warn" : selisih > 0 ? "ok" : undefined}
                 catatan={`Masuk ${rp(d.kas_masuk_bulan_ini)} · keluar ${rp(d.kas_keluar_bulan_ini)}`} />}
-              {izin.penjualan && <Angka href="/penjualan" icon="truck" label="Piutang" nilai={rp(d.piutang)} tone={d.invoice_terlambat > 0 ? "warn" : undefined}
+              {izin.penjualan && <Angka href={ke("/penjualan")} icon="truck" label="Piutang" nilai={rp(d.piutang)} tone={d.invoice_terlambat > 0 ? "warn" : undefined}
                 catatan={d.invoice_terlambat > 0 ? `${d.invoice_terlambat} invoice terlambat (${rp(d.piutang_terlambat)})` : "Nggak ada yang telat"} />}
-              {izin.pembelian && <Angka href="/pembelian" icon="cart" label="Utang ke pemasok" nilai={rp(d.hutang_pemasok)} catatan="PO yang udah disetujui tapi belum lunas" />}
-              {izin.stok && <Angka href="/stok" icon="box" label="Stok sendiri" nilai={kgT(d.stok_sendiri_kg)} catatan={`Titipan pelanggan ${kgT(d.stok_titipan_kg)}`} />}
+              {izin.pembelian && <Angka href={ke("/pembelian")} icon="cart" label="Utang ke pemasok" nilai={rp(d.hutang_pemasok)} catatan="PO yang udah disetujui tapi belum lunas" />}
+              {izin.stok && <Angka href={ke("/stok")} icon="box" label="Stok sendiri" nilai={kgT(d.stok_sendiri_kg)} catatan={`Titipan pelanggan ${kgT(d.stok_titipan_kg)}`} />}
             </div>
           )}
 
-          {izin.stok && ruangan.length > 0 && (
-            <Bagian judul="Gudang dingin per ruangan" kanan={<Selengkapnya href="/gudang" label="Gudang" />}>
+          {izin.stok && ruangan.length > 0 && !modeOwner && (
+            <Bagian judul="Gudang dingin per ruangan" kanan={lagi("/gudang", "Gudang")}>
               <RuanganPanel ruangan={ruangan} belumDitempatkanKg={belumDitempatkan} ringkas />
             </Bagian>
           )}
 
           {izin.keuangan && (
-            <Bagian judul="Arus kas 6 bulan terakhir" kanan={<Selengkapnya href="/keuangan" label="Buku kas" />}>
+            <Bagian judul="Arus kas 6 bulan terakhir" kanan={lagi("/keuangan", "Buku kas")}>
               {adaKas ? <ArusKas buku={buku} /> : <p className="rounded-2xl bg-white px-4 py-6 text-center text-[13px]" style={{ color: MUTED }}>Belum ada transaksi kas. Nanti pembayaran, biaya yang disetujui, sama data impor muncul di sini.</p>}
             </Bagian>
           )}
@@ -206,11 +233,18 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
               )}
             </Bagian>
           )}
+
+          {modeOwner && owner && (
+            <>
+              <FotoTimbanganOwner foto={owner.foto} />
+              <LampiranOwner lampiran={owner.lampiran} />
+            </>
+          )}
         </div>
 
         <div className="space-y-4">
           {(izin.keuangan || izin.pembelian) && (
-            <Bagian judul="Kelengkapan dokumen" kanan={<Selengkapnya href="/keuangan" label="Periksa" />}>
+            <Bagian judul="Kelengkapan dokumen" kanan={lagi("/keuangan", "Periksa")}>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: d.dokumen_kurang > 0 ? "#FBF0D5" : "#DDF3E8" }}>
                   <Icon n={d.dokumen_kurang > 0 ? "note" : "check"} s={17} c={d.dokumen_kurang > 0 ? "#8A5A00" : "#0B6B4A"} />
@@ -223,7 +257,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
           )}
 
           {izin.stok && d.barang_menipis !== undefined && (
-            <Bagian judul="Barang penunjang" kanan={<Selengkapnya href="/penunjang" label="Barang Penunjang" />}>
+            <Bagian judul="Barang penunjang" kanan={lagi("/penunjang", "Barang Penunjang")}>
               <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: penunjangPerhatian > 0 ? "#FBF0D5" : "#DDF3E8" }}>
                   <Icon n={penunjangPerhatian > 0 ? "box" : "check"} s={17} c={penunjangPerhatian > 0 ? "#8A5A00" : "#0B6B4A"} />
