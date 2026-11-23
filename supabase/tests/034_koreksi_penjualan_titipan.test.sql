@@ -1,7 +1,7 @@
 -- 23 Nov 2026: koreksi + hapus di penjualan, titipan, dan lot. Jalankan: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(36);
+select plan(37);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000341', 'admin34@uji.local'),
