@@ -48,7 +48,10 @@ function Kartu({ label, nilai, ket, href, tone, aksi, besar = false }: {
   const isi = (
     <>
       <p className="text-[12.5px] font-medium" style={{ color: MUTED }}>{label}</p>
-      <p className={`mt-1 font-semibold tabular-nums tracking-tight ${besar ? "text-[26px] md:text-[28px]" : "text-[20px] md:text-[22px]"}`}
+      {/* Angka panjang (rupiah jutaan) hurufnya dikecilin di HP biar nggak kepotong. */}
+      <p className={`mt-1 break-words font-semibold tabular-nums tracking-tight ${nilai.length > 11
+        ? besar ? "text-[19px] leading-tight md:text-[28px]" : "text-[17px] leading-tight md:text-[22px]"
+        : besar ? "text-[26px] md:text-[28px]" : "text-[20px] md:text-[22px]"}`}
         style={{ color: tone === "warn" ? MERAH : tone === "ok" ? HIJAU : INK }}>{nilai}</p>
       {ket && <p className="mt-0.5 text-[12px] leading-snug" style={{ color: tone === "warn" ? MERAH : MUTED }}>{ket}</p>}
     </>
