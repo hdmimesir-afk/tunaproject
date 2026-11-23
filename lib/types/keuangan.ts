@@ -25,8 +25,12 @@ export type Biaya = {
   bulan_tetap?: string | null;
 };
 
-/** Biaya tetap bulanan (gaji, sewa, listrik). Tiap bulan dicatat jadi biaya lewat tombol catat bulan ini. */
-export type BiayaTetap = { id: string; nama: string; category_id: string; jumlah: number; aktif: boolean; catatan: string };
+/** Pos biaya tetap: kelompok + cara bayar. Bulanan dicatat tiap bulan, tahunan sekali setahun di bulan bayarnya.
+    Kategori biaya di buku kas ikut kelompoknya. */
+export type BiayaTetap = {
+  id: string; nama: string; category_id: string; jumlah: number; aktif: boolean; catatan: string;
+  kelompok: import("@/lib/logic/biayaTetap").KelompokBiaya; cara_bayar: import("@/lib/logic/biayaTetap").CaraBayar; bulan_bayar: number | null;
+};
 
 export type KategoriBiaya = { id: string; nama: string; nota_wajib: boolean };
 

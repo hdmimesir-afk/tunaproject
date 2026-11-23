@@ -192,7 +192,7 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
         />
       </Card>
 
-      <BiayaTetap daftar={biayaTetap} kategori={kategori} biaya={biaya} bolehTulis={bolehTulis} hariIni={hariIni} />
+      <BiayaTetap daftar={biayaTetap} biaya={biaya} bolehTulis={bolehTulis} hariIni={hariIni} />
 
       <BukuKas kas={kas} hariIni={hariIni} />
 

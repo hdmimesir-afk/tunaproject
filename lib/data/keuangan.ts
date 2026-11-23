@@ -17,7 +17,7 @@ export async function daftarBiaya(): Promise<Biaya[]> {
 /** Daftar biaya tetap, yg aktif dulu. */
 export async function daftarBiayaTetap(): Promise<BiayaTetap[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("fixed_costs").select("id, nama, category_id, jumlah, aktif, catatan").order("aktif", { ascending: false }).order("nama");
+  const { data, error } = await sb.from("fixed_costs").select("id, nama, category_id, jumlah, aktif, catatan, kelompok, cara_bayar, bulan_bayar").order("aktif", { ascending: false }).order("nama");
   // Sebelum migrasi 20261123000400 tabelnya belum ada: daftarnya kosong aja, halaman tetap jalan.
   if (error) return [];
   return (data ?? []).map((x) => ({ ...x, jumlah: Number(x.jumlah) })) as BiayaTetap[];

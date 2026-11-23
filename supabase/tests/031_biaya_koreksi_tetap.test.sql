@@ -12,6 +12,7 @@ update public.profiles set role_id = 'finance', aktif = true, nama = 'Finance 31
 update public.profiles set role_id = 'petugas_lapangan', aktif = true, nama = 'Petugas 31' where user_id = '00000000-0000-0000-0000-000000000313';
 update public.expense_categories set nota_wajib = false where nama = 'Operasional rutin';
 update public.expense_categories set nota_wajib = true where nama = 'Perawatan dan perbaikan';
+update public.expense_categories set nota_wajib = true where nama = 'Overhead pabrik';
 
 -- Biaya bulan ini: satu nunggu Owner, satu udah disetujui (barisnya ada di buku kas), satu dobel buat dihapus.
 insert into public.expenses (id, category_id, kategori_nama, uraian, jumlah, tanggal, status, diajukan_oleh) values
@@ -82,17 +83,17 @@ select throws_ok($$select public.koreksi_biaya('d3100000-0000-0000-0000-00000000
 select throws_ok($$select public.hapus_biaya('d3100000-0000-0000-0000-000000000004', 'uji')$$, 'KT001', null, 'biaya di bulan yg udah tutup buku nggak bisa dihapus');
 
 -- ============================================================ biaya tetap
-select throws_ok($$select public.simpan_biaya_tetap(null, '  ', (select id from public.expense_categories where nama = 'Operasional rutin'), 1000, true)$$, 'KT001', null, 'nama wajib');
-select lives_ok($$select public.simpan_biaya_tetap(null, 'Sewa gudang', (select id from public.expense_categories where nama = 'Operasional rutin'), 5000000, true)$$, 'biaya tetap tanpa nota dibikin');
-select lives_ok($$select public.simpan_biaya_tetap(null, 'Servis genset', (select id from public.expense_categories where nama = 'Perawatan dan perbaikan'), 750000, true)$$, 'biaya tetap wajib nota dibikin');
-select lives_ok($$select public.simpan_biaya_tetap(null, 'Langganan lama', (select id from public.expense_categories where nama = 'Operasional rutin'), 100000, false)$$, 'biaya tetap nonaktif dibikin');
-select throws_ok($$select public.simpan_biaya_tetap(null, 'sewa gudang', (select id from public.expense_categories where nama = 'Operasional rutin'), 1, true)$$, 'KT001', null, 'nama dobel ditolak');
+select throws_ok($$select public.simpan_biaya_tetap(null, '  ', 'kantor', 'bulanan', 1000, null, true)$$, 'KT001', null, 'nama wajib');
+select lives_ok($$select public.simpan_biaya_tetap(null, 'Sewa gudang', 'kantor', 'bulanan', 5000000, null, true)$$, 'biaya tetap tanpa nota dibikin');
+select lives_ok($$select public.simpan_biaya_tetap(null, 'Servis genset', 'overhead_pabrik', 'bulanan', 750000, null, true)$$, 'biaya tetap wajib nota dibikin');
+select lives_ok($$select public.simpan_biaya_tetap(null, 'Langganan lama', 'kantor', 'bulanan', 100000, null, false)$$, 'biaya tetap nonaktif dibikin');
+select throws_ok($$select public.simpan_biaya_tetap(null, 'sewa gudang', 'kantor', 'bulanan', 1, null, true)$$, 'KT001', null, 'nama dobel ditolak');
 select is(public.catat_biaya_tetap(current_date, current_date), 2, 'dua biaya tetap aktif kecatat bulan ini');
 select results_eq($$select uraian ~ '^Sewa gudang bulan ', status from public.expenses where fixed_cost_id is not null order by uraian desc$$,
   $$values (true, 'diajukan'::text), (false, 'draf'::text)$$, 'yg nggak wajib nota langsung diajukan, yg wajib nota jadi draf');
 select is((select count(*)::int from public.expenses e join public.fixed_costs f on f.id = e.fixed_cost_id where f.nama = 'Langganan lama'), 0, 'yg nonaktif nggak ikut');
 select throws_ok($$select public.catat_biaya_tetap(current_date, current_date)$$, 'KT001', null, 'nggak bisa kecatat dua kali sebulan');
-select lives_ok($$select public.simpan_biaya_tetap((select id from public.fixed_costs where nama = 'Langganan lama'), 'Langganan lama', (select id from public.expense_categories where nama = 'Operasional rutin'), 100000, true)$$, 'biaya tetap diaktifin lagi');
+select lives_ok($$select public.simpan_biaya_tetap((select id from public.fixed_costs where nama = 'Langganan lama'), 'Langganan lama', 'kantor', 'bulanan', 100000, null, true)$$, 'biaya tetap diaktifin lagi');
 select is(public.catat_biaya_tetap(current_date, current_date), 1, 'yg baru aktif nyusul kecatat, yg lain dilewatin');
 select throws_ok($$select public.catat_biaya_tetap(current_date, (current_date - interval '2 months')::date)$$, 'KT001', null, 'tanggal harus di bulan yg dicatat');
 reset role;

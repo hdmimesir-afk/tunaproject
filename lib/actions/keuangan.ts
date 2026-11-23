@@ -101,19 +101,22 @@ export async function hapusBiaya(_: HasilForm, fd: FormData): Promise<HasilForm>
 /* ---------------------------------------------------------- biaya tetap */
 const FormBiayaTetap = z.object({
   tetapId: Opsional.pipe(z.uuid().nullable()),
-  nama: z.string().trim().min(1, "Tulis namanya").max(120),
-  kategoriId: z.uuid("Pilih kategori"),
+  nama: z.string().trim().min(1, "Tulis nama posnya").max(120),
+  kelompok: z.enum(["tenaga_kerja", "overhead_pabrik", "sertifikasi_izin", "kantor", "keuangan"], "Pilih kelompok"),
+  caraBayar: z.enum(["bulanan", "tahunan"], "Pilih cara bayar"),
   jumlah: FormBiaya.shape.jumlah,
+  bulanBayar: Opsional.transform((s) => (s === null ? null : Number(s))).pipe(z.number().int().min(1).max(12).nullable()),
   aktif: z.enum(["ya", "tidak"]).default("ya"),
   catatan: z.string().trim().max(300).default(""),
-});
+}).refine((d) => d.caraBayar === "bulanan" || d.bulanBayar !== null, { message: "Pilih bulan bayarnya", path: ["bulanBayar"] });
 
 export async function simpanBiayaTetap(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormBiayaTetap.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
   return panggil("keuangan.write", "simpan_biaya_tetap", {
-    p_id: p.data.tetapId, p_nama: p.data.nama, p_category: p.data.kategoriId, p_jumlah: p.data.jumlah, p_aktif: p.data.aktif === "ya", p_catatan: p.data.catatan,
-  }, p.data.tetapId ? "Biaya tetap udah diubah." : "Biaya tetap udah ditambah.");
+    p_id: p.data.tetapId, p_nama: p.data.nama, p_kelompok: p.data.kelompok, p_cara_bayar: p.data.caraBayar, p_jumlah: p.data.jumlah,
+    p_bulan_bayar: p.data.caraBayar === "tahunan" ? p.data.bulanBayar : null, p_aktif: p.data.aktif === "ya", p_catatan: p.data.catatan,
+  }, p.data.tetapId ? "Pos udah diubah." : "Pos udah ditambah.");
 }
 
 /** Catat semua biaya tetap yg aktif buat satu bulan. Yg udah kecatat bulan itu dilewatin. */
@@ -128,7 +131,7 @@ export async function catatBiayaTetap(_: HasilForm, fd: FormData): Promise<Hasil
   const { data, error } = await supabase.rpc("catat_biaya_tetap", { p_bulan: `${p.data.bulan}-01`, p_tanggal: p.data.tanggal });
   if (error) return { error: pesanDb(error) };
   refresh();
-  return { pesan: `${Number(data)} biaya tetap udah dicatat. Yg kategorinya wajib nota masih draf, lampirkan notanya dulu terus ajukan.` };
+  return { pesan: `${Number(data)} pos udah dicatat jadi biaya. Yg kategorinya wajib nota masih draf, lampirkan notanya dulu terus ajukan.` };
 }
 /* ---------------------------------------------------------- tutup buku */
 const Bulan = z.string().regex(/^\d{4}-\d{2}$/, "Bulannya nggak valid").transform((s) => `${s}-01`);
