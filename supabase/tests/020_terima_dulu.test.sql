@@ -72,7 +72,7 @@ select results_eq($$select jumlah::text from public.approvals where ref_id = (se
 -- ============================================================ Owner: setujui, kode PO terbit
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000201", "role": "authenticated", "aal": "aal2"}';
 select lives_ok($$select public.setujui_persetujuan(array[(select id from public.approvals where ref_id = (select v from uji where k = 'po') and status = 'diajukan')], 19000000)$$, 'Owner menyetujui');
-select ok((select kode like 'PO-%' from public.purchase_orders where id = (select v from uji where k = 'po')), 'kode PO terbit waktu disetujui');
+select ok((select kode like 'PO/%' from public.purchase_orders where id = (select v from uji where k = 'po')), 'kode PO terbit waktu disetujui');
 select ok((select bool_and(po_kode = (select kode from public.purchase_orders where id = (select v from uji where k = 'po'))) from public.lots where po_id = (select v from uji where k = 'po')),
   'lot ikut dapat kode PO');
 
@@ -103,7 +103,7 @@ select lives_ok($$select public.koreksi_pembelian((select v from uji where k = '
   'koreksi harga grade A');
 select results_eq($$select status_persetujuan, total::text from public.purchase_orders where id = (select v from uji where k = 'po')$$,
   $$values ('diajukan', '19600000.00')$$, 'total berubah, PO balik ke antrean persetujuan');
-select results_eq($$select count(*)::int from public.approvals where ref_id = (select v from uji where k = 'po') and status = 'diajukan' and judul like 'Koreksi PO-%'$$,
+select results_eq($$select count(*)::int from public.approvals where ref_id = (select v from uji where k = 'po') and status = 'diajukan' and judul like 'Koreksi PO/%'$$,
   array[1], 'pengajuan koreksi bertanda Koreksi');
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000202", "role": "authenticated", "aal": "aal2"}';
 select throws_ok($$select public.catat_bayar((select v from uji where k = 'po'), 100000)$$, 'KT001', null, 'selama nunggu persetujuan ulang, belum bisa bayar');

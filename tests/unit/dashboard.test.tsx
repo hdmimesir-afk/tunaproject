@@ -57,7 +57,7 @@ describe("dashboard: laporan harian", () => {
   it("muncul di atas, judulnya ikut periode, dan tiap kotak nyambung ke menunya", () => {
     expect(html.indexOf("Laporan kemarin")).toBeLessThan(html.indexOf("Perlu tindakan Anda"));
     expect(html).toContain("Sabtu, 21 November 2026");
-    for (const h of ["/mutu", "/produksi", "/stok", "/keuangan"]) expect(html).toContain(`href="${h}"`);
+    for (const h of ["/mutu", "/produksi/jual", "/produksi", "/keuangan"]) expect(html).toContain(`href="${h}"`);
     expect(html).toContain("60,0%");
     expect(html).toContain("1 nunggu dicek");
   });

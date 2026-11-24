@@ -20,8 +20,8 @@ export async function absenSaya(userId: string): Promise<Absen[]> {
     .from("attendance")
     .select("id, user_id, jenis, waktu, tanggal, akurasi_m, jarak_m, hasil, alasan_gagal, terlambat_menit, pulang_awal_menit")
     .eq("user_id", userId)
-    .order("waktu", { ascending: false })
-    .limit(60);
+    .order("waktu")
+    .limit(2000);
   if (error) gagal("riwayat absen");
   return (data ?? []) as Absen[];
 }

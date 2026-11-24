@@ -23,6 +23,8 @@ export type Biaya = {
   /** Biaya tetap asalnya (kalau biaya ini dicatat dari daftar biaya tetap) dan bulannya. */
   fixed_cost_id?: string | null;
   bulan_tetap?: string | null;
+  /** Lini bisnis (25 Nov 2026): ikut proyeknya, atau dipilih manual. null = biaya umum. */
+  lini_bisnis?: "jual" | "jasa" | "titip" | null;
 };
 
 /** Pos biaya tetap: kelompok + cara bayar. Bulanan dicatat tiap bulan, tahunan sekali setahun di bulan bayarnya.

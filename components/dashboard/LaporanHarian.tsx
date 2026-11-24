@@ -26,9 +26,9 @@ export function LaporanHarian({ lap, judulTanggal, teks }: { lap: Data; judulTan
   const kotak = [
     lap.ikan && <Kotak key="ikan" href="/mutu" icon="flask" label="Ikan masuk" nilai={kgTeks(lap.ikan.kg)}
       rincian={lap.ikan.lot === 0 ? "Belum ada" : `${lap.ikan.lot} lot${lap.ikan.ekor ? ` · ${lap.ikan.ekor} ekor` : ""} · ${lap.ikan.pemasok.length} pemasok`} />,
-    p && <Kotak key="produksi" href="/produksi" icon="factory" label="Loin hasil" nilai={kgTeks(p.loinKg)}
+    p && <Kotak key="produksi" href="/produksi/jual" icon="factory" label="Loin hasil" nilai={kgTeks(p.loinKg)}
       rincian={p.jumlah === 0 ? "Belum ada produksi" : <>dari {kgTeks(p.masukKg)}{hasil !== null && <> · hasil <b className="font-semibold" style={{ color: INK }}>{persenTeks(hasil)}</b></>}{p.berjalan + p.menunggu > 0 && <span className="block">{[p.berjalan && `${p.berjalan} lagi jalan`, p.menunggu && `${p.menunggu} nunggu dicek`].filter(Boolean).join(" · ")}</span>}</>} />,
-    lap.stok && <Kotak key="stok" href="/stok" icon="box" label="Stok siap jual" nilai={kgTeks(lap.stok.kg)}
+    lap.stok && <Kotak key="stok" href="/produksi" icon="box" label="Stok siap jual" nilai={kgTeks(lap.stok.kg)}
       rincian={lap.stok.perJenis.length === 0 ? "Kosong" : lap.stok.perJenis.slice(0, 2).map((j) => `${j.nama} ${kgTeks(j.kg)}`).join(" · ")} />,
     lap.jual && <Kotak key="jual" href="/penjualan" icon="truck" label="Terjual" nilai={rupiah(lap.jual.nilai)} tone={lap.jual.nilai > 0 ? "ok" : undefined}
       rincian={lap.jual.pesanan === 0 ? "Belum ada pengiriman" : `${kgTeks(lap.jual.kg)} · ${lap.jual.pesanan} pesanan`} />,

@@ -1,5 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { jumlahBaris, linkWa, pesanPengingat, tersedia, totalBaris } from "./penjualan";
+import { hitungPotongan, jumlahBaris, linkWa, pesanPengingat, tersedia, totalBaris } from "./penjualan";
+
+describe("hitungPotongan (sama kayak private.potongan di database)", () => {
+  it("diskon persen lalu pajak dari setelah diskon", () => {
+    expect(hitungPotongan(2_000_000, { pajakAktif: true, pajakPersen: 11, diskonJenis: "persen", diskonNilai: 10 }))
+      .toEqual({ subtotal: 2_000_000, diskon: 200_000, pajak: 198_000, total: 1_998_000 });
+  });
+  it("pajak mati, diskon nominal", () => {
+    expect(hitungPotongan(1_000_000, { pajakAktif: false, pajakPersen: 11, diskonJenis: "nominal", diskonNilai: 100_000 }))
+      .toEqual({ subtotal: 1_000_000, diskon: 100_000, pajak: 0, total: 900_000 });
+  });
+  it("diskon nominal nggak lebih dari subtotal, sen dibulatkan", () => {
+    expect(hitungPotongan(500, { pajakAktif: false, pajakPersen: 0, diskonJenis: "nominal", diskonNilai: 900 }).total).toBe(0);
+    expect(hitungPotongan(333.33, { pajakAktif: true, pajakPersen: 11, diskonJenis: "persen", diskonNilai: 0 }).pajak).toBe(36.67);
+  });
+});
 
 describe("jumlahBaris", () => {
   it("kg x harga tanpa selisih pecahan", () => {

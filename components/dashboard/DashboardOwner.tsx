@@ -204,7 +204,7 @@ export function DashboardOwner({ d, izin, nama, salam, tanggal, buku, siklus, ti
               {izin.penjualan && <Angka href={ke("/penjualan")} icon="truck" label="Piutang" nilai={rp(d.piutang)} tone={d.invoice_terlambat > 0 ? "warn" : undefined}
                 catatan={d.invoice_terlambat > 0 ? `${d.invoice_terlambat} invoice terlambat (${rp(d.piutang_terlambat)})` : "Nggak ada yang telat"} />}
               {izin.pembelian && <Angka href={ke("/pembelian")} icon="cart" label="Utang ke pemasok" nilai={rp(d.hutang_pemasok)} catatan="PO yang udah disetujui tapi belum lunas" />}
-              {izin.stok && <Angka href={ke("/stok")} icon="box" label="Stok sendiri" nilai={kgT(d.stok_sendiri_kg)} catatan={`Titipan pelanggan ${kgT(d.stok_titipan_kg)}`} />}
+              {izin.stok && <Angka href={ke("/produksi")} icon="box" label="Stok sendiri" nilai={kgT(d.stok_sendiri_kg)} catatan={`Titipan pelanggan ${kgT(d.stok_titipan_kg)}`} />}
             </div>
           )}
 

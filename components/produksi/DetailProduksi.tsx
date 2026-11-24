@@ -15,6 +15,7 @@ import { bacaDraf } from "@/lib/offline/draft";
 import type { Opsi, Pengguna } from "@/lib/types/pembelian";
 import { LABEL_LINI, type ProyekOpsi } from "@/lib/types/produksi";
 import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
+import { HapusRecordProduksi } from "./HapusRecord";
 import { cetakFormulir } from "./cetak";
 import { GridLoin } from "./GridLoin";
 import { BukaLagi, KoreksiProduksi, KoreksiTimbangan } from "./KoreksiProduksi";
@@ -455,7 +456,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
           </Inner>
           {p.status === "diperiksa" && (
             <p className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#DDF3E8", color: "#0B6B4A" }}>
-              Produksi udah disetujui. Biar hasilnya bisa dipilih di pesanan, masukin ke stok lewat menu <a href="/stok" className="font-medium underline">Stok</a>, tombol Hasil produksi masuk.
+              Produksi udah disetujui. Biar hasilnya bisa dipilih di pesanan, masukin ke stok lewat <a href="/produksi" className="font-medium underline">Ringkasan Produksi</a>, tombol Hasil produksi masuk.
             </p>
           )}
           {berjalan && bolehTulis && <Selesaikan id={p.id} />}
@@ -484,6 +485,7 @@ export function DetailProduksi({ detail, grade, samping, pengguna, batas, bolehT
         )}
       </Bagian>}
       <RiwayatKoreksi daftar={detail.koreksi} pengguna={pengguna} nama={Object.fromEntries(proyek.map((x) => [x.id, x.label]))} />
+      {bolehTulis && <HapusRecordProduksi key={p.id + p.status} detail={detail} grade={grade} samping={samping} />}
     </Modal>
   );
 }

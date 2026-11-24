@@ -8,14 +8,17 @@ import { Icon } from "@/components/ui";
 import { INK } from "@/components/ui/tokens";
 import { keluar } from "@/lib/actions/auth";
 import { MODULES } from "@/lib/modules";
-import { GRUP } from "./grup";
+import { GRUP, KATEGORI, slugAktif } from "./grup";
 import { DaftarSw, PasangAplikasi } from "./PasangAplikasi";
 
 type Pengguna = { nama: string; peran: string };
 
 /* Urutan modul yang paling sering dipakai di HP. Empat yang pertama (yang boleh dilihat peran ini) jadi tab bawah;
    sisanya ada di lembar Menu. */
-const PRIORITAS = ["dashboard", "produksi", "mutu", "penjualan", "persetujuan", "pembelian", "stok", "keuangan", "laporan", "gudang", "penunjang", "siklus", "asisten", "akses", "pengaturan"];
+const PRIORITAS = ["dashboard", "penerimaan", "produksi", "niaga", "mutu", "produksi/jual", "penjualan", "warehouse", "persetujuan", "pembelian", "keuangan", "laporan", "gudang", "penunjang", "siklus", "asisten", "akses", "pengaturan"];
+
+/** Nama item di menu: dashboard kategori ditulis "Ringkasan" kalau tampil di bawah judul kategorinya. */
+const namaItem = (slug: string, label: string, diKategori: boolean) => (diKategori && KATEGORI.has(slug) ? "Ringkasan" : label);
 
 /* Status menu ringkas (hanya ikon) di desktop: disimpan di localStorage bila bisa, selalu juga di memori
    (mode privat bisa menolak penyimpanan). Ctrl/⌘+B membalik. */
@@ -44,8 +47,9 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
   const [cari, setCari] = useState("");
   const q = cari.trim().toLowerCase();
   const ringkas = useSyncExternalStore(langgananRingkas, bacaRingkas, () => false);
-  const on = (slug: string) => path === `/${slug}` || path.startsWith(`/${slug}/`);
   const items = MODULES.filter((m) => slugs.includes(m.slug));
+  const aktifSlug = slugAktif(path, items.map((m) => m.slug));
+  const on = (slug: string) => aktifSlug === slug;
   const utama = PRIORITAS.map((s) => items.find((m) => m.slug === s)).filter((m): m is (typeof items)[number] => Boolean(m)).slice(0, 4);
   const lain = items.filter((m) => !utama.includes(m));
   const aktifDiMenu = lain.some((m) => on(m.slug));
@@ -94,21 +98,44 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
         {offline && !ringkas && <div className="mx-3 mb-3 rounded-2xl px-3 py-2 text-[11.5px] text-[#E8C27A]" style={{ background: "#1B1D21" }}>Database belum nyambung, jadi semua menu ditampilkan.</div>}
 
         <nav className="erp-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-3" aria-label="Modul">
-          {grup.map((g, i) => (
-            <div key={g.id} className={i === 0 ? "" : ringkas ? "mt-2 border-t border-white/10 pt-2" : "mt-4"}>
-              {!ringkas && g.modul.length > 1 && <div className="px-3.5 pb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#6E7780]">{g.label}</div>}
-              <div className="space-y-0.5">
-                {g.modul.map((m) => (
-                  <Link key={m.slug} href={`/${m.slug}`} title={ringkas ? m.label : undefined} aria-current={on(m.slug) ? "page" : undefined} aria-label={ringkas ? m.label : undefined}
-                    className={`group flex items-center rounded-full text-[14px] transition ${ringkas ? "mx-auto h-11 w-11 justify-center" : "gap-3 px-3.5 py-2.5"} ${on(m.slug) ? "" : "hover:bg-white/[0.07]"}`}
-                    style={{ background: on(m.slug) ? "#EEF0F5" : undefined, color: on(m.slug) ? INK : "#C6CCD3", fontWeight: on(m.slug) ? 600 : 400 }}>
-                    <Icon n={m.icon} s={19} c={on(m.slug) ? INK : "#9AA2AB"} />
-                    {!ringkas && <span className="truncate">{m.label}</span>}
+          {grup.map((g, i) => {
+            const kategori = g.modul.length > 1 && g.slugs.some((s) => KATEGORI.has(s));
+            const grupAktif = g.modul.some((m) => on(m.slug));
+            const tautan = (m: (typeof items)[number], anak = false) => (
+              <Link key={m.slug} href={`/${m.slug}`} title={ringkas ? m.label : undefined} aria-current={on(m.slug) ? "page" : undefined} aria-label={ringkas ? m.label : undefined}
+                className={`group flex items-center rounded-full transition ${ringkas ? "mx-auto h-11 w-11 justify-center" : anak ? "gap-3 py-2 pl-5 pr-3.5 text-[13.5px]" : "gap-3 px-3.5 py-2.5 text-[14px]"} ${on(m.slug) ? "" : "hover:bg-white/[0.07]"}`}
+                style={{ background: on(m.slug) ? "#EEF0F5" : undefined, color: on(m.slug) ? INK : "#C6CCD3", fontWeight: on(m.slug) ? 600 : 400 }}>
+                <Icon n={m.icon} s={anak ? 17 : 19} c={on(m.slug) ? INK : "#9AA2AB"} />
+                {!ringkas && <span className="truncate">{namaItem(m.slug, m.label, anak)}</span>}
+              </Link>
+            );
+            return (
+              <div key={g.id} className={i === 0 ? "" : ringkas ? "mt-2 border-t border-white/10 pt-2" : "mt-1"}>
+                {kategori && ringkas ? (
+                  // Menu ringkas: satu ikon per kategori, nuju ke dashboardnya.
+                  <Link href={`/${g.modul[0].slug}`} title={g.label} aria-label={g.label} aria-current={grupAktif ? "page" : undefined}
+                    className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full transition ${grupAktif ? "" : "hover:bg-white/[0.07]"}`} style={{ background: grupAktif ? "#EEF0F5" : undefined }}>
+                    <Icon n={g.icon} s={19} c={grupAktif ? INK : "#9AA2AB"} />
                   </Link>
-                ))}
+                ) : kategori ? (
+                  <details open={grupAktif} className="group/kat" data-testid={`kategori-${g.id}`}>
+                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-full px-3.5 py-2.5 text-[14px] transition hover:bg-white/[0.07] [&::-webkit-details-marker]:hidden"
+                      style={{ color: grupAktif ? "#fff" : "#C6CCD3", fontWeight: grupAktif ? 600 : 500 }}>
+                      <Icon n={g.icon} s={19} c={grupAktif ? "#fff" : "#9AA2AB"} />
+                      <span className="flex-1 truncate">{g.label}</span>
+                      <span className="transition group-open/kat:rotate-180"><Icon n="bawah" s={16} c="#8A9199" /></span>
+                    </summary>
+                    <div className="mt-0.5 space-y-0.5 pb-1">{g.modul.map((m) => tautan(m, true))}</div>
+                  </details>
+                ) : (
+                  <>
+                    {!ringkas && g.modul.length > 1 && <div className="px-3.5 pb-1.5 pt-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#6E7780]">{g.label}</div>}
+                    <div className="space-y-0.5">{g.modul.map((m) => tautan(m))}</div>
+                  </>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div className={ringkas ? "mt-2 border-t border-white/10 pt-2" : "mt-4"}>
             <PasangAplikasi varian="samping" ringkas={ringkas} />
             <Link href="/tutorial" title={ringkas ? "Panduan" : undefined} aria-label={ringkas ? "Panduan" : undefined}
@@ -201,7 +228,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
               <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari menu" aria-label="Cari menu" className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-[#8A949E]" style={{ color: INK }} />
             </label>
             {grup.map((g) => {
-              const tampil = g.modul.filter((m) => !q || m.label.toLowerCase().includes(q));
+              const tampil = g.modul.filter((m) => !q || `${m.label} ${g.label}`.toLowerCase().includes(q));
               if (tampil.length === 0) return null;
               return (
                 <div key={g.id} className="mb-4">
@@ -211,7 +238,7 @@ export function Nav({ slugs, pengguna, offline }: { slugs: string[]; pengguna?: 
                       <Link key={m.slug} href={`/${m.slug}`} onClick={() => setBuka(false)} aria-current={on(m.slug) ? "page" : undefined}
                         className="flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl px-1.5 py-3 text-center text-[12px] leading-tight" style={on(m.slug) ? { background: INK, color: "#fff", fontWeight: 600 } : { background: "#fff", color: INK }}>
                         <Icon n={m.icon} s={22} c={on(m.slug) ? "#fff" : INK} />
-                        <span>{m.label}</span>
+                        <span>{namaItem(m.slug, m.label, g.modul.length > 1)}</span>
                       </Link>
                     ))}
                   </div>

@@ -20,7 +20,22 @@ export type Pesanan = {
   total_final: number;
   invoice_id: string | null;
   invoice_kode: string | null;
+  /** 25 Nov 2026: pesanan jasa produksi, pajak, diskon. total_pesan/total_final udah dipotong diskon dan ditambah pajak. */
+  jenis: "barang" | "jasa";
+  pajak_aktif: boolean;
+  pajak_persen: number;
+  diskon_jenis: "persen" | "nominal";
+  diskon_nilai: number;
+  subtotal_pesan: number;
+  subtotal_final: number;
+  diskon_final: number;
+  pajak_final: number;
 };
+
+/** Satu jasa di daftar harga jasa produksi (diatur sendiri, paling banyak 5 yang aktif). */
+export type Jasa = { id: string; nama: string; harga: number; urutan: number; aktif: boolean };
+/** Baris pesanan jasa: dari daftar (service_item_id) atau manual. */
+export type BarisJasa = { id: string; service_item_id: string | null; keterangan: string; harga: number; urutan: number };
 
 export type AlokasiJual = {
   id: string;
@@ -37,12 +52,16 @@ export type AlokasiJual = {
   batal: boolean;
 };
 
-export type BarisInvoice = { uraian: string; kg: number; harga_per_kg: number; jumlah: number; unit?: string; dasar?: string; hari?: number };
+export type BarisInvoice = { uraian: string; kg?: number; harga_per_kg?: number; jumlah: number; unit?: string; dasar?: string; hari?: number; kelompok?: string };
 
 export type Invoice = {
   id: string;
   kode: string;
-  jenis: "penjualan" | "gudang_dingin";
+  jenis: "penjualan" | "gudang_dingin" | "jasa_produksi";
+  subtotal: number;
+  diskon: number;
+  pajak: number;
+  pajak_persen: number;
   buyer_id: string;
   buyer_nama: string;
   order_id: string | null;

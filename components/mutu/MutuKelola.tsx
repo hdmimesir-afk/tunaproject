@@ -11,7 +11,7 @@ import { PemasokBaru } from "@/components/pembelian/PemasokBaru";
 import type { HasilForm } from "@/lib/actions/auth";
 import { ajukanPembelian, cekMutuLot, hapusLot, koreksiLot, terimaIkan } from "@/lib/actions/mutu";
 import type { Koreksi } from "@/lib/data/koreksi";
-import { rp } from "@/lib/format";
+import { rp , bacaAngka } from "@/lib/format";
 import { keGram } from "@/lib/logic/grid";
 import { formatKg } from "@/lib/logic/neraca";
 import { alasanBelumSiap, gradeLot, lampiranWajib, rincianAjukan } from "@/lib/logic/pembelian";
@@ -82,7 +82,7 @@ function FormTerima({ pemasok, bolehPemasokBaru, hariIni, grade, bolehMutu, poto
     return r;
   }, undefined);
   const r = ringkasEkor(ekor, potonganKg);
-  const kgAngka = Number(kg.replace(",", "."));
+  const kgAngka = bacaAngka(kg);
   const bisaKirim = cara === "total" || (r.jumlah > 0 && r.salah.size === 0 && (!r.adaGrade || r.semuaGrade));
   return (
     <form action={action} className="space-y-3 px-2.5 pb-2.5">
@@ -268,7 +268,7 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
   const [ubahGrading, setUbahGrading] = useState(asalPerEkor);
   const r = ringkasEkor(ekor, potonganKg);
   const terpakai = Math.max(0, lot.kg - lot.sisa_kg);
-  const kgAngka = Number(kgTotal.replace(",", ".")) || 0;
+  const kgAngka = bacaAngka(kgTotal) || 0;
   // Sistem grading (23 Nov 2026): per grade (AB/C/D) atau cong (nggak digrading, semua berat satu kelas CONG).
   const asalCong = !!congId && (lot.lot_grades ?? []).some((g) => g.grade_id === congId && g.kg > 0);
   const [sistem, setSistem] = useState<"grade" | "cong">(asalCong ? "cong" : "grade");
@@ -343,7 +343,7 @@ function KoreksiLot({ lot, pemasok, siklus, koreksi, pengguna, grade, bolehMutu,
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Field label="Berat (kg)" hint={terpakai > 0 ? `Minimal ${formatKg(terpakai)} kg, udah dipakai produksi.` : undefined} error={state?.kolom?.kg?.[0]}>
-              <TextIn name="kg" type="number" inputMode="decimal" step="0.001" min="0" value={kgTotal} onChange={(e) => setKgTotal(e.target.value)} required />
+              <TextIn name="kg" inputMode="decimal" placeholder="Misalnya 1.234,5" value={kgTotal} onChange={(e) => setKgTotal(e.target.value)} required />
             </Field>
             <Field label="Tanggal terima" error={state?.kolom?.tanggal?.[0]}>
               <TextIn name="tanggal" type="date" defaultValue={lot.tanggal_terima} required />
@@ -422,7 +422,7 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
   const [pending, mulai] = useTransition();
 
   const dipilih = lotPemasok.filter((l) => pilih.includes(l.id));
-  const keAngka = (v: string) => (v.trim() === "" ? null : Number(v.replace(",", ".")));
+  const keAngka = (v: string) => (v.trim() === "" ? null : bacaAngka(v));
   const angka = useMemo(() => Object.fromEntries(Object.entries(harga).map(([k, v]) => [k, keAngka(v)])), [harga]);
   const r0 = rincianAjukan(dipilih, {});
   const r = caraHarga === "cong"
@@ -462,7 +462,7 @@ function AjukanPembelian({ lots, lampiran, onTutup }: { lots: LotBaris[]; lampir
           </p>
           {lots.length > 0 && (
             <ul className="space-y-1.5">
-              {lots.slice(0, 8).map((l) => (
+              {lots.slice(-8).reverse().map((l) => (
                 <li key={l.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
                   <span className="font-semibold" style={{ color: INK }}>{l.kode}</span>
                   <span className="text-right" style={{ color: MUTED }}>{alasanBelumSiap(l)}</span>

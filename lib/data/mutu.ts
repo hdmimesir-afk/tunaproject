@@ -11,7 +11,7 @@ export async function daftarLot(): Promise<LotBaris[]> {
   const sb = await createClient();
   const { data, error } = await sb.from("lots")
     .select("*, suppliers(nama), grades(kode, nama), cycles(kode, nama), lot_grades(grade_id, kg, grades(kode)), purchase_orders(kode, status_persetujuan), lot_ekor(id, urutan, no_tag, spesies, kg, grade_id, gancu, potongan_kg, kg_bayar, batal)")
-    .order("kode", { ascending: false }).limit(100);
+    .order("tanggal_terima").order("kode").limit(5000);
   if (error) gagal("daftar lot");
   // Ekor yang dibuang lewat koreksi nggak ditampilkan; urut sesuai catatan.
   return ((data ?? []) as unknown as LotBaris[]).map((l) => ({ ...l, lot_ekor: (l.lot_ekor ?? []).filter((e) => !e.batal).sort((a, b) => a.urutan - b.urutan) }));

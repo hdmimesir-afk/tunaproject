@@ -1,29 +1,28 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
-import { ProduksiKelola } from "@/components/produksi/ProduksiKelola";
 import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
+import { StokKelola } from "@/components/stok/StokKelola";
 import { requireSesi } from "@/lib/data/auth";
-import { petaPengguna } from "@/lib/data/pembelian";
-import { batasHasil, daftarProduksi, daftarPT, detailProduksi, gradeProduksi, jenisHasilSamping, lotSiapProduksi, proyekTerbuka, ringkasGradeProduksi } from "@/lib/data/produksi";
+import { daftarProduksi, liniDari } from "@/lib/data/produksi";
+import { daftarRuangan, daftarUnit, isiGudang, koreksiMenunggu, lotDitahan } from "@/lib/data/stok";
 import { supabaseConfigured } from "@/lib/env";
-import { hariIni } from "@/lib/format";
-import { boleh, PERAN_OWNER } from "@/lib/izin";
-import { ProduksiOwner } from "@/components/owner/ProduksiOwner";
-import { laporanProduksiOwner } from "@/lib/data/laporanOwner";
-import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
+import { boleh, bolehSalahSatu } from "@/lib/izin";
 
 export const metadata: Metadata = { title: "KATALIS ERP | Produksi" };
 
+/* Ringkasan Produksi (dashboard kategori Produksi, permintaan tim 24 Nov 2026). Halaman produksi yang dulu ada di sini
+   pindah ke /produksi/jual dan /produksi/jasa; tautan lama (?p=, ?mulai=) diarahin ke halaman lininya. */
 export default function ProduksiPage(props: PageProps<"/produksi">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Dari ikan utuh jadi loin, ditimbang per potong" judul="Produksi" />
+      <Judul kicker="Stok yang udah diproduksi, yang lagi dititip, sama yang masih ditahan" judul="Ringkasan Produksi" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
-          <ProduksiData searchParams={props.searchParams} />
+          <RingkasanData searchParams={props.searchParams} />
         </Suspense>
       ) : (
         <Belum />
@@ -32,35 +31,26 @@ export default function ProduksiPage(props: PageProps<"/produksi">) {
   );
 }
 
-async function ProduksiData({ searchParams }: { searchParams: PageProps<"/produksi">["searchParams"] }) {
+async function RingkasanData({ searchParams }: { searchParams: PageProps<"/produksi">["searchParams"] }) {
   const sesi = await requireSesi();
-  if (!boleh(sesi, "produksi.read")) return <TanpaIzin />;
   const sp = await searchParams;
+  // Tautan lama: buka produksi atau mulai produksi, diarahin ke halaman lini bisnisnya (query-nya dibawa).
   const id = z.uuid().safeParse(typeof sp.p === "string" ? sp.p : "");
-  // Owner: halaman laporan produksi sendiri. Buka satu produksi (?p=) tetap pakai rincian biasa (ada tombol Setujui).
-  if (sesi.roleId === PERAN_OWNER && sp.lengkap !== "1" && !id.success) {
-    return <ProduksiOwner lap={await laporanProduksiOwner(isPeriodeOwner(sp.periode) ? sp.periode : "7")} />;
+  const proyek = z.uuid().safeParse(typeof sp.proyek === "string" ? sp.proyek : "");
+  if (id.success || sp.mulai === "1") {
+    const lini = id.success ? await liniDari("v_productions", id.data) : proyek.success ? await liniDari("cycles", proyek.data) : "jual";
+    const q = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" ? [[k, v]] : [])));
+    redirect(lini === "titip" ? `/produksi/titip?titip=${proyek.data ?? ""}` : `/produksi/${lini}?${q}`);
   }
-  const bolehTulis = boleh(sesi, "produksi.write");
-  const [daftar, lot, grade, samping, pengguna, batas, detail, proyek, pt] = await Promise.all([
-    daftarProduksi(),
-    bolehTulis ? lotSiapProduksi() : Promise.resolve([]),
-    gradeProduksi(),
-    jenisHasilSamping(),
-    petaPengguna(),
-    batasHasil(),
-    id.success ? detailProduksi(id.data) : Promise.resolve(null),
-    proyekTerbuka(),
-    bolehTulis ? daftarPT() : Promise.resolve([]),
+  if (!bolehSalahSatu(sesi, ["produksi.read", "stok.read"])) return <TanpaIzin />;
+  const bolehSetuju = boleh(sesi, "stok.setuju");
+  const [produksi, units, isi, ruangan, koreksi, ditahan] = await Promise.all([
+    boleh(sesi, "produksi.read") ? daftarProduksi() : Promise.resolve([]),
+    boleh(sesi, "stok.read") ? daftarUnit() : Promise.resolve([]),
+    isiGudang(),
+    daftarRuangan(),
+    bolehSetuju ? koreksiMenunggu() : Promise.resolve([]),
+    boleh(sesi, "mutu.read") ? lotDitahan() : Promise.resolve([]),
   ]);
-  const ringkasGrade = await ringkasGradeProduksi(daftar.map((p) => p.id));
-  return (
-    <ProduksiKelola
-      daftar={daftar} lotSiap={lot} proyek={proyek} pt={pt} koreksiAwal={sp.koreksi === "1"} ringkasGrade={ringkasGrade}
-      mulaiAwal={sp.mulai === "1" && bolehTulis ? z.uuid().safeParse(typeof sp.proyek === "string" ? sp.proyek : "").data ?? "" : null}
-      lotAwal={typeof sp.lot === "string" ? sp.lot.split(",").filter((x) => z.uuid().safeParse(x).success).slice(0, 50) : []}
-      grade={grade} samping={samping} pengguna={pengguna} detail={detail} batas={batas}
-      bolehTulis={bolehTulis} bolehPeriksa={boleh(sesi, "produksi.periksa")} bolehSetuju={boleh(sesi, "produksi.setuju")} hariIni={hariIni()}
-    />
-  );
+  return <StokKelola produksi={produksi} units={units} isi={isi} ruangan={ruangan} koreksi={koreksi} ditahan={ditahan} bolehSetuju={bolehSetuju} />;
 }

@@ -59,12 +59,15 @@ export function boleh(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | 
 }
 
 /** Menu buat sesi ini: owner semua menu (cuma lihat, Pengaturan cuma Hapus data); peran lain ngikut izin tiap modul. */
-export function bolehMenu(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, slug: string, izinModul: string | null) {
-  if (s.roleId === PERAN_OWNER) {
-    if (MENU_OWNER_TERSEMBUNYI.has(slug)) return false;
-    return boleh(s, slug === "absensi" ? "absensi.rekap" : izinModul);
-  }
-  return boleh(s, izinModul);
+export function bolehMenu(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, slug: string, izinModul: string | string[] | null) {
+  if (s.roleId === PERAN_OWNER && MENU_OWNER_TERSEMBUNYI.has(slug)) return false;
+  if (s.roleId === PERAN_OWNER && slug === "absensi") return boleh(s, "absensi.rekap");
+  return bolehSalahSatu(s, izinModul);
+}
+
+/** Boleh kalau punya salah satu izin di daftar (dashboard kategori kebuka buat siapa aja yg boleh lihat salah satu isinya). */
+export function bolehSalahSatu(s: Pick<Sesi, "aktif" | "roleId" | "semuaIzin" | "izin" | "wajibMfa" | "aal">, izin: string | string[] | null) {
+  return Array.isArray(izin) ? izin.some((x) => boleh(s, x)) : boleh(s, izin);
 }
 
 /** Alamat tujuan setelah masuk: hanya jalur internal, tidak pernah ke situs lain. */

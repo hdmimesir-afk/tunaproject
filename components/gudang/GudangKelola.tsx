@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Btn, Card, DataList, Field, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
@@ -23,6 +23,11 @@ import type { Koreksi } from "@/lib/data/koreksi";
 import { PilihRuangan, RuanganPanel } from "./Ruangan";
 
 type Props = {
+  /** Halaman yg buka: Gudang Dingin (ruangan, stok sendiri, tarif, jadwal) atau Produksi, Titip barang
+      (titipan sama tagihan jasanya). Dipisah 24 Nov 2026 waktu menu dibikin 4 kategori. */
+  bagian: "gudang" | "titip";
+  /** Isian tambahan di atas daftar titipan (daftar proyek titip, tombol bikin proyek). */
+  atas?: ReactNode;
   titipan: UnitStok[];
   /** Stok milik sendiri (hasil produksi) yang masih di gudang, buat dipindah ruangan. */
   sendiri: UnitStok[];
@@ -165,7 +170,7 @@ function FormTarif({ aturan, onTutup, hariIni }: { aturan: AturanTarif; onTutup:
       <PesanForm state={state?.error ? state : undefined} />
       <p className="text-[12.5px]" style={{ color: MUTED }}>Tarif baru berlaku mulai tanggal yang dipilih. Tagihan lama tetap pakai tarif pas ikannya masuk.</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label={aturan.jenis === "simpan" ? "Tarif simpan (Rp/kg/hari)" : "Tarif (Rp/kg)"} error={state?.kolom?.tarif?.[0]}><TextIn name="tarif" type="number" step="0.01" min="0" defaultValue={aturan.tarif_per_kg} required /></Field>
+        <Field label={aturan.jenis === "simpan" ? "Tarif simpan (Rp/kg/hari)" : "Tarif (Rp/kg)"} error={state?.kolom?.tarif?.[0]}><TextIn name="tarif" inputMode="decimal" defaultValue={String(aturan.tarif_per_kg).replace(".", ",")} required /></Field>
         <Field label="Berlaku mulai" error={state?.kolom?.berlakuDari?.[0]}><TextIn name="berlakuDari" type="date" defaultValue={hariIni} required /></Field>
         <Field label="Minimum hari simpan" error={state?.kolom?.minimumHari?.[0]}><TextIn name="minimumHari" type="number" min="1" defaultValue={aturan.minimum_hari} required /></Field>
         <Field label="Masa transit (jam)" hint="Isi 0 kalau nggak ada transit. Titipan sebentar pun tetap kena minimum hari." error={state?.kolom?.masaTransitJam?.[0]}><TextIn name="masaTransitJam" type="number" min="0" defaultValue={aturan.masa_transit_jam} required /></Field>
@@ -251,7 +256,7 @@ function AksiBooking({ b, booking, onTutup }: { b: Booking; booking: Booking[]; 
 }
 
 /* --------------------------------------------------------------- utama */
-export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehStok, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal, koreksi, pengguna }: Props) {
+export function GudangKelola({ bagian, atas, titipan, sendiri, isi, ruangan, tagihan, tarif, booking, pelanggan, produk, grade, mitra, bolehTulis, bolehStok, bolehTarif, hariIni, lampiran, proyekTitip, titipAwal, koreksi, pengguna }: Props) {
   const [koreksiUnit, setKoreksiUnit] = useState<UnitStok | null>(null);
   const [terima, setTerima] = useState(!!titipAwal && bolehTulis);
   const [ambil, setAmbil] = useState<UnitStok | null>(null);
@@ -274,17 +279,22 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
         <Stat value={kgTeks(isi.isi_titipan_kg)} label="Titipan di gudang" />
-        <Stat value={kgTeks(isi.isi_sendiri_kg)} label="Stok sendiri di gudang" />
+        {bagian === "titip" ? <Stat value={String(new Set(aktif.map((u) => u.pemilik_nama)).size)} label="Pemilik titipan" /> : <Stat value={kgTeks(isi.isi_sendiri_kg)} label="Stok sendiri di gudang" />}
         <Stat value={`${persen.toLocaleString("id-ID", { maximumFractionDigits: 1 })}%`} label={`Terisi dari ${kgTeks(isi.kapasitas_kg)}`} tone={persen > 90 ? "warn" : undefined} />
         <Stat value={rp(tagihan.reduce((a, t) => a + Math.round(t.jumlah * 100), 0) / 100)} label="Total tagihan jasa tercatat" />
       </div>
 
+      {atas}
+
+      {bagian === "gudang" && (
       <Card title="Ruangan gudang dingin" right={<span className="px-1 text-[12px]" style={{ color: MUTED }}>3 ABF dan 1 CS</span>}>
         <div className="px-1 pb-1">
           <RuanganPanel ruangan={ruangan} belumDitempatkanKg={Math.max(0, total - isiRuangan)} onAtur={bolehTarif ? setAturRuangan : undefined} />
         </div>
       </Card>
+      )}
 
+      {bagian === "titip" && (
       <Card title="Titipan pelanggan" right={bolehTulis && <Btn size="sm" onClick={() => setTerima(true)}>Terima titipan</Btn>}>
         <DataList
           rows={aktif}
@@ -311,7 +321,9 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
         />
         <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Tagihan jasanya dibuat otomatis pas titipan diambil.</p>
       </Card>
+      )}
 
+      {bagian === "gudang" && (
       <Card title="Stok sendiri di gudang" right={<span className="px-1 text-[12px]" style={{ color: MUTED }}>hasil produksi</span>}>
         <DataList
           rows={sendiri}
@@ -332,7 +344,9 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
         />
         <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Hasil produksi masuk sendiri begitu disetujui Owner, awalnya belum ditempatkan. Pindahin ke ruangannya dari sini. Yg dijual keluar lewat Penjualan.</p>
       </Card>
+      )}
 
+      {bagian === "titip" && (
       <Card title="Tagihan jasa gudang">
         <DataList
           rows={tagihan}
@@ -348,7 +362,9 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
           actions={(t) => <Btn size="sm" v="light" onClick={() => setRincian(t)}>Rincian</Btn>}
         />
       </Card>
+      )}
 
+      {bagian === "gudang" && (<>
       <Card title="Tarif">
         {belumKonfirmasi && <div className="px-2.5 pb-2"><p className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBF0D5", color: "#8A5A00" }}>Sebagian angka tarif belum dikonfirmasi owner. Tagihan tetap dihitung pakai angka ini, terus ditandai di rincian.</p></div>}
         <DataList
@@ -377,6 +393,7 @@ export function GudangKelola({ titipan, sendiri, isi, ruangan, tagihan, tarif, b
           actions={(b) => (bolehTulis ? <Btn size="sm" v="light" onClick={() => setAksi(b)}>Atur</Btn> : null)}
         />
       </Card>
+      </>)}
 
       {terima && <Modal title="Terima titipan" onClose={() => setTerima(false)}><FormTitipan pelanggan={pelanggan} produk={produk} grade={grade} ruangan={ruangan} proyekTitip={proyekTitip} proyekAwal={titipAwal} onTutup={() => setTerima(false)} /></Modal>}
       {ambil && <Modal title={`Ambil ${ambil.kode}`} onClose={() => setAmbil(null)}><FormAmbil unit={ambil} onTutup={() => setAmbil(null)} /></Modal>}

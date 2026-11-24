@@ -4,7 +4,7 @@ import { masuk, PETUGAS } from "./akun";
 test.describe("gudang dingin", () => {
   test("titipan masuk, diambil dengan konfirmasi kedua, tagihan jasa terbit dengan rincian", async ({ page }) => {
     await masuk(page, PETUGAS);
-    await page.goto("/gudang");
+    await page.goto("/produksi/titip");
     await page.getByRole("button", { name: "Terima titipan" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Pelanggan pemilik titipan").selectOption({ label: "Pelanggan E2E" });
@@ -14,7 +14,7 @@ test.describe("gudang dingin", () => {
     await dialog.getByRole("button", { name: "Terima titipan" }).click();
     await expect(page.getByText("250,000 kg").first()).toBeVisible();
 
-    // Ambil titipan sekarang di Gudang Dingin (21 Nov), halaman Stok cuma dashboard.
+    // Ambil titipan di Produksi, Titip barang (24 Nov), Ringkasan Produksi cuma dashboard.
     await page.getByRole("row", { name: /Pelanggan E2E/ }).first().getByRole("button", { name: "Ambil" }).click();
     const ambil = page.getByRole("dialog");
     await ambil.getByLabel(/Berat keluar/).fill("250");
@@ -24,27 +24,28 @@ test.describe("gudang dingin", () => {
     await ambil.getByRole("button", { name: "Ya, ambil dari gudang" }).click();
     await expect(page.getByRole("dialog")).toBeHidden();
 
-    await page.goto("/gudang");
+    await page.goto("/produksi/titip");
     await page.getByRole("button", { name: "Rincian" }).first().click();
     // Nggak ada transit (jawaban tim 19 Nov 2026): langsung diambil pun tetap ditagih minimum 10 hari.
     await expect(page.getByRole("dialog").getByText(/minimum 10 hari/).first()).toBeVisible();
   });
 
-  test("stok cuma dashboard: ikan utuh, lagi diproduksi, hasil siap jual, titipan, tanpa input", async ({ page }) => {
+  test("ringkasan produksi cuma dashboard, ikan utuh pindah ke ringkasan penerimaan", async ({ page }) => {
     await masuk(page, PETUGAS);
     await page.goto("/stok");
-    for (const judul of ["1. Ikan utuh (bahan baku)", "2. Lagi diproduksi", "3. Hasil produksi siap jual", "4. Titipan pelanggan"]) {
+    await expect(page).toHaveURL(/\/produksi$/);
+    for (const judul of ["1. Komponen ikan hasil produksi", "2. Lagi diproduksi", "3. Rincian hasil produksi per unit", "4. Barang titipan", "5. Ditahan"]) {
       await expect(page.getByRole("heading", { name: judul })).toBeVisible();
     }
-    await expect(page.getByRole("button", { name: "Hasil produksi masuk" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ambil" })).toHaveCount(0);
-    // Tombol Mulai Produksi di tiap lot bawa lotnya ke form Mulai Produksi.
+    await page.goto("/penerimaan");
+    await expect(page.getByTestId("panel-ikan-utuh")).toBeVisible();
+    // Tombol Mulai Produksi di tiap lot bawa lotnya ke form Mulai Produksi di Jual loin.
     const tombol = page.getByRole("link", { name: "Mulai Produksi", exact: true }).first();
     if (await tombol.count()) {
-      await expect(tombol).toHaveAttribute("href", /\/produksi\?mulai=1.*lot=/);
+      await expect(tombol).toHaveAttribute("href", /\/produksi\/jual\?mulai=1.*lot=/);
     }
   });
-
   test("barang penunjang punya menu sendiri", async ({ page }) => {
     await masuk(page, PETUGAS);
     await page.goto("/penunjang?tab=pekerja");

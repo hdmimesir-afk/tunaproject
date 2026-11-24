@@ -12,6 +12,18 @@ export function totalBaris(baris: { kg: number; harga: number }[]) {
   return sen / 100;
 }
 
+/** Pajak dan diskon (25 Nov 2026), sama persis dengan private.potongan di database:
+    diskon persen = subtotal x persen (dibulatkan ke sen), diskon nominal nggak boleh lebih dari subtotal,
+    pajak = persen x (subtotal - diskon) kalau aktif, total = subtotal - diskon + pajak. */
+export type Potongan = { pajakAktif: boolean; pajakPersen: number; diskonJenis: "persen" | "nominal"; diskonNilai: number };
+export function hitungPotongan(subtotal: number, p: Potongan) {
+  const sub = Math.round(subtotal * 100);
+  const nilai = Math.round((p.diskonNilai || 0) * 100);
+  const diskon = Math.min(sub, p.diskonJenis === "persen" ? Math.round((sub * (p.diskonNilai || 0)) / 100) : nilai);
+  const pajak = p.pajakAktif ? Math.round(((sub - diskon) * (p.pajakPersen || 0)) / 100) : 0;
+  return { subtotal: sub / 100, diskon: diskon / 100, pajak: pajak / 100, total: (sub - diskon + pajak) / 100 };
+}
+
 /** Stok tersedia untuk pesanan baru = sisa unit dikurangi yang sudah dipesan pesanan draf lain. */
 export function tersedia(sisaKg: number, dipesanLainKg: number) {
   return Math.max(0, (Math.round(sisaKg * 1000) - Math.round(dipesanLainKg * 1000)) / 1000);

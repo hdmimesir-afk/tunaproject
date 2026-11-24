@@ -92,7 +92,7 @@ function Rantai({ d, onTutup, bolehTutup, bolehIsi }: { d: RantaiSiklus; onTutup
         {d.produksi.map((p) => <Baris key={p.id} href={`/produksi?p=${p.id}`} kiri={<>{p.kode} · {p.status.replace("_", " ")}</>} kanan={<>masuk {kgT(p.masuk_kg)} → loin {kgT(p.loin_kg)}</>} />)}
       </Tahap>
       <Tahap judul="4. Stok" ringkas={`${stok.length} unit · sisa ${kgT(stok.reduce((a, s) => a + Math.round(s.sisa_kg * 1000), 0) / 1000)}`} kosong={stok.length === 0}>
-        {stok.map((s) => <Baris key={s.id} href="/stok" kiri={<>{s.kode} · {s.product_nama}{s.grade_kode && ` ${s.grade_kode}`} · {s.kondisi}</>} kanan={<>masuk {kgT(s.kg_masuk)} · sisa {kgT(s.sisa_kg)}</>} />)}
+        {stok.map((s) => <Baris key={s.id} href="/produksi" kiri={<>{s.kode} · {s.product_nama}{s.grade_kode && ` ${s.grade_kode}`} · {s.kondisi}</>} kanan={<>masuk {kgT(s.kg_masuk)} · sisa {kgT(s.sisa_kg)}</>} />)}
       </Tahap>
       <Tahap judul="5. Jual dan kirim" ringkas={`${d.pesanan.length} pesanan`} kosong={d.pesanan.length === 0}>
         {d.pesanan.map((p) => <Baris key={p.id} href={`/penjualan?p=${p.id}`} kiri={<>{p.kode} · {p.buyer_nama} · {p.status}</>} kanan={rp(p.status === "terkirim" ? p.total_final : p.total_pesan)} />)}
@@ -149,7 +149,7 @@ function FormProyek({ pt, hariIni, onSelesai }: { pt: Opsi[]; hariIni: string; o
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}><TextIn name="tanggal" type="date" defaultValue={hariIni} required /></Field>
       </div>
       <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Bikin proyek"}</Btn>
-      <p className="text-[12px]" style={{ color: MUTED }}>Abis dibikin, isi datanya langsung dari dalam proyek: mulai produksi atau terima titipan. Ikan dari nelayan diterima dulu di Mutu dan Penerimaan, tanpa proyek.</p>
+      <p className="text-[12px]" style={{ color: MUTED }}>Abis dibikin, isi datanya langsung dari dalam proyek: mulai produksi atau terima titipan. Ikan dari nelayan diterima dulu di Tally, tanpa proyek.</p>
     </form>
   );
 }
@@ -158,9 +158,9 @@ function FormProyek({ pt, hariIni, onSelesai }: { pt: Opsi[]; hariIni: string; o
 function LanjutIsi({ r }: { r: RingkasSiklus }) {
   const id = r.cycle_id;
   const tombol: { href: string; label: string }[] =
-    r.lini_bisnis === "titip" ? [{ href: `/gudang?titip=${id}`, label: "Terima titipan" }]
-      : r.lini_bisnis === "jasa" ? [{ href: `/produksi?mulai=1&proyek=${id}`, label: "Mulai produksi" }]
-        : [{ href: `/produksi?mulai=1&proyek=${id}`, label: "Mulai produksi" }];
+    r.lini_bisnis === "titip" ? [{ href: `/produksi/titip?titip=${id}`, label: "Terima titipan" }]
+      : r.lini_bisnis === "jasa" ? [{ href: `/produksi/jasa?mulai=1&proyek=${id}`, label: "Mulai produksi" }]
+        : [{ href: `/produksi/jual?mulai=1&proyek=${id}`, label: "Mulai produksi" }];
   return (
     <div className="flex flex-wrap items-center gap-2" data-testid="lanjut-isi">
       <span className="text-[12.5px]" style={{ color: MUTED }}>Isi data proyek ini:</span>

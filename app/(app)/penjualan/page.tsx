@@ -6,7 +6,7 @@ import { Belum } from "@/components/shell/Belum";
 import { Judul } from "@/components/shell/Judul";
 import { TanpaIzin } from "@/components/shell/TanpaIzin";
 import { requireSesi } from "@/lib/data/auth";
-import { daftarInvoice, daftarPesanan, detailInvoice, detailPesanan, hasilBelumSiapJual, jasaBelumDitagih, pembeliAktif, siklusTerbuka, unitDijual } from "@/lib/data/penjualan";
+import { daftarInvoice, daftarJasa, daftarPesanan, detailInvoice, detailPesanan, hasilBelumSiapJual, jasaBelumDitagih, pajakBawaan, pembeliAktif, siklusTerbuka, unitDijual } from "@/lib/data/penjualan";
 import { supabaseConfigured } from "@/lib/env";
 import { hariIni } from "@/lib/format";
 import { boleh, PERAN_OWNER } from "@/lib/izin";
@@ -44,7 +44,7 @@ async function PenjualanData({ searchParams }: { searchParams: PageProps<"/penju
   }
   const bolehBuat = boleh(sesi, "penjualan.write");
   const bolehInvoice = boleh(sesi, "invoice.write");
-  const [pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda] = await Promise.all([
+  const [pesanan, invoice, unit, pembeli, siklus, jasa, detailP, detailI, tertunda, daftarHarga, pajak] = await Promise.all([
     daftarPesanan(),
     daftarInvoice(),
     bolehBuat ? unitDijual(p.success ? p.data : undefined) : Promise.resolve([]),
@@ -54,16 +54,17 @@ async function PenjualanData({ searchParams }: { searchParams: PageProps<"/penju
     p.success ? detailPesanan(p.data) : Promise.resolve(null),
     inv.success ? detailInvoice(inv.data) : Promise.resolve(null),
     bolehBuat && boleh(sesi, "produksi.read") ? hasilBelumSiapJual() : Promise.resolve([]),
+    daftarJasa(),
+    pajakBawaan(),
   ]);
-  // Riwayat koreksi pesanan atau uang masuk yg lagi dibuka.
-  const [koreksi, pengguna] = detailP || detailI
-    ? await Promise.all([
-        detailP ? riwayatKoreksi(["sales_orders"], [detailP.pesanan.id]) : riwayatKoreksi(["customer_payments"], detailI!.pembayaran.map((x) => x.id)),
-        petaPengguna(),
-      ])
-    : [[], {}];
+  // Riwayat koreksi pesanan atau uang masuk yg lagi dibuka, plus riwayat koreksi harga jasa.
+  const [koreksi, pengguna, koreksiJasa] = await Promise.all([
+    detailP ? riwayatKoreksi(["sales_orders"], [detailP.pesanan.id]) : detailI ? riwayatKoreksi(["customer_payments"], detailI.pembayaran.map((x) => x.id)) : Promise.resolve([]),
+    detailP || detailI || daftarHarga.length > 0 ? petaPengguna() : Promise.resolve({}),
+    riwayatKoreksi(["service_items"], daftarHarga.map((x) => x.id)),
+  ]);
   return (
-    <PenjualanKelola koreksi={koreksi} pengguna={pengguna}
+    <PenjualanKelola koreksi={koreksi} pengguna={pengguna} daftarJasa={daftarHarga} pajakBawaan={pajak} koreksiJasa={koreksiJasa}
       pesanan={pesanan} invoice={invoice} unit={unit} pembeli={pembeli} siklus={siklus} jasa={jasa} detailP={detailP} detailI={detailI} tertunda={tertunda}
       bolehBuat={bolehBuat} bolehKirim={boleh(sesi, "pengiriman.write")} bolehInvoice={bolehInvoice} bolehBayar={boleh(sesi, "terima_bayar.write")}
       bolehDokumen={boleh(sesi, "dokumen.write")} hariIni={hariIni()}

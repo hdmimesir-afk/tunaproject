@@ -34,7 +34,7 @@ const KELOMPOK: Record<string, KelompokPendapatan> = { loin: "loin", hasil_sampi
 /** Menyusun bahan laporan laba rugi satu siklus dari baris transaksi asli (penjualan terkirim, PO disetujui, biaya disetujui, neraca produksi). */
 export async function dataLabaRugi(cycleId: string, rencanaPct: number): Promise<DataLabaRugi | null> {
   const sb = await createClient();
-  const [cy, jual, po, biaya, prod] = await Promise.all([
+  const [cy, jual, po, biaya, prod, jasa, diskon] = await Promise.all([
     sb.from("cycles").select("id, kode, ref_po_pembeli").eq("id", cycleId).maybeSingle(),
     sb.from("sale_allocations")
       .select("id, product_nama, grade_kode, kelompok, harga_per_kg, kg_kirim, kg_diterima, unit_kode, order_id, sales_orders!inner(kode, cycle_id, status, buyer_nama, dikirim_pada)")
@@ -42,6 +42,10 @@ export async function dataLabaRugi(cycleId: string, rencanaPct: number): Promise
     sb.from("purchase_orders").select("id, kode, kg, harga_per_kg, total, tanggal").eq("cycle_id", cycleId).eq("status_persetujuan", "disetujui").order("kode"),
     sb.from("expenses").select("id, kode, kategori_nama, uraian, jumlah, tanggal").eq("cycle_id", cycleId).eq("status", "disetujui").order("kode"),
     sb.from("v_productions").select("kode, masuk_kg, loin_kg, samping_kg, limbah_kg, susut_kg, belum_jelas_kg").eq("cycle_id", cycleId),
+    // 25 Nov 2026: pendapatan jasa produksi dan diskon penjualan (pajak bukan pendapatan, jadi nggak ikut).
+    sb.from("sales_service_lines").select("keterangan, harga, order_id, sales_orders!inner(kode, cycle_id, status, buyer_nama, dikirim_pada)")
+      .eq("batal", false).eq("sales_orders.cycle_id", cycleId).eq("sales_orders.status", "terkirim"),
+    sb.from("invoices").select("kode, diskon, order_id, tanggal").eq("cycle_id", cycleId).eq("status", "terbit").gt("diskon", 0),
   ]);
   if (cy.error || jual.error || po.error || biaya.error || prod.error) gagal("bahan laporan");
   if (!cy.data) return null;
@@ -63,6 +67,20 @@ export async function dataLabaRugi(cycleId: string, rencanaPct: number): Promise
   for (const v of [...pend.values()].sort((a, b) => a.baris.kelompok.localeCompare(b.baris.kelompok) || b.gram - a.gram)) {
     pendBaris.push({ ...v.baris, kg: v.gram / 1000 });
     detailPendapatan.push({ label: v.baris.label, transaksi: v.trx });
+  }
+  // Jasa produksi: satu baris pendapatan, rinciannya per pesanan jasa.
+  type BarisJasaLap = { keterangan: string; harga: number; order_id: string; sales_orders: { kode: string; buyer_nama: string; dikirim_pada: string | null } };
+  const jasaRows = (jasa.data ?? []) as unknown as BarisJasaLap[];
+  if (jasaRows.length > 0) {
+    const sen = jasaRows.reduce((a, r) => a + Math.round(Number(r.harga) * 100), 0);
+    pendBaris.push({ kelompok: "lainnya", label: "Jasa produksi", kg: 0, hargaPerKg: 0, jumlah: sen / 100 });
+    detailPendapatan.push({ label: "Jasa produksi", transaksi: jasaRows.map((r) => ({ kode: r.sales_orders.kode, uraian: `${r.sales_orders.buyer_nama} · ${r.keterangan}`, jumlah: Number(r.harga), tanggal: r.sales_orders.dikirim_pada?.slice(0, 10), href: `/penjualan?p=${r.order_id}` })) });
+  }
+  const diskonRows = (diskon.data ?? []) as { kode: string; diskon: number; order_id: string | null; tanggal: string }[];
+  if (diskonRows.length > 0) {
+    const sen = diskonRows.reduce((a, r) => a + Math.round(Number(r.diskon) * 100), 0);
+    pendBaris.push({ kelompok: "lainnya", label: "Diskon penjualan", kg: 0, hargaPerKg: 0, jumlah: -sen / 100 });
+    detailPendapatan.push({ label: "Diskon penjualan", transaksi: diskonRows.map((r) => ({ kode: r.kode, uraian: "Diskon di invoice", jumlah: -Number(r.diskon), tanggal: r.tanggal, href: r.order_id ? `/penjualan?p=${r.order_id}` : undefined })) });
   }
 
   const nr = { masukKg: 0, loinKg: 0, hasilSampingKg: 0, limbahG: 0, susutG: 0, adaLimbah: false, adaSusut: false, belumJelasG: 0 };
@@ -137,7 +155,7 @@ async function lengkapiProyek(ringkas: RingkasSiklus[]): Promise<RingkasSiklus[]
 
 export async function daftarRingkasSiklus(): Promise<RingkasSiklus[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("v_rincian_siklus").select("*").order("kode", { ascending: false });
+  const { data, error } = await sb.from("v_rincian_siklus").select("*").order("kode");
   if (error) gagal("daftar proyek");
   return lengkapiProyek((data ?? []) as RingkasSiklus[]);
 }

@@ -5,7 +5,8 @@ import { jumlahBaris } from "./penjualan";
 
 export type KelompokPendapatan = "loin" | "hasil_samping" | "limbah" | "lainnya";
 
-export type BarisPendapatan = { kelompok: KelompokPendapatan; label: string; kg: number; hargaPerKg: number };
+/** jumlah diisi buat baris yang bukan kg x harga (jasa produksi, diskon penjualan yang minus); kg-nya 0. */
+export type BarisPendapatan = { kelompok: KelompokPendapatan; label: string; kg: number; hargaPerKg: number; jumlah?: number };
 export type BarisBiaya = { kategori: string; jumlah: number; kg?: number; hargaPerKg?: number; ikan?: boolean };
 
 export type InputLabaRugi = {
@@ -45,9 +46,11 @@ export type LabaRugi = {
 };
 
 export function hitungLabaRugi(input: InputLabaRugi): LabaRugi {
-  const pend = input.pendapatan.map((b) => ({ ...b, jumlahSen: sen(jumlahBaris(b.kg, b.hargaPerKg)) }));
+  const pend = input.pendapatan.map((b) => ({ ...b, jumlahSen: b.jumlah !== undefined ? sen(b.jumlah) : sen(jumlahBaris(b.kg, b.hargaPerKg)) }));
   const totalPendSen = pend.reduce((a, b) => a + b.jumlahSen, 0);
-  const baris = (b: (typeof pend)[number]): BarisLaporan => ({ label: b.label, kg: b.kg, hargaPerKg: b.hargaPerKg, jumlah: dariSen(b.jumlahSen), persen: pct(b.jumlahSen, totalPendSen) });
+  const baris = (b: (typeof pend)[number]): BarisLaporan => ({
+    label: b.label, kg: b.jumlah !== undefined ? null : b.kg, hargaPerKg: b.jumlah !== undefined ? null : b.hargaPerKg, jumlah: dariSen(b.jumlahSen), persen: pct(b.jumlahSen, totalPendSen),
+  });
   const subtotal = (label: string, kel: KelompokPendapatan): BarisLaporan => {
     const x = pend.filter((b) => b.kelompok === kel);
     const kg = x.reduce((a, b) => a + Math.round(b.kg * 1000), 0) / 1000;

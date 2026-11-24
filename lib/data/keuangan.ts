@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
 import type { BarisKas, Biaya, BiayaTetap, Dashboard, KategoriBiaya } from "@/lib/types/keuangan";
+import { liniInvoice, type LiniBiaya } from "@/lib/logic/lini";
 
 function gagal(apa: string): never {
   throw new Error(`Gagal memuat ${apa}. Coba muat ulang halaman.`);
@@ -9,9 +10,36 @@ function gagal(apa: string): never {
 
 export async function daftarBiaya(): Promise<Biaya[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("v_expenses").select("*").order("kode", { ascending: false }).limit(300);
+  const { data, error } = await sb.from("v_expenses").select("*").order("tanggal").order("kode").limit(5000);
   if (error) gagal("daftar biaya");
   return (data ?? []) as Biaya[];
+}
+
+/** Ringkasan satu lini bisnis bulan ini (25 Nov 2026): pendapatan (subtotal - diskon, tanpa pajak), uang masuk, biaya disetujui,
+    dan piutang (semua waktu). */
+export async function ringkasLini(lini: LiniBiaya, bulan: string): Promise<{ pendapatan: number; uangMasuk: number; biaya: number; piutang: number }> {
+  const sb = await createClient();
+  const awal = `${bulan}-01`;
+  const [y, m] = bulan.split("-").map(Number);
+  const akhir = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+  const [inv, bayar, biaya] = await Promise.all([
+    sb.from("v_invoices").select("id, jenis, tanggal, subtotal, diskon, sisa, status_tagihan, cycle_id").neq("status_terbit", "dibatalkan").limit(2000),
+    sb.from("customer_payments").select("jumlah, tanggal, invoice_id").gte("tanggal", awal).lte("tanggal", akhir).limit(2000),
+    sb.from("expenses").select("jumlah").eq("status", "disetujui").eq("lini_bisnis", lini).gte("tanggal", awal).lte("tanggal", akhir).limit(2000),
+  ]);
+  if (inv.error || bayar.error || biaya.error) gagal("ringkasan lini bisnis");
+  const idProyek = [...new Set((inv.data ?? []).map((i) => i.cycle_id as string | null).filter((x): x is string => !!x))];
+  const { data: cy } = idProyek.length > 0 ? await sb.from("cycles").select("id, lini_bisnis").in("id", idProyek) : { data: [] as { id: string; lini_bisnis: string }[] };
+  const liniProyek = new Map((cy ?? []).map((c) => [c.id as string, c.lini_bisnis as string]));
+  const punya = (inv.data ?? []).filter((i) => liniInvoice(i.jenis as string, i.cycle_id ? liniProyek.get(i.cycle_id as string) : null) === lini);
+  const idPunya = new Set(punya.map((i) => i.id as string));
+  const sen = (n: unknown) => Math.round(Number(n ?? 0) * 100);
+  return {
+    pendapatan: punya.filter((i) => (i.tanggal as string) >= awal && (i.tanggal as string) <= akhir).reduce((a, i) => a + sen(i.subtotal) - sen(i.diskon), 0) / 100,
+    uangMasuk: (bayar.data ?? []).filter((b) => idPunya.has(b.invoice_id as string)).reduce((a, b) => a + sen(b.jumlah), 0) / 100,
+    biaya: (biaya.data ?? []).reduce((a, b) => a + sen(b.jumlah), 0) / 100,
+    piutang: punya.reduce((a, i) => a + sen(i.sisa), 0) / 100,
+  };
 }
 
 /** Daftar biaya tetap, yg aktif dulu. */
@@ -45,7 +73,7 @@ export async function rujukanBiaya(): Promise<{ po: Opsi[]; produksi: Opsi[] }> 
 
 export async function bukuKas(): Promise<BarisKas[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("ledger").select("*").order("tanggal", { ascending: false }).order("dibuat_pada", { ascending: false }).limit(400);
+  const { data, error } = await sb.from("ledger").select("*").order("tanggal").order("dibuat_pada").limit(10000);
   if (error) gagal("buku kas");
   return (data ?? []) as BarisKas[];
 }

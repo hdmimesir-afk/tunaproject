@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { AngkaId } from "@/lib/logic/angkaZod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
 import { keGram } from "@/lib/logic/grid";
 import { createClient } from "@/lib/supabase/server";
@@ -206,7 +207,7 @@ export async function koreksiBarang(_: HasilForm, fd: FormData): Promise<HasilFo
 /* ------------------------------------------------------------- tarif */
 const FormTarif = z.object({
   jenis: z.enum(["simpan", "abf", "transit"]),
-  tarif: z.coerce.number("Isi tarif").min(0, "Tarif tidak boleh negatif").max(100_000_000),
+  tarif: AngkaId({ pesan: "Isi tarif", min: 0, max: 100_000_000 }),
   minimumHari: z.coerce.number().int().min(1, "Minimal 1 hari").max(365),
   masaTransitJam: z.coerce.number().int().min(0).max(72),
   dasarBerat: z.enum(["masuk", "keluar"]),

@@ -14,7 +14,7 @@ test("panduan terbuka tanpa login dan gambarnya termuat", async ({ page }) => {
 test("saringan jabatan menyembunyikan menu yang tidak dilihat Petugas Lapangan", async ({ page }) => {
   await page.goto("/tutorial");
   await page.getByRole("button", { name: "Petugas Lapangan" }).click();
-  await expect(page.getByRole("heading", { name: "Produksi", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Jual loin", level: 2 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Keuangan", level: 2 })).toHaveCount(0);
 });
 

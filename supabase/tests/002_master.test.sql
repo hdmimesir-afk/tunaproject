@@ -55,7 +55,7 @@ select throws_ok(
   $$insert into public.settings (kunci, nilai) values ('baru', '1')$$,
   '42501', null, 'pengaturan baru hanya lewat migrasi');
 select results_eq(
-  $$insert into public.cycles (ref_po_pembeli, no_bongkar) values ('PO-UJI', 'BK-1') returning kode like 'SIK-%'$$,
+  $$insert into public.cycles (ref_po_pembeli, no_bongkar) values ('PO-UJI', 'BK-1') returning kode like 'SIK/%'$$,
   array[true], 'kode siklus dibuat sistem');
 select isnt_empty($$select * from public.activity_log$$, 'super admin bisa baca jejak (sejak 23 Nov 2026 Super Admin pegang semua izin)');
 select throws_ok($$delete from public.activity_log$$, '42501', null, 'jejak tidak bisa dihapus');

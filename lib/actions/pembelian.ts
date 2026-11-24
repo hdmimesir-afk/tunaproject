@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { AngkaId } from "@/lib/logic/angkaZod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
 import { createClient } from "@/lib/supabase/server";
 import { pesanDb } from "./pesan";
@@ -39,7 +40,7 @@ export async function tambahPemasok(input: z.input<typeof PemasokBaru>): Promise
   return { id: data.id as string, label: data.nama as string };
 }
 
-/* PO sekarang lahir dari penerimaan (Mutu dan Penerimaan > Ajukan pembelian). Di sini cuma koreksi dan bayar. */
+/* PO sekarang lahir dari penerimaan (Tally > Ajukan pembelian). Di sini cuma koreksi dan bayar. */
 
 const FormKoreksiPO = z.object({
   poId: z.uuid(),
@@ -49,7 +50,7 @@ const FormKoreksiPO = z.object({
   catatan: z.string().trim().max(500, "Catatannya kepanjangan"),
   alasan: z.string().trim().min(1, "Tulis alasan koreksinya").max(500, "Alasannya kepanjangan"),
 });
-const HargaGrade = z.array(z.object({ grade_id: z.uuid(), harga_per_kg: z.coerce.number().positive("Harga harus lebih dari nol").max(100_000_000) })).max(30);
+const HargaGrade = z.array(z.object({ grade_id: z.uuid(), harga_per_kg: AngkaId({ pesan: "Isi harga per kg", min: 0.01, max: 100_000_000 }) })).max(30);
 
 /** Koreksi pembelian: harga per grade, pemasok, proyek, catatan. Kalau total PO yang udah disetujui berubah, balik ke persetujuan. */
 export async function koreksiPembelian(_: HasilForm, fd: FormData): Promise<HasilForm> {
@@ -93,7 +94,7 @@ export async function batalkanBayar(_: HasilForm, fd: FormData): Promise<HasilFo
 
 const FormBayar = z.object({
   poId: z.uuid(),
-  jumlah: z.coerce.number("Isi jumlah").positive("Jumlah harus lebih dari nol").max(100_000_000_000).transform((n) => bulatkan(n, 2)),
+  jumlah: AngkaId({ pesan: "Isi jumlah", min: 0.01, max: 100_000_000_000 }),
   tanggal: z.iso.date("Isi tanggal"),
   catatan: z.string().trim().max(300),
 });

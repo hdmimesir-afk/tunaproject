@@ -79,7 +79,7 @@ export async function laporanProduksiOwner(periode: PeriodeOwner): Promise<Lapor
 }
 
 /* ------------------------------------------------------------------ mutu dan penerimaan */
-export type LotOwner = { id: string; kode: string; tanggal_terima: string; kg: number; qc: "menunggu" | "lulus" | "ditahan"; pemasok: string; proyek: string | null; grade: string };
+export type LotOwner = { id: string; kode: string; tanggal_terima: string; kg: number; qc: "menunggu" | "lulus" | "ditahan"; pemasok: string; proyek: string | null; grade: string; ekor: number | null };
 export type LaporanMutuOwner = {
   periode: PeriodeOwner; dari: string; sampai: string;
   totalKg: number; jumlahLot: number; menunggu: number; ditahan: number; ditahanKg: number;
@@ -90,14 +90,14 @@ export type LaporanMutuOwner = {
 export async function laporanMutuOwner(periode: PeriodeOwner): Promise<LaporanMutuOwner> {
   const sb = await createClient();
   const { dari, sampai } = rentangPeriode(hariIni(), periode);
-  const { data } = await sb.from("lots").select("id, kode, tanggal_terima, kg, qc, suppliers(nama), cycles(kode, nama), lot_grades(kg, grades(kode))")
+  const { data } = await sb.from("lots").select("id, kode, tanggal_terima, kg, qc, jumlah_ekor, suppliers(nama), cycles(kode, nama), lot_grades(kg, grades(kode))")
     .gte("tanggal_terima", dari).lte("tanggal_terima", sampai).order("tanggal_terima", { ascending: false }).order("kode", { ascending: false }).limit(3000);
-  type Baris = { id: string; kode: string; tanggal_terima: string; kg: number; qc: LotOwner["qc"]; suppliers: { nama: string } | null;
+  type Baris = { id: string; kode: string; tanggal_terima: string; kg: number; qc: LotOwner["qc"]; jumlah_ekor: number | null; suppliers: { nama: string } | null;
     cycles: { kode: string; nama: string | null } | null; lot_grades: { kg: number; grades: { kode: string } | null }[] | null };
   const rows = (data ?? []) as unknown as Baris[];
   const gradeBaris = rows.filter((r) => r.qc !== "ditahan").flatMap((r) => (r.lot_grades ?? []).filter((x) => Number(x.kg) > 0));
   const daftar: LotOwner[] = rows.map((r) => ({
-    id: r.id, kode: r.kode, tanggal_terima: r.tanggal_terima, kg: Number(r.kg), qc: r.qc, pemasok: r.suppliers?.nama ?? "",
+    id: r.id, kode: r.kode, tanggal_terima: r.tanggal_terima, kg: Number(r.kg), qc: r.qc, pemasok: r.suppliers?.nama ?? "", ekor: r.jumlah_ekor,
     proyek: r.cycles ? [r.cycles.kode, r.cycles.nama].filter(Boolean).join(" · ") : null,
     grade: (r.lot_grades ?? []).filter((x) => Number(x.kg) > 0).map((x) => x.grades?.kode ?? "").filter(Boolean).join(", "),
   }));

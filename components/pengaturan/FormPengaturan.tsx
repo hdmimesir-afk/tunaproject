@@ -13,7 +13,7 @@ export function FormPengaturan({ kunci, nilai, bolehAtur }: { kunci: KunciPengat
   return (
     <form action={action} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="kunci" value={kunci} />
-      <div className={p.grup === "owner" ? "w-full max-w-[320px]" : "w-[220px]"}><Field label={p.label}><TextIn name="nilai" type="number" min={p.min} max={p.max} step={p.step} defaultValue={nilai ?? ""} disabled={!bolehAtur} /></Field></div>
+      <div className={p.grup === "owner" ? "w-full max-w-[320px]" : "w-[220px]"}><Field label={p.label}><TextIn name="nilai" inputMode="decimal" defaultValue={nilai === null || nilai === undefined ? "" : String(nilai).replace(".", ",")} disabled={!bolehAtur} /></Field></div>
       {bolehAtur && <Btn type="submit" size="sm" disabled={pending}>{pending ? "..." : "Simpan"}</Btn>}
       <div className="w-full">
         {state?.error && <div role="alert" className="rounded-xl px-3 py-2 text-[12.5px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{state.error}</div>}

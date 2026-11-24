@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { AngkaId } from "@/lib/logic/angkaZod";
 import { requireIzin, requireSesi, TidakBerizin } from "@/lib/data/auth";
 import { PERAN_OWNER } from "@/lib/izin";
 import { isKunciPengaturan, isTabelMaster, PENGATURAN, skemaMaster } from "@/lib/master";
@@ -64,7 +65,7 @@ export async function simpanPengaturan(_: HasilForm, fd: FormData): Promise<Hasi
   const batas = PENGATURAN[kunci];
   const tolak = batas.grup === "owner" ? await izinAturOwner() : await izin("pengaturan.write");
   if (tolak) return tolak;
-  const nilai = z.coerce.number().min(batas.min).max(batas.max).transform((n) => Math.round(n * 1000) / 1000).safeParse(fd.get("nilai"));
+  const nilai = AngkaId({ pesan: "Isi angkanya", desimal: 3, min: batas.min, max: batas.max, minus: batas.min < 0 }).safeParse(fd.get("nilai") ?? "");
   if (!nilai.success) return { error: `${batas.label}: isi angka ${batas.min} sampai ${batas.max}.` };
   const supabase = await createClient();
   const { error } = await supabase.from("settings").update({ nilai: nilai.data }).eq("kunci", kunci);

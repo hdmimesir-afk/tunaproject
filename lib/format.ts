@@ -30,6 +30,49 @@ export function hariIni() {
 
 export function ukuranBerkas(byte: number) {
   if (byte < 1024) return `${byte} B`;
-  if (byte < 1024 * 1024) return `${(byte / 1024).toFixed(0)} KB`;
-  return `${(byte / 1024 / 1024).toFixed(1)} MB`;
+  if (byte < 1024 * 1024) return `${angka(byte / 1024, 0)} KB`;
+  return `${angka(byte / 1024 / 1024, 1)} MB`;
+}
+
+/* Angka gaya Indonesia (permintaan tim 24 Nov 2026): titik buat ribuan, koma buat desimal. Contoh 1.234.567,5. */
+
+/** Angka biasa: titik ribuan, koma desimal, paling banyak `desimal` angka di belakang koma (nol di belakang nggak ditulis). */
+export function angka(n: number, desimal = 3) {
+  return n.toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: desimal });
+}
+
+/** Berat: "1.234,5 kg". */
+export const kg = (n: number) => `${angka(n, 3)} kg`;
+
+/** Persen satu desimal: "12,5%". */
+export const persen = (n: number, desimal = 1) => `${angka(n, desimal)}%`;
+
+/** Teks angka gaya Indonesia jadi teks angka standar: "1.234,5" -> "1234.5", "1.500" -> "1500" (titik ribuan),
+    "235.5" -> "235.5" (satu titik yang nggak diikuti tepat 3 angka dibaca desimal). null kalau formatnya nggak kebaca. */
+export function normalAngka(teks: string): string | null {
+  const t = teks.trim().replace(/\s/g, "");
+  if (t === "") return null;
+  const ribuan = /^\d{1,3}(\.\d{3})+$/;
+  if (t.includes(",")) {
+    const bagian = t.split(",");
+    if (bagian.length !== 2) return null;
+    const [a, b] = bagian;
+    if (a.includes(".") && !ribuan.test(a)) return null;
+    return `${a.replace(/\./g, "")}.${b}`;
+  }
+  if (ribuan.test(t)) return t.replace(/\./g, "");
+  return t;
+}
+
+/** Buat hitungan di layar sambil ngetik: kosong = 0, nggak kebaca = NaN. */
+export function bacaAngka(teks: string) {
+  const t = normalAngka(teks);
+  return t === null ? (teks.trim() === "" ? 0 : NaN) : Number(t);
+}
+
+/** Baca angka gaya Indonesia, paling banyak `desimal` angka di belakang koma. null kalau bukan angka. Minus nggak diterima. */
+export function keAngka(teks: string, desimal = 2): number | null {
+  const t = normalAngka(teks);
+  if (t === null || !new RegExp(`^\\d+(\\.\\d{1,${desimal}})?$`).test(t)) return null;
+  return Number(t);
 }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Btn, Card, Icon, Pill } from "@/components/ui";
 import { KotakCari, useCari } from "@/components/ui/Cari";
+import { Paginasi, useHalaman } from "@/components/ui/Halaman";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { rp, tanggal } from "@/lib/format";
 import { unduhExcel } from "@/lib/excel";
@@ -42,12 +43,13 @@ export function BukuKas({ kas, hariIni }: { kas: BarisKas[]; hariIni: string }) 
   const masuk = tampil.filter((k) => k.arah === "masuk").reduce((a, k) => a + sen(k.jumlah), 0) / 100;
   const keluar = tampil.filter((k) => k.arah === "keluar").reduce((a, k) => a + sen(k.jumlah), 0) / 100;
 
-  // Kelompok per tanggal, urutan mengikuti data (sudah terbaru dulu dari server).
+  // 20 transaksi per halaman (terlama di atas, kebuka di halaman terakhir), terus dikelompokin per tanggal.
+  const halaman = useHalaman(tampil);
   const perHari = useMemo(() => {
     const peta = new Map<string, BarisKas[]>();
-    for (const k of tampil) peta.set(k.tanggal, [...(peta.get(k.tanggal) ?? []), k]);
+    for (const k of halaman.tampil) peta.set(k.tanggal, [...(peta.get(k.tanggal) ?? []), k]);
     return [...peta.entries()];
-  }, [tampil]);
+  }, [halaman.tampil]);
 
   const unduh = () => unduhExcel(`buku-kas-${hariIni}`, {
     judul: "Buku kas",
@@ -109,6 +111,7 @@ export function BukuKas({ kas, hariIni }: { kas: BarisKas[]; hariIni: string }) 
             })}
           </div>
         )}
+        <Paginasi h={halaman} label="transaksi" />
       </div>
     </Card>
   );

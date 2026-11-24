@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { Bar, Btn, Card, Field, Icon, Inner, Modal, Pill, Stat, TextIn } from "@/components/ui";
 import { KotakCari, useCari } from "@/components/ui/Cari";
+import { Paginasi, useHalaman } from "@/components/ui/Halaman";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
@@ -110,7 +111,9 @@ function FormBarang({ kategori, awal, onTutup }: { kategori: KategoriBarang; awa
 }
 
 function Riwayat({ b, gerak }: { b: Barang; gerak: GerakBarang[] }) {
-  const baris = gerak.filter((g) => g.item_id === b.id);
+  const semua = gerak.filter((g) => g.item_id === b.id);
+  const halaman = useHalaman(semua);
+  const baris = halaman.tampil;
   return (
     <div className="space-y-3">
       <p className="text-[13px]" style={{ color: MUTED }}>{b.nama} · stok sekarang <b style={{ color: INK }}>{angka(b.stok)} {b.satuan}</b></p>
@@ -130,6 +133,7 @@ function Riwayat({ b, gerak }: { b: Barang; gerak: GerakBarang[] }) {
           })}
         </ul>
       )}
+      <Paginasi h={halaman} label="catatan" />
     </div>
   );
 }
@@ -182,7 +186,9 @@ export function Penunjang({ kategori, barang, riwayat, bolehTulis }: { kategori:
   const habis = aktif.filter((b) => b.status_stok === "habis").length;
   const dasar = useMemo(() => kelompok.filter((b) => (nonaktif || b.aktif) && (saring === "semua" || b.status_stok === saring)), [kelompok, nonaktif, saring]);
   const teks = useMemo(() => (b: Barang) => `${b.nama} ${b.kode} ${b.lokasi} ${b.satuan} ${b.keterangan}`, []);
-  const { q, setQ, hasil } = useCari(dasar, teks);
+  const { q, setQ, hasil: tersaring } = useCari(dasar, teks);
+  const halaman = useHalaman(tersaring);
+  const hasil = halaman.tampil;
 
   const pilihan: { id: Saring; label: string; n: number }[] = [{ id: "semua", label: "Semua", n: aktif.length }, { id: "menipis", label: "Menipis", n: menipis }, { id: "habis", label: "Habis", n: habis }];
 
@@ -209,10 +215,10 @@ export function Penunjang({ kategori, barang, riwayat, bolehTulis }: { kategori:
                 </button>
               ))}
             </div>
-            <KotakCari q={q} onUbah={setQ} placeholder="Cari barang, kode, atau lokasi" tampil={hasil.length} total={dasar.length} className="md:w-[320px]" />
+            <KotakCari q={q} onUbah={setQ} placeholder="Cari barang, kode, atau lokasi" tampil={tersaring.length} total={dasar.length} className="md:w-[320px]" />
           </div>
 
-          {hasil.length === 0 ? (
+          {tersaring.length === 0 ? (
             <div className="rounded-[20px] bg-white px-4 py-8 text-center text-[13px]" style={{ color: MUTED }}>
               {kelompok.length === 0 ? "Belum ada barang di kelompok ini." : q.trim() ? `Nggak ada barang yang cocok sama “${q.trim()}”.` : "Nggak ada barang buat filter ini."}
             </div>
@@ -222,6 +228,7 @@ export function Penunjang({ kategori, barang, riwayat, bolehTulis }: { kategori:
                 <span>Barang</span><span>Stok sekarang</span><span>Batas minimum</span><span>Keadaan</span><span className="text-right">Aksi</span>
               </div>
               <ul>{hasil.map((b) => <BarisBarang key={b.id} b={b} bolehTulis={bolehTulis} buka={setModal} />)}</ul>
+              <Paginasi h={halaman} label="barang" />
             </div>
           )}
           {kelompok.some((b) => !b.aktif) && (

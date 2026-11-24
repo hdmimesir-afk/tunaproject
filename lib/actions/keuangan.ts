@@ -48,16 +48,29 @@ const FormBiaya = z.object({
   siklusId: Opsional.pipe(z.uuid().nullable()),
   poId: Opsional.pipe(z.uuid().nullable()),
   produksiId: Opsional.pipe(z.uuid().nullable()),
+  // Lini bisnis buat biaya tanpa proyek (25 Nov 2026). Kosong = biaya umum. Yang punya proyek ikut lini proyeknya.
+  lini: z.enum(["", "jual", "jasa", "titip"]).optional().transform((s) => (s ? s : null)),
 });
+
+/** Abis simpan atau koreksi: atur lini bisnis biaya yang nggak punya proyek. */
+async function aturLini(id: string | undefined, lini: string | null): Promise<string | null> {
+  if (!id) return null;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("atur_lini_biaya", { p_id: id, p_lini: lini });
+  return error ? pesanDb(error) : null;
+}
 
 /** Simpan biaya sebagai draf. Nota dilampirkan sesudahnya, lalu biaya diajukan ke Owner. */
 export async function simpanBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormBiaya.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("keuangan.write", "simpan_biaya", {
+  const hasil = await panggil("keuangan.write", "simpan_biaya", {
     p_id: p.data.biayaId, p_category: p.data.kategoriId, p_uraian: p.data.uraian, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_cycle: p.data.siklusId,
     p_po: p.data.poId, p_production: p.data.produksiId,
   }, "Biaya udah disimpan jadi draf. Lampirkan notanya, terus ajukan.");
+  if (hasil?.error || hasil?.kolom) return hasil;
+  const salah = await aturLini(hasil?.id ?? p.data.biayaId ?? undefined, p.data.lini);
+  return salah ? { ...hasil, error: `Biaya kesimpan, tapi lini bisnisnya belum: ${salah}` } : hasil;
 }
 
 export async function ajukanBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
@@ -79,10 +92,13 @@ const Alasan = z.string().trim().min(1, "Tulis alasannya").max(500, "Maksimal 50
 export async function koreksiBiaya(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormBiaya.extend({ biayaId: z.uuid(), alasan: Alasan }).safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("keuangan.write", "koreksi_biaya", {
+  const hasil = await panggil("keuangan.write", "koreksi_biaya", {
     p_id: p.data.biayaId, p_category: p.data.kategoriId, p_uraian: p.data.uraian, p_jumlah: p.data.jumlah, p_tanggal: p.data.tanggal, p_cycle: p.data.siklusId,
     p_po: p.data.poId, p_production: p.data.produksiId, p_alasan: p.data.alasan,
   }, "Koreksi biaya udah kesimpan dan langsung berlaku.");
+  if (hasil?.error || hasil?.kolom) return hasil;
+  const salah = await aturLini(p.data.biayaId, p.data.lini);
+  return salah ? { ...hasil, error: `Koreksi kesimpan, tapi lini bisnisnya belum: ${salah}` } : hasil;
 }
 
 /** Hapus biaya permanen (misalnya kecatat dobel). Nota dan baris buku kasnya ikut kehapus, kecatat di log hapus. */

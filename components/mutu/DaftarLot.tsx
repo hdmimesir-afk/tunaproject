@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Btn, Card, Pill } from "@/components/ui";
 import { KotakCari, useCari } from "@/components/ui/Cari";
+import { Paginasi, useHalaman } from "@/components/ui/Halaman";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { tanggal } from "@/lib/format";
 import { jenisLot } from "@/lib/logic/ekor";
@@ -36,6 +37,7 @@ export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi,
   }), [lots]);
   const dasar = saring === "semua" ? lots : lots.filter((l) => l.qc === saring);
   const { q, setQ, hasil: tampil } = useCari(dasar, teksLot);
+  const halaman = useHalaman(tampil);
   const pilihan: { id: Saring; label: string }[] = [{ id: "semua", label: "Semua" }, { id: "menunggu", label: "Menunggu" }, { id: "lulus", label: "Digrading" }, { id: "ditahan", label: "Ditahan" }];
 
   return (
@@ -63,7 +65,7 @@ export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi,
               <span>Lot</span><span>Diterima</span><span>Pemakaian</span><span>Mutu dan catatan</span><span className="text-right">Aksi</span>
             </div>
             <ul>
-              {tampil.map((l) => (
+              {halaman.tampil.map((l) => (
                 <BarisLot key={l.id} l={l} kurang={[]} aksi={<>
                   {bolehMutu && <Btn size="sm" v={l.qc === "menunggu" ? "dark" : "light"} onClick={() => onGrading(l)}>{l.qc === "menunggu" ? "Grading" : "Grading ulang"}</Btn>}
                   {bolehKoreksi && <Btn size="sm" v="light" onClick={() => onKoreksi(l)}>Koreksi</Btn>}
@@ -76,6 +78,7 @@ export function DaftarLot({ lots, bolehMutu, bolehKoreksi, onGrading, onKoreksi,
             </ul>
           </div>
         )}
+        <Paginasi h={halaman} label="lot" />
       </div>
     </Card>
   );

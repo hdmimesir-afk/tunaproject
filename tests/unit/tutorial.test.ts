@@ -9,7 +9,7 @@ import { BAB, DAFTAR_PERAN } from "@/components/tutorial/isi";
 describe("isi panduan", () => {
   it("membahas semua menu aplikasi", () => {
     const dibahas = new Set(BAB.map((b) => b.menu));
-    for (const m of MODULES) expect(dibahas, `menu /${m.slug}`).toContain(`/${m.slug}`);
+    for (const m of MODULES.filter((x) => x.menu !== false)) expect(dibahas, `menu /${m.slug}`).toContain(`/${m.slug}`);
   });
 
   it("setiap gambar yang dipakai ada berkasnya", () => {

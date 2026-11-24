@@ -36,6 +36,9 @@ export const PERJALANAN = [
   { tanggal: "23 November", judul: "Masukan tim finance", isi: "Biaya keluar sekarang bisa dikoreksi semua isiannya walaupun udah diajukan atau udah disetujui, wajib alasan dan langsung berlaku, buku kasnya ikut dibenerin. Biaya yg dobel bisa dihapus (kecatat di log hapus). Ada juga daftar pos biaya tetap per kelompok (tenaga kerja, overhead pabrik, sertifikasi dan izin, kantor, keuangan), bayarnya bulanan atau tahunan, tiap bulan tinggal pencet catat." },
   { tanggal: "23 November", judul: "Koreksi di tiap step", isi: "Super Admin sekarang bisa semua, termasuk input terima ikan, grading, produksi, sama semua tombol koreksi. Pesanan yg udah dikirim bisa dikoreksi (berat, harga, tanggal), stok sama invoice nya ikut nyesuain. Uang masuk dari pembeli bisa dikoreksi atau dihapus, titipan gudang bisa dikoreksi, dan lot, titipan, pesanan yg kecatat dobel bisa dihapus selama belum dipake di step berikutnya. Koreksi lot sekarang bisa ganti cara catat (per ekor atau berat total) sekalian grading per kg, lot juga bisa diganti sistem grading nya jadi cong (nggak digrading, semua beratnya satu kelas CONG, diajuin pake satu harga), koreksi pembelian bisa ganti cara harga (per grade atau cong), dan di Mutu udah nggak ada input lampiran lagi: nota sama invoice dipegang finance, timbangannya dicek QC Katalis sama QC buyer." },
   { tanggal: "24 November", judul: "Total loin habis fillet", isi: "Di rincian produksi sekarang ada isian total berat loin sama jumlah keping loin abis fillet, sebelum retouching dan grading loin. Letaknya di atas Loin total per grade. Kalau produksinya udah selesai, ngubahnya wajib alasan dan kecatat di riwayat koreksi." },
+  { tanggal: "24 November", judul: "Menu dibagi 4 kategori", isi: "Menu sekarang dibagi jadi Penerimaan, Produksi, Warehouse, sama Niaga. Tiap kategori bisa dibuka kayak dropdown, isi pertamanya Ringkasan (dashboard kecil). Penerimaan isinya Tally (dulu Mutu dan Penerimaan), Persetujuan, Pembelian, plus riwayat penerimaan per tanggal sama ikan utuh yg belum diolah. Produksi dipecah per lini bisnis: Jual loin, Jasa proses loin, Titip barang, ringkasannya isi stok hasil produksi per komponen, titipan per pemilik, sama ikan yg ditahan. Warehouse isinya Gudang Dingin sama Barang Penunjang. Niaga isinya Penjualan sama Keuangan. Tautan lama tetap jalan." },
+  { tanggal: "25 November", judul: "Penjualan jasa, pajak, diskon, keuangan per lini", isi: "Di Penjualan sekarang ada tombol Penjualan jasa: centang jasa dari daftar harga (harganya keisi tapi bisa diubah) plus 5 baris manual keterangan sama harga, terus langsung terbitin invoice. Daftar harga jasanya diisi sendiri, paling banyak 5 jasa aktif, harganya bisa dikoreksi kapan aja pakai alasan. Tiap pesanan (barang atau jasa) bisa pakai pajak (persennya bisa diubah, bisa dimatiin) sama diskon persen atau rupiah, invoice nampilin subtotal, diskon, pajak, total. Di Niaga ada halaman keuangan per lini bisnis (jual loin, jasa proses, titip barang) buat catat biaya dan pengeluaran plus ringkasan pendapatan, biaya, selisih, piutangnya." },
+  { tanggal: "26 November", judul: "Kode baru, paginasi, hapus produksi, format angka", isi: "Semua kode sekarang bentuknya XXX/YY/MM/DD/NNN ngikut tanggal catatannya, misalnya PRD/26/11/24/001, nomor urutnya mulai lagi dari 001 tiap bulan. Kode lama udah dinomori ulang semua. Semua daftar urut dari yang terlama, 20 per halaman, dan pas dibuka langsung ke halaman terakhir biar yang baru diinput keliatan. Di rincian produksi ada Hapus data yang dobel: hapus per baris (pas masih berjalan) atau satu produksi utuh, wajib alasan. Angka sekarang konsisten pakai titik buat ribuan sama koma buat desimal, isian juga nerima 1.234,5." },
 ] as const;
 
 /* -------------------------------------------------------------- terbaru */
@@ -144,7 +147,7 @@ export const MODUL: Modul[] = [
     ],
   },
   {
-    slug: "mutu", nama: "Mutu dan Penerimaan", ringkas: "Langkah pertama: ikan datang, ditimbang, digrading, trus diajukan pembeliannya.",
+    slug: "mutu", nama: "Tally", ringkas: "Langkah pertama: ikan datang, ditimbang, digrading, trus diajukan pembeliannya.",
     poin: [
       "Ikan yang datang langsung dicatat jadi lot, gak perlu nunggu PO, tapi wajib masuk proyek. Bisa per ekor (nomor tag, spesies, berat, grade, tusukan gancu) atau berat total plus jumlah ekor. Potongan gancu (bawaan 1 kg per tusukan) gak dibayar.",
       "Grading tuna utuh pake grade AB, C, dan D, dan bisa sekalian waktu terima. Lot per ekor gradingnya ngikut grade tiap ekor. Hasilnya dipake buat ngitung harga ke nelayan. Ikan gugur atau bau ditandai Ditahan, dan gak bisa diolah.",
@@ -288,13 +291,21 @@ export const MATRIKS: { menu: string; ada: boolean[] }[] = [
   { menu: "Dashboard", ada: SEMUA },
   { menu: "Pembelian", ada: [true, true, true, false, false] },
   { menu: "Persetujuan", ada: [true, true, true, false, false] },
-  { menu: "Mutu dan Penerimaan", ada: SEMUA },
+  { menu: "Penerimaan", ada: SEMUA },
+  { menu: "Tally", ada: SEMUA },
   { menu: "Produksi", ada: SEMUA },
-  { menu: "Stok", ada: SEMUA },
+  { menu: "Jual loin", ada: SEMUA },
+  { menu: "Jasa proses loin", ada: SEMUA },
+  { menu: "Titip barang", ada: SEMUA },
+  { menu: "Warehouse", ada: SEMUA },
   { menu: "Gudang Dingin", ada: SEMUA },
   { menu: "Barang Penunjang", ada: SEMUA },
+  { menu: "Niaga", ada: SEMUA },
   { menu: "Penjualan", ada: SEMUA },
   { menu: "Keuangan", ada: [true, true, true, false, false] },
+  { menu: "Keuangan jual loin", ada: [true, true, true, false, false] },
+  { menu: "Keuangan jasa proses", ada: [true, true, true, false, false] },
+  { menu: "Keuangan titip barang", ada: [true, true, true, false, false] },
   { menu: "Laporan", ada: [true, true, true, false, false] },
   { menu: "Rincian Proyek", ada: SEMUA },
   { menu: "Asisten AI", ada: SEMUA },

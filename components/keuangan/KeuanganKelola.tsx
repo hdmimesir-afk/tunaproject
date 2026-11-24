@@ -15,10 +15,18 @@ import { MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { ajukanBiaya, hapusBiaya, koreksiBiaya, putuskanBiaya, simpanBiaya } from "@/lib/actions/keuangan";
 import { rp, tanggal } from "@/lib/format";
+import { LABEL_LINI_BIAYA, type LiniBiaya } from "@/lib/logic/lini";
 import type { Biaya, BiayaTetap as TipeBiayaTetap, BarisKas, BukuBulanan, KategoriBiaya } from "@/lib/types/keuangan";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
 
+type Lini = LiniBiaya;
+/** Ringkasan satu lini bisnis bulan ini (halaman /keuangan/<lini>). */
+export type RingkasLini = { pendapatan: number; uangMasuk: number; biaya: number; piutang: number };
+
 type Props = {
+  /** Halaman biaya satu lini bisnis (25 Nov 2026). Kosong = halaman Keuangan umum (semua biaya, buku kas, biaya tetap). */
+  lini?: Lini;
+  ringkasLini?: RingkasLini;
   biaya: Biaya[];
   kategori: KategoriBiaya[];
   siklus: Opsi[];
@@ -41,8 +49,8 @@ type Rujukan = { po: Opsi[]; produksi: Opsi[] };
 const rujukanTeks = (b: Biaya) => [b.po_kode, b.produksi_kode, b.siklus_kode].filter(Boolean).join(" · ") || "-";
 
 /** Form biaya. `koreksi`: buat biaya yg udah diajukan atau disetujui, wajib alasan dan langsung berlaku (buku kas ikut dibenerin). */
-function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai, koreksi = false }: {
-  kategori: KategoriBiaya[]; siklus: Opsi[]; rujukan: Rujukan; hariIni: string; awal: Biaya | null; onSelesai: (id: string) => void; koreksi?: boolean;
+function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai, koreksi = false, lini }: {
+  kategori: KategoriBiaya[]; siklus: Opsi[]; rujukan: Rujukan; hariIni: string; awal: Biaya | null; onSelesai: (id: string) => void; koreksi?: boolean; lini?: Lini;
 }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(koreksi ? koreksiBiaya : simpanBiaya, undefined);
   const [kat, setKat] = useState(awal?.category_id ?? "");
@@ -78,6 +86,16 @@ function FormBiaya({ kategori, siklus, rujukan, hariIni, awal, onSelesai, koreks
       <Field label="Proyek" hint="Biar masuk laba rugi proyek itu. Kalau dikosongin, ikut proyek PO atau produksinya.">
         <select name="siklusId" className={pilihCls} defaultValue={awal?.cycle_id ?? ""}><option value="">Ikut PO/produksi, atau tanpa proyek</option>{siklus.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
       </Field>
+      {lini ? (
+        <input type="hidden" name="lini" value={awal?.lini_bisnis ?? lini} />
+      ) : (
+        <Field label="Lini bisnis" hint="Buat biaya yang nggak punya proyek. Kalau ada proyeknya, otomatis ikut lini proyek itu.">
+          <select name="lini" className={pilihCls} defaultValue={awal?.lini_bisnis ?? ""}>
+            <option value="">Umum (semua lini)</option>
+            {(Object.keys(LABEL_LINI_BIAYA) as Lini[]).map((l) => <option key={l} value={l}>{LABEL_LINI_BIAYA[l]}</option>)}
+          </select>
+        </Field>
+      )}
       {koreksi && (
         <>
           <Field label="Alasan koreksi" hint="Wajib. Misalnya salah ketik jumlah atau salah kategori." error={state?.kolom?.alasan?.[0]}>
@@ -153,14 +171,16 @@ function Putusan({ b }: { b: Biaya }) {
   );
 }
 
-export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni, biayaTetap, pengguna }: Props) {
+export function KeuanganKelola({ lini, ringkasLini, biaya: semuaBiaya, kategori, siklus, rujukan, kas, buku, bolehTutup, detail, bolehTulis, bolehSetuju, bolehDokumen, hariIni, biayaTetap, pengguna }: Props) {
   const router = useRouter();
+  const dasar = lini ? `/keuangan/${lini}` : "/keuangan";
+  const biaya = lini ? semuaBiaya.filter((b) => b.lini_bisnis === lini) : semuaBiaya;
   const [baru, setBaru] = useState(false);
   const [ubah, setUbah] = useState(false);
   const [koreksi, setKoreksi] = useState(false);
   // Nama buat riwayat koreksi (proyek, PO, produksi ditulis kodenya, bukan id).
   const namaRujukan = Object.fromEntries([...siklus, ...rujukan.po, ...rujukan.produksi].map((x) => [x.id, x.label]));
-  const tutupDetail = () => { setUbah(false); setKoreksi(false); router.push("/keuangan"); };
+  const tutupDetail = () => { setUbah(false); setKoreksi(false); router.push(dasar); };
   const menunggu = biaya.filter((b) => b.status === "diajukan");
   const bulan = hariIni.slice(0, 7);
   const masukBulan = kas.filter((k) => k.arah === "masuk" && k.tanggal.startsWith(bulan)).reduce((a, k) => a + Math.round(k.jumlah * 100), 0) / 100;
@@ -168,14 +188,23 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
 
   return (
     <div className="space-y-4">
+      {lini && ringkasLini ? (
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4" data-testid="ringkas-lini">
+        <Stat value={rp(ringkasLini.pendapatan)} label="Pendapatan bulan ini (tanpa pajak)" tone="ok" />
+        <Stat value={rp(ringkasLini.biaya)} label="Biaya disetujui bulan ini" />
+        <Stat value={rp(Math.round((ringkasLini.pendapatan - ringkasLini.biaya) * 100) / 100)} label="Selisih bulan ini" tone={ringkasLini.pendapatan - ringkasLini.biaya < 0 ? "warn" : undefined} />
+        <Stat value={rp(ringkasLini.piutang)} label={`Piutang, uang masuk bulan ini ${rp(ringkasLini.uangMasuk)}`} />
+      </div>
+      ) : (
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
         <Stat value={rp(masukBulan)} label="Uang masuk bulan ini" tone="ok" />
         <Stat value={rp(keluarBulan)} label="Uang keluar bulan ini" />
         <Stat value={rp(masukBulan - keluarBulan)} label="Selisih bulan ini" tone={masukBulan - keluarBulan < 0 ? "warn" : undefined} />
         <Stat value={String(menunggu.length)} label="Biaya menunggu Owner" tone={menunggu.length > 0 ? "warn" : undefined} />
       </div>
+      )}
 
-      <Card title="Biaya" right={bolehTulis && <Btn size="sm" onClick={() => setBaru(true)}>Catat biaya</Btn>}>
+      <Card title={lini ? `Biaya dan pengeluaran ${LABEL_LINI_BIAYA[lini]}` : "Biaya"} right={bolehTulis && <Btn size="sm" onClick={() => setBaru(true)}>Catat biaya</Btn>}>
         <DataList
           rows={biaya}
           empty={bolehTulis ? "Belum ada biaya. Ketuk Catat biaya, lampirkan notanya, terus ajukan." : "Belum ada biaya."}
@@ -184,23 +213,24 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
             { h: "Biaya", r: (b: Biaya) => <><span className="font-medium">{b.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{b.uraian}</span></> },
             { h: "Kategori", r: (b) => b.kategori_nama },
             { h: "Rujukan", r: (b) => rujukanTeks(b) },
+            ...(lini ? [] : [{ h: "Lini", r: (b: Biaya) => (b.lini_bisnis ? LABEL_LINI_BIAYA[b.lini_bisnis] : "Umum") }]),
             { h: "Jumlah", r: (b) => rp(b.jumlah), right: true },
             { h: "Nota", r: (b) => (b.jml_nota > 0 ? `${b.jml_nota} berkas` : b.nota_wajib ? "belum ada" : "nggak wajib") },
             { h: "Status", r: (b) => <Pill t={LABEL[b.status]} /> },
           ]}
-          actions={(b) => <Btn size="sm" v="light" onClick={() => router.push(`/keuangan?b=${b.id}`)}>Buka</Btn>}
+          actions={(b) => <Btn size="sm" v="light" onClick={() => router.push(`${dasar}?b=${b.id}`)}>Buka</Btn>}
         />
       </Card>
 
-      <BiayaTetap daftar={biayaTetap} biaya={biaya} bolehTulis={bolehTulis} hariIni={hariIni} />
+      {!lini && <BiayaTetap daftar={biayaTetap} biaya={biaya} bolehTulis={bolehTulis} hariIni={hariIni} />}
 
-      <BukuKas kas={kas} hariIni={hariIni} />
+      {!lini && <BukuKas kas={kas} hariIni={hariIni} />}
 
-      <Periode buku={buku} bolehTutup={bolehTutup} />
+      {!lini && <Periode buku={buku} bolehTutup={bolehTutup} />}
 
       {baru && (
         <Modal title="Catat biaya" onClose={() => setBaru(false)}>
-          <FormBiaya kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`/keuangan?b=${id}`); }} />
+          <FormBiaya lini={lini} kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`${dasar}?b=${id}`); }} />
         </Modal>
       )}
       {detail && (
@@ -210,9 +240,9 @@ export function KeuanganKelola({ biaya, kategori, siklus, rujukan, kas, buku, bo
             {[detail.biaya.po_kode, detail.biaya.produksi_kode, detail.biaya.siklus_kode].filter((x): x is string => Boolean(x)).map((x) => <Pill key={x} t={x} />)}
           </div>
           {ubah && bolehTulis && (detail.biaya.status === "draf" || detail.biaya.status === "ditolak") ? (
-            <FormBiaya kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setUbah(false)} />
+            <FormBiaya lini={lini} kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setUbah(false)} />
           ) : koreksi && bolehTulis ? (
-            <FormBiaya koreksi kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setKoreksi(false)} />
+            <FormBiaya koreksi lini={lini} kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={detail.biaya} onSelesai={() => setKoreksi(false)} />
           ) : (
             <Inner className="!p-3.5">
               <div className="flex justify-between text-[13px]"><span>{detail.biaya.uraian}</span><b>{rp(detail.biaya.jumlah)}</b></div>

@@ -221,9 +221,9 @@ const ALUR = [
       await klik(page, form.getByRole("button", { name: "Buat PO (draf)" }), "Buat PO (draf)", 2500);
       await page.waitForURL(/po=/, { timeout: 20_000 });
       const detail = page.getByRole("dialog");
-      k.po = ((await detail.locator("h2, h3").first().innerText()).match(/PO-\d+/) ?? [])[0];
+      k.po = ((await detail.locator("h2, h3").first().innerText()).match(/PO\/[\d/]+/) ?? [])[0];
       if (!k.po) throw new Error("Kode PO baru nggak kebaca");
-      k.proyek = ((await detail.innerText()).match(/SIK-\d+/) ?? [])[0];
+      k.proyek = ((await detail.innerText()).match(/SIK\/[\d/]+/) ?? [])[0];
       await tulis(page, `PO-nya udah jadi (${k.po}), statusnya masih draf.`);
       await tunjuk(page, detail.getByRole("button", { name: "Lampirkan nota" }), "Lampirkan nota");
       await tulis(page, "Kalau notanya udah ada, tekan Lampirkan nota terus pilih fotonya.");
@@ -271,7 +271,7 @@ const ALUR = [
       await klik(page, page.getByRole("button", { name: "Catat penerimaan" }), "Catat penerimaan", 2500);
       await tulis(page, "Ikannya udah kecatat jadi lot baru, statusnya nunggu cek mutu.");
       const lot = page.locator("main ul > li").filter({ hasText: k.po }).first();
-      k.lot = ((await lot.innerText()).match(/LOT-\d+/) ?? [])[0];
+      k.lot = ((await lot.innerText()).match(/LOT\/[\d/]+/) ?? [])[0];
       if (!k.lot) throw new Error("Kode lot baru nggak kebaca");
       await tunjuk(page, lot, k.lot);
       await jeda(page, 1500);
@@ -312,7 +312,7 @@ const ALUR = [
       await klik(page, form.getByRole("button", { name: "Mulai produksi" }), "Mulai produksi (form)", 2500);
       await page.waitForURL(/p=/, { timeout: 20_000 });
       const detail = page.getByRole("dialog");
-      k.produksi = ((await detail.locator("h2, h3").first().innerText()).match(/PRD-\d+/) ?? [])[0];
+      k.produksi = ((await detail.locator("h2, h3").first().innerText()).match(/PRD\/[\d/]+/) ?? [])[0];
       await tulis(page, "Isi berat loin total per grade. Kalau mau, bisa juga timbang per potong.", 1200);
       await ketik(page, detail.getByLabel(/^A-SO.*\(kg\)$/), "120", "Loin A-SO");
       await ketik(page, detail.getByLabel(/^B-SO.*\(kg\)$/), "230", "Loin B-SO");

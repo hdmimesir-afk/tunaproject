@@ -6,8 +6,9 @@ import { Nav } from "./Nav";
 
 /** Menu dan identitas pengguna. Membaca sesi, jadi selalu dirender di dalam <Suspense>. */
 export async function SesiNav() {
-  if (!supabaseConfigured) return <Nav slugs={MODULES.map((m) => m.slug)} offline />;
+  const diMenu = MODULES.filter((m) => m.menu !== false);
+  if (!supabaseConfigured) return <Nav slugs={diMenu.map((m) => m.slug)} offline />;
   const sesi = await getSesi();
-  const slugs = sesi ? MODULES.filter((m) => bolehMenu(sesi, m.slug, m.izin)).map((m) => m.slug) : [];
+  const slugs = sesi ? diMenu.filter((m) => bolehMenu(sesi, m.slug, m.izin)).map((m) => m.slug) : [];
   return <Nav slugs={slugs} pengguna={sesi ? { nama: sesi.nama || sesi.email, peran: sesi.roleNama ?? "" } : null} />;
 }

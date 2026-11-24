@@ -8,7 +8,7 @@ import type { HasilForm } from "@/lib/actions/auth";
 
 /* Tombol hapus satu data yg kecatat dobel atau salah input (23 Nov 2026): dipakai di pesanan, uang masuk, titipan, lot.
    Wajib alasan, dua langkah, kecatat di log hapus. Datanya dihapus permanen, jadi warnanya merah dan ada keterangan jelas. */
-export function HapusItem({ aksi, isian, tombol, keterangan, konfirmasi, onSelesai, testId }: {
+export function HapusItem({ aksi, isian, tombol, keterangan, konfirmasi, onSelesai, onBatal, testId, terbuka = false }: {
   aksi: (s: HasilForm, fd: FormData) => Promise<HasilForm>;
   /** Isian tersembunyi, misalnya { pesananId: "..." }. */
   isian: Record<string, string>;
@@ -16,10 +16,15 @@ export function HapusItem({ aksi, isian, tombol, keterangan, konfirmasi, onSeles
   keterangan: string;
   konfirmasi: string;
   onSelesai?: () => void;
+  /** Dipanggil pas "Nggak jadi" (buat form yang dibuka dari luar, misalnya tombol Hapus per baris). */
+  onBatal?: () => void;
   testId?: string;
+  /** Langsung kebuka formnya (tombol pembukanya ada di luar). */
+  terbuka?: boolean;
 }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(aksi, undefined);
-  const [buka, setBuka] = useState(false);
+  const [buka, setBukaDalam] = useState(terbuka);
+  const setBuka = (v: boolean) => { setBukaDalam(v); if (!v) onBatal?.(); };
   useEffect(() => { if (state?.pesan && !state.error && onSelesai) onSelesai(); }, [state, onSelesai]);
   if (!buka) return <div className="flex justify-center"><Btn size="sm" v="ghost" onClick={() => setBuka(true)}>{tombol}...</Btn></div>;
   return (

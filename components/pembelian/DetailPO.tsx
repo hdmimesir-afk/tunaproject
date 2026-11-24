@@ -7,7 +7,7 @@ import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
 import type { HasilForm } from "@/lib/actions/auth";
 import { batalkanBayar, catatBayar, koreksiPembelian } from "@/lib/actions/pembelian";
 import type { DetailPO as Detail } from "@/lib/data/pembelian";
-import { hariIni as hariIniFn, rp, tanggal, waktu } from "@/lib/format";
+import { hariIni as hariIniFn, rp, tanggal, waktu , bacaAngka } from "@/lib/format";
 import { gradeLot, HARI_KERJA_TERMIN, jatuhTempoTermin2, kodePO, LABEL_APV, LABEL_BAYAR, LABEL_PO, lampiranWajib, namaPemegang, rencanaTermin, selisihHarga, sisaBayar, tambahHariKerja } from "@/lib/logic/pembelian";
 import { formatKg } from "@/lib/logic/neraca";
 import type { AturanLampiran, BayarBaris, Opsi, PemegangTugas, Pengguna } from "@/lib/types/pembelian";
@@ -77,7 +77,7 @@ function FormBayar({ poId, total, sisa, hariIni, sudahBayar }: { poId: string; t
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label={`Jumlah (sisa ${rp(sisa)})`} error={state?.kolom?.jumlah?.[0]}>
-          <TextIn name="jumlah" type="number" inputMode="decimal" step="0.01" min="0" max={sisa} value={jumlah} onChange={(e) => setJumlah(e.target.value)} required />
+          <TextIn name="jumlah" inputMode="decimal" value={jumlah} onChange={(e) => setJumlah(e.target.value)} required />
         </Field>
         <Field label="Tanggal" error={state?.kolom?.tanggal?.[0]}>
           <TextIn name="tanggal" type="date" value={tgl} onChange={(e) => setTgl(e.target.value)} required />
@@ -118,7 +118,7 @@ function KoreksiPO({ detail, pemasok, siklus, onSelesai }: { detail: Detail; pem
   const [hargaCong, setHargaCong] = useState(() => String(baris[0]?.harga_per_kg ?? ""));
   const [catatan, setCatatan] = useState(() => (po.catatan ?? "").replace(AWALAN_CONG, ""));
   useEffect(() => { if (state?.pesan) onSelesai(); }, [state, onSelesai]);
-  const angkaCong = Number(hargaCong.replace(/\./g, "").replace(",", ".")) || 0;
+  const angkaCong = bacaAngka(hargaCong) || 0;
   const isiHarga = JSON.stringify(baris.map((b) => ({
     grade_id: b.grade_id,
     harga_per_kg: caraHarga === "cong" ? String(angkaCong) : (harga[b.grade_id] ?? "").replace(",", "."),

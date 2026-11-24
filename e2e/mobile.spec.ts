@@ -4,7 +4,7 @@ import { ADMIN, masuk } from "./akun";
 /* Tata letak di layar HP (Pixel 7, 412 px): tidak ada geser samping di halaman, navigasi bawah bisa dijangkau,
    lembar Menu memuat Keluar, dan jendela isian muat di layar. */
 
-const HALAMAN = ["dashboard", "pembelian", "mutu", "produksi", "stok", "gudang", "penjualan", "keuangan", "laporan", "siklus", "asisten", "akses", "pengaturan", "persetujuan"];
+const HALAMAN = ["dashboard", "penerimaan", "pembelian", "mutu", "produksi", "produksi/jual", "produksi/jasa", "produksi/titip", "warehouse", "gudang", "niaga", "penjualan", "keuangan", "laporan", "siklus", "asisten", "akses", "pengaturan", "persetujuan"];
 
 async function geserSamping(page: Page) {
   return page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

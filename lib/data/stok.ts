@@ -13,7 +13,7 @@ function gagal(apa: string): never {
 
 export async function daftarUnit(): Promise<UnitStok[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("storage_units").select("*, cycles(kode)").order("masuk_pada", { ascending: false }).limit(300);
+  const { data, error } = await sb.from("storage_units").select("*, cycles(kode)").order("masuk_pada").order("kode").limit(5000);
   if (error) gagal("daftar stok");
   return (data ?? []) as UnitStok[];
 }
@@ -44,7 +44,7 @@ export async function daftarBarang(): Promise<Barang[]> {
 /** Riwayat masuk, keluar, dan koreksi barang penunjang, terbaru dulu. */
 export async function riwayatBarang(): Promise<GerakBarang[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("supply_movements").select("*").order("tanggal", { ascending: false }).order("dibuat_pada", { ascending: false }).limit(400);
+  const { data, error } = await sb.from("supply_movements").select("*").order("tanggal").order("dibuat_pada").limit(5000);
   if (error) return [];
   return (data ?? []) as GerakBarang[];
 }
@@ -60,6 +60,20 @@ export async function koreksiMenunggu(): Promise<(GerakStok & { unit_kode: strin
   });
 }
 
+/** Lot yang ditahan (gugur atau bau) dan beratnya masih ada, buat dashboard Produksi bagian "Ditahan". */
+export type LotDitahan = { id: string; kode: string; tanggal_terima: string; kg: number; sisa_kg: number; pemasok: string; jenis: string | null; catatan: string | null };
+export async function lotDitahan(): Promise<LotDitahan[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("lots").select("id, kode, tanggal_terima, kg, sisa_kg, catatan, jenis_ikan, lot_ekor(spesies, batal), suppliers(nama)")
+    .eq("qc", "ditahan").gt("sisa_kg", 0).order("tanggal_terima").order("kode").limit(200);
+  if (error) gagal("lot ditahan");
+  type Baris = { id: string; kode: string; tanggal_terima: string; kg: number; sisa_kg: number; catatan: string | null; jenis_ikan: string | null; lot_ekor: { spesies: string; batal: boolean }[] | null; suppliers: { nama: string } | null };
+  return ((data ?? []) as unknown as Baris[]).map((l) => ({
+    id: l.id, kode: l.kode, tanggal_terima: l.tanggal_terima, kg: Number(l.kg), sisa_kg: Number(l.sisa_kg),
+    pemasok: l.suppliers?.nama ?? "-", jenis: jenisLot(l.jenis_ikan, l.lot_ekor), catatan: l.catatan,
+  }));
+}
+
 const KOLOM_LOT = "id, kode, kg, sisa_kg, qc, jumlah_ekor, jenis_ikan, lot_ekor(spesies, batal), tanggal_terima, cycle_id, cycles(kode, nama), suppliers(nama), lot_grades(kg, grades(kode, urutan))";
 
 /** Ikan utuh (bahan baku) buat dashboard Stok: lot yang masih ada sisanya, plus lot yang sisanya udah habis tapi masih
@@ -69,7 +83,7 @@ export async function ikanUtuh(): Promise<IkanUtuh[]> {
   const sb = await createClient();
   const [bersisa, jalan] = await Promise.all([
     sb.from("lots").select(KOLOM_LOT).neq("qc", "ditahan").gt("sisa_kg", 0)
-      .order("tanggal_terima", { ascending: false }).order("kode", { ascending: false }).limit(300),
+      .order("tanggal_terima").order("kode").limit(3000),
     // Alokasi yang produksinya belum disetujui Owner: lotnya tetap ditampilin walau sisanya 0.
     sb.from("lot_allocations").select("lot_id, productions!inner(status)").neq("productions.status", DISETUJUI).limit(1000),
   ]);
@@ -104,7 +118,7 @@ export async function ikanUtuh(): Promise<IkanUtuh[]> {
       .sort((a, b) => (a.grades?.urutan ?? 99) - (b.grades?.urutan ?? 99))
       .map((g) => g.grades?.kode ?? "?").join(", "),
     };
-  }).sort((a, b) => b.tanggal_terima.localeCompare(a.tanggal_terima) || b.kode.localeCompare(a.kode));
+  }).sort((a, b) => a.tanggal_terima.localeCompare(b.tanggal_terima) || a.kode.localeCompare(b.kode));
 }
 
 /** Produksi yang sudah disetujui Owner dan hasilnya belum seluruhnya masuk stok. */
@@ -145,7 +159,7 @@ export async function pelangganAktif(): Promise<Opsi[]> {
 
 export async function daftarTagihan(): Promise<Tagihan[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("service_charges").select("*").order("dibuat_pada", { ascending: false }).limit(200);
+  const { data, error } = await sb.from("service_charges").select("*").order("dibuat_pada").limit(5000);
   if (error) gagal("tagihan jasa");
   return (data ?? []) as Tagihan[];
 }

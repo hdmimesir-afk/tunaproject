@@ -28,7 +28,7 @@ export type Tugas = {
 export type Bab = {
   slug: string;
   judul: string;
-  kelompok: "Mulai" | "Operasi" | "Stok" | "Niaga" | "Laporan" | "Lainnya" | "Admin" | "Bantuan";
+  kelompok: "Mulai" | "Penerimaan" | "Produksi" | "Warehouse" | "Niaga" | "Laporan" | "Lainnya" | "Admin" | "Bantuan";
   ringkas: string;
   peran: PeranId[];
   /** Alamat menu di aplikasi. */
@@ -36,21 +36,21 @@ export type Bab = {
   tugas: Tugas[];
 };
 
-export const ALUR = ["Mutu", "Persetujuan", "Pembelian", "Produksi", "Stok", "Penjualan", "Keuangan", "Laporan"];
+export const ALUR = ["Tally", "Persetujuan", "Pembelian", "Produksi", "Warehouse", "Penjualan", "Keuangan", "Laporan"];
 
 export type LangkahAlur = { peran: PeranId; menu: string; slug: string; kerja: string };
 
 /* Satu putaran dari beli ikan sampai uang masuk, supaya terlihat kapan tugas pindah jabatan. */
 export const ALUR_CONTOH: LangkahAlur[] = [
-  { peran: "petugas", menu: "Mutu dan Penerimaan", slug: "mutu", kerja: "Ikan datang. Pilih nelayan atau pemasoknya, isi berat timbang, terus tekan Catat penerimaan. Nggak perlu nunggu PO. Sistem bikin lot." },
-  { peran: "qc", menu: "Mutu dan Penerimaan", slug: "mutu", kerja: "Tekan Grading, terus isi grade sama beratnya (satu lot bisa beberapa grade). Ikan gugur atau bau ditandai Tahan." },
-  { peran: "admin", menu: "Mutu dan Penerimaan", slug: "mutu", kerja: "Tekan Ajukan pembelian, isi harga per kg tiap grade, terus tekan Ajukan untuk disetujui." },
+  { peran: "petugas", menu: "Tally", slug: "mutu", kerja: "Ikan datang. Pilih nelayan atau pemasoknya, isi berat timbang, terus tekan Catat penerimaan. Nggak perlu nunggu PO. Sistem bikin lot." },
+  { peran: "qc", menu: "Tally", slug: "mutu", kerja: "Tekan Grading, terus isi grade sama beratnya (satu lot bisa beberapa grade). Ikan gugur atau bau ditandai Tahan." },
+  { peran: "admin", menu: "Tally", slug: "mutu", kerja: "Tekan Ajukan pembelian, isi harga per kg tiap grade, terus tekan Ajukan untuk disetujui." },
   { peran: "finance", menu: "Persetujuan", slug: "persetujuan", kerja: "Cek rincian per grade, nota, dan harganya, terus tekan Sudah diperiksa." },
   { peran: "owner", menu: "Persetujuan", slug: "persetujuan", kerja: "Tekan Setujui. Kode PO-nya terbit di sini, dan PO udah boleh dibayar." },
   { peran: "finance", menu: "Pembelian", slug: "pembelian", kerja: "Catat pembayaran ke pemasok, terus lampirin bukti transfer." },
-  { peran: "petugas", menu: "Produksi", slug: "produksi", kerja: "Mulai Produksi (dari menu Produksi atau langsung dari lot di Stok): pilih proyek, cek berat lot-nya. Isi berat loin per grade, isi komponen, terus tekan Selesaikan produksi." },
-  { peran: "qc", menu: "Produksi", slug: "produksi", kerja: "Cocokin timbangan, jelasin selisihnya, terus tekan Tandai sudah diperiksa (QC)." },
-  { peran: "owner", menu: "Produksi", slug: "produksi", kerja: "Tekan Setujui produksi (Owner)." },
+  { peran: "petugas", menu: "Jual loin", slug: "produksi", kerja: "Mulai Produksi (dari Jual loin atau langsung dari lot di Ringkasan Penerimaan): pilih proyek, cek berat lot-nya. Isi berat loin per grade, isi komponen, terus tekan Selesaikan produksi." },
+  { peran: "qc", menu: "Jual loin", slug: "produksi", kerja: "Cocokin timbangan, jelasin selisihnya, terus tekan Tandai sudah diperiksa (QC)." },
+  { peran: "owner", menu: "Jual loin", slug: "produksi", kerja: "Tekan Setujui produksi (Owner)." },
   { peran: "petugas", menu: "Gudang Dingin", slug: "gudang", kerja: "Hasil yg disetujui masuk stok sendiri. Pindahin ke ruangannya di Gudang Dingin." },
   { peran: "admin", menu: "Penjualan", slug: "penjualan", kerja: "Bikin pesanan dari stok yang ada." },
   { peran: "petugas", menu: "Penjualan", slug: "penjualan", kerja: "Timbang pas kirim, terus tekan Kirim pesanan. Stok berkurang." },
@@ -64,7 +64,8 @@ export const ISTILAH: [string, string][] = [
   ["PO", "Pesanan beli ikan ke pemasok."],
   ["Lot", "Satu kelompok ikan yang diterima dari satu PO. Satu PO bisa jadi beberapa lot."],
   ["Loin", "Potongan daging tuna hasil produksi. Biasanya yang dicatat berat totalnya per grade, tapi boleh juga ditimbang per potong."],
-  ["Proyek", "Satu batch atau satu bongkaran, dari beli ikan sampai uang masuk. Isinya boleh beberapa PO. Laba rugi dihitung per proyek. Kodenya tetap SIK-0001 dan seterusnya."],
+  ["Proyek", "Satu batch atau satu bongkaran, dari beli ikan sampai uang masuk. Isinya boleh beberapa PO. Laba rugi dihitung per proyek. Kodenya SIK/YY/MM/DD/NNN, misalnya SIK/26/11/20/001."],
+  ["Kode", "Semua kode bentuknya XXX/YY/MM/DD/NNN: jenisnya (PRD, LOT, PO, PJ, INV, dll), tanggal catatannya (tahun/bulan/tanggal), terus nomor urut. Nomor urutnya mulai lagi dari 001 tiap bulan."],
   ["Nota menyusul", "PO yang diajukan pas notanya belum ada. Penerimaan dan produksi tetap jalan. Notanya dilampirkan belakangan sama jabatan yang dipilih admin."],
   ["Grade", "Kelas mutu, ada dua macam. Grade tuna utuh (AB, C, D) dipakai waktu penerimaan buat harga ke nelayan. Grade loin dipakai di produksi, stok, dan penjualan: A-SO, B-SO, C-SO artinya pakai kulit, A-SL, B-SL, C-SL artinya tanpa kulit."],
   ["Neraca berat", "Perbandingan ikan masuk dengan loin, hasil samping, limbah, dan susut. Sisanya disebut selisih belum jelas."],
@@ -125,19 +126,19 @@ export const BAB: Bab[] = [
     tugas: [
       {
         judul: "Di laptop",
-        pengantar: "Menu ada di sebelah kiri, dikelompokkan ikut alur kerja: Operasi, Stok, Niaga, dan Laporan. Tekan Ctrl+B buat ngecilin menu jadi ikon. Tombol Keluar ada di kiri bawah.",
+        pengantar: "Menu ada di sebelah kiri, dibagi empat kategori besar ikut alur kerja: Penerimaan, Produksi, Warehouse, dan Niaga. Klik nama kategorinya buat buka dropdown. Isi pertamanya Ringkasan (dashboard kecil kategori itu), terus halaman-halaman kerjanya. Tekan Ctrl+B buat ngecilin menu jadi ikon. Tombol Keluar ada di kiri bawah.",
         gambar: "01-dashboard",
         keterangan: "Tampilan laptop: menu di kiri, isi halaman di kanan.",
       },
       {
         judul: "Di HP",
-        pengantar: "Empat menu utama ada di tab bawah. Sisanya ada di tombol Menu, lengkap sama kotak Cari menu dan tombol Keluar.",
+        pengantar: "Tab bawah isinya Dashboard plus ringkasan kategori (Penerimaan, Produksi, Niaga, ikut izin jabatan). Sisanya ada di tombol Menu, dikelompokin per kategori, lengkap sama kotak Cari menu dan tombol Keluar.",
         gambar: "20-hp-menu",
         keterangan: "Lembar Menu di HP Petugas Lapangan.",
       },
       {
         judul: "Berlaku di semua halaman",
-        pengantar: "Tombol yang berisiko, kayak setuju, bayar, kirim, dan selesai, selalu minta konfirmasi kedua. Data nggak bisa dihapus. Kalau ada yang salah, dibatalin pakai alasan atau dikoreksi, dan semua perubahan kecatat.",
+        pengantar: "Tombol yang berisiko, kayak setuju, bayar, kirim, dan selesai, selalu minta konfirmasi kedua. Kalau ada yang salah, dikoreksi pakai alasan, dan semua perubahan kecatat. Data yang kecatat dobel bisa dihapus permanen (wajib alasan, kecatat di log hapus). Semua daftar urut dari yang terlama, 20 per halaman, dan pas dibuka langsung di halaman terakhir (data terbaru). Angka ditulis pakai titik buat ribuan dan koma buat desimal, misalnya 1.234,5 kg.",
       },
     ],
   },
@@ -189,8 +190,8 @@ export const BAB: Bab[] = [
   {
     slug: "pembelian",
     judul: "Pembelian",
-    kelompok: "Operasi",
-    ringkas: "PO yang udah diajukan dan terbit, bayar ke pemasok, nota, dan koreksi. PO-nya sendiri lahir dari penerimaan ikan di Mutu dan Penerimaan.",
+    kelompok: "Penerimaan",
+    ringkas: "PO yang udah diajukan dan terbit, bayar ke pemasok, nota, dan koreksi. PO-nya sendiri lahir dari penerimaan ikan di Tally.",
     peran: ["owner", "finance", "admin"],
     menu: "/pembelian",
     tugas: [
@@ -227,7 +228,7 @@ export const BAB: Bab[] = [
   {
     slug: "persetujuan",
     judul: "Persetujuan",
-    kelompok: "Operasi",
+    kelompok: "Penerimaan",
     ringkas: "Antrean pembelian yang lagi nunggu. Finance periksa dulu, habis itu Owner yang mutusin. Kode PO terbit waktu disetujui.",
     peran: ["owner", "finance", "admin"],
     menu: "/persetujuan",
@@ -251,9 +252,28 @@ export const BAB: Bab[] = [
     ],
   },
   {
+    slug: "penerimaan",
+    judul: "Ringkasan Penerimaan",
+    kelompok: "Penerimaan",
+    ringkas: "Dashboard kategori Penerimaan: ikan masuk hari ini dan per periode, riwayat penerimaan per tanggal, pembelian yang nunggu disetujui atau dibayar, sama ikan utuh yang belum diolah.",
+    peran: SEMUA,
+    menu: "/penerimaan",
+    tugas: [
+      {
+        judul: "Membaca ringkasan penerimaan",
+        pengantar: "Pilih periodenya (7 hari, 30 hari, Bulan ini) di atas. Tabel Riwayat penerimaan per tanggal nunjukin tiap hari ada penerimaan: total berat, jumlah lot, jumlah ekor, sama pemasoknya, urut dari tanggal terlama.",
+      },
+      {
+        judul: "Produksi dari ikan yg masuk semalam",
+        peran: ["owner", "qc", "petugas"],
+        langkah: ["Di bagian Ikan utuh belum diolah, cari lot-nya. Tiap lot nunjukin Tersedia, Sedang diproduksi, dan Selesai diproduksi.", "Tekan Mulai Produksi di lot itu. Mau semua lot di kelompoknya sekaligus? Tekan Mulai Produksi semua lot.", "Halaman Jual loin kebuka dengan lotnya udah kepilih dan beratnya udah keisi. Cek beratnya, terus pilih proyeknya atau Proyek baru.", "Tekan Simpan dan Mulai Produksi."],
+      },
+    ],
+  },
+  {
     slug: "mutu",
-    judul: "Mutu dan Penerimaan",
-    kelompok: "Operasi",
+    judul: "Tally",
+    kelompok: "Penerimaan",
     ringkas: "Langkah pertama: nyatet ikan yang datang (tanpa nunggu PO), grading tuna utuh buat harga ke nelayan, terus ajukan pembeliannya.",
     peran: SEMUA,
     menu: "/mutu",
@@ -277,7 +297,7 @@ export const BAB: Bab[] = [
         judul: "Melihat daftar lot",
         pengantar: "Saring pakai tombol Semua, Menunggu (belum digrading), Digrading, dan Ditahan, atau cari lewat kotak pencarian. Label abu-abu di tiap lot nunjukin posisi pembeliannya: Belum diajukan, Diajukan, atau kode PO-nya.",
         gambar: "04-mutu",
-        keterangan: "Halaman Mutu dan Penerimaan di laptop.",
+        keterangan: "Halaman Tally di laptop.",
       },
       {
         judul: "Grading tuna utuh",
@@ -325,11 +345,11 @@ export const BAB: Bab[] = [
   },
   {
     slug: "produksi",
-    judul: "Produksi",
-    kelompok: "Operasi",
-    ringkas: "Ikan utuh diolah jadi loin. Berat loin diisi total per grade (atau per potong kalau perlu). Habis itu neraca berat diperiksa QC dan disetujui Owner.",
+    judul: "Jual loin",
+    kelompok: "Produksi",
+    ringkas: "Ikan sendiri diolah jadi loin buat dijual. Berat loin diisi total per grade (atau per potong kalau perlu). Habis itu neraca berat diperiksa QC dan disetujui Owner.",
     peran: SEMUA,
-    menu: "/produksi",
+    menu: "/produksi/jual",
     tugas: [
       {
         judul: "Membaca daftar produksi",
@@ -341,8 +361,8 @@ export const BAB: Bab[] = [
         judul: "Memulai produksi",
         peran: ["owner", "qc", "petugas"],
         langkah: [
-          "Tekan Mulai Produksi. Bisa juga langsung dari halaman Stok, tombol Mulai Produksi di lot-nya.",
-          "Pilih lini bisnis: Jasa produksi ikan (jual), Jasa produksi (ikan dari PT), atau Titip saja.",
+          "Tekan Mulai Produksi. Bisa juga langsung dari Ringkasan Penerimaan, tombol Mulai Produksi di lot-nya.",
+          "Lini bisnisnya ikut halaman yang dibuka: Jual loin atau Jasa proses loin.",
           "Pilih Proyek, atau Proyek baru terus tulis namanya (misalnya nama kapal atau tanggal bongkar). Proyek cuma dipilih di sini. Cek Tanggal.",
           "Jual: PT-nya otomatis PT Katalis. Centang lot yang mau diolah. Tiap lot nunjukin berat awal, tersedia, dan yg lagi diproses. Berat diolahnya udah keisi sebesar yg tersedia, ubah kalau cuma sebagian. Lebih dari yg tersedia nggak bisa.",
           "Lot yg belum punya proyek otomatis terikat ke proyek ini. Lot yg udah terikat proyek, proyeknya kekunci ke situ. Lot yg ditahan nggak muncul.",
@@ -351,7 +371,7 @@ export const BAB: Bab[] = [
         ],
         gambar: "05-produksi-mulai",
         keterangan: "Form Mulai Produksi.",
-        catatan: "Titip saja nggak diproduksi. Tombolnya jadi Buat proyek titipan, terus langsung pindah ke Terima titipan di Gudang Dingin dengan proyek yang udah keisi. Hasil jasa produksi masuk stok sebagai milik PT-nya.",
+        catatan: "Titip barang nggak diproduksi, proyeknya dibikin di halaman Titip barang. Hasil jasa produksi masuk stok sebagai milik PT-nya.",
       },
       {
         judul: "Mengoreksi produksi",
@@ -360,6 +380,12 @@ export const BAB: Bab[] = [
         gambar: "05-produksi-koreksi",
         keterangan: "Form Koreksi produksi.",
         catatan: "Kalau beratnya berubah, produksi balik ke Berjalan dan perlu diperiksa ulang. Produksi yang udah disetujui Owner bisa dibuka lagi lewat Buka lagi, asal hasilnya belum masuk stok.",
+      },
+      {
+        judul: "Menghapus data yang dobel",
+        peran: ["owner", "qc", "petugas"],
+        langkah: ["Buka produksinya, gulung ke paling bawah, pencet Hapus data yang dobel.", "Satu baris (pemakaian lot, loin total per grade, loin per potong, ekor, hasil samping): pencet Hapus di barisnya, tulis alasannya, terus konfirmasi.", "Satu produksi utuh yang kecatat dobel: pencet Hapus produksi, tulis alasannya, terus konfirmasi."],
+        catatan: "Hapus per baris cuma bisa pas produksi masih Berjalan. Berat lot yang dihapus balik ke sisa lotnya. Produksi yang hasilnya udah dijual, diambil, atau ditagih nggak bisa dihapus, pakai Koreksi aja. Semua yang dihapus kecatat di log hapus.",
       },
       {
         judul: "Mengisi berat loin per grade",
@@ -375,22 +401,67 @@ export const BAB: Bab[] = [
     ],
   },
   {
-    slug: "stok",
-    judul: "Stok",
-    kelompok: "Stok",
-    ringkas: "Dashboard buat orang produksi: ikan utuh yg belum diolah, yg lagi diproduksi, hasil siap jual, sama titipan. Nggak ada input di sini, semuanya kebaca dari penerimaan dan produksi.",
+    slug: "jasa",
+    judul: "Jasa proses loin",
+    kelompok: "Produksi",
+    ringkas: "Ikan punya PT lain diolah di sini. Caranya sama kayak Jual loin, bedanya ikannya nggak dari lot tapi berat ikan dari PT, dan hasilnya jadi milik PT itu.",
     peran: SEMUA,
-    menu: "/stok",
+    menu: "/produksi/jasa",
     tugas: [
       {
-        judul: "Membaca dashboard stok",
-        pengantar: "Urutannya ngikut kerja harian: 1. Ikan utuh dari bongkaran yg belum diolah (dikelompokin per proyek, yg belum masuk proyek paling atas). 2. Produksi yg lagi jalan. 3. Hasil produksi siap jual. 4. Titipan pelanggan.",
-        catatan: "Hasil produksi masuk stok sendiri begitu produksinya disetujui Owner: loin per grade sama hasil samping per jenis. Kondisinya (Fresh atau Beku) dipilih di rincian produksi, bagian Kondisi hasil. Bawaannya Beku. Kalau stoknya udah ada yg keluar, kondisinya kekunci.",
+        judul: "Memulai jasa proses",
+        peran: ["owner", "qc", "petugas"],
+        langkah: ["Tekan Mulai Produksi.", "Pilih Proyek atau Proyek baru, terus pilih PT pemilik ikan.", "Isi Berat ikan dari PT.", "Tekan Simpan dan Mulai Produksi. Selanjutnya isi loin dan komponen kayak di Jual loin."],
+      },
+    ],
+  },
+  {
+    slug: "titip",
+    judul: "Titip barang",
+    kelompok: "Produksi",
+    ringkas: "Barang titipan pelanggan (cumi, ikan, dll): proyek titip, terima, ambil, koreksi, sama tagihan jasa gudangnya.",
+    peran: SEMUA,
+    menu: "/produksi/titip",
+    tugas: [
+      {
+        judul: "Bikin proyek titip",
+        peran: ["owner", "qc", "petugas"],
+        langkah: ["Tekan Buat proyek titipan.", "Isi nama proyek, tanggal, dan PT pemiliknya.", "Tekan Buat proyek titipan. Form Terima titipan langsung kebuka dengan proyeknya udah keisi."],
       },
       {
-        judul: "Produksi dari ikan yg masuk semalam",
-        peran: ["owner", "qc", "petugas"],
-        langkah: ["Di bagian 1. Ikan utuh, cari lot-nya. Tiap lot nunjukin Tersedia, Sedang diproduksi, dan Selesai diproduksi.", "Tekan Mulai Produksi di lot itu. Mau semua lot di kelompoknya sekaligus? Tekan Mulai Produksi semua lot.", "Form Mulai Produksi kebuka dengan lotnya udah kepilih dan beratnya udah keisi. Cek beratnya, terus pilih proyeknya atau Proyek baru. Kalau lotnya udah terikat proyek, proyeknya kekunci.", "Tekan Simpan dan Mulai Produksi. Sorenya isi hasilnya lewat tombol Isi hasil produksi di bagian 2."],
+        judul: "Menerima titipan",
+        peran: ["owner", "admin", "qc", "petugas"],
+        langkah: ["Tekan Terima titipan (di kartu Titipan pelanggan atau di proyek titipnya).", "Pilih pelanggan, produk, dan grade.", "Pilih Kondisi dan isi Berat (kg).", "Pilih Ruangan. Boleh dikosongin dulu, dipindah nanti.", "Kalau perlu, centang Dibekukan di ABF. Jasa ini ditagih terpisah.", "Tekan Terima titipan."],
+        gambar: "07-gudang-titipan",
+        keterangan: "Form Terima titipan.",
+        catatan: "Titipan diambilnya dari sini juga, lewat tombol Ambil di barisnya. Tagihan jasanya kebikin otomatis.",
+      },
+      {
+        judul: "Melampirkan tanda terima dan tagihan",
+        peran: ["owner", "finance", "admin", "qc", "petugas"],
+        langkah: ["Di baris titipan, tekan Lampiran.", "Tekan Lampirkan tanda terima atau Lampirkan tagihan, terus pilih berkasnya.", "Tekan Buka buat ngecek berkas yang udah masuk."],
+      },
+      {
+        judul: "Melihat rincian tagihan jasa",
+        peran: ["owner", "finance", "admin"],
+        langkah: ["Di bagian Tagihan jasa gudang, tekan Rincian.", "Baca hitungannya: lama simpan, berat, dan tarif.", "Kalau pelanggan minta, tekan Cetak rincian."],
+        gambar: "07-gudang-rincian",
+        keterangan: "Rincian hitungan jasa simpan.",
+      },
+    ],
+  },
+  {
+    slug: "stok",
+    judul: "Ringkasan Produksi",
+    kelompok: "Produksi",
+    ringkas: "Dashboard kategori Produksi: komponen ikan hasil produksi (loin per grade skin on dan skinless, kepala dan rahang, dll), produksi yg lagi jalan, barang titipan per pemilik, sama ikan yang ditahan. Nggak ada input di sini.",
+    peran: SEMUA,
+    menu: "/produksi",
+    tugas: [
+      {
+        judul: "Membaca ringkasan produksi",
+        pengantar: "1. Komponen ikan hasil produksi, dijumlah per produk, grade, dan kondisi. 2. Produksi yg lagi jalan. 3. Rincian hasil per unit. 4. Barang titipan per pemilik (barang, kondisi, berat). 5. Ikan yang ditahan pas grading.",
+        catatan: "Hasil produksi masuk stok sendiri begitu produksinya disetujui Owner: loin per grade sama hasil samping per jenis. Kondisinya (Fresh atau Beku) dipilih di rincian produksi, bagian Kondisi hasil. Bawaannya Beku. Kalau stoknya udah ada yg keluar, kondisinya kekunci.",
       },
       {
         judul: "Kalau stok nggak sesuai",
@@ -401,10 +472,24 @@ export const BAB: Bab[] = [
     ],
   },
   {
+    slug: "warehouse",
+    judul: "Ringkasan Warehouse",
+    kelompok: "Warehouse",
+    ringkas: "Dashboard kategori Warehouse: isi tiap ruangan, stok sendiri dan titipan, jadwal mesin ke depan, barang penunjang yang perlu dibeli, keluar masuk penunjang terakhir, sama stok yang udah lama nginep.",
+    peran: SEMUA,
+    menu: "/warehouse",
+    tugas: [
+      {
+        judul: "Membaca ringkasan warehouse",
+        pengantar: "Semua angka kebaca dari yang diinput di Gudang Dingin dan Barang Penunjang. Nggak ada input di sini. Tekan tautan di pojok kotaknya buat langsung ke halaman kerjanya.",
+      },
+    ],
+  },
+  {
     slug: "gudang",
     judul: "Gudang Dingin",
-    kelompok: "Stok",
-    ringkas: "Isi tiap ruangan ABF dan CS, titipan pelanggan, pindah ruangan, tagihan jasa, tarif, sama jadwal mesin.",
+    kelompok: "Warehouse",
+    ringkas: "Isi tiap ruangan ABF dan CS, stok sendiri di gudang, pindah ruangan, tarif, sama jadwal mesin. Titipan pelanggan pindah ke Produksi, Titip barang.",
     peran: SEMUA,
     menu: "/gudang",
     tugas: [
@@ -415,30 +500,9 @@ export const BAB: Bab[] = [
         keterangan: "Halaman Gudang Dingin.",
       },
       {
-        judul: "Menerima titipan",
-        peran: ["owner", "admin", "qc", "petugas"],
-        langkah: ["Tekan Terima titipan.", "Pilih pelanggan, produk, dan grade.", "Pilih Kondisi dan isi Berat (kg).", "Pilih Ruangan. Boleh dikosongin dulu, dipindah nanti.", "Kalau perlu, centang Dibekukan di ABF. Jasa ini ditagih terpisah.", "Tekan Terima titipan."],
-        gambar: "07-gudang-titipan",
-        keterangan: "Form Terima titipan.",
-        catatan: "Titipan diambilnya dari sini juga, lewat tombol Ambil di barisnya.",
-      },
-      {
-        judul: "Melampirkan tanda terima dan tagihan",
-        peran: ["owner", "finance", "admin", "qc", "petugas"],
-        langkah: ["Di baris titipan, tekan Lampiran.", "Tekan Lampirkan tanda terima atau Lampirkan tagihan, terus pilih berkasnya.", "Tekan Buka buat ngecek berkas yang udah masuk."],
-        catatan: "Tanda terima dan tagihan penitipan dibikin bagian admin di luar sistem. Di sini tinggal simpan foto atau PDF-nya.",
-      },
-      {
-        judul: "Melihat rincian tagihan jasa",
-        peran: ["owner", "finance", "admin"],
-        langkah: ["Di bagian Tagihan jasa gudang, tekan Rincian.", "Baca hitungannya: lama simpan, berat, dan tarif.", "Kalau pelanggan minta, tekan Cetak rincian."],
-        gambar: "07-gudang-rincian",
-        keterangan: "Rincian hitungan jasa simpan.",
-      },
-      {
         judul: "Mengambil titipan atau stok",
         peran: ["owner", "qc", "petugas"],
-        langkah: ["Di Titipan pelanggan atau Stok sendiri di gudang, tekan Ambil di unitnya.", "Isi berat keluar dari hasil timbang ulang.", "Isi Keterangan, misalnya tujuan kirim.", "Tekan Catat pengambilan."],
+        langkah: ["Di Stok sendiri di gudang (atau Titipan pelanggan di halaman Titip barang), tekan Ambil di unitnya.", "Isi berat keluar dari hasil timbang ulang.", "Isi Keterangan, misalnya tujuan kirim.", "Tekan Catat pengambilan."],
         gambar: "06-stok-ambil",
         keterangan: "Form Ambil. Kalau barangnya titipan, tagihan jasanya kebikin otomatis.",
       },
@@ -463,7 +527,7 @@ export const BAB: Bab[] = [
   {
     slug: "penunjang",
     judul: "Barang Penunjang",
-    kelompok: "Stok",
+    kelompok: "Warehouse",
     ringkas: "Es, kemasan, label, sama kebutuhan pekerja. Tiap barang punya batas minimum, jadi yg Menipis dan Habis gampang kelihatan.",
     peran: SEMUA,
     menu: "/penunjang",
@@ -480,6 +544,20 @@ export const BAB: Bab[] = [
         judul: "Nambah barang baru",
         peran: ["owner", "qc", "petugas"],
         langkah: ["Tekan Tambah barang.", "Isi nama, satuan, batas minimum, sama lokasinya.", "Tekan Simpan. Barang yg udah gak dipake dinonaktifkan, gak dihapus."],
+      },
+    ],
+  },
+  {
+    slug: "niaga",
+    judul: "Ringkasan Niaga",
+    kelompok: "Niaga",
+    ringkas: "Dashboard kategori Niaga (operasional keuangan): uang masuk dan keluar, saldo kas, piutang, tagihan yang belum lunas, sama biaya yang nunggu persetujuan.",
+    peran: SEMUA,
+    menu: "/niaga",
+    tugas: [
+      {
+        judul: "Membaca ringkasan niaga",
+        pengantar: "Pilih periodenya di atas (bawaannya Bulan ini). Yang punya izin Keuangan lihat uang masuk, keluar, dan saldo kas. Yang punya izin Penjualan lihat piutang dan tagihan belum lunas.",
       },
     ],
   },
@@ -520,6 +598,24 @@ export const BAB: Bab[] = [
         keterangan: "Rincian invoice: isi tagihan, pembayaran, berkas, dan tombol pengingat.",
       },
       {"judul":"Menagih jasa gudang","peran":["owner","finance","admin"],"langkah":["Di bagian Jasa gudang dingin yang belum ditagihkan, pilih pelanggan.","Centang tagihan yang mau digabung.","Tekan Terbitkan invoice jasa, terus konfirmasi."],"gambar":"08-penjualan-jasa","keterangan":"Tagihan jasa yang siap diterbitkan."},
+      {
+        judul: "Pajak dan diskon",
+        peran: ["owner", "admin"],
+        langkah: ["Di form pesanan (barang atau jasa), centang Pakai pajak kalau transaksinya kena pajak. Persennya keisi dari Pengaturan, boleh diubah.", "Pilih Diskon Rp atau Diskon %, terus isi angkanya.", "Cek rincian Subtotal, Diskon, Pajak, dan Perkiraan total di bawahnya.", "Mau ubah belakangan? Buka pesanannya, tekan Ubah pajak dan diskon. Kalau invoice-nya udah terbit, wajib isi alasan dan invoice-nya dihitung ulang."],
+        catatan: "Pajak dihitung dari total setelah diskon. Pajak nggak masuk pendapatan di laba rugi, diskon ngurangin pendapatan.",
+      },
+      {
+        judul: "Penjualan jasa produksi",
+        peran: ["owner", "admin"],
+        langkah: ["Tekan Penjualan jasa.", "Pilih pelanggan (PT), tanggal, dan proyeknya kalau ada.", "Centang jasa dari daftar harga. Harganya keisi, boleh diubah buat transaksi ini.", "Kalau ada yang nggak ada di daftar, isi di Isian manual (paling banyak 5 baris: keterangan sama harga).", "Atur pajak dan diskon, terus tekan Simpan pesanan jasa.", "Di pesanannya, tekan Terbitkan invoice. Pesanan jasa nggak lewat kirim."],
+        catatan: "Abis ditagih, isinya masih bisa dibenerin lewat Koreksi jasa (wajib alasan), invoice-nya ikut dihitung ulang.",
+      },
+      {
+        judul: "Ngatur daftar harga jasa",
+        peran: ["owner", "admin"],
+        langkah: ["Di kartu Daftar harga jasa produksi, tekan Tambah jasa. Isi nama sama harganya. Paling banyak 5 jasa aktif.", "Harga berubah? Tekan Koreksi di jasanya, ganti harga, tulis alasannya.", "Jasa yang udah nggak dipakai, ubah statusnya jadi Nonaktif."],
+        catatan: "Ganti harga di daftar nggak ngubah pesanan yang udah ada. Riwayat harganya kecatat di jasanya.",
+      },
     ],
   },
   {
@@ -566,6 +662,22 @@ export const BAB: Bab[] = [
       },
     ],
   },
+  ...(["jual", "jasa", "titip"] as const).map((l): Bab => ({
+    slug: `keuangan-${l}`,
+    judul: { jual: "Keuangan jual loin", jasa: "Keuangan jasa proses", titip: "Keuangan titip barang" }[l],
+    kelompok: "Niaga",
+    ringkas: `Biaya dan pengeluaran khusus lini ${{ jual: "jual loin", jasa: "jasa proses loin", titip: "titip barang" }[l]}, plus pendapatan, biaya, selisih, dan piutangnya bulan ini.`,
+    peran: ["owner", "finance", "admin"],
+    menu: `/keuangan/${l}`,
+    tugas: [
+      {
+        judul: "Mencatat biaya lini ini",
+        peran: ["owner", "finance", "admin"],
+        langkah: ["Tekan Catat biaya. Lini bisnisnya otomatis lini halaman ini.", "Isi kategori, uraian, jumlah, tanggal. Proyeknya cuma proyek lini ini.", "Lampirkan nota, terus ajukan ke Owner kayak biasa."],
+        catatan: "Biaya yang punya proyek selalu ikut lini proyeknya. Biaya tanpa proyek di halaman Keuangan bisa dipilih lininya, atau dibiarin Umum.",
+      },
+    ],
+  })),
   {
     slug: "laporan",
     judul: "Laporan",

@@ -12,13 +12,13 @@ const tampil = (gram: number) => `${(gram / 1000).toLocaleString("id-ID", { mini
 
 async function mulaiProduksi(page: Page) {
   await masuk(page, PETUGAS);
-  await page.goto("/produksi");
+  await page.goto("/produksi/jual");
   await page.getByRole("button", { name: "Mulai produksi" }).click();
   // Lini jual: pilih proyek E2E (lotnya udah di proyek itu), terus pilih lot 2.000 kg yang masih utuh.
   const proyek = page.getByRole("dialog").locator('select[name="siklusId"]');
   const nilai = await proyek.locator("option", { hasText: "Proyek E2E" }).last().getAttribute("value");
   await proyek.selectOption(nilai ?? "");
-  await page.getByTestId("kartu-lot").filter({ hasText: /Tersedia\s*2\.000,000/ }).getByRole("checkbox", { name: /^Pakai LOT-/ }).last().check();
+  await page.getByTestId("kartu-lot").filter({ hasText: /Tersedia\s*2\.000,000/ }).getByRole("checkbox", { name: /^Pakai LOT\// }).last().check();
   await page.getByRole("button", { name: "Mulai produksi" }).last().click();
   await expect(page).toHaveURL(/p=/);
   // Cara bawaan sekarang total per grade; tes ini menguji grid per potong.

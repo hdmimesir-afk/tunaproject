@@ -8,6 +8,7 @@ import { PesanForm } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
 import { putuskanKoreksi } from "@/lib/actions/stok";
+import type { LotDitahan } from "@/lib/data/stok";
 import { tanggal, waktu } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
 import { LABEL_STATUS_LOT, type StatusLot } from "@/lib/logic/stokLot";
@@ -17,13 +18,12 @@ import type { GerakStok, IkanUtuh, IsiGudang, Ruangan, UnitStok } from "@/lib/ty
 type Koreksi = GerakStok & { unit_kode: string; sisa_kg: number };
 
 type Props = {
-  ikan: IkanUtuh[];
   produksi: ProduksiBaris[];
   units: UnitStok[];
   isi: IsiGudang;
   ruangan: Ruangan[];
   koreksi: Koreksi[];
-  bolehProduksi: boolean;
+  ditahan: LotDitahan[];
   bolehSetuju: boolean;
 };
 
@@ -133,12 +133,12 @@ function BarisLot({ l, bolehProduksi }: { l: IkanUtuh; bolehProduksi: boolean })
       </p>
       {bolehProduksi && r.tersediaKg > 0 && (
         <div className="flex justify-end">
-          <Link href={`/produksi?mulai=1&lot=${l.id}${l.cycle_id ? `&proyek=${l.cycle_id}` : ""}`} className={tombolCls} style={{ background: INK, color: "#fff" }}>Mulai Produksi</Link>
+          <Link href={`/produksi/jual?mulai=1&lot=${l.id}${l.cycle_id ? `&proyek=${l.cycle_id}` : ""}`} className={tombolCls} style={{ background: INK, color: "#fff" }}>Mulai Produksi</Link>
         </div>
       )}
       {r.selisihKg !== 0 && (
         <p role="alert" className="rounded-xl px-3 py-1.5 text-[11.5px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>
-          Angkanya nggak pas {kgTeks(Math.abs(r.selisihKg))} dari berat awal. Cek lot ini di Mutu dan Penerimaan atau jalanin cek sinkron.
+          Angkanya nggak pas {kgTeks(Math.abs(r.selisihKg))} dari berat awal. Cek lot ini di Tally atau jalanin cek sinkron.
         </p>
       )}
     </li>
@@ -167,15 +167,9 @@ function KelompokIkan({ judul, lots, href, bolehProduksi }: { judul: string; lot
   );
 }
 
-/** Dashboard Stok buat orang produksi: semuanya kebaca dari data penerimaan, produksi, dan gudang. Nggak ada input di sini.
-    Urutannya ngikut alur: ikan utuh (bongkaran semalam), lagi diproduksi, hasil siap jual, terus titipan. */
-export function StokKelola({ ikan, produksi, units, isi, ruangan, koreksi, bolehProduksi, bolehSetuju }: Props) {
-  const namaRuangan = new Map(ruangan.map((r) => [r.id, r.nama]));
-  const aktif = units.filter((u) => u.status === "aktif");
-  const hasil = aktif.filter((u) => !u.buyer_id);
-  const titipan = aktif.filter((u) => u.buyer_id);
-  const jalan = produksi.filter((p) => p.status !== "diperiksa");
-
+/** Ikan utuh (bahan baku) per proyek: tersedia, lagi diolah, udah selesai. Tampil di Ringkasan Penerimaan
+    (permintaan tim 24 Nov 2026: ikan utuh masuknya ke dashboard penerimaan). */
+export function PanelIkanUtuh({ ikan, bolehProduksi }: { ikan: IkanUtuh[]; bolehProduksi: boolean }) {
   // Ikan utuh dikelompokin per proyek; yang belum dipakai produksi masuk "Belum masuk proyek".
   const kelompok = [...ikan.reduce((m, l) => {
     const k = l.cycle_id ?? "";
@@ -187,19 +181,54 @@ export function StokKelola({ ikan, produksi, units, isi, ruangan, koreksi, boleh
   // Tombol produksi cuma bawa lot yang masih ada sisanya; kalau semuanya lagi diolah, tombolnya nggak muncul.
   const hrefProduksi = (proyek: string, lots: IkanUtuh[]) => {
     const bisa = lots.filter((l) => l.rincian.tersediaKg > 0);
-    return bisa.length === 0 ? null : `/produksi?mulai=1${proyek ? `&proyek=${proyek}` : ""}&lot=${bisa.map((l) => l.id).join(",")}`;
+    return bisa.length === 0 ? null : `/produksi/jual?mulai=1${proyek ? `&proyek=${proyek}` : ""}&lot=${bisa.map((l) => l.id).join(",")}`;
   };
-  const lotTersedia = ikan.filter((l) => l.rincian.tersediaKg > 0);
+  return (
+    <Card title="Ikan utuh belum diolah" right={<Link href="/mutu" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Tally</Link>}>
+      <div className="space-y-2.5 px-1 pb-1" data-testid="panel-ikan-utuh">
+        <p className="px-1.5 text-[12.5px]" style={{ color: MUTED }}>Ikan dari bongkaran per lot. <b className="font-medium" style={{ color: WARNA_LOT.tersedia }}>Tersedia</b> belum dipakai produksi, <b className="font-medium" style={{ color: WARNA_LOT.sedang }}>sedang diproduksi</b> belum disetujui Owner, <b className="font-medium" style={{ color: "#5B6475" }}>selesai diproduksi</b> udah disetujui. Semua berat ikan utuh, bukan berat loin.</p>
+        {kelompok.length === 0
+          ? <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Nggak ada ikan utuh yg tersedia atau lagi diolah.</div></Inner>
+          : kelompok.map(([k, g]) => <KelompokIkan key={k || "tanpa"} judul={g.judul} lots={g.lots} href={hrefProduksi(k, g.lots)} bolehProduksi={bolehProduksi} />)}
+      </div>
+    </Card>
+  );
+}
 
+/** Jumlahin unit stok per kunci (misalnya produk + grade + kondisi), dihitung dalam gram biar nggak meleset. */
+function kelompokkan(units: UnitStok[], kunci: (u: UnitStok) => string) {
+  const m = new Map<string, { nama: string; gram: number; unit: number; contoh: UnitStok }>();
+  for (const u of units) {
+    const k = kunci(u);
+    const x = m.get(k) ?? { nama: k, gram: 0, unit: 0, contoh: u };
+    m.set(k, { ...x, gram: x.gram + Math.round(u.sisa_kg * 1000), unit: x.unit + 1 });
+  }
+  return [...m.values()].sort((a, b) => b.gram - a.gram);
+}
+
+/** Ringkasan Produksi (permintaan tim 24 Nov 2026): stok yang udah diproduksi, yang lagi dititip, sama yang masih ditahan.
+    Semuanya kebaca sendiri dari data produksi, gudang, dan penerimaan. Nggak ada input di sini. */
+export function StokKelola({ produksi, units, isi, ruangan, koreksi, ditahan, bolehSetuju }: Props) {
+  const namaRuangan = new Map(ruangan.map((r) => [r.id, r.nama]));
+  const aktif = units.filter((u) => u.status === "aktif" && u.sisa_kg > 0);
+  const hasil = aktif.filter((u) => !u.buyer_id);
+  const titipan = aktif.filter((u) => u.buyer_id);
+  const jalan = produksi.filter((p) => p.status !== "diperiksa");
+  const kondisi = (u: UnitStok) => (u.langsung_kirim ? "langsung kirim" : u.kondisi === "beku" ? "beku" : "fresh");
+  // Komponen ikan: loin per grade (skin on/skinless kebaca dari kode grade), kepala dan rahang, toro, dll.
+  const komponen = kelompokkan(hasil, (u) => `${u.product_nama}${u.grade_kode ? ` ${u.grade_kode}` : ""} · ${kondisi(u)}`);
+  const perPemilik = kelompokkan(titipan, (u) => u.pemilik_nama);
+  const barangTitip = kelompokkan(titipan, (u) => `${u.pemilik_nama}|${u.product_nama}${u.grade_kode ? ` ${u.grade_kode}` : ""}|${kondisi(u)}`);
   const ruang = (u: UnitStok) => (u.langsung_kirim ? "-" : (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : ""));
+  const hrefProduksi = (p: Pick<ProduksiBaris, "id" | "lini_bisnis">) => `/produksi/${p.lini_bisnis === "jasa" ? "jasa" : "jual"}?p=${p.id}`;
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
-        <Stat value={kgTeks(jumlahKg(ikan.map((l) => l.rincian.tersediaKg)))} label={`Ikan utuh tersedia (${lotTersedia.length} lot)`} />
+        <Stat value={kgTeks(jumlahKg(hasil.map((u) => u.sisa_kg)))} label={`Hasil produksi (${hasil.length} unit)`} tone="ok" />
+        <Stat value={kgTeks(isi.isi_titipan_kg)} label={`Barang titipan (${perPemilik.length} pemilik)`} />
+        <Stat value={kgTeks(jumlahKg(ditahan.map((l) => l.sisa_kg)))} label={`Ditahan (${ditahan.length} lot)`} tone={ditahan.length > 0 ? "warn" : undefined} />
         <Stat value={String(jalan.length)} label={`Produksi lagi jalan, ${kgTeks(jumlahKg(jalan.map((p) => p.masuk_kg)))} masuk`} tone={jalan.some((p) => p.status === "berjalan") ? "warn" : undefined} />
-        <Stat value={kgTeks(jumlahKg(hasil.map((u) => u.sisa_kg)))} label="Hasil produksi siap jual" tone="ok" />
-        <Stat value={kgTeks(isi.isi_titipan_kg)} label="Titipan pelanggan" />
       </div>
 
       {bolehSetuju && koreksi.length > 0 && (
@@ -208,37 +237,41 @@ export function StokKelola({ ikan, produksi, units, isi, ruangan, koreksi, boleh
         </Card>
       )}
 
-      <Card title="1. Ikan utuh (bahan baku)" right={<Link href="/mutu" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Mutu dan Penerimaan</Link>}>
-        <div className="space-y-2.5 px-1 pb-1">
-          <p className="px-1.5 text-[12.5px]" style={{ color: MUTED }}>Ikan dari bongkaran per lot. <b className="font-medium" style={{ color: WARNA_LOT.tersedia }}>Tersedia</b> belum dipakai produksi, <b className="font-medium" style={{ color: WARNA_LOT.sedang }}>sedang diproduksi</b> belum disetujui Owner, <b className="font-medium" style={{ color: "#5B6475" }}>selesai diproduksi</b> udah disetujui. Semua berat ikan utuh, bukan berat loin.</p>
-          {kelompok.length === 0
-            ? <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Nggak ada ikan utuh yg tersedia atau lagi diolah.</div></Inner>
-            : kelompok.map(([k, g]) => <KelompokIkan key={k || "tanpa"} judul={g.judul} lots={g.lots} href={hrefProduksi(k, g.lots)} bolehProduksi={bolehProduksi} />)}
-        </div>
+      <Card title="1. Komponen ikan hasil produksi" right={<span className="px-1 text-[12px]" style={{ color: MUTED }}>milik sendiri, siap jual</span>}>
+        <DataList
+          rows={komponen}
+          empty="Belum ada hasil produksi di stok. Hasilnya masuk sendiri begitu produksinya disetujui Owner."
+          cols={[
+            { h: "Komponen", r: (k) => <span className="font-medium">{k.nama}</span> },
+            { h: "Unit", r: (k) => String(k.unit), right: true },
+            { h: "Berat", r: (k) => kgTeks(k.gram / 1000), right: true },
+          ]}
+        />
+        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Kode grade loin: SO artinya skin on, SL skinless. Rincian per unit ada di bagian 3.</p>
       </Card>
 
-      <Card title="2. Lagi diproduksi" right={<Link href="/produksi" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Produksi</Link>}>
+      <Card title="2. Lagi diproduksi" right={<Link href="/produksi/jual" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Jual loin</Link>}>
         <DataList
           rows={jalan}
           empty="Nggak ada produksi yg lagi jalan."
           cols={[
-            { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.siklus_kode ? ` · ${[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" · ")}` : ""}</span></> },
+            { h: "Produksi", r: (p: ProduksiBaris) => <><span className="font-medium">{p.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{tanggal(p.tanggal)}{p.lini_bisnis === "jasa" ? " · jasa" : ""}{p.siklus_kode ? ` · ${[p.siklus_kode, p.proyek_nama].filter(Boolean).join(" · ")}` : ""}</span></> },
             { h: "Status", r: (p) => <Pill t={STATUS_PRODUKSI[p.status]?.label ?? p.status} /> },
             { h: "Ikan masuk", r: (p) => kgTeks(p.masuk_kg), right: true },
             { h: "Loin", r: (p) => (p.loin_kg > 0 ? kgTeks(p.loin_kg) : "-"), right: true },
           ]}
           actions={(p) => (
-            <Link href={`/produksi?p=${p.id}`} className={tombolCls} style={p.status === "berjalan" ? { background: INK, color: "#fff" } : { background: "#fff", color: INK }}>
+            <Link href={hrefProduksi(p)} className={tombolCls} style={p.status === "berjalan" ? { background: INK, color: "#fff" } : { background: "#fff", color: INK }}>
               {STATUS_PRODUKSI[p.status]?.aksi ?? "Buka"}
             </Link>
           )}
         />
       </Card>
 
-      <Card title="3. Hasil produksi siap jual">
+      <Card title="3. Rincian hasil produksi per unit">
         <DataList
           rows={hasil}
-          empty="Belum ada hasil produksi di stok. Hasilnya masuk sendiri begitu produksinya disetujui Owner."
+          empty="Belum ada hasil produksi di stok."
           cari={(u) => `${u.kode} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.production_kode ?? ""} ${u.cycles?.kode ?? ""} ${ruang(u)}`}
           cols={[
             { h: "Produk", r: (u: UnitStok) => <><span className="font-medium">{u.product_nama}{u.grade_kode ? ` · ${u.grade_kode}` : ""}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.kode}{u.production_kode ? ` · ${u.production_kode}` : ""}{u.cycles?.kode ? ` · Proyek ${u.cycles.kode}` : ""}</span></> },
@@ -249,22 +282,37 @@ export function StokKelola({ ikan, produksi, units, isi, ruangan, koreksi, boleh
           ]}
           actions={(u) => (u.production_id ? <Link href={`/produksi?p=${u.production_id}`} className={tombolCls} style={{ color: MUTED }}>Produksinya</Link> : null)}
         />
-        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Kalau beratnya nggak sesuai, benerin di halaman Produksi (tombol Koreksi di produksinya). Stok di sini ikut berubah sendiri.</p>
+        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Kalau beratnya nggak sesuai, benerin di produksinya (tombol Koreksi). Stok di sini ikut berubah sendiri.</p>
       </Card>
 
-      <Card title="4. Titipan pelanggan" right={<Link href="/gudang" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Gudang Dingin</Link>}>
+      <Card title="4. Barang titipan" right={<Link href="/produksi/titip" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Titip barang</Link>}>
         <DataList
-          rows={titipan}
+          rows={barangTitip}
           empty="Nggak ada titipan di gudang."
-          cari={(u) => `${u.pemilik_nama} ${u.kode} ${u.product_nama} ${u.grade_kode ?? ""} ${ruang(u)}`}
+          cari={(k) => k.nama.replaceAll("|", " ")}
           cols={[
-            { h: "Pelanggan", r: (u: UnitStok) => <><span className="font-medium">{u.pemilik_nama}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.kode} · masuk {tanggal(u.masuk_pada)}</span></> },
-            { h: "Produk", r: (u) => `${u.product_nama}${u.grade_kode ? ` · ${u.grade_kode}` : ""}` },
-            { h: "Ruangan", r: ruang },
-            { h: "Sisa", r: (u) => kgTeks(u.sisa_kg), right: true },
+            { h: "Pemilik", r: (k) => <span className="font-medium">{k.contoh.pemilik_nama}</span> },
+            { h: "Barang", r: (k) => k.nama.split("|")[1] },
+            { h: "Kondisi", r: (k) => <Pill t={k.nama.split("|")[2]} /> },
+            { h: "Unit", r: (k) => String(k.unit), right: true },
+            { h: "Berat", r: (k) => kgTeks(k.gram / 1000), right: true },
           ]}
         />
-        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Terima, ambil, sama pindah ruangan titipan ada di menu Gudang Dingin.</p>
+        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Terima, ambil, sama koreksi titipan ada di Produksi, Titip barang.</p>
+      </Card>
+
+      <Card title="5. Ditahan" right={<Link href="/mutu" className="px-1 text-[12.5px] underline" style={{ color: MUTED }}>Tally</Link>}>
+        <DataList
+          rows={ditahan}
+          empty="Nggak ada ikan yang ditahan."
+          cols={[
+            { h: "Lot", r: (l: LotDitahan) => <><span className="font-medium">{l.kode}</span><span className="block text-[12px]" style={{ color: MUTED }}>{l.pemasok} · terima {tanggal(l.tanggal_terima)}</span></> },
+            { h: "Jenis", r: (l) => l.jenis ?? "-" },
+            { h: "Catatan", r: (l) => l.catatan || "-" },
+            { h: "Berat", r: (l) => kgTeks(l.sisa_kg), right: true },
+          ]}
+        />
+        <p className="px-2.5 pb-2 pt-2 text-[12px]" style={{ color: MUTED }}>Ikan gugur atau bau yang ditahan pas grading. Nggak bisa dipakai produksi.</p>
       </Card>
     </div>
   );

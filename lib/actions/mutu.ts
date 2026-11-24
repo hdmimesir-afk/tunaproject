@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { AngkaId } from "@/lib/logic/angkaZod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
 import { keGram } from "@/lib/logic/grid";
 import { createClient } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ async function izin(aksi: string): Promise<HasilForm | null> {
   }
 }
 
-const Berat = z.coerce.number("Isi beratnya").positive("Berat harus lebih dari nol").max(10_000_000, "Beratnya kebesaran").transform((n) => Math.round(n * 1000) / 1000);
+const Berat = AngkaId({ pesan: "Isi beratnya", desimal: 3, min: 0.001, max: 10_000_000 });
 
 const FormTerima = z.object({
   supplierId: z.uuid("Pilih pemasok atau nelayannya"),

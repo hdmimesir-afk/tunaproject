@@ -20,7 +20,7 @@ export async function dataPersetujuan(): Promise<DataPersetujuan> {
   const sb = await createClient();
   const [antrean, riwayat, malam] = await Promise.all([
     sb.from("v_persetujuan").select("*").in("status", ["diajukan", "diperiksa"]).order("diajukan_pada", { ascending: true }),
-    sb.from("v_persetujuan").select("*").in("status", ["disetujui", "ditolak", "perlu_revisi"]).order("diajukan_pada", { ascending: false }).limit(20),
+    sb.from("v_persetujuan").select("*").in("status", ["disetujui", "ditolak", "perlu_revisi"]).order("diajukan_pada").limit(2000),
     sb.from("lots").select("id, kode, po_id, po_kode, kg, tanggal_terima, suppliers(nama)").eq("sebelum_disetujui", true).order("kode", { ascending: false }).limit(50),
   ]);
   if (antrean.error || riwayat.error || malam.error) gagal("antrean persetujuan");

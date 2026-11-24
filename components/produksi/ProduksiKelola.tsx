@@ -17,6 +17,8 @@ import { LABEL_LINI, type LiniBisnis, type LotSiap, type ProduksiBaris, type Pro
 import { DetailProduksi } from "./DetailProduksi";
 
 type Props = {
+  /** Halaman lini bisnis yang lagi dibuka (/produksi/jual atau /produksi/jasa). */
+  lini: "jual" | "jasa";
   daftar: ProduksiBaris[];
   lotSiap: LotSiap[];
   proyek: ProyekOpsi[];
@@ -93,8 +95,11 @@ const selectCls = "h-11 w-full rounded-2xl border border-[#E2E4EA] bg-white px-3
 
 /** Form mulai produksi: lini bisnis, proyek (pilih atau baru), tanggal, PT, lalu ikannya (lot buat jual, berat dari PT buat jasa).
     Titip saja nggak diproduksi: proyeknya dibikin, terus lanjut terima titipan di Gudang Dingin. */
-function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = [], onSelesai, onTitip }: {
-  lotSiap: LotSiap[]; proyek: ProyekOpsi[]; pt: Opsi[]; hariIni: string; proyekAwal?: string; lotAwal?: string[]; onSelesai: (id: string) => void; onTitip: (proyekId: string) => void;
+export function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = [], liniTetap, onSelesai, onTitip }: {
+  lotSiap: LotSiap[]; proyek: ProyekOpsi[]; pt: Opsi[]; hariIni: string; proyekAwal?: string; lotAwal?: string[];
+  /** Dibuka dari halaman satu lini bisnis: pilihan lini disembunyiin, lini-nya ngikut halamannya. */
+  liniTetap?: LiniBisnis;
+  onSelesai: (id: string) => void; onTitip: (proyekId: string) => void;
 }) {
   // Dari Rincian Proyek: lini bisnis dan proyeknya ngikut proyek yang dibuka.
   const awal = proyek.find((x) => x.id === proyekAwal);
@@ -105,7 +110,7 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
   const ikatan = lotStok.find((l) => l.cycle_id)?.cycle_id ?? null;
   // Proyek dipilih di sini (bukan pas terima ikan). Lot yg belum punya proyek bisa dipakai proyek mana aja,
   // begitu dipakai lotnya ikut proyek produksinya. Lot yg udah punya proyek cuma muncul di proyeknya sendiri.
-  const [lini, setLini] = useState<LiniBisnis>(lotStok.length > 0 ? "jual" : awal?.lini_bisnis ?? "jual");
+  const [lini, setLini] = useState<LiniBisnis>(liniTetap ?? (lotStok.length > 0 ? "jual" : awal?.lini_bisnis ?? "jual"));
   const [siklusId, setSiklusId] = useState(ikatan ?? awal?.id ?? "baru");
   const [state, action, pending] = useActionState<HasilForm, FormData>(async (prev: HasilForm, fd: FormData) => {
     const r = await mulaiProduksi(prev, fd);
@@ -154,7 +159,11 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
       <input type="hidden" name="lini" value={lini} />
       {state?.error && <div role="alert" className="rounded-2xl px-3.5 py-2.5 text-[13px]" style={{ background: "#FBE5E3", color: "#A8322B" }}>{state.error}</div>}
 
-      {dariStok ? (
+      {liniTetap && !dariStok ? (
+        <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }} data-testid="lini-tetap">
+          Lini bisnis: <b className="font-medium">{LABEL_LINI[liniTetap]}</b>
+        </p>
+      ) : dariStok ? (
         <p className="rounded-2xl bg-white px-3.5 py-2.5 text-[13px]" style={{ color: INK }}>
           Produksi dari Stok: <b className="font-medium">{LABEL_LINI.jual}</b>. Cek beratnya, pilih proyeknya, terus simpan.
         </p>
@@ -210,7 +219,7 @@ function FormMulai({ lotSiap, proyek, pt, hariIni, proyekAwal = "", lotAwal = []
       ) : lini === "jasa" ? (
         <Field label="Berat ikan dari PT (kg)" error={state?.kolom?.kgPt?.[0]}><TextIn name="kgPt" inputMode="decimal" required /></Field>
       ) : lotProyek.length === 0 ? (
-        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada ikan yg siap diolah. Terima ikannya dulu di menu Mutu dan Penerimaan.</p>
+        <p className="text-[13px]" style={{ color: MUTED }}>Belum ada ikan yg siap diolah. Terima ikannya dulu di menu Tally.</p>
       ) : (
         <div className="space-y-2">
           <p className="text-[12px] font-medium" style={{ color: MUTED }}>{dariStok ? "Lot dari Stok. Beratnya udah keisi sebesar yg tersedia, ubah kalau cuma sebagian yg diolah." : "Pilih lot yg masuk produksi."}</p>
@@ -277,10 +286,11 @@ function KartuLot({ l, aktif, nilai, salah, onAlih, onUbah }: {
   );
 }
 
-export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade, samping, pengguna, detail, batas, bolehTulis, bolehPeriksa, bolehSetuju, hariIni, ringkasGrade, mulaiAwal, lotAwal }: Props) {
+export function ProduksiKelola({ lini, daftar, lotSiap, proyek, pt, koreksiAwal, grade, samping, pengguna, detail, batas, bolehTulis, bolehPeriksa, bolehSetuju, hariIni, ringkasGrade, mulaiAwal, lotAwal }: Props) {
   const router = useRouter();
+  const dasar = `/produksi/${lini}`;
   const [mulai, setMulai] = useState(mulaiAwal !== null && mulaiAwal !== undefined && bolehTulis);
-  const buka = (id: string, koreksi = false) => router.push(`/produksi?p=${id}${koreksi ? "&koreksi=1" : ""}`);
+  const buka = (id: string, koreksi = false) => router.push(`${dasar}?p=${id}${koreksi ? "&koreksi=1" : ""}`);
   const berjalan = daftar.filter((p) => p.status === "berjalan").length;
   const menunggu = daftar.filter((p) => p.status === "selesai" || p.status === "diperiksa_qc").length;
 
@@ -298,7 +308,7 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
       </>}>
         <DataList
           rows={daftar}
-          empty={bolehTulis ? "Belum ada produksi. Ketuk Mulai Produksi, atau dari halaman Stok pilih lotnya." : "Belum ada produksi."}
+          empty={bolehTulis ? `Belum ada produksi. Ketuk Mulai Produksi${lini === "jual" ? ", atau dari Ringkasan Penerimaan pilih lotnya" : ""}.` : "Belum ada produksi."}
           cari={(p) => `${p.kode} ${p.siklus_kode ?? ""} ${p.proyek_nama ?? ""} ${p.pt_nama ?? ""} ${LABEL_LINI[p.lini_bisnis ?? "jual"]} ${p.status.replace("_", " ")} ${p.tanggal}`}
           cols={[
             { h: "Produksi", r: (p: ProduksiBaris) => (
@@ -329,15 +339,15 @@ export function ProduksiKelola({ daftar, lotSiap, proyek, pt, koreksiAwal, grade
 
       {mulai && (
         <Modal title="Mulai Produksi" onClose={() => setMulai(false)}>
-          <FormMulai lotSiap={lotSiap} proyek={proyek} pt={pt} hariIni={hariIni} proyekAwal={mulaiAwal ?? ""} lotAwal={lotAwal}
+          <FormMulai lotSiap={lotSiap} proyek={proyek} pt={pt} hariIni={hariIni} proyekAwal={mulaiAwal ?? ""} lotAwal={lotAwal} liniTetap={lini}
             onSelesai={(id) => { setMulai(false); buka(id); }}
-            onTitip={(proyekId) => { setMulai(false); router.push(`/gudang?titip=${proyekId}`); }} />
+            onTitip={(proyekId) => { setMulai(false); router.push(`/produksi/titip?titip=${proyekId}`); }} />
         </Modal>
       )}
 
       {detail && (
         <DetailProduksi key={detail.produksi.id} detail={detail} grade={grade} samping={samping} pengguna={pengguna} batas={batas} proyek={proyek} koreksiAwal={koreksiAwal}
-          bolehTulis={bolehTulis} bolehPeriksa={bolehPeriksa} bolehSetuju={bolehSetuju} onTutup={() => router.push("/produksi")} />
+          bolehTulis={bolehTulis} bolehPeriksa={bolehPeriksa} bolehSetuju={bolehSetuju} onTutup={() => router.push(dasar)} />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { bacaAngka } from "@/lib/format";
 import { flushSync } from "react-dom";
 import { Btn } from "@/components/ui";
 import { PilihGrade } from "@/components/ui/PilihGrade";
@@ -50,7 +51,7 @@ export function IsianEkor({ baris, onUbah, grade, bolehGrade, potonganKg, error 
       <ol className="space-y-2">
         {baris.map((b, i) => {
           const salah = r.salah.get(b.k);
-          const g = b.kg.trim() === "" ? null : Number(b.kg.replace(",", "."));
+          const g = b.kg.trim() === "" ? null : bacaAngka(b.kg);
           const bayar = g !== null && Number.isFinite(g) ? Math.max(0, g - b.gancu * potonganKg) : null;
           return (
             <li key={b.k} className="rounded-2xl bg-white p-2.5" style={salah ? { boxShadow: "inset 0 0 0 1px #E4A7A2" } : undefined}>

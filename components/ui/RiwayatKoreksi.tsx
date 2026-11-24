@@ -11,6 +11,7 @@ const LABEL: Record<string, string> = {
   kategori: "Kategori", uraian: "Uraian", po_id: "PO", production_id: "Produksi",
   cara_catat: "Cara catat", jumlah_ekor: "Jumlah ekor", ekor: "Ekor",
   loin_berat_total: "Total berat loin habis fillet", loin_jumlah_total: "Jumlah keping loin",
+  pajak_aktif: "Pakai pajak", pajak_persen: "Pajak (%)", diskon_jenis: "Jenis diskon", diskon_nilai: "Diskon", keterangan: "", aktif: "Aktif",
   baris: "Isi pesanan", pemilik: "Pemilik", produk: "Produk", kondisi: "Kondisi", kg_kirim: "kirim", kg_diterima: "diterima", unit: "",
 };
 

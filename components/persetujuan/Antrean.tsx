@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Btn, Card, Field, Inner, Modal, Pill } from "@/components/ui";
+import { Paginasi, useHalaman } from "@/components/ui/Halaman";
 import { INK, MUTED } from "@/components/ui/tokens";
 import { DaftarDokumen } from "@/components/dokumen/Dokumen";
 import type { HasilForm } from "@/lib/actions/auth";
@@ -184,6 +185,7 @@ export function Antrean(props: Props) {
   const [konfirmasi, setKonfirmasi] = useState<Pengajuan[] | null>(null);
   const [alasan, setAlasan] = useState<{ a: Pengajuan; j: "tolak" | "revisi" } | null>(null);
 
+  const riwayat = useHalaman(data.riwayat);
   const idAda = new Set(data.antrean.map((a) => a.id));
   const aktif = dipilih.filter((id) => idAda.has(id));
   const terpilih = data.antrean.filter((a) => aktif.includes(a.id));
@@ -232,12 +234,12 @@ export function Antrean(props: Props) {
         </Card>
       )}
 
-      <Card title="Riwayat terbaru">
+      <Card title="Riwayat keputusan">
         {data.riwayat.length === 0 ? (
           <Inner><p className="text-[13px]" style={{ color: MUTED }}>Belum ada keputusan.</p></Inner>
         ) : (
           <ul className="space-y-1.5">
-            {data.riwayat.map((a) => (
+            {riwayat.tampil.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white px-3.5 py-2.5 text-[13px]">
                 <span style={{ color: INK }}>
                   {kodePO(a.po_kode)} · {a.supplier_nama} · {rp(a.jumlah)}
@@ -252,6 +254,7 @@ export function Antrean(props: Props) {
             ))}
           </ul>
         )}
+        <Paginasi h={riwayat} label="keputusan" />
       </Card>
 
       {props.bolehSetuju && aktif.length > 0 && (

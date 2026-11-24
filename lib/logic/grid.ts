@@ -1,3 +1,5 @@
+import { normalAngka } from "@/lib/format";
+
 /* Hitungan grid loin (FRM-PRD-01 rev 01). Murni tanpa I/O. Semua berat dihitung dalam gram bulat
    supaya 500 baris berdesimal tiga tidak bergeser karena pecahan biner, dan sama dengan hitungan database. */
 
@@ -13,9 +15,10 @@ export type BarisLoin = {
   versi?: number;
 };
 
-/** "20,123" atau "20.123" menjadi gram bulat (20123). null bila bukan angka positif dengan paling banyak tiga desimal. */
+/** "20,123" menjadi gram bulat (20123). Titik dibaca ribuan ("1.234,5" = 1234,5 kg); satu titik yang nggak diikuti tepat
+    3 angka dibaca desimal ("235.5" = 235,5 kg). null bila bukan angka positif dengan paling banyak tiga desimal. */
 export function keGram(teks: string): number | null {
-  const t = teks.trim().replace(/\s/g, "").replace(",", ".");
+  const t = normalAngka(teks) ?? "";
   if (!/^\d{1,9}(\.\d{1,3})?$/.test(t)) return null;
   const [bulat, desimal = ""] = t.split(".");
   const gram = Number(bulat) * 1000 + Number(desimal.padEnd(3, "0"));

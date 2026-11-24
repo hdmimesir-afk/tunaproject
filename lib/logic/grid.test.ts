@@ -5,11 +5,16 @@ import { hitungNeraca } from "./neraca";
 const baris = (i: number, kg: string, extra: Partial<BarisLoin> = {}): BarisLoin => ({ id: `id-${i}`, noEkor: "", noLoin: String(i), gradeId: "g1", kg, ...extra });
 
 describe("keGram", () => {
-  it("menerima koma dan titik, maksimal tiga desimal", () => {
+  it("koma desimal, titik ribuan (24 Nov 2026), maksimal tiga desimal", () => {
     expect(keGram("20,123")).toBe(20123);
-    expect(keGram("20.123")).toBe(20123);
+    expect(keGram("20.123")).toBe(20_123_000);
+    expect(keGram("1.234,5")).toBe(1_234_500);
+    expect(keGram("235.5")).toBe(235_500);
     expect(keGram("7")).toBe(7000);
     expect(keGram("0,5")).toBe(500);
+  });
+  it("titik ribuan yang salah tempat ditolak", () => {
+    for (const x of ["1.23,5", "12.34.567"]) expect(keGram(x)).toBeNull();
   });
   it("menolak bukan angka, nol, negatif, dan empat desimal", () => {
     for (const x of ["", "abc", "0", "-1", "1,2345", "1,2,3", "1e3"]) expect(keGram(x)).toBeNull();

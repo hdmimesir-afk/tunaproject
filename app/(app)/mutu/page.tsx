@@ -16,12 +16,12 @@ import { MutuOwner } from "@/components/owner/MutuOwner";
 import { laporanMutuOwner } from "@/lib/data/laporanOwner";
 import { isPeriodeOwner } from "@/lib/logic/laporanOwner";
 
-export const metadata: Metadata = { title: "KATALIS ERP | Mutu dan Penerimaan" };
+export const metadata: Metadata = { title: "KATALIS ERP | Tally" };
 
 export default function MutuPage(props: PageProps<"/mutu">) {
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
-      <Judul kicker="Ikan datang ditimbang, digrading, terus diajukan pembeliannya" judul="Mutu dan Penerimaan" />
+      <Judul kicker="Ikan datang ditimbang, digrading, terus diajukan pembeliannya" judul="Tally" />
       {supabaseConfigured ? (
         <Suspense fallback={<div className="h-64 rounded-[26px] bg-white/50" />}>
           <MutuData searchParams={props.searchParams} />

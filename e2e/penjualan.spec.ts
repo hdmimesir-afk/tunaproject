@@ -27,5 +27,5 @@ test("pesanan dari stok, kirim dengan konfirmasi kedua, lalu invoice terbit", as
 
   await detail.getByRole("button", { name: "Terbitkan invoice" }).click();
   await detail.getByRole("button", { name: "Ya, terbitkan invoice" }).click();
-  await expect(detail.getByRole("button", { name: /Lihat invoice INV-/ })).toBeVisible();
+  await expect(detail.getByRole("button", { name: /Lihat invoice INV\// })).toBeVisible();
 });

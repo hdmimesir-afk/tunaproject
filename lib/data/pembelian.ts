@@ -13,7 +13,7 @@ function gagal(apa: string): never {
 export async function daftarPO(): Promise<POBaris[]> {
   const sb = await createClient();
   // Yang belum punya kode (masih diajukan) di atas, terus kode terbaru.
-  const { data, error } = await sb.from("v_purchase_orders").select("*").order("kode", { ascending: false, nullsFirst: true }).order("diajukan_pada", { ascending: false });
+  const { data, error } = await sb.from("v_purchase_orders").select("*").order("tanggal").order("diajukan_pada").limit(5000);
   if (error) gagal("daftar PO");
   return (data ?? []) as POBaris[];
 }

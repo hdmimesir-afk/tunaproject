@@ -5,20 +5,22 @@
 
 import { useMemo, useState } from "react";
 import { cocok, KotakCari } from "./Cari";
+import { Paginasi, PER_HALAMAN, useHalaman } from "./Halaman";
 import {
-  ArrowDownLeft, ArrowUpRight, Calendar, ChartColumn, ChevronLeft, ChevronRight, CircleCheck, House, Clock, Download, Ellipsis, Factory, FileText, FlaskConical,
-  LayoutGrid, List, Lock, Menu, Package, PanelLeftClose, PanelLeftOpen, Plus, Search, SendHorizontal, ShieldCheck, ShoppingCart, Snowflake, Sparkles, Truck,
-  User, Wallet, Wrench, X, type LucideIcon,
+  ArrowDownLeft, ArrowUpRight, Calendar, ChartColumn, ChevronDown, ChevronLeft, ChevronRight, CircleCheck, House, Clock, Download, Ellipsis, Factory, FileText, Fish, FlaskConical,
+  Inbox, LayoutGrid, List, Lock, Menu, Package, PanelLeftClose, PanelLeftOpen, Plus, Search, SendHorizontal, ShieldCheck, ShoppingCart, Snowflake, Sparkles, Truck,
+  User, Wallet, Warehouse, Wrench, X, type LucideIcon,
 } from "lucide-react";
 import { INK, MUTED, TILE } from "./tokens";
 
 export { INK, MUTED, TILE, BLUE } from "./tokens";
 
 /* ----------------------------------------------------------------- icons */
-export type IconName = "grid" | "box" | "check" | "chart" | "user" | "search" | "menu" | "arrow" | "dots" | "plus" | "back" | "calendar" | "note" | "cart" | "factory" | "shield" | "snow" | "cash" | "truck" | "clock" | "flask" | "lock" | "list" | "download" | "close" | "sparkles" | "send" | "home" | "next" | "panel-close" | "panel-open" | "masuk" | "alat";
+export type IconName = "grid" | "box" | "check" | "chart" | "user" | "search" | "menu" | "arrow" | "dots" | "plus" | "back" | "calendar" | "note" | "cart" | "factory" | "shield" | "snow" | "cash" | "truck" | "clock" | "flask" | "lock" | "list" | "download" | "close" | "sparkles" | "send" | "home" | "next" | "panel-close" | "panel-open" | "masuk" | "alat" | "inbox" | "fish" | "gudang" | "bawah";
 const LUCIDE: Record<IconName, LucideIcon> = {
   grid: LayoutGrid, box: Package, check: CircleCheck, chart: ChartColumn, user: User, search: Search, menu: Menu, arrow: ArrowUpRight, dots: Ellipsis, plus: Plus, close: X, sparkles: Sparkles, send: SendHorizontal, back: ChevronLeft, next: ChevronRight, home: House, "panel-close": PanelLeftClose, "panel-open": PanelLeftOpen, masuk: ArrowDownLeft,
   calendar: Calendar, note: FileText, cart: ShoppingCart, factory: Factory, shield: ShieldCheck, snow: Snowflake, cash: Wallet, truck: Truck, clock: Clock, flask: FlaskConical, lock: Lock, list: List, download: Download, alat: Wrench,
+  inbox: Inbox, fish: Fish, gudang: Warehouse, bawah: ChevronDown,
 };
 export const Icon = ({ n, c = INK, s = 22 }: { n: IconName; c?: string; s?: number }) => {
   const L = LUCIDE[n];
@@ -131,13 +133,19 @@ export function Modal({ title, onClose, children, footer, lebar }: { title: stri
 export interface Col<T> { h: string; r: (row: T) => React.ReactNode; right?: boolean }
 /** Tabel di desktop, kartu bertumpuk di HP. Kolom pertama menjadi judul kartu.
     Bila `cari` diberikan (fungsi yang menghasilkan teks yang bisa dicari dari satu baris), kotak pencarian tampil di atas daftar. */
-export function DataList<T>({ cols, rows, actions, empty = "Belum ada data.", cari }: { cols: Col<T>[]; rows: T[]; actions?: (row: T) => React.ReactNode; empty?: string; cari?: (row: T) => string }) {
+export function DataList<T>({ cols, rows, actions, empty = "Belum ada data.", cari, perHalaman = PER_HALAMAN }: {
+  cols: Col<T>[]; rows: T[]; actions?: (row: T) => React.ReactNode; empty?: string; cari?: (row: T) => string;
+  /** Paginasi (24 Nov 2026): 20 baris per halaman, kebuka di halaman terakhir. 0 = tanpa paginasi (daftar pendek). */
+  perHalaman?: number;
+}) {
   const [q, setQ] = useState("");
   const semua = rows;
-  rows = useMemo(() => (cari && q.trim() ? semua.filter((r) => cocok(cari(r), q)) : semua), [semua, cari, q]);
+  const tersaring = useMemo(() => (cari && q.trim() ? semua.filter((r) => cocok(cari(r), q)) : semua), [semua, cari, q]);
+  const halaman = useHalaman(tersaring, perHalaman > 0 ? perHalaman : Math.max(1, tersaring.length));
+  rows = halaman.tampil;
   if (semua.length === 0) return <Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>{empty}</div></Inner>;
   const [first, ...rest] = cols;
-  const kotak = cari ? <KotakCari q={q} onUbah={setQ} tampil={rows.length} total={semua.length} className="mb-2.5" /> : null;
+  const kotak = cari ? <KotakCari q={q} onUbah={setQ} tampil={tersaring.length} total={semua.length} className="mb-2.5" /> : null;
   if (rows.length === 0) {
     return <>{kotak}<Inner><div className="py-3 text-center text-[13px]" style={{ color: MUTED }}>Nggak ada yang cocok sama &ldquo;{q.trim()}&rdquo;.</div></Inner></>;
   }
@@ -188,6 +196,7 @@ export function DataList<T>({ cols, rows, actions, empty = "Belum ada data.", ca
           );
         })}
       </div>
+      <Paginasi h={halaman} />
     </>
   );
 }

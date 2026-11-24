@@ -24,8 +24,8 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Terima ikan", url: "/mutu", icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }] },
-      { name: "Produksi", url: "/produksi", icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }] },
-      { name: "Stok", url: "/stok", icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }] },
+      { name: "Produksi", url: "/produksi/jual", icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }] },
+      { name: "Stok", url: "/produksi", icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }] },
     ],
   };
 }

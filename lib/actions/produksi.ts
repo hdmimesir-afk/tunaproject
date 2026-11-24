@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireIzin, TidakBerizin } from "@/lib/data/auth";
 import { keGram } from "@/lib/logic/grid";
@@ -453,4 +454,30 @@ export async function simpanTotalLoin(_: HasilForm, fd: FormData): Promise<Hasil
   if (error) return { error: pesanDb(error) };
   refresh();
   return { pesan: "Total loin udah kesimpan." };
+}
+
+/* ------------------------------------------------------------ hapus record produksi (26 Nov 2026) */
+const AlasanHapus = z.string().trim().min(1, "Tulis alasannya").max(500, "Maksimal 500 huruf");
+
+/** Hapus satu baris di produksi yang masih berjalan (pemakaian lot, loin per potong, ekor, komponen, loin total per grade). */
+export async function hapusBarisProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({
+    tabel: z.enum(["lot_allocations", "production_items", "production_fish", "production_components", "production_loin_totals"]),
+    barisId: z.uuid(),
+    alasan: AlasanHapus,
+  }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("produksi.write", "hapus_baris_produksi", { p_tabel: p.data.tabel, p_id: p.data.barisId, p_alasan: p.data.alasan }, "Barisnya udah dihapus.");
+}
+
+/** Hapus satu produksi utuh (yang kecatat dobel). Abis itu balik ke daftar produksi lininya. */
+export async function hapusProduksi(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ produksiId: z.uuid(), lini: z.enum(["jual", "jasa"]), alasan: AlasanHapus }).safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  const tolak = await izin("produksi.write");
+  if (tolak) return tolak;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("hapus_produksi", { p_production: p.data.produksiId, p_alasan: p.data.alasan });
+  if (error) return { error: pesanDb(error) };
+  redirect(`/produksi/${p.data.lini}`);
 }

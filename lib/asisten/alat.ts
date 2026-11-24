@@ -31,7 +31,7 @@ export const DAFTAR_ALAT: DefAlat[] = [
   { nama: "piutang_terlambat", label: "Piutang yang terlambat", deskripsi: "Daftar invoice penjualan dan jasa yang melewati jatuh tempo beserta sisa tagihan dan hari terlambatnya.", izin: ["penjualan.read"], skema: { type: "object", properties: {} } },
   { nama: "saldo_kas", label: "Saldo kas", deskripsi: "Uang masuk, uang keluar, dan saldo dari buku kas, total dan bulan ini.", izin: ["keuangan.read"], skema: { type: "object", properties: {} } },
   { nama: "hasil_per_ekor", label: "Hasil per ekor", deskripsi: "Hasil loin per ekor (loin ÷ berat utuh) untuk satu produksi. Tanpa kode produksi, dipakai produksi terbaru.", izin: ["produksi.read"],
-    skema: { type: "object", properties: { produksi: { type: "string", description: "Kode produksi, misalnya PRD-001. Boleh dikosongkan." } } } },
+    skema: { type: "object", properties: { produksi: { type: "string", description: "Kode produksi, misalnya PRD/26/11/24/001. Boleh dikosongkan." } } } },
   { nama: "jadwal_bentrok", label: "Jadwal mesin dan bentrok", deskripsi: "Jadwal ABF dan produksi mitra 14 hari ke depan, dan apakah ada yang bentrok.", izin: ["gudang.read"], skema: { type: "object", properties: {} } },
   { nama: "perlu_persetujuan", label: "Yang menunggu keputusan", deskripsi: "Jumlah PO, biaya, koreksi stok, dan produksi yang menunggu persetujuan atau pemeriksaan.", izin: ["persetujuan.read", "keuangan.read", "stok.read", "produksi.read"], skema: { type: "object", properties: {} } },
   { nama: "isi_gudang_dingin", label: "Isi gudang dingin", deskripsi: "Isi gudang dingin terhadap kapasitas: stok sendiri, titipan per pelanggan, dan sisa kapasitas.", izin: ["gudang.read", "stok.read"], skema: { type: "object", properties: {} } },
@@ -42,7 +42,7 @@ export const DAFTAR_ALAT: DefAlat[] = [
   { nama: "isi_ruangan", label: "Isi tiap ruangan gudang", deskripsi: "Isi dan kapasitas tiap ruangan gudang dingin (ABF 1, 2, 3 dan Cold Storage 1), dipisah milik sendiri dan titipan, beserta yang belum ditempatkan di ruangan.", izin: ["gudang.read", "stok.read"], skema: { type: "object", properties: {} } },
   { nama: "barang_menipis", label: "Barang penunjang menipis", deskripsi: "Barang penunjang kerja dan penunjang pekerja (apron, masker, kemasan, dan sejenisnya) yang stoknya sudah di bawah minimum atau habis.", izin: ["stok.read"], skema: { type: "object", properties: {} } },
   { nama: "biaya_siklus", label: "Biaya dan laba satu proyek", deskripsi: "Pendapatan, biaya (ikan dan biaya lain per kategori), dan laba kotor satu proyek (batch atau bongkaran; di database disebut siklus). Tanpa kode proyek, dipakai proyek terbaru.", izin: ["keuangan.read", "laporan.read"],
-    skema: { type: "object", properties: { siklus: { type: "string", description: "Kode proyek, misalnya SIK-0001. Boleh dikosongkan." } } } },
+    skema: { type: "object", properties: { siklus: { type: "string", description: "Kode proyek, misalnya SIK/26/11/20/001. Boleh dikosongkan." } } } },
 ];
 
 type Sb = Awaited<ReturnType<typeof createClient>>;

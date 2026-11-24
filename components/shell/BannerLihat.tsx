@@ -7,14 +7,16 @@ import { usePathname, useSearchParams } from "next/navigation";
    langsung paham kenapa nggak ada tombol isi. Nggak muncul di Dashboard, Akses, dan Pengaturan (di sana owner emang punya tombol). */
 const TANPA_BANNER = ["/dashboard", "/akses", "/pengaturan", "/akun"];
 /** Halaman yg udah punya tampilan laporan khusus owner (selama nggak lagi buka rincian atau halaman lengkap). */
-const LAPORAN_OWNER = ["/produksi", "/mutu", "/stok", "/penjualan", "/keuangan", "/absensi"];
+const LAPORAN_OWNER = ["/produksi/jual", "/produksi/jasa", "/mutu", "/penjualan", "/keuangan", "/absensi"];
+/** Dashboard kategori: isinya ringkasan doang (nggak ada input), jadi nggak perlu keterangan mode lihat. */
+const RINGKASAN = ["/penerimaan", "/produksi", "/warehouse", "/niaga"];
 /** Parameter yg berarti owner lagi buka halaman kerja tim / rincian, bukan laporannya. */
 const BUKA_RINCIAN = ["lengkap", "p", "inv", "b"];
 
 export function BannerLihat() {
   const path = usePathname();
   const cari = useSearchParams();
-  if (TANPA_BANNER.some((p) => path === p || path.startsWith(`${p}/`))) return null;
+  if (TANPA_BANNER.some((p) => path === p || path.startsWith(`${p}/`)) || RINGKASAN.includes(path)) return null;
   if (LAPORAN_OWNER.includes(path) && !BUKA_RINCIAN.some((k) => cari.get(k))) return null;
   return (
     <div role="note" className="mx-auto mb-4 flex max-w-[1180px] flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-2xl px-3.5 py-2.5 text-[13px] leading-snug"

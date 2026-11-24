@@ -14,11 +14,23 @@ function gagal(apa: string): never {
   throw new Error(`Gagal memuat ${apa}. Coba muat ulang halaman.`);
 }
 
-export async function daftarProduksi(): Promise<ProduksiBaris[]> {
+/** Daftar produksi; `lini` buat halaman per lini bisnis (produksi tanpa proyek dianggap jual). */
+export async function daftarProduksi(lini?: "jual" | "jasa"): Promise<ProduksiBaris[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("v_productions").select("*").order("kode", { ascending: false }).limit(100);
+  let q = sb.from("v_productions").select("*");
+  if (lini === "jual") q = q.or("lini_bisnis.eq.jual,lini_bisnis.is.null");
+  if (lini === "jasa") q = q.eq("lini_bisnis", "jasa");
+  const { data, error } = await q.order("tanggal").order("kode").limit(5000);
   if (error) gagal("daftar produksi");
   return (data ?? []) as ProduksiBaris[];
+}
+
+/** Lini bisnis satu produksi atau proyek, buat ngarahin tautan lama (/produksi?p=...) ke halaman lininya. */
+export async function liniDari(tabel: "v_productions" | "cycles", id: string): Promise<"jual" | "jasa" | "titip"> {
+  const sb = await createClient();
+  const { data } = await sb.from(tabel).select("lini_bisnis").eq("id", id).maybeSingle();
+  const l = (data as { lini_bisnis: string | null } | null)?.lini_bisnis;
+  return l === "jasa" || l === "titip" ? l : "jual";
 }
 
 /** Ringkasan grade per produksi buat laporan: grade loin (grading akhir) dan grade tuna utuh dari lot asalnya. */

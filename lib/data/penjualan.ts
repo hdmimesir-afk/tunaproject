@@ -3,7 +3,7 @@ import { produksiSiapStok } from "@/lib/data/stok";
 import { tersedia } from "@/lib/logic/penjualan";
 import { createClient } from "@/lib/supabase/server";
 import type { Dokumen, Opsi } from "@/lib/types/pembelian";
-import type { AlokasiJual, HasilTertunda, Invoice, JasaBelumDitagih, PembayaranPembeli, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
+import type { AlokasiJual, BarisJasa, HasilTertunda, Invoice, Jasa, JasaBelumDitagih, PembayaranPembeli, Pembeli, Pesanan, UnitJual } from "@/lib/types/penjualan";
 
 /* Lapisan akses data penjualan. Klien pengguna, jadi RLS dan izin database berlaku. */
 
@@ -13,14 +13,14 @@ function gagal(apa: string): never {
 
 export async function daftarPesanan(): Promise<Pesanan[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("v_sales_orders").select("*").order("kode", { ascending: false }).limit(200);
+  const { data, error } = await sb.from("v_sales_orders").select("*").order("tanggal").order("kode").limit(5000);
   if (error) gagal("daftar pesanan");
   return (data ?? []) as Pesanan[];
 }
 
 export async function daftarInvoice(): Promise<Invoice[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("v_invoices").select("*").neq("status_terbit", "dibatalkan").order("kode", { ascending: false }).limit(300);
+  const { data, error } = await sb.from("v_invoices").select("*").neq("status_terbit", "dibatalkan").order("tanggal").order("kode").limit(5000);
   if (error) gagal("daftar invoice");
   return (data ?? []) as Invoice[];
 }
@@ -93,18 +93,38 @@ export async function jasaBelumDitagih(): Promise<JasaBelumDitagih[]> {
   return (data ?? []) as JasaBelumDitagih[];
 }
 
-export type DetailPesanan = { pesanan: Pesanan; baris: AlokasiJual[]; invoice: Invoice | null };
+export type DetailPesanan = { pesanan: Pesanan; baris: AlokasiJual[]; jasa: BarisJasa[]; invoice: Invoice | null };
 
 export async function detailPesanan(id: string): Promise<DetailPesanan | null> {
   const sb = await createClient();
-  const [p, b, i] = await Promise.all([
+  const [p, b, j, i] = await Promise.all([
     sb.from("v_sales_orders").select("*").eq("id", id).maybeSingle(),
     sb.from("sale_allocations").select("*").eq("order_id", id).eq("batal", false).order("dibuat_pada"),
+    sb.from("sales_service_lines").select("id, service_item_id, keterangan, harga, urutan").eq("order_id", id).eq("batal", false).order("urutan"),
     sb.from("v_invoices").select("*").eq("order_id", id).eq("status_terbit", "terbit").maybeSingle(),
   ]);
-  if (p.error || b.error || i.error) gagal("detail pesanan");
+  if (p.error || b.error || j.error || i.error) gagal("detail pesanan");
   if (!p.data) return null;
-  return { pesanan: p.data as Pesanan, baris: (b.data ?? []) as AlokasiJual[], invoice: (i.data as Invoice | null) ?? null };
+  return {
+    pesanan: p.data as Pesanan, baris: (b.data ?? []) as AlokasiJual[],
+    jasa: (j.data ?? []).map((x) => ({ ...(x as BarisJasa), harga: Number(x.harga) })), invoice: (i.data as Invoice | null) ?? null,
+  };
+}
+
+/** Daftar harga jasa produksi (25 Nov 2026): yang aktif dulu, urut sesuai urutan dibikin. */
+export async function daftarJasa(): Promise<Jasa[]> {
+  const sb = await createClient();
+  const { data, error } = await sb.from("service_items").select("id, nama, harga, urutan, aktif").order("aktif", { ascending: false }).order("urutan");
+  if (error) return [];
+  return (data ?? []).map((x) => ({ ...(x as Jasa), harga: Number(x.harga) }));
+}
+
+/** Persen pajak bawaan di form penjualan (Pengaturan). 11 kalau belum diatur. */
+export async function pajakBawaan(): Promise<number> {
+  const sb = await createClient();
+  const { data } = await sb.from("settings").select("nilai").eq("kunci", "pajak_persen_bawaan").maybeSingle();
+  const n = Number(data?.nilai);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : 11;
 }
 
 export type DetailInvoice = { invoice: Invoice; pembayaran: PembayaranPembeli[]; dokumen: Dokumen[]; kontak: string };
