@@ -68,6 +68,7 @@ export function KoreksiTitipan({ unit, pelanggan, produk, grade, proyek, koreksi
           </Field>
         )}
         {proyek.length === 0 && unit.cycle_id && <input type="hidden" name="siklusId" value={unit.cycle_id} />}
+        <Field label="Spesies" hint="Boleh kosong."><TextIn name="spesies" maxLength={60} defaultValue={unit.spesies ?? ""} /></Field>
         <Field label="Catatan"><TextIn name="catatan" maxLength={300} defaultValue={unit.catatan} /></Field>
         <Field label="Alasan koreksi" hint="Wajib. Misalnya salah pemilik atau salah timbang." error={state?.kolom?.alasan?.[0]}>
           <TextIn name="alasan" maxLength={500} required />

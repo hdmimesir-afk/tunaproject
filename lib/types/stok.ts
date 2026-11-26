@@ -29,7 +29,14 @@ export type UnitStok = {
   langsung_kirim: boolean;
   status: "aktif" | "habis";
   catatan: string;
+  /** Spesies barang titipan (27 Nov 2026), kosong kalau nggak diisi. */
+  spesies?: string;
+  /** Jenis pemilik titipan: PT/perusahaan atau perorangan. */
+  buyers?: { jenis_pemilik: "pt" | "perorangan" } | null;
 };
+
+/** "PT" atau "Perorangan" buat label pemilik titipan. */
+export const LABEL_JENIS_PEMILIK = { pt: "PT", perorangan: "Perorangan" } as const;
 
 export type GerakStok = {
   id: string;

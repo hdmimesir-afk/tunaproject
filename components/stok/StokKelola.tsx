@@ -13,7 +13,7 @@ import { tanggal, waktu } from "@/lib/format";
 import { tampilKg } from "@/lib/logic/grid";
 import { LABEL_STATUS_LOT, type StatusLot } from "@/lib/logic/stokLot";
 import type { ProduksiBaris } from "@/lib/types/produksi";
-import type { GerakStok, IkanUtuh, IsiGudang, Ruangan, UnitStok } from "@/lib/types/stok";
+import { LABEL_JENIS_PEMILIK, type GerakStok, type IkanUtuh, type IsiGudang, type Ruangan, type UnitStok } from "@/lib/types/stok";
 
 type Koreksi = GerakStok & { unit_kode: string; sisa_kg: number };
 
@@ -218,7 +218,7 @@ export function StokKelola({ produksi, units, isi, ruangan, koreksi, ditahan, bo
   // Komponen ikan: loin per grade (skin on/skinless kebaca dari kode grade), kepala dan rahang, toro, dll.
   const komponen = kelompokkan(hasil, (u) => `${u.product_nama}${u.grade_kode ? ` ${u.grade_kode}` : ""} · ${kondisi(u)}`);
   const perPemilik = kelompokkan(titipan, (u) => u.pemilik_nama);
-  const barangTitip = kelompokkan(titipan, (u) => `${u.pemilik_nama}|${u.product_nama}${u.grade_kode ? ` ${u.grade_kode}` : ""}|${kondisi(u)}`);
+  const barangTitip = kelompokkan(titipan, (u) => `${u.pemilik_nama}|${u.product_nama}${u.grade_kode ? ` ${u.grade_kode}` : ""}|${kondisi(u)}|${u.spesies || "-"}`);
   const ruang = (u: UnitStok) => (u.langsung_kirim ? "-" : (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : ""));
   const hrefProduksi = (p: Pick<ProduksiBaris, "id" | "lini_bisnis">) => `/produksi/${p.lini_bisnis === "jasa" ? "jasa" : "jual"}?p=${p.id}`;
 
@@ -291,8 +291,9 @@ export function StokKelola({ produksi, units, isi, ruangan, koreksi, ditahan, bo
           empty="Nggak ada titipan di gudang."
           cari={(k) => k.nama.replaceAll("|", " ")}
           cols={[
-            { h: "Pemilik", r: (k) => <span className="font-medium">{k.contoh.pemilik_nama}</span> },
+            { h: "Pemilik", r: (k) => <><span className="font-medium">{k.contoh.pemilik_nama}</span>{k.contoh.buyers && <span className="block text-[12px]" style={{ color: MUTED }}>{LABEL_JENIS_PEMILIK[k.contoh.buyers.jenis_pemilik]}</span>}</> },
             { h: "Barang", r: (k) => k.nama.split("|")[1] },
+            { h: "Spesies", r: (k) => k.nama.split("|")[3] },
             { h: "Kondisi", r: (k) => <Pill t={k.nama.split("|")[2]} /> },
             { h: "Unit", r: (k) => String(k.unit), right: true },
             { h: "Berat", r: (k) => kgTeks(k.gram / 1000), right: true },

@@ -395,7 +395,7 @@ export const BAB: Bab[] = [
       },
       {"judul":"Menimbang loin per potong (pilihan)","peran":["owner","qc","petugas"],"langkah":["Buka produksi yang statusnya Berjalan dan belum diisi total per grade.","Tekan Timbang per potong.","Di tabel Loin per potong, ketik beratnya.","Tekan Enter buat pindah ke baris berikutnya. Nomor loin dan grade ikut keisi dari baris sebelumnya.","Kalau belum kesimpan sendiri, tekan Simpan loin."],"gambar":"20-hp-produksi","keterangan":"Tabel loin di HP.","catatan":"Sinyal putus? Terus aja ngetik. Isiannya aman di HP dan kekirim sendiri begitu sinyal balik. Jangan hapus data browser sebelum muncul tulisan Semua tersimpan di server."},
       {"judul":"Membaca neraca berat","pengantar":"Neraca di bagian atas rincian ngebandingin ikan masuk dengan loin, hasil samping, limbah, dan susut. Sisanya muncul sebagai Selisih belum jelas. Angka ini hasil hitungan, nggak diisi otomatis. Buat catatan kertas, ada tombol Cetak formulir dan Unduh Excel.","gambar":"05-produksi-detail","keterangan":"Rincian produksi di laptop. Kotak merah itu tombol Simpan loin."},
-      {"judul":"Mengisi komponen hasil","peran":["owner","qc","petugas"],"langkah":["Di bagian komponen, isi berat tiap hasil samping, misalnya Toro, Kepala dan rahang, Tetelan coklat, dan Daging kerok.","Isi Limbah, total (kg) dan Susut, total (kg). Kalau dikosongin, artinya belum ditimbang. Itu beda sama nol.","Tekan Simpan komponen."],"gambar":"05-produksi-komponen","keterangan":"Form komponen hasil."},
+      {"judul":"Mengisi komponen hasil","peran":["owner","qc","petugas"],"langkah":["Di bagian komponen, isi berat tiap hasil samping, misalnya Toro, Kepala, Rahang, Tetelan coklat, dan Daging kerok.","Isi Limbah, total (kg) dan Susut, total (kg). Kalau dikosongin, artinya belum ditimbang. Itu beda sama nol.","Tekan Simpan komponen."],"gambar":"05-produksi-komponen","keterangan":"Form komponen hasil."},
       {"judul":"Menyelesaikan produksi","peran":["owner","qc","petugas"],"langkah":["Cek lagi Neraca berat.","Tekan Selesaikan produksi.","Baca pesan konfirmasinya, terus tekan Ya, selesaikan."],"gambar":"05-produksi-konfirmasi","keterangan":"Konfirmasi kedua. Tombol berisiko lainnya juga minta konfirmasi kayak gini.","catatan":"Begitu diselesaikan, loin dan komponen kekunci dan masuk pemeriksaan QC."},
       {"judul":"Memeriksa dan menyetujui","peran":["owner","qc"],"langkah":["Kepala Produksi / QC: buka produksi yang udah selesai, terus cocokin timbangannya.","Kalau ada selisih, tulis di Penjelasan selisih.","Tekan Tandai sudah diperiksa (QC), terus Ya, sudah saya periksa. Kalau timbangannya meragukan, tekan Minta perbaikan.","Owner: buka produksi yang udah diperiksa, terus tekan Setujui produksi (Owner) dan Ya, setujui."],"gambar":"05-produksi-periksa","keterangan":"Form pemeriksaan QC.","catatan":"Yang nimbang nggak boleh meriksa produksi yang sama. Selisih yang nggak ada penjelasannya cuma bisa diterima Owner, caranya centang kotak Terima selisih."},
     ],
@@ -431,7 +431,7 @@ export const BAB: Bab[] = [
       {
         judul: "Menerima titipan",
         peran: ["owner", "admin", "qc", "petugas"],
-        langkah: ["Tekan Terima titipan (di kartu Titipan pelanggan atau di proyek titipnya).", "Pilih pelanggan, produk, dan grade.", "Pilih Kondisi dan isi Berat (kg).", "Pilih Ruangan. Boleh dikosongin dulu, dipindah nanti.", "Kalau perlu, centang Dibekukan di ABF. Jasa ini ditagih terpisah.", "Tekan Terima titipan."],
+        langkah: ["Tekan Terima titipan (di kartu Titipan pelanggan atau di proyek titipnya).", "Pilih pelanggan, produk, dan grade. Isi Spesies kalau ada, misalnya cumi atau tuna sirip kuning.", "Pilih Kondisi dan isi Berat (kg).", "Pilih Ruangan. Boleh dikosongin dulu, dipindah nanti.", "Kalau perlu, centang Dibekukan di ABF. Jasa ini ditagih terpisah.", "Tekan Terima titipan."],
         gambar: "07-gudang-titipan",
         keterangan: "Form Terima titipan.",
         catatan: "Titipan diambilnya dari sini juga, lewat tombol Ambil di barisnya. Tagihan jasanya kebikin otomatis.",
@@ -454,7 +454,7 @@ export const BAB: Bab[] = [
     slug: "stok",
     judul: "Ringkasan Produksi",
     kelompok: "Produksi",
-    ringkas: "Dashboard kategori Produksi: komponen ikan hasil produksi (loin per grade skin on dan skinless, kepala dan rahang, dll), produksi yg lagi jalan, barang titipan per pemilik, sama ikan yang ditahan. Nggak ada input di sini.",
+    ringkas: "Dashboard kategori Produksi: komponen ikan hasil produksi (loin per grade skin on dan skinless, kepala, rahang, dll), produksi yg lagi jalan, barang titipan per pemilik, sama ikan yang ditahan. Nggak ada input di sini.",
     peran: SEMUA,
     menu: "/produksi",
     tugas: [

@@ -82,17 +82,30 @@ const FormTitipan = z.object({
   perluAbf: z.string().optional(),
   catatan: z.string().trim().max(300),
   siklusId: Opsional.pipe(z.uuid().nullable()).optional(),
+  // Spesies barang titipan (27 Nov 2026), misalnya cumi atau tuna sirip kuning. Boleh kosong.
+  spesies: z.string().trim().max(60, "Maksimal 60 huruf").optional().transform((s) => s ?? ""),
 });
+
+/** Abis terima atau koreksi titipan: isi spesiesnya (fungsi terpisah, biar fungsi terima/koreksi lama nggak berubah). */
+async function aturSpesies(unitId: string | undefined, spesies: string, alasan = ""): Promise<string | null> {
+  if (!unitId) return null;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("atur_spesies_titipan", { p_unit: unitId, p_spesies: spesies, p_alasan: alasan });
+  return error ? pesanDb(error) : null;
+}
 
 export async function terimaTitipan(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormTitipan.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("gudang.write", "terima_titipan", {
+  const hasil = await panggil("gudang.write", "terima_titipan", {
     p_buyer: p.data.buyerId, p_product: p.data.productId, p_grade: p.data.gradeId, p_kondisi: p.data.kondisi, p_kg: p.data.kg,
     p_lokasi: p.data.lokasi, p_perlu_abf: p.data.perluAbf === "on", p_catatan: p.data.catatan,
     ...(p.data.ruanganId ? { p_room: p.data.ruanganId } : {}),
     ...(p.data.siklusId ? { p_cycle: p.data.siklusId } : {}),
   }, "Titipan diterima.");
+  if (hasil?.error || hasil?.kolom || !p.data.spesies) return hasil;
+  const salah = await aturSpesies(hasil?.id, p.data.spesies);
+  return salah ? { ...hasil, error: `Titipan kesimpan, tapi spesiesnya belum: ${salah}` } : hasil;
 }
 
 /* ----------------------------------------------------- ruangan gudang */
@@ -272,6 +285,7 @@ const FormKoreksiTitipan = z.object({
   // Proyek nggak selalu dikirim (kalau nggak ada proyek titip yg bisa dipilih): kosong = tanpa proyek.
   siklusId: z.string().trim().optional().transform((s) => (s ? s : null)).pipe(z.uuid().nullable()),
   catatan: z.string().trim().max(300),
+  spesies: z.string().trim().max(60, "Maksimal 60 huruf").optional().transform((s) => s ?? ""),
   alasan: Alasan,
 });
 
@@ -279,10 +293,13 @@ const FormKoreksiTitipan = z.object({
 export async function koreksiTitipan(_: HasilForm, fd: FormData): Promise<HasilForm> {
   const p = FormKoreksiTitipan.safeParse(Object.fromEntries(fd.entries()));
   if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
-  return panggil("gudang.write", "koreksi_titipan", {
+  const hasil = await panggil("gudang.write", "koreksi_titipan", {
     p_unit: p.data.unitId, p_buyer: p.data.buyerId, p_product: p.data.productId, p_grade: p.data.gradeId, p_kondisi: p.data.kondisi,
     p_kg_masuk: p.data.kg, p_cycle: p.data.siklusId, p_catatan: p.data.catatan, p_alasan: p.data.alasan,
   }, "Koreksi titipan udah kesimpan.");
+  if (hasil?.error || hasil?.kolom) return hasil;
+  const salah = await aturSpesies(p.data.unitId, p.data.spesies, p.data.alasan);
+  return salah ? { ...hasil, error: `Koreksi kesimpan, tapi spesiesnya belum: ${salah}` } : hasil;
 }
 
 /** Hapus titipan dobel yg masih utuh (belum ada yg keluar, belum ditagih). */

@@ -14,7 +14,7 @@ import { formatKg } from "@/lib/logic/neraca";
 import { uraikanBiaya } from "@/lib/logic/tarif";
 import { TombolLampiran } from "@/components/dokumen/Dokumen";
 import type { Dokumen, JenisDokumen, Opsi } from "@/lib/types/pembelian";
-import type { AturanTarif, Booking, IsiGudang, Ruangan, Tagihan, UnitStok } from "@/lib/types/stok";
+import { LABEL_JENIS_PEMILIK, type AturanTarif, type Booking, type IsiGudang, type Ruangan, type Tagihan, type UnitStok } from "@/lib/types/stok";
 import type { ProyekOpsi } from "@/lib/types/produksi";
 import { jamWib, keInputWib, sekarangInputWib } from "@/lib/waktu";
 import { FormAmbil, FormPindah } from "./AksiUnit";
@@ -116,6 +116,7 @@ function FormTitipan({ pelanggan, produk, grade, ruangan, proyekTitip, proyekAwa
             <Field label="Produk" error={state?.kolom?.productId?.[0]}>
               <select name="productId" className={pilihCls} defaultValue="" required><option value="" disabled>Pilih</option>{produk.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select>
             </Field>
+            <Field label="Spesies" hint="Misalnya cumi, tuna sirip kuning. Boleh kosong." error={state?.kolom?.spesies?.[0]}><TextIn name="spesies" maxLength={60} /></Field>
             <Field label="Grade" hint="Boleh kosong."><select name="gradeId" className={pilihCls} defaultValue=""><option value="">Tanpa grade</option>{grade.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}</select></Field>
             <Field label="Kondisi"><select name="kondisi" className={pilihCls} value={kondisi} onChange={(e) => setKondisi(e.target.value)}><option value="fresh">Fresh</option><option value="beku">Beku</option></select></Field>
             <Field label="Berat (kg)" error={state?.kolom?.kg?.[0]}><TextIn name="kg" inputMode="decimal" placeholder="0,000" required /></Field>
@@ -299,10 +300,11 @@ export function GudangKelola({ bagian, atas, titipan, sendiri, isi, ruangan, tag
         <DataList
           rows={aktif}
           empty="Nggak ada titipan di gudang."
-          cari={(u) => `${u.pemilik_nama} ${u.kode} ${u.product_nama} ${u.grade_kode ?? ""} ${u.kondisi} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
+          cari={(u) => `${u.pemilik_nama} ${u.buyers ? LABEL_JENIS_PEMILIK[u.buyers.jenis_pemilik] : ""} ${u.kode} ${u.product_nama} ${u.spesies ?? ""} ${u.grade_kode ?? ""} ${u.kondisi} ${u.lokasi} ${u.room_id ? namaRuangan.get(u.room_id) ?? "" : "belum ditempatkan"}`}
           cols={[
-            { h: "Pelanggan", r: (u: UnitStok) => <><span className="font-medium">{u.pemilik_nama}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.kode} · masuk {tanggal(u.masuk_pada)}</span></> },
+            { h: "Pelanggan", r: (u: UnitStok) => <><span className="font-medium">{u.pemilik_nama}</span><span className="block text-[12px]" style={{ color: MUTED }}>{u.buyers ? `${LABEL_JENIS_PEMILIK[u.buyers.jenis_pemilik]} · ` : ""}{u.kode} · masuk {tanggal(u.masuk_pada)}</span></> },
             { h: "Produk", r: (u) => `${u.product_nama}${u.grade_kode ? ` · ${u.grade_kode}` : ""}` },
+            { h: "Spesies", r: (u) => u.spesies || "-" },
             { h: "Kondisi", r: (u) => <Pill t={u.kondisi === "beku" ? "Beku" : u.perlu_abf ? "Fresh + ABF" : "Fresh"} /> },
             { h: "Ruangan", r: (u) => (u.room_id ? namaRuangan.get(u.room_id) ?? "-" : "Belum ditempatkan") + (u.lokasi ? ` · ${u.lokasi}` : "") },
             { h: "Sisa", r: (u) => kgTeks(u.sisa_kg), right: true },

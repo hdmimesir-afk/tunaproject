@@ -14,8 +14,12 @@ export const MASTER = {
     { k: "kontak", label: "Kontak", jenis: "teks" },
     { k: "catatan", label: "Catatan", jenis: "teks" },
   ] },
-  buyers: { label: "Pembeli", kolom: [
+  buyers: { label: "Pembeli dan pemilik titipan", kolom: [
     { k: "nama", label: "Nama", jenis: "teks", wajib: true },
+    // 27 Nov 2026: pemilik titipan dibedain PT/perusahaan atau perorangan.
+    { k: "jenis_pemilik", label: "Jenis", jenis: "pilih", bawaan: "pt", opsi: [
+      { nilai: "pt", label: "PT / perusahaan" }, { nilai: "perorangan", label: "Perorangan" },
+    ] },
     { k: "kontak", label: "Kontak", jenis: "teks" },
     { k: "tempo_hari", label: "Tempo bayar (hari)", jenis: "angka", min: 0, max: 365, bawaan: 14 },
   ] },

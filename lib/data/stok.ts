@@ -13,7 +13,7 @@ function gagal(apa: string): never {
 
 export async function daftarUnit(): Promise<UnitStok[]> {
   const sb = await createClient();
-  const { data, error } = await sb.from("storage_units").select("*, cycles(kode)").order("masuk_pada").order("kode").limit(5000);
+  const { data, error } = await sb.from("storage_units").select("*, cycles(kode), buyers(jenis_pemilik)").order("masuk_pada").order("kode").limit(5000);
   if (error) gagal("daftar stok");
   return (data ?? []) as UnitStok[];
 }

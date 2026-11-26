@@ -9,8 +9,9 @@ describe("skemaMaster", () => {
   });
   it("membatasi angka dan pilihan", () => {
     const pembeli = skemaMaster("buyers");
-    expect(pembeli.parse({ nama: "B", kontak: "", tempo_hari: "30" }).tempo_hari).toBe(30);
-    expect(pembeli.safeParse({ nama: "B", kontak: "", tempo_hari: "400" }).success).toBe(false);
+    expect(pembeli.parse({ nama: "B", jenis_pemilik: "pt", kontak: "", tempo_hari: "30" }).tempo_hari).toBe(30);
+    expect(pembeli.safeParse({ nama: "B", jenis_pemilik: "pt", kontak: "", tempo_hari: "400" }).success).toBe(false);
+    expect(pembeli.safeParse({ nama: "B", jenis_pemilik: "koperasi", kontak: "", tempo_hari: "30" }).success).toBe(false);
     const komponen = skemaMaster("component_categories");
     expect(komponen.safeParse({ nama: "X", komponen: "lain", urutan: 1 }).success).toBe(false);
   });
