@@ -6,7 +6,7 @@ import { KonfirmasiDua } from "@/components/ui/KonfirmasiDua";
 import { PesanForm, pilihCls } from "@/components/ui/PesanForm";
 import { INK, MUTED } from "@/components/ui/tokens";
 import type { HasilForm } from "@/lib/actions/auth";
-import { catatBiayaTetap, simpanBiayaTetap } from "@/lib/actions/keuangan";
+import { catatBiayaTetap, catatTotalBiayaTetap, simpanBiayaTetap } from "@/lib/actions/keuangan";
 import { rp } from "@/lib/format";
 import { jatuhTempo, KELOMPOK_BIAYA, NAMA_BULAN, totalPos, type CaraBayar, type KelompokBiaya } from "@/lib/logic/biayaTetap";
 import type { Biaya, BiayaTetap as Pos } from "@/lib/types/keuangan";
@@ -85,9 +85,43 @@ function CatatBulanIni({ bulan, hariIni, jatuh }: { bulan: string; hariIni: stri
   );
 }
 
+const akhirBulan = (b: string) => new Date(Date.UTC(Number(b.slice(0, 4)), Number(b.slice(5, 7)), 0)).toISOString().slice(0, 10);
+const STATUS_TOTAL: Record<Biaya["status"], string> = { draf: "draf", diajukan: "nunggu Owner", disetujui: "disetujui", ditolak: "ditolak" };
+
+/** Input total biaya tetap sebulan tanpa rincian per pos (27 Nov 2026, data finance confidential). */
+function FormTotal({ hariIni, onSelesai }: { hariIni: string; onSelesai: () => void }) {
+  const [state, action, pending] = useActionState<HasilForm, FormData>(catatTotalBiayaTetap, undefined);
+  const [bulan, setBulan] = useState(hariIni.slice(0, 7));
+  useEffect(() => { if (state?.pesan && !state.error) onSelesai(); }, [state, onSelesai]);
+  const tglAwal = hariIni.startsWith(bulan) ? hariIni : akhirBulan(bulan);
+  return (
+    <form action={action} className="space-y-3">
+      <PesanForm state={state?.error ? state : undefined} />
+      <p className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
+        Cukup isi total biaya tetap sebulan, rinciannya nggak perlu dimasukin ke sistem. Totalnya masuk jadi biaya, diajukan ke Owner, dan abis disetujui ngurangin laba bulan itu.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Bulan" error={state?.kolom?.bulan?.[0]}>
+          <TextIn name="bulan" type="month" value={bulan} max={hariIni.slice(0, 7)} onChange={(e) => setBulan(e.target.value)} required />
+        </Field>
+        <Field label="Tanggal dicatat" error={state?.kolom?.tanggal?.[0]}>
+          <TextIn key={bulan} name="tanggal" type="date" defaultValue={bulan ? tglAwal : ""} min={bulan ? `${bulan}-01` : undefined} max={bulan ? akhirBulan(bulan) : undefined} required />
+        </Field>
+      </div>
+      <Field label="Total biaya tetap (Rp)" hint="Contoh 200.000.000" error={state?.kolom?.jumlah?.[0]}>
+        <TextIn name="jumlah" inputMode="decimal" required />
+      </Field>
+      <Btn type="submit" full disabled={pending}>{pending ? "Menyimpan..." : "Simpan total"}</Btn>
+    </form>
+  );
+}
+
 export function BiayaTetap({ daftar, biaya, bolehTulis, hariIni }: { daftar: Pos[]; biaya: Biaya[]; bolehTulis: boolean; hariIni: string }) {
   const [form, setForm] = useState<{ pos: Pos | null; kelompok: KelompokBiaya } | null>(null);
+  const [formTotal, setFormTotal] = useState(false);
   const bulan = hariIni.slice(0, 7);
+  const totalBulanan = biaya.filter((b) => b.total_tetap).sort((a, b) => (a.total_tetap as string).localeCompare(b.total_tetap as string));
+  const totalBulanIni = totalBulanan.find((b) => b.total_tetap?.startsWith(bulan));
   const bulanKe = Number(bulan.slice(5, 7));
   const sudah = new Set(biaya.filter((b) => b.fixed_cost_id && b.bulan_tetap?.startsWith(bulan)).map((b) => b.fixed_cost_id as string));
   const jatuh = daftar.filter((p) => jatuhTempo(p, bulanKe));
@@ -100,6 +134,29 @@ export function BiayaTetap({ daftar, biaya, bolehTulis, hariIni }: { daftar: Pos
   return (
     <Card title="Biaya tetap" right={bolehTulis && <Btn size="sm" v="light" onClick={() => setForm({ pos: null, kelompok: "tenaga_kerja" })}>Tambah pos</Btn>}>
       <div data-testid="biaya-tetap" className="space-y-4">
+        <section data-testid="total-biaya-tetap" className="rounded-2xl bg-white px-3.5 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="min-w-0">
+              <span className="block text-[13.5px] font-semibold" style={{ color: INK }}>Total sebulan (tanpa rincian)</span>
+              <span className="block text-[12px]" style={{ color: MUTED }}>Satu bulan pilih salah satu: input total di sini, atau catat per pos di bawah.</span>
+            </span>
+            {bolehTulis && <Btn size="sm" v="light" onClick={() => setFormTotal(true)}>Input total bulanan</Btn>}
+          </div>
+          {totalBulanan.length > 0 && (
+            <ul className="mt-2 divide-y divide-black/5">
+              {totalBulanan.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-3 py-1.5 text-[13px]">
+                  <span style={{ color: INK }}>{bulanTeks(b.total_tetap as string)}</span>
+                  <span className="text-right">
+                    <span className="block font-semibold tabular-nums" style={{ color: INK }}>{rp(b.jumlah)}</span>
+                    <span className="block text-[11.5px]" style={{ color: MUTED }}>{b.kode} · {STATUS_TOTAL[b.status]}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-2xl bg-white px-3.5 py-2.5">
             <p className="text-[12px]" style={{ color: MUTED }}>Per bulan</p>
@@ -148,7 +205,9 @@ export function BiayaTetap({ daftar, biaya, bolehTulis, hariIni }: { daftar: Pos
         })}
 
         {bolehTulis && jatuh.length > 0 && (
-          belum.length > 0
+          totalBulanIni
+            ? <div className="flex justify-center"><Pill t={`Biaya tetap ${bulanTeks(bulan)} udah diinput totalnya`} /></div>
+            : belum.length > 0
             ? <CatatBulanIni bulan={bulan} hariIni={hariIni} jatuh={belum} />
             : <div className="flex justify-center"><Pill t={`Semua pos ${bulanTeks(bulan)} udah dicatat`} /></div>
         )}
@@ -156,6 +215,11 @@ export function BiayaTetap({ daftar, biaya, bolehTulis, hariIni }: { daftar: Pos
       {form && (
         <Modal title={form.pos ? `Ubah ${form.pos.nama}` : "Tambah pos"} onClose={() => setForm(null)}>
           <FormPos awal={form.pos} kelompokAwal={form.kelompok} onSelesai={() => setForm(null)} />
+        </Modal>
+      )}
+      {formTotal && (
+        <Modal title="Input total biaya tetap" onClose={() => setFormTotal(false)}>
+          <FormTotal hariIni={hariIni} onSelesai={() => setFormTotal(false)} />
         </Modal>
       )}
     </Card>

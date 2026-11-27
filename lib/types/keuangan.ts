@@ -25,6 +25,8 @@ export type Biaya = {
   bulan_tetap?: string | null;
   /** Lini bisnis (25 Nov 2026): ikut proyeknya, atau dipilih manual. null = biaya umum. */
   lini_bisnis?: "jual" | "jasa" | "titip" | null;
+  /** Bulan total biaya tetap (27 Nov 2026): diisi kalau biaya ini total sebulan tanpa rincian per pos. */
+  total_tetap?: string | null;
 };
 
 /** Pos biaya tetap: kelompok + cara bayar. Bulanan dicatat tiap bulan, tahunan sekali setahun di bulan bayarnya.

@@ -149,6 +149,16 @@ export async function catatBiayaTetap(_: HasilForm, fd: FormData): Promise<Hasil
   refresh();
   return { pesan: `${Number(data)} pos udah dicatat jadi biaya. Yg kategorinya wajib nota masih draf, lampirkan notanya dulu terus ajukan.` };
 }
+/** Total biaya tetap sebulan tanpa rincian per pos (27 Nov 2026, data finance confidential). Satu bulan satu total,
+    dan bulan yg udah dicatat per pos nggak bisa diinput totalnya (biar nggak dobel). */
+export async function catatTotalBiayaTetap(_: HasilForm, fd: FormData): Promise<HasilForm> {
+  const p = z.object({ bulan: z.string().regex(/^\d{4}-\d{2}$/, "Pilih bulannya"), tanggal: z.iso.date("Isi tanggal"), jumlah: FormBiaya.shape.jumlah })
+    .refine((d) => d.tanggal.startsWith(d.bulan), { message: "Tanggalnya harus di bulan yg dicatat", path: ["tanggal"] })
+    .safeParse(Object.fromEntries(fd.entries()));
+  if (!p.success) return { kolom: z.flattenError(p.error).fieldErrors };
+  return panggil("keuangan.write", "catat_total_biaya_tetap", { p_bulan: `${p.data.bulan}-01`, p_tanggal: p.data.tanggal, p_jumlah: p.data.jumlah },
+    "Total biaya tetap udah dicatat dan diajukan ke Owner.");
+}
 /* ---------------------------------------------------------- tutup buku */
 const Bulan = z.string().regex(/^\d{4}-\d{2}$/, "Bulannya nggak valid").transform((s) => `${s}-01`);
 
