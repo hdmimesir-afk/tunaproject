@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { DaftarDokumen, Unggah } from "@/components/dokumen/Dokumen";
-import { BiayaTetap } from "./BiayaTetap";
+import { BiayaTetap, FormTotal } from "./BiayaTetap";
+
+/** Kategori total biaya tetap cuma lewat tombol Input total biaya tetap (biar satu bulan satu total dan nggak dobel sama pos). */
+const KATEGORI_TOTAL_TETAP = (nama: string) => nama.trim().toLowerCase() === "biaya tetap bulanan";
 import { BukuKas } from "./BukuKas";
 import { RiwayatKoreksi } from "@/components/ui/RiwayatKoreksi";
 import type { Koreksi } from "@/lib/data/koreksi";
@@ -178,6 +181,7 @@ export function KeuanganKelola({ lini, ringkasLini, biaya: semuaBiaya, kategori,
   const [baru, setBaru] = useState(false);
   const [ubah, setUbah] = useState(false);
   const [koreksi, setKoreksi] = useState(false);
+  const [totalTetap, setTotalTetap] = useState(false);
   // Nama buat riwayat koreksi (proyek, PO, produksi ditulis kodenya, bukan id).
   const namaRujukan = Object.fromEntries([...siklus, ...rujukan.po, ...rujukan.produksi].map((x) => [x.id, x.label]));
   const tutupDetail = () => { setUbah(false); setKoreksi(false); router.push(dasar); };
@@ -204,7 +208,12 @@ export function KeuanganKelola({ lini, ringkasLini, biaya: semuaBiaya, kategori,
       </div>
       )}
 
-      <Card title={lini ? `Biaya dan pengeluaran ${LABEL_LINI_BIAYA[lini]}` : "Biaya"} right={bolehTulis && <Btn size="sm" onClick={() => setBaru(true)}>Catat biaya</Btn>}>
+      <Card title={lini ? `Biaya dan pengeluaran ${LABEL_LINI_BIAYA[lini]}` : "Biaya"} right={bolehTulis && (
+        <span className="flex flex-wrap justify-end gap-1.5">
+          {!lini && <Btn size="sm" v="light" onClick={() => setTotalTetap(true)}>Input total biaya tetap</Btn>}
+          <Btn size="sm" onClick={() => setBaru(true)}>Catat biaya</Btn>
+        </span>
+      )}>
         <DataList
           rows={biaya}
           empty={bolehTulis ? "Belum ada biaya. Ketuk Catat biaya, lampirkan notanya, terus ajukan." : "Belum ada biaya."}
@@ -230,7 +239,12 @@ export function KeuanganKelola({ lini, ringkasLini, biaya: semuaBiaya, kategori,
 
       {baru && (
         <Modal title="Catat biaya" onClose={() => setBaru(false)}>
-          <FormBiaya lini={lini} kategori={kategori} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`${dasar}?b=${id}`); }} />
+          <FormBiaya lini={lini} kategori={kategori.filter((k) => !KATEGORI_TOTAL_TETAP(k.nama))} siklus={siklus} rujukan={rujukan} hariIni={hariIni} awal={null} onSelesai={(id) => { setBaru(false); router.push(`${dasar}?b=${id}`); }} />
+        </Modal>
+      )}
+      {totalTetap && (
+        <Modal title="Input total biaya tetap" onClose={() => setTotalTetap(false)}>
+          <FormTotal hariIni={hariIni} onSelesai={() => setTotalTetap(false)} />
         </Modal>
       )}
       {detail && (

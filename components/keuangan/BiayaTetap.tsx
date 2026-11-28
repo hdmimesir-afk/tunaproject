@@ -89,7 +89,7 @@ const akhirBulan = (b: string) => new Date(Date.UTC(Number(b.slice(0, 4)), Numbe
 const STATUS_TOTAL: Record<Biaya["status"], string> = { draf: "draf", diajukan: "nunggu Owner", disetujui: "disetujui", ditolak: "ditolak" };
 
 /** Input total biaya tetap sebulan tanpa rincian per pos (27 Nov 2026, data finance confidential). */
-function FormTotal({ hariIni, onSelesai }: { hariIni: string; onSelesai: () => void }) {
+export function FormTotal({ hariIni, onSelesai }: { hariIni: string; onSelesai: () => void }) {
   const [state, action, pending] = useActionState<HasilForm, FormData>(catatTotalBiayaTetap, undefined);
   const [bulan, setBulan] = useState(hariIni.slice(0, 7));
   useEffect(() => { if (state?.pesan && !state.error) onSelesai(); }, [state, onSelesai]);
